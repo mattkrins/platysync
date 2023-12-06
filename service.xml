@@ -1,0 +1,12 @@
+<service>
+    <id>cdapp</id>
+    <description>Provision LDAP Users from CSV files</description>
+    <executable>node</executable>
+    <arguments>server.js</arguments>
+    <delayedAutoStart>true</delayedAutoStart>
+    <log mode="roll-by-size">
+        <sizeThreshold>10240</sizeThreshold>
+        <keepFiles>8</keepFiles>
+    </log>
+    <onfailure action="restart" delay="10 sec"/>
+</service>

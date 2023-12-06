@@ -1,0 +1,1 @@
+var f=function(c){var a=[],r=null,t=function(){for(var e=arguments.length,u=new Array(e),n=0;n<e;n++)u[n]=arguments[n];a=u,!r&&(r=requestAnimationFrame(function(){r=null,c.apply(void 0,a)}))};return t.cancel=function(){r&&(cancelAnimationFrame(r),r=null)},t};const o=f;export{o as r};
