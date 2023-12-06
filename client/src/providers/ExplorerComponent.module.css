@@ -1,0 +1,13 @@
+.connector {
+    display: block;
+    width: 100%;
+    padding: var(--mantine-spacing-md);
+    border: 0.0625rem solid;
+    border-color: rgb(55, 58, 64);
+    border-radius: 0.25rem;
+    @mixin hover {
+        box-shadow: var(--mantine-shadows-md);
+        transform: scale(1.05);
+        background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
+    }
+}

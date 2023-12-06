@@ -1,0 +1,7 @@
+.control {
+    border-radius: 0.25rem;
+    @mixin hover {
+        box-shadow: var(--mantine-shadows-md);
+        background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
+    }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "vite --host",
+    "build": "tsc && vite build"
+  },
+  "dependencies": {
+    "@hello-pangea/dnd": "^16.3.0",
+    "@mantine/core": "^7.1.7",
+    "@mantine/dates": "^7.1.7",
+    "@mantine/dropzone": "^7.1.7",
+    "@mantine/form": "^7.1.7",
+    "@mantine/hooks": "^7.1.7",
+    "@mantine/modals": "^7.1.7",
+    "@mantine/notifications": "^7.1.7",
+    "@tabler/icons-react": "^2.40.0",
+    "axios": "^1.5.1",
+    "cronstrue": "^2.41.0",
+    "dayjs": "^1.11.10",
+    "handlebars": "^4.7.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "socket.io-client": "^4.7.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.33",
+    "@types/react-dom": "^18.2.14",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.1.0",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "postcss": "^8.4.31",
+    "postcss-preset-mantine": "^1.9.0",
+    "postcss-simple-vars": "^7.0.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0"
+  }
+}
