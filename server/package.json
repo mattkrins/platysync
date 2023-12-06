@@ -1,0 +1,74 @@
+{
+  "name": "ldap-provisioner-server",
+  "version": "0.1.0",
+  "author": "mattkrins",
+  "description": "Server Files",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cors": "^2.8.5",
+    "croner": "^6.0.3",
+    "express": "^4.18.1",
+    "handlebars": "^4.7.7",
+    "http-cookie-agent": "^4.0.2",
+    "http-proxy-agent": "^5.0.0",
+    "keytar": "^7.9.0",
+    "ldapjs": "2.3.3",
+    "multer": "^1.4.5-lts.1",
+    "node-html-parser": "^6.1.4",
+    "papaparse": "^5.3.2",
+    "pdf-lib": "^1.17.1",
+    "pdf-to-printer": "^5.6.0",
+    "qrcode": "^1.5.3",
+    "sequelize": "^6.28.0",
+    "socket.io": "^4.6.1",
+    "sqlite3": "^5.1.4",
+    "tough-cookie": "^4.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.20.0",
+    "nodemon": "^2.0.19",
+    "prettier": "^2.7.1"
+  },
+  "scripts": {
+    "start": "nodemon src/index.js"
+  },
+  "prettier": {
+    "useTabs": true,
+    "semi": false,
+    "singleQuote": false,
+    "bracketSpacing": true,
+    "trailingComma": "es5",
+    "printWidth": 160
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended"
+    ],
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "rules": {
+      "no-unused-vars": 1,
+      "no-undef": 1
+    },
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaVersion": "latest"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

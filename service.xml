@@ -1,0 +1,6 @@
+<service>
+  <id>ldap-provisioner</id>
+  <description>Runs the ldap-provisioner web server</description>
+  <executable>node</executable>
+  <arguments>server/src/index.js</arguments>
+</service>

@@ -1,0 +1,75 @@
+{
+  "name": "ldap-provisioner-client",
+  "version": "0.1.0",
+  "author": "mattkrins",
+  "description": "Client F`iles",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.3.3",
+    "cronstrue": "^2.27.0",
+    "handlebars": "^4.7.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.3.0",
+    "react-icons": "^4.4.0",
+    "react-sortablejs": "^6.1.4",
+    "react-tooltip": "^4.2.21",
+    "react-use": "^17.4.0",
+    "semantic-ui-css": "^2.5.0",
+    "semantic-ui-react": "^2.1.3",
+    "socket.io-client": "^4.6.1",
+    "sortablejs": "^1.15.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "eslint": "^8.0.0",
+    "eslint-config-react-app": "^7.0.1",
+    "prettier": "^2.7.1",
+    "react-scripts": "5.0.1"
+  },
+  "proxy": "http://localhost:7870",
+  "scripts": {
+    "start": "cross-env PORT=2580 react-scripts start",
+    "build": "react-scripts build"
+  },
+  "prettier": {
+    "useTabs": true,
+    "semi": false,
+    "singleQuote": false,
+    "bracketSpacing": true,
+    "trailingComma": "es5",
+    "printWidth": 160
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "react-app",
+      "react-app/jest"
+    ],
+    "env": {
+      "browser": true,
+      "es6": true
+    },
+    "rules": {
+      "no-unused-vars": 1,
+      "no-undef": 1
+    },
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaVersion": "latest"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

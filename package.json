@@ -1,0 +1,15 @@
+{
+  "name": "ldap-provisioner",
+  "version": "0.1.0",
+  "author": "mattkrins",
+  "description": "Provision LDAP Users from CSV files",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "concurrently": "^7.4.0"
+  },
+  "scripts": {
+    "start": "concurrently \"cd client && npm start\" \"cd server && npm start\" ",
+    "package": "cd client && npm run build && cd .. && node package.js"
+  }
+}
