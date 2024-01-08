@@ -12,9 +12,9 @@ export default function RunCommand( { form, index, explorer }:{ form: UseFormRet
             label="Command" withAsterisk
             description="Arbitrary system command. Result of execution will be placed in {{stdout}} template."
             placeholder="/bin/echo {{username}}"
-            {...form.getInputProps(`actions.${index}.cmd`)}
+            {...form.getInputProps(`actions.${index}.value`)}
             leftSection={<IconTerminal size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={explorer('cmd')}
+            rightSection={explorer('value')}
         />
     </Box>
     )

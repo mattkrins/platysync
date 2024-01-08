@@ -82,13 +82,16 @@ export class ldap {
     **/
     public getRoot(): Promise<string> {
         return new Promise((resolve, reject) => {
+            //return resolve("dc=example,dc=com");
+            //return resolve("ldap,dc=forumsys,dc=com");
             if (!this.client) return reject(Error("Not connected."));
             const opts: ldapjs.SearchOptions = { attributes: 'rootDomainNamingContext' };
             this.client.search('', opts, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
                 if (err) return reject( err );
                 res.on('searchEntry', (entry) => {
                     if (!entry.attributes || !entry.attributes[0] || !entry.attributes[0].values || !entry.attributes[0].values[0]) {
-                        return reject(Error("Domain context not found."));
+                        console.log(entry.attributes)
+                        return reject(Error("DC path could not be autoresolved."));
                     }
                     resolve(entry.attributes[0].values[0]);
                 });
@@ -151,7 +154,7 @@ export class ldap {
             const usersArray: {[k: string]: string}[] = [];
             const userObj: {[k: string]: User} = {};
             const opts: ldapjs.SearchOptions = {
-                filter: '(objectCategory=Person)',
+                filter: '(objectclass=person)',
                 scope: 'sub',
                 sizeLimit: 1000,
                 paged: true,

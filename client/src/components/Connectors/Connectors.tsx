@@ -3,12 +3,12 @@ import SchemaContext from '../../providers/SchemaContext';
 import Container from '../Common/Container';
 import Head from '../Common/Head';
 import { Button, Badge, Table, Group, Text, ActionIcon, rem, useMantineTheme } from '@mantine/core';
-import { IconPencil, IconTrash } from '@tabler/icons-react';
+import { IconCopy, IconPencil, IconTrash } from '@tabler/icons-react';
 import providers from '../../modules/connectors.ts'
 import { useDisclosure } from '@mantine/hooks';
 import AddConnectors from './AddConnectors.tsx';
 import EditConnector from './EditConnector.tsx';
-import useAPI from '../../hooks/useAPI.ts';
+import useAPI, { handleError } from '../../hooks/useAPI.ts';
 import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
 
@@ -21,11 +21,21 @@ export default function Connectors() {
   const edit = (connector: Connector) => { setAdding(undefined); setEditing(connector); }
   const add = (provider: string) => { close(); setEditing(undefined); setAdding(provider); }
 
-  const { del, request, loading: l } = useAPI({
+  const { del, request: r1, loading: l1 } = useAPI({
       url: `/schema/${schema?.name}/connector`,
+      catch: (e) => handleError(e),
       then: ({connectors, _connectors, headers}) => {
         mutate({connectors, _connectors, headers});
         notifications.show({ title: "Success",message: 'Connector Removed.', color: 'lime', });
+      },
+  });
+
+  const { post: copy, request: r2, loading: l2 } = useAPI({
+      url: `/schema/${schema?.name}/connector`,
+      catch: (e) => handleError(e),
+      then: ({connectors, _connectors, headers}) => {
+        mutate({connectors, _connectors, headers});
+        notifications.show({ title: "Success",message: 'Connector Copied.', color: 'lime', });
       },
   });
 
@@ -43,7 +53,8 @@ export default function Connectors() {
       onConfirm: () => del({append_url: `/${name}`, loading: name}),
   });
   
-  const loading = l ? (request as {loading: string|undefined}).loading : false;
+  const request = r1 || r2;
+  const loading = (l1 ||l2) ? (request as {loading: string|undefined}).loading : false;
 
   if (!schema) return;
   return (
@@ -71,8 +82,11 @@ export default function Connectors() {
               <Table.Td><Badge color={theme.colors[provider.color][6]} variant="light">{provider.name}</Badge></Table.Td>
               <Table.Td miw={80} >
                 <Group gap={0} justify="flex-end">
-                  <ActionIcon onClick={()=>edit(item)} variant="subtle" color="gray">
+                  <ActionIcon onClick={()=>edit(item)} variant="subtle" color="orange">
                     <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                  </ActionIcon>
+                  <ActionIcon onClick={()=>copy({append_url: `/${item.name}/copy`, loading: item.name})} loading={loading===item.name} variant="subtle" color="indigo">
+                    <IconCopy style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                   </ActionIcon>
                   <ActionIcon onClick={()=>remove(item.name)} loading={loading===item.name} variant="subtle" color="red">
                     <IconTrash style={{ width: rem(16), height: rem(16) }} stroke={1.5} />

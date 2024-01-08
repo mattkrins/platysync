@@ -9,7 +9,7 @@ export default function MoveFile( { form, index, explorer }:{ form: UseFormRetur
             label="Source File" withAsterisk
             description="Path of file to be moved."
             placeholder="D:/source/{{username}}.txt"
-            {...form.getInputProps(`actions.${index}.target`)}
+            {...form.getInputProps(`actions.${index}.source`)}
             leftSection={<IconFileX size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             rightSection={explorer('source')}
         />

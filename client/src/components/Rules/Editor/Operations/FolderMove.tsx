@@ -10,7 +10,7 @@ export default function MoveFolder( { form, index, explorer }:{ form: UseFormRet
             label="Source Folder" withAsterisk
             description="Path of folder to be moved."
             placeholder="D:/source/{{username}}/"
-            {...form.getInputProps(`actions.${index}.target`)}
+            {...form.getInputProps(`actions.${index}.source`)}
             leftSection={<IconFolderX size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             rightSection={explorer('source')}
         />

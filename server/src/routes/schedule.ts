@@ -111,9 +111,10 @@ export default async function schedule(route: FastifyInstance) {
         try {
             if (type==="Monitor"){
                 delete body.cron;
-                validate(body, {
+                const invalid = await validate(body, {
                     monitor: isPathValid(),
                 }, reply);
+                if (invalid) return;
             } else { delete body.monitor; }
             const schedule = {...body, rules: rules.length>0 ? JSON.stringify(rules): null  };
             await Schedule.create(schedule);
@@ -160,9 +161,10 @@ export default async function schedule(route: FastifyInstance) {
             if (!schedule) throw reply.code(404).send({ validation: { name: "Schedule ID does not exist." } });
             if (type==="Monitor"){
                 delete body.cron;
-                validate(body, {
+                const invalid = await validate(body, {
                     monitor: isPathValid(),
                 }, reply);
+                if (invalid) return;
             } else { delete body.monitor; }
             disableSchedule(schedule);
             const newSchedule = {

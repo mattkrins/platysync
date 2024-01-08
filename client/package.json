@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "serve": "vite --host",
+    "start": "vite --host",
     "build": "tsc && vite build"
   },
   "dependencies": {

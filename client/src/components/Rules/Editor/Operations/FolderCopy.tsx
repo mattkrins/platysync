@@ -10,7 +10,7 @@ export default function CopyFolder( { form, index, explorer }:{ form: UseFormRet
             label="Source Folder" withAsterisk
             description="Path of original folder to be copied."
             placeholder="D:/source/public/"
-            {...form.getInputProps(`actions.${index}.target`)}
+            {...form.getInputProps(`actions.${index}.source`)}
             leftSection={<IconFolderDown size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             rightSection={explorer('source')}
         />

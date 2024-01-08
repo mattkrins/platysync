@@ -29,9 +29,25 @@ export interface Condition {
   delimiter: '' | ',' | ';' | '|' | 'tab' | ' ';
 }
 
+export interface Attribute {
+  name: string;
+  value: string;
+}
+
 export interface Action {
   name: string;
-  target?: string
+  target?: string;
+  value?: string;
+  source?: string;
+  target?: string;
+  cn?: string;
+  sam?: string;
+  password?: string;
+  upn?: string;
+  ou?: string;
+  attributes?: Attribute[];
+  groups?: string[];
+  templates?: { name: string, value: string }[];
 }
 
 export interface secondary {id: string, primary: string, secondaryKey: string, primaryKey: string}

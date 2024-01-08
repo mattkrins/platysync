@@ -5,7 +5,7 @@ import Head from '../Common/Head';
 import { Button, Group, Text, ActionIcon, useMantineTheme, Switch, Grid, Tooltip } from '@mantine/core';
 import { IconCopy, IconGripVertical, IconInfoCircle, IconPencil, IconPlayerPlay, IconTrash } from '@tabler/icons-react';
 import { useDisclosure, useListState } from '@mantine/hooks';
-import useAPI from '../../hooks/useAPI.ts';
+import useAPI, { handleError } from '../../hooks/useAPI.ts';
 import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
@@ -26,6 +26,7 @@ export default function Rules() {
     cleanup: true,
     furl: ({name}:{name:string}) => `/schema/${schema?.name}/rule/${name}`,
     fdata: ({name}:{name:string}) => ({ name }),
+    catch: (e) => handleError(e),
     then: ({rules, _rules}) => {
         mutate({rules, _rules});
         notifications.show({ title: "Success",message: 'Rule Removed.', color: 'lime', });
@@ -35,6 +36,7 @@ export default function Rules() {
     cleanup: true,
     furl: ({name}:{name:string}) => `/schema/${schema?.name}/rule/${name}/copy`,
     fdata: ({name}:{name:string}) => ({ name }),
+    catch: (e) => handleError(e),
     then: ({rules, _rules}) => {
         mutate({rules, _rules});
         notifications.show({ title: "Success",message: 'Rule Copied.', color: 'lime', });
@@ -44,6 +46,7 @@ export default function Rules() {
     cleanup: true,
     furl: ({name}:{name:string}) => `/schema/${schema?.name}/rule/${name}/toggle`,
     fdata: ({name}:{name:string}) => ({ name }),
+    catch: (e) => handleError(e),
     then: ({rules, _rules}) => {
         mutate({rules, _rules});
     },

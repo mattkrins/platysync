@@ -1,6 +1,6 @@
-import { TextInput, SimpleGrid, PasswordInput, ActionIcon, Button, Group, Grid, Center } from '@mantine/core'
+import { TextInput, SimpleGrid, PasswordInput, ActionIcon, Button, Group, Grid, Center, Checkbox } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
-import { IconTag, IconWorld, IconUser, IconKey, IconEdit, IconGripVertical, IconTrash, IconFolder, IconSearch } from '@tabler/icons-react'
+import { IconTag, IconWorld, IconUser, IconKey, IconEdit, IconGripVertical, IconTrash, IconFolder, IconSearch, IconServer } from '@tabler/icons-react'
 import Concealer from '../../Common/Concealer';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { SelectCreatable } from '../../Common/SelectCreatable';
@@ -98,7 +98,20 @@ export default function LDAP( { form, editing }: { form: UseFormReturnType<Recor
             <Attributes form={form} />
         </Concealer>
         <Concealer>
+            <Checkbox mt="md" label="Specify DC path"
+            onChange={(event) => form.setFieldValue('dc_path', event.currentTarget.checked?'':undefined)}
+            checked={!!form.values.dc_path||form.values.dc_path===''}
+            />
+            {(form.values.dc_path||form.values.dc_path==='')&&
             <TextInput
+                label="DC Path"
+                description="All distinguished names, including the Base Organizational Unit, will be appended by this path."
+                placeholder="dc=sub,dc=domain,dc=com"
+                withAsterisk
+                leftSection={<IconServer size={16} style={{ display: 'block', opacity: 0.5 }} />}
+                {...form.getInputProps('dc_path')}
+            />}
+            <TextInput  mt="md"
             label="Base Organizational Unit"
             description="All distinguished names will be appended by this path."
             placeholder="ou=child,ou=parent"

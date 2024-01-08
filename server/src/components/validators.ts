@@ -21,7 +21,7 @@ export async function validate(
     validators: { [field: string]: (value: value, body?: FastifyRequest) => Promise<string|false>|string|false },
     reply?: FastifyReply,
     body?: FastifyRequest,
-    ) {
+    ): Promise<false | object> {
     const validation: { [field: string]: string|Promise<string|false> } = {};
     for (const field of Object.keys(validators)) {
         try {
@@ -31,8 +31,11 @@ export async function validate(
             validation[field] = _Error(e).message;
         }
     }
-    if (reply&&Object.keys(validation).length>0) return reply.code(400).send({ validation });
-    if (Object.keys(validation).length>0) return validation;
+    if (Object.keys(validation).length>0){
+        if (reply) reply.code(400).send({ validation });
+        return validation;
+    }
+    return false;
 }
 
 export function form(validation = {}){
@@ -83,6 +86,15 @@ export function validWindowsFilename(error: string = 'Not a valid windows filena
     if (!value) return error;
     const filename = value as string;
     const valid = !invalidChars.test(filename) && !reservedNames.test(filename) && filename.length <= 260 && filename.length > 0;
+    return !valid && error;
+  }
+}
+
+export function validConnectorName(error: string = 'Connector name may only contain alphanumeric, - and _ characters.') {
+  const validCharacters = /^[a-zA-Z0-9_-]*$/g;
+  return (value: value) => {
+    if (isNotEmpty('e')(value)) return 'Name can not be empty.';
+    const valid = validCharacters.test(value as string);
     return !valid && error;
   }
 }
