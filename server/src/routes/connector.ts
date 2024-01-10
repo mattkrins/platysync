@@ -110,7 +110,6 @@ export default function connector(route: FastifyInstance) {
             const filePath = `${path}/schemas/${schema.name}/connectors.yaml`;
             writeYAML(schema.connectors, filePath);
             if (body.id in getHeaders) schema.headers[body.name] = await getHeaders[body.id](body);
-            console.log(schema.headers)
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers};
         } catch (e) {
           const error = _Error(e);

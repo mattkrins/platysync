@@ -80,7 +80,7 @@ export function hasLength(options: {min?: number, max?: number}, error: string =
 }
 
 export function validWindowsFilename(error: string = 'Not a valid windows filename.') {
-  const invalidChars = /[<>:"/\\|?*]/g;
+  const invalidChars = /[<>:"/\\|?*]/;
   const reservedNames = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
   return (value: value) => {
     if (!value) return error;
@@ -91,14 +91,13 @@ export function validWindowsFilename(error: string = 'Not a valid windows filena
 }
 
 export function validConnectorName(error: string = 'Connector name may only contain alphanumeric, - and _ characters.') {
-  const validCharacters = /^[a-zA-Z0-9_-]*$/g;
-  return (value: value) => {
-    if (isNotEmpty('e')(value)) return 'Name can not be empty.';
-    const valid = validCharacters.test(value as string);
+    return (value: value) => {
+        if (isNotEmpty('e')(value)) return 'Name can not be empty.';
+        const validCharacters = /^[a-zA-Z0-9_-]*$/;
+        const valid = validCharacters.test(value as string);
     return !valid && error;
   }
 }
-
 
 function isCSVPathValid() {
     return async (value: value) => {
