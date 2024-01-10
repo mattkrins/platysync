@@ -98,18 +98,18 @@ export default function LDAP( { form, editing }: { form: UseFormReturnType<Recor
             <Attributes form={form} />
         </Concealer>
         <Concealer>
-            <Checkbox mt="md" label="Specify DC path"
-            onChange={(event) => form.setFieldValue('dc_path', event.currentTarget.checked?'':undefined)}
-            checked={!!form.values.dc_path||form.values.dc_path===''}
+            <Checkbox mt="md" label="Specify Root DSE"
+            onChange={(event) => form.setFieldValue('dse', event.currentTarget.checked?'':undefined)}
+            checked={!!form.values.dse||form.values.dse===''}
             />
-            {(form.values.dc_path||form.values.dc_path==='')&&
+            {(form.values.dse||form.values.dse==='')&&
             <TextInput
-                label="DC Path"
+                label="Root DSE"
                 description="All distinguished names, including the Base Organizational Unit, will be appended by this path."
                 placeholder="dc=sub,dc=domain,dc=com"
                 withAsterisk
                 leftSection={<IconServer size={16} style={{ display: 'block', opacity: 0.5 }} />}
-                {...form.getInputProps('dc_path')}
+                {...form.getInputProps('dse')}
             />}
             <TextInput  mt="md"
             label="Base Organizational Unit"

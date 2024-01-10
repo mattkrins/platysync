@@ -49,7 +49,7 @@ async function getRows(connector: anyProvider, attribute?: string): Promise<prim
             await client.connect(connector.url);
             const password = await decrypt(connector.password as Hash);
             await client.login(connector.username, password);
-            let base = connector.dc_path || await client.getRoot();
+            let base = connector.dse || await client.getRoot();
             if ((connector.base||'')!=='') base = `${connector.base},${base}`;
             client.base = base;
             const mustHave = ['sAMAccountName', 'userPrincipalName', 'cn', 'uid', 'distinguishedName', 'userAccountControl', 'memberOf'];
