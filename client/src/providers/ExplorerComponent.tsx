@@ -34,6 +34,7 @@ export default function ExplorerComponent({ opened, close, click }: { opened: bo
         />
         { filter==="" ?
             Object.keys(headers).map((name:string)=> {
+                if (!(name in _connectors)) return <>{name} ERROR</>
                 const { id } = _connectors[name];
                 const provider = providers[id];
                 return(

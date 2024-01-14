@@ -101,12 +101,12 @@ export default function Conditions( { form, label }: {form: UseFormReturnType<Ru
                     <Menu.Dropdown>
                       <Menu.Label>Data Sources</Menu.Label>
                       {availableConditions.filter(c=>!c.connector).map(c=>
-                        <Menu.Item onClick={add(c.id)} leftSection={<c.Icon color={theme.colors[c.color][6]} size="1rem" stroke={1.5} />}>{c.label}</Menu.Item>
+                        <Menu.Item key={c.id} onClick={add(c.id)} leftSection={<c.Icon color={theme.colors[c.color][6]} size="1rem" stroke={1.5} />}>{c.label}</Menu.Item>
                       )}
                       {hasLDAP&&<>
                       <Menu.Label>Directory</Menu.Label>
                       {availableConditions.filter(c=>c.connector==="ldap").map(c=>
-                        <Menu.Item onClick={add(c.id, c.id)} leftSection={<c.Icon color={theme.colors[c.color][6]} size="1rem" stroke={1.5} />}>{c.label}</Menu.Item>
+                        <Menu.Item key={c.id} onClick={add(c.id, c.id)} leftSection={<c.Icon color={theme.colors[c.color][6]} size="1rem" stroke={1.5} />}>{c.label}</Menu.Item>
                       )}
                       </>}
                     </Menu.Dropdown>
