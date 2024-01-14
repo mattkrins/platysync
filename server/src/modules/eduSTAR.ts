@@ -4,7 +4,7 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { CookieJar } from 'tough-cookie';
 import { createCookieAgent } from 'http-cookie-agent/http';
 import { JSDOM } from 'jsdom';
-import { paths } from '../server.js';
+import { log, paths } from '../server.js';
 import * as fs from 'node:fs';
 import { Hash, decrypt, encrypt } from './cryptography.js';
 const Axios = (axios as unknown as AxiosFix);
@@ -62,10 +62,17 @@ export default class eduSTAR {
         });
     }
     public async validate(): Promise<unknown> {
-        const response = await this.client.get('/');
-        if (!response || !response.data) throw (Error("No response."));
-        if (!response.data.includes("Department of Education and Early Childhood Development")) throw (Error("Malformed response."));
-        return response.data;
+        try {
+            const response = await this.client.get('/');
+            log.debug(response);
+            if (!response || !response.data) throw Error("No response.");
+            if (!response.data.includes("Department of Education and Early Childhood Development")) throw Error("Malformed response.");
+            return response.data;
+        } catch (e) {
+            const error = e as { response: {status: number}, message: string }
+            if (error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
+            throw Error(error.message)
+        }
     }
     public async login(username: string, password: string): Promise<void> {
         const data = {
@@ -80,16 +87,23 @@ export default class eduSTAR {
         };
         const searchParams = new URLSearchParams(data);
         const encoded = searchParams.toString();
-        const response = await this.client.post("/CookieAuth.dll?Logon", encoded);
-        if (!response || !response.data) throw (Error("No response."));
-        const cookies = await this.jar.getCookies(response.config.baseURL as string);
-        if (!cookies || cookies.length <= 0){
-            const dom = new JSDOM(response.data);
-            const error = dom.window.document.querySelector('.wrng');
-            if (error&&error.textContent){ throw (Error(error.textContent as string));}
-            throw (Error("Unknown Error."));
+        try {
+            const response = await this.client.post("/CookieAuth.dll?Logon", encoded);
+            log.debug(response);
+            if (!response || !response.data) throw (Error("No response."));
+            const cookies = await this.jar.getCookies(response.config.baseURL as string);
+            if (!cookies || cookies.length <= 0){
+                const dom = new JSDOM(response.data);
+                const error = dom.window.document.querySelector('.wrng');
+                if (error&&error.textContent){ throw (Error(error.textContent as string));}
+                throw (Error("Unknown Error."));
+            }
+            this.username = username;
+        } catch (e) {
+            const error = e as { response: {status: number}, message: string }
+            if (error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
+            throw Error(error.message)
         }
-        this.username = username;
     }
     public async getUsers(): Promise<User[]> {
         const cache = await this.getUserCache();

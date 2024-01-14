@@ -22,7 +22,7 @@ export const getHeaders: { [provider: string]: (connector: Connector) => Promise
           'sAMAccountName', 'userPrincipalName', 'cn', 'distinguishedName'
       ].filter((b, index, self) => index === self.findIndex((a) => ( a === b )) );
   },
-  stmc: async function(){
+  stmc: async function(){ //REVIEW - could add eduhub header if set
       return ['_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
       '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
       '_login', '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',

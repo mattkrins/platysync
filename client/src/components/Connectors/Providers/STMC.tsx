@@ -65,6 +65,16 @@ export default function PROXY( { form, editing }: { form: UseFormReturnType<Reco
         leftSection={<IconNetwork size={16} style={{ display: 'block', opacity: 0.5 }}/>}
         mt="md"
         />
+        <SelectConnector
+        label="eduHUB Connector"
+        description="Matches eduHUB usernames to eduSTAR usernames."
+        placeholder="ST_8827.csv"
+        clearable
+        {...form.getInputProps('eduhub')}
+        filter={data=>data.filter(c=>c.id==="csv")}
+        leftSection={<IconNetwork size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+        mt="md"
+        />
     </Concealer>
     </>);
 }

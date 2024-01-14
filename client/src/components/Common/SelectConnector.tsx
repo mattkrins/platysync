@@ -15,11 +15,12 @@ interface Props extends InputWrapperProps {
     data?: string[]|{ component: JSX.Element, value: string }[];
     value?: string;
     type?: string;
+    placeholder?: string;
     filter?: (data: extConnector[]) => extConnector[]|{ component: JSX.Element, value: string, id: string, name: string }[];
     onChange?(value: unknown): void;
 }
 
-export default function SelectConnector({onChange, value: v2 = '', ...props}: Props) {
+export default function SelectConnector({onChange, value: v2 = '', placeholder, ...props}: Props) {
     const { connectors, _connectors } = useContext(SchemaContext);
     const theme = useMantineTheme();
     const combobox = useCombobox({
@@ -85,7 +86,7 @@ export default function SelectConnector({onChange, value: v2 = '', ...props}: Pr
             onClick={() => combobox.toggleDropdown()}
             rightSectionPointerEvents={ (!props.clearable || value === null) ? 'none' : 'all'}
             >
-            {value || <Input.Placeholder>Select Connector</Input.Placeholder>}
+            {value || <Input.Placeholder>{placeholder||'Select Connector'}</Input.Placeholder>}
             </InputBase>
         </Combobox.Target>
 
