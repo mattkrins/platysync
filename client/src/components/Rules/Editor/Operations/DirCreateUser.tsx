@@ -120,12 +120,7 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
     );
 }
 
-export default function CreateUser( { form, index, explorer, explore }:{
-    form: UseFormReturnType<Rule>,
-    index: number,
-    explorer: (key: string) => JSX.Element,
-    explore: explore
-},){
+export default function CreateUser( { form, index, explorer, explore }: ActionItem){
     if (!form.values.actions[index].attributes) form.setFieldValue(`actions.${index}.attributes`, []);
     if (!form.values.actions[index].groups) form.setFieldValue(`actions.${index}.groups`, []);
     const addA = () => form.insertListItem(`actions.${index}.attributes`, {name:'',value:''});

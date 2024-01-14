@@ -40,3 +40,10 @@ interface Rule {
 }
 
 type explore = (click: (d: string) => void) => void;
+
+interface ActionItem {
+    form: UseFormReturnType<Rule>;
+    index: number;
+    explorer: (key: string) => JSX.Element;
+    explore: explore;
+}

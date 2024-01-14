@@ -1,5 +1,18 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconFile, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCopy, IconFile, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
+import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
+import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
+import UpdateAttributes from '../components/Rules/Editor/Operations/DirUpdateAtt';
+import MoveOU from '../components/Rules/Editor/Operations/DirMoveOU';
+import WritePDF from '../components/Rules/Editor/Operations/DocWritePDF';
+import Print from '../components/Rules/Editor/Operations/DocPrint';
+import CopyFile from '../components/Rules/Editor/Operations/FileCopy';
+import MoveFile from '../components/Rules/Editor/Operations/FileMove';
+import DeleteFile from '../components/Rules/Editor/Operations/FileDelete';
+import CopyFolder from '../components/Rules/Editor/Operations/FolderCopy';
+import MoveFolder from '../components/Rules/Editor/Operations/FolderMove';
+import DeleteFolder from '../components/Rules/Editor/Operations/FolderDelete';
+import Template from '../components/Rules/Editor/Operations/SysTemplate';
 
 export const ldapAttributes = [
     "name",
@@ -130,11 +143,13 @@ export const availableCatagories: {
 
 export const availableActions: {
     [key: string]: {
-        id: string,
-        label?: string,
-        Icon: (props: TablerIconsProps) => JSX.Element,
-        color?: string,
-        catagory: catagory,
+        id: string;
+        label?: string;
+        Icon: (props: TablerIconsProps) => JSX.Element;
+        color?: string;
+        catagory: catagory;
+        Component: (props: ActionItem) => JSX.Element;
+        perRule?: false;
     }
 } = {
     "Create User": {
@@ -142,103 +157,122 @@ export const availableActions: {
         catagory: 'directory',
         Icon: IconUserPlus,
         color: 'blue',
+        Component: CreateUser,
     },
     "Enable User": {
         id: "Enable User",
         catagory: 'directory',
         Icon: IconLockOpen,
         color: 'green',
+        Component: EnableUser,
     },
     "Disable User": {
         id: "Disable User",
         catagory: 'directory',
         Icon: IconLock,
         color: 'pink',
+        Component: EnableUser,
     },
     "Delete User": {
         id: "Delete User",
         catagory: 'directory',
         Icon: IconTrash,
         color: 'red',
+        Component: EnableUser,
     },
     "Update Attributes": {
         id: "Update Attributes",
         catagory: 'directory',
         Icon: IconPencil,
         color: 'orange',
+        Component: UpdateAttributes,
     },
     "Move Organisational Unit": {
         id: "Move Organisational Unit",
         catagory: 'directory',
         Icon: IconFolderShare,
         color: 'grape',
+        Component: MoveOU,
     },
     "Write PDF": {
         id: "Write PDF",
         catagory: 'document',
         Icon: IconFileTypePdf,
         color: 'red',
+        Component: WritePDF,
     },
     "Send To Printer": {
         id: "Send To Printer",
         catagory: 'document',
         Icon: IconPrinter,
         color: 'lime',
+        Component: Print,
     },
     "Copy File": {
         id: "Copy File",
         catagory: 'file',
         Icon: IconCopy,
         color: 'blue',
+        Component: CopyFile,
     },
     "Move File": {
         id: "Move File",
         catagory: 'file',
         Icon: IconArrowBarToRight,
         color: 'orange',
+        Component: MoveFile,
     },
     "Delete File": {
         id: "Delete File",
         catagory: 'file',
         Icon: IconTrash,
         color: 'red',
+        Component: DeleteFile,
     },
     "Copy Folder": {
         id: "Copy Folder",
         catagory: 'folder',
         Icon: IconCopy,
         color: 'blue',
+        Component: CopyFolder,
     },
     "Move Folder": {
         id: "Move Folder",
         catagory: 'folder',
         Icon: IconArrowBarToRight,
         color: 'orange',
+        Component: MoveFolder,
     },
     "Delete Folder": {
         id: "Delete Folder",
         catagory: 'folder',
         Icon: IconTrash,
         color: 'red',
-    },
-    "Upload Student Passwords": {
-        id: "Upload Student Passwords",
-        catagory: 'edustar',
-        Icon: IconCloudUpload,
-        color: 'yellow',
+        Component: DeleteFolder,
     },
     "Template": {
         label: "Build Data Template",
         id: "Template",
         catagory: 'system',
         Icon: IconTemplate,
+        Component: Template,
+        perRule: false
     },
+    //TODO - STMC upload
+    //"Upload Student Passwords": {
+    //    id: "Upload Student Passwords",
+    //    catagory: 'edustar',
+    //    Icon: IconCloudUpload,
+    //    color: 'yellow',
+    //},
+    //TODO - update groups
     //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
     //LINK - client\src\components\Rules\Editor\Operations\RunCommand.tsx
     //"Run Command": {
     //    id: "Run Command",
     //    catagory: 'system',
     //    Icon: IconTerminal,
+    //    Component: RunCommand,
     //},
     //TODO - emailing
     //"Send Email": {

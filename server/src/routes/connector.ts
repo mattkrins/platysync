@@ -58,7 +58,7 @@ export default function connector(route: FastifyInstance) {
         }
     });
     function hasHandle(haystack: string = "", needle: string){ return haystack.includes(`${needle}.`) || haystack.includes(`${needle}/`); }
-    function findDependencies(schema: Schema, name: string){
+    function findDependencies(schema: Schema, name: string){ //TODO - find deps in other connectors
         for (const rule of schema.rules) {
             if (hasHandle(rule.display, name)) return rule.name;
             for (const condition of rule.conditions||[]) {

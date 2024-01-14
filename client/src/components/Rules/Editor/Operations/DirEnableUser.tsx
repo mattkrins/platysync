@@ -1,9 +1,8 @@
 import { Box, TextInput } from "@mantine/core";
-import { UseFormReturnType } from "@mantine/form";
 import { IconAt, IconBinaryTree2 } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 
-export default function EnableUser( { form, index, explorer }:{ form: UseFormReturnType<Rule>, index: number, explorer: (key: string) => JSX.Element } ) {
+export default function EnableUser( { form, index, explorer }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <SelectConnector

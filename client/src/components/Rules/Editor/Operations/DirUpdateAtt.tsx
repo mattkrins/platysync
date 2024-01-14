@@ -74,12 +74,7 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
     );
 }
 
-export default function UpdateAttributes( { form, index, explore, explorer }:{
-    form: UseFormReturnType<Rule>,
-    index: number,
-    explore: explore,
-    explorer: (key: string) => JSX.Element
-},){
+export default function UpdateAttributes( { form, index, explore, explorer }: ActionItem){
     if (!form.values.actions[index].attributes) form.setFieldValue(`actions.${index}.attributes`, []);
     if (!form.values.actions[index].groups) form.setFieldValue(`actions.${index}.groups`, []);
     const addA = () => form.insertListItem(`actions.${index}.attributes`, {name:'',value:'', type: 'Replace'});

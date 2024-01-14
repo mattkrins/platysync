@@ -2,17 +2,17 @@ import { hasLength, isNotEmpty } from "@mantine/form";
 
 export const defaults: { [name: string]: Record<string, unknown> } = {
     csv: {
-        name: 'My CSV',
+        name: 'MyCSV',
         path: '',
     },
     proxy: {
-        name: 'Proxy Server',
+        name: 'ProxyServer',
         url: '',
         username: '',
         password: ''
     },
     ldap: {
-        name: 'Active Directory',
+        name: 'ActiveDirectory',
         url: '',
         username: '',
         password: '',

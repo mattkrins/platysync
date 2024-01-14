@@ -1,9 +1,8 @@
 import { Box, Loader, Select, Switch, TextInput } from "@mantine/core";
-import { UseFormReturnType } from "@mantine/form";
 import { IconFile, IconPrinter } from "@tabler/icons-react";
 import useAPI from "../../../../hooks/useAPI";
 
-export default function Print( { form, index, explorer }:{ form: UseFormReturnType<Rule>, index: number, explorer: (key: string) => JSX.Element } ) {
+export default function Print( { form, index, explorer }: ActionItem ) {
     const { data: printers, loading } = useAPI({
         url: `/printers`,
         fetch: true,

@@ -1,8 +1,7 @@
 import { Box, Switch, TextInput } from "@mantine/core";
-import { UseFormReturnType } from "@mantine/form";
 import { IconFileMinus } from "@tabler/icons-react";
 
-export default function DeleteFile( { form, index, explorer }:{ form: UseFormReturnType<Rule>, index: number, explorer: (key: string) => JSX.Element } ) {
+export default function DeleteFile( { form, index, explorer }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <TextInput

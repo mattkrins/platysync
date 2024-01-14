@@ -1,8 +1,7 @@
 import { Box, Switch, TextInput } from "@mantine/core";
-import { UseFormReturnType } from "@mantine/form";
 import { IconFileSymlink, IconFileX } from "@tabler/icons-react";
 
-export default function MoveFile( { form, index, explorer }:{ form: UseFormReturnType<Rule>, index: number, explorer: (key: string) => JSX.Element } ) {
+export default function MoveFile( { form, index, explorer }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <TextInput
