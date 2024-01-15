@@ -11,23 +11,25 @@ import { CSV } from "../components/providers.js";
 import { Connector, Schema } from "../typings/common.js";
 
 export const getHeaders: { [provider: string]: (connector: Connector) => Promise<string[]> } = {
-  csv: async function(connector: Connector){
-    const csv = new CSV(connector.path as string);
-    const data = await csv.open() as { data: {[k: string]: string}[], meta: { fields: string[] } };
-      return data.meta.fields || [];
-  },
-  ldap: async function(connector: Connector){
-      return [
-          ...connector.attributes||[],
-          'sAMAccountName', 'userPrincipalName', 'cn', 'distinguishedName'
-      ].filter((b, index, self) => index === self.findIndex((a) => ( a === b )) );
-  },
-  stmc: async function(){ //REVIEW - could add eduhub header if set
-      return ['_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
-      '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
-      '_login', '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
-      '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer']
-  },
+    csv: async function(connector: Connector){
+        const csv = new CSV(connector.path as string);
+        const data = await csv.open() as { data: {[k: string]: string}[], meta: { fields: string[] } };
+        return data.meta.fields || [];
+    },
+    ldap: async function(connector: Connector){
+        return [
+            ...connector.attributes||[],
+            'sAMAccountName', 'userPrincipalName', 'cn', 'distinguishedName'
+        ].filter((b, index, self) => index === self.findIndex((a) => ( a === b )) );
+    },
+    stmc: async function(connector: Connector){
+        const headers = ['_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
+        '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
+        '_login', '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
+        '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer' ];
+        if (String(connector.eduhub).trim()!=="") headers.push('_eduhub');
+        return headers;
+    },
 }
 
 export default function connector(route: FastifyInstance) {

@@ -1,5 +1,5 @@
 import { Condition, Rule, Schema, Action, secondary } from "../typings/common.js";
-import { CSV } from "./providers.js";
+import { CSV, STMC } from "./providers.js";
 import { anyProvider } from "../typings/providers.js";
 import ldap, { User } from "../modules/ldap.js";
 import { Hash, decrypt } from "../modules/cryptography.js";
@@ -37,8 +37,22 @@ export interface connections {[name: string]: primaryResponse | secondaryRespons
 
 interface template {[connector: string]: {[header: string]: string}}
 
-async function getRows(connector: anyProvider, attribute?: string): Promise<primaryResponse>  {
+async function getRows(connector: anyProvider, schema_name: string, attribute?: string): Promise<primaryResponse>  {
     switch (connector.id) {
+        case 'stmc': {
+            const stmc = new STMC(schema_name, connector.school, connector.proxy, connector.eduhub);
+            const client = await stmc.configure();
+            const password = await decrypt(connector.password as Hash);
+            server.io.emit("job_status", "Logging into STMC");
+            await client.login(connector.username, password);
+            server.io.emit("job_status", "Downloading STMC data");
+            let users = await client.getUsers();
+            if (connector.eduhub){
+                server.io.emit("job_status", "Matching eduhub data");
+                users = client.bindEduhub();
+            }
+            return { rows: users, connector, object: {} };
+        }
         case 'csv': {
             const csv = new CSV(connector.path);
             const data = await csv.open() as { data: {[k: string]: string}[] };
@@ -164,11 +178,11 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!limitTo });
     server.io.emit("job_status", "Loading Primary");
     const primaryConnector = schema._connectors[rule.primary] as anyProvider;
-    const primary = await getRows(primaryConnector, rule.primaryKey);
+    const primary = await getRows(primaryConnector, schema.name, rule.primaryKey);
     server.io.emit("job_status", "Loading Secondaries");
     const secondaries: {[name: string]: secondaryResponse} = {};
     for (const secondary of rule.secondaries||[]) {
-        const rows = await getRows(schema._connectors[secondary.primary] as anyProvider, secondary.secondaryKey);
+        const rows = await getRows(schema._connectors[secondary.primary] as anyProvider, schema.name, secondary.secondaryKey);
         secondaries[secondary.primary] = {...rows, ...secondary};
     }
     server.io.emit("job_status", "Matching Data");

@@ -27,6 +27,7 @@ interface Options {
     school: string;
     cache?: string;
     proxy?: string|URL;
+    eduhub?: {[k: string]: string}[];
 }
 
 export interface AxiosFix extends AxiosStatic {
@@ -34,16 +35,20 @@ export interface AxiosFix extends AxiosStatic {
 }
 
 export default class eduSTAR {
-    client: AxiosInstance;
-    school: string;
-    cachePolicy: number = 1440;
-    username: string|undefined;
-    jar = new CookieJar();
+    public client: AxiosInstance;
+    private school: string;
+    private cachePolicy: number = 1440;
+    private username: string|undefined;
+    private jar = new CookieJar();
+    private users: User[];
+    private eduhub?: {[k: string]: string}[];
     constructor(options: Options) {
+        this.users = [];
         let httpAgent;
         let httpsAgent;
         this.school = options.school;
-        if (options.cache)  this.cachePolicy = Number(options.cache);
+        this.eduhub = options.eduhub;
+        if (options.cache) this.cachePolicy = Number(options.cache);
         if (options.proxy) {
             const url = new URL(options.proxy); // TODO: Add support for auth
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,7 +75,7 @@ export default class eduSTAR {
             return response.data;
         } catch (e) {
             const error = e as { response: {status: number}, message: string }
-            if (error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
+            if (error.response && error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
             throw Error(error.message)
         }
     }
@@ -101,25 +106,26 @@ export default class eduSTAR {
             this.username = username;
         } catch (e) {
             const error = e as { response: {status: number}, message: string }
-            if (error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
+            if (error.response && error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
             throw Error(error.message)
         }
     }
     public async getUsers(): Promise<User[]> {
         const cache = await this.getUserCache();
-        if (!cache) return await this.download();
-        if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) {
-            return await this.download();
-        }
-        return cache.data;
+        const ret = (users: User[]) => { this.users = users; return this.users; };
+        if (!cache) return ret(await this.download());
+        if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) return ret(await this.download());
+        return ret(cache.data);
     }
     private async getUserCache(): Promise<Cache|undefined> {
         if (!fs.existsSync(`${paths.cache}/${this.school}.users.json`)) return;
-        const cached: string = fs.readFileSync(`${paths.cache}/${this.school}.users.json`, 'utf8');
-        const hash: Hash = JSON.parse(cached);
-        const data = await decrypt(hash);
-        const cache: Cache = JSON.parse(data);
-        return cache
+        try {
+            const cached: string = fs.readFileSync(`${paths.cache}/${this.school}.users.json`, 'utf8');
+            const hash: Hash = JSON.parse(cached);
+            const data = await decrypt(hash);
+            const cache: Cache = JSON.parse(data);
+            return cache;
+        } catch (e) { log.warn("Failed to read STMC cache."); return; }
     }
     private async cache(data: object): Promise<void> {
         const cache = JSON.stringify({ date: new Date(), username: this.username, data });
@@ -136,5 +142,42 @@ export default class eduSTAR {
             if ((e as E).response.data.Message&&(e as E).response.data.Message.includes("Object reference")) throw (Error("Incorrect School ID."));
             throw e;
         }
+    }
+    public bindEduhub() {
+        for (const row in this.users||[]) {
+            const starUser = this.users[row];
+            const possible_matches: { hits: number, starUser: User, hubUser: {[k: string]: string} }[] = [];
+            for (const hubUser of this.eduhub||[]) {
+                if (["LEFT","LVNG","DEL"].includes(hubUser.STATUS)) continue; //REVIEW - this should be a gui toggle; saves time but some may want these matches.
+                if (!hubUser.STKEY || !hubUser.SURNAME) continue;
+                let hits = 0;
+                const DISPLAY_NAME = `${hubUser.PREF_NAME} ${hubUser.SURNAME}`;
+                const LASTNAME_ABREV = hubUser.SURNAME.trim().toLowerCase().slice(0, 3);
+                if (starUser._displayName===DISPLAY_NAME) hits++;
+                if (starUser._displayName.trim().toLowerCase()===DISPLAY_NAME.trim().toLowerCase()) hits++;
+                if (starUser._firstName===hubUser.FIRST_NAME) hits++;
+                if (starUser._firstName===hubUser.PREF_NAME) hits++;
+                if (starUser._firstName.trim().toLowerCase()===hubUser.PREF_NAME.trim().toLowerCase()) hits++;
+                if (starUser._firstName.trim().toLowerCase()===hubUser.FIRST_NAME.trim().toLowerCase()) hits++;
+                if (starUser._lastName===hubUser.SURNAME) hits++;
+                if (starUser._lastName.trim().toLowerCase()===hubUser.SURNAME.trim().toLowerCase()) hits++;
+                if (hits<=0) continue;
+                if (starUser._login.trim().toLowerCase()[0]===hubUser.FIRST_NAME.trim().toLowerCase()[0]) hits++;
+                if (starUser._login.trim().toLowerCase().slice(-3).includes(LASTNAME_ABREV)) hits++;
+                if (starUser._login.slice(-3)===hubUser.SURNAME) hits++;
+                if (starUser._class.trim().toLowerCase()===hubUser.HOME_GROUP.trim().toLowerCase()) hits++;
+                if (starUser._desc===hubUser.SCHOOL_YEAR) hits++;
+                if (hubUser.STATUS==="ACTV") hits++;
+                if (!starUser._disabled) hits++;
+                possible_matches.push({hits, starUser, hubUser});
+            }
+            if (possible_matches.length<=0) continue;
+            const best_match = possible_matches.reduce(function(prev, current) {
+                return (prev && prev.hits > current.hits) ? prev : current
+            }) //TODO - make gui toggle to ensure certainty; maybe a slider?
+            if (!best_match) continue;
+            this.users[row]._eduhub = best_match.hubUser.STKEY;
+        }
+        return this.users;
     }
 }

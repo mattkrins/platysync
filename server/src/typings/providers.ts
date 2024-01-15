@@ -4,6 +4,7 @@ import { Hash } from "../modules/cryptography.js";
 export interface Provider {
     id: string;
     name: string;
+    eduhub?: string;
     [name: string]: any;
 }
 

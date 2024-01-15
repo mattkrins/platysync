@@ -7,10 +7,8 @@ import { default as ldap_ } from "../modules/ldap.js";
 import { decrypt, Hash } from "../modules/cryptography.js";
 import { HttpProxyAgent } from 'http-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import eduSTAR from "../modules/eduSTAR.js";
-import { getSchema } from "../routes/schema.js";
-import { LDAP, PROXY, STMC } from "../typings/providers.js";
-import { CSV } from "../components/providers.js";
+import { LDAP, PROXY, STMC as STMC_provider } from "../typings/providers.js";
+import { CSV, STMC } from "../components/providers.js";
 const Axios = (axios as unknown as AxiosFix);
 
 export type value = string|boolean;
@@ -176,20 +174,9 @@ function isSchoolValid() {
     return async (value: value, request?: FastifyRequest  ) => {
         if (isNotEmpty('e')(value)) return 'School ID can not be empty.';
         const { schema_name } = request?.params as { schema_name: string };
-        const {school, proxy, ...body} = request?.body as STMC;
-        const schema = getSchema(schema_name);
-        const options: {school: string, proxy?: URL} = {
-            school,
-        };
-        if (proxy && String(proxy).trim()!==""){
-            if (!schema._connectors[proxy]) return "Proxy connector does not exist.";
-            const connector = schema._connectors[proxy] as PROXY;
-            const url = new URL(connector.url);
-            if (connector.username) url.username = connector.username;
-            if (connector.password) url.password = await decrypt(connector.password as Hash);
-            options.proxy = url;
-        }
-        const client = new eduSTAR(options);
+        const {school, proxy, ...body} = request?.body as STMC_provider;
+        const stmc = new STMC(schema_name, school, proxy);
+        const client = await stmc.configure();
         await client.validate();
         try {
             const password = await decrypt(body.password as Hash);
