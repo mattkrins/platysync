@@ -7,10 +7,11 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ldapAttributes } from "../../../../data/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
 
-function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, index: number, explore: explore } ) {
-    const data = (form.values.actions[index].attributes || []);
+function Attributes( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
+    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    const data = (actions[index].attributes || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`actions.${index}.attributes.${index2}.${key}`, `${form.values.actions[index].attributes[index2][key]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`) );
     const explorer = (key: string, index2: number) => <ActionIcon
     onClick={modifyCondition(key, index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -19,7 +20,7 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No attributes configured.</Center>}
         <DragDropContext
-        onDragEnd={({ destination, source }) => form.reorderListItem(`actions.${index}.attributes`, { from: source.index, to: destination? destination.index : 0 }) }
+        onDragEnd={({ destination, source }) => form.reorderListItem(`${actionType}.${index}.attributes`, { from: source.index, to: destination? destination.index : 0 }) }
         >
         <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -37,26 +38,26 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
                             <Select
                             defaultValue="Replace"
                             data={['Add', 'Replace', 'Delete']}
-                            {...form.getInputProps(`actions.${index}.attributes.${index2}.type`)}
+                            {...form.getInputProps(`${actionType}.${index}.attributes.${index2}.type`)}
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">
                             <SelectCreatable
                             selectable={ldapAttributes}
-                            {...form.getInputProps(`actions.${index}.attributes.${index2}.name`)}
+                            {...form.getInputProps(`${actionType}.${index}.attributes.${index2}.name`)}
                             createLabel={(query) => `Add Custom Attribute: ${query}`}
                             />
                         </Grid.Col>
-                        {(form.values.actions[index].attributes[index2].type as string)!=="Delete"&&<Grid.Col span="auto">
+                        {(actions[index].attributes[index2].type as string)!=="Delete"&&<Grid.Col span="auto">
                             <TextInput
                                 placeholder="Value"
-                                {...form.getInputProps(`actions.${index}.attributes.${index2}.value`)}
+                                {...form.getInputProps(`${actionType}.${index}.attributes.${index2}.value`)}
                                 rightSection={explorer('value', index2)}
                             />
                         </Grid.Col>}
                         <Grid.Col span="content">
                             <Group gap={0} justify="flex-end">
-                                <ActionIcon onClick={()=>form.removeListItem(`actions.${index}.attributes`, index2)} variant="subtle" color="red">
+                                <ActionIcon onClick={()=>form.removeListItem(`${actionType}.${index}.attributes`, index2)} variant="subtle" color="red">
                                     <IconTrash size="1.2rem" stroke={1.5} />
                                 </ActionIcon>
                             </Group>
@@ -74,28 +75,29 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
     );
 }
 
-export default function UpdateAttributes( { form, index, explore, explorer }: ActionItem){
-    if (!form.values.actions[index].attributes) form.setFieldValue(`actions.${index}.attributes`, []);
-    if (!form.values.actions[index].groups) form.setFieldValue(`actions.${index}.groups`, []);
-    const addA = () => form.insertListItem(`actions.${index}.attributes`, {name:'',value:'', type: 'Replace'});
+export default function UpdateAttributes( { form, index, explore, explorer, actionType }: ActionItem){
+    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
+    if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
+    const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:'', type: 'Replace'});
     return (
     <Box p="xs" pt={0} >
         <SelectConnector
             label="Target Directory" withAsterisk
             clearable
             leftSection={<IconBinaryTree2 size="1rem" />}
-            {...form.getInputProps(`actions.${index}.target`)}
+            {...form.getInputProps(`${actionType}.${index}.target`)}
             type="ldap"
         />
         <TextInput
             label="User Principal Name" withAsterisk
             leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}@domain.com"
-            {...form.getInputProps(`actions.${index}.upn`)}
+            {...form.getInputProps(`${actionType}.${index}.upn`)}
             rightSection={explorer('upn')}
         />
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Attributes form={form} index={index} explore={explore} />
+            <Attributes form={form} index={index} explore={explore} actionType={actionType} />
         </Concealer>
     </Box>
     )

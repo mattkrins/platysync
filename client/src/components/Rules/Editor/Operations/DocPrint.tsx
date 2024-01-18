@@ -2,7 +2,7 @@ import { Box, Loader, Select, Switch, TextInput } from "@mantine/core";
 import { IconFile, IconPrinter } from "@tabler/icons-react";
 import useAPI from "../../../../hooks/useAPI";
 
-export default function Print( { form, index, explorer }: ActionItem ) {
+export default function Print( { form, index, explorer, actionType }: ActionItem ) {
     const { data: printers, loading } = useAPI({
         url: `/printers`,
         fetch: true,
@@ -19,18 +19,18 @@ export default function Print( { form, index, explorer }: ActionItem ) {
             description="Path of file to print"
             placeholder="D:/templates/ouput/{{username}}.pdf"
             leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            {...form.getInputProps(`actions.${index}.source`)}
+            {...form.getInputProps(`${actionType}.${index}.source`)}
             rightSection={explorer('source')}
         />
         <Switch label="Validate Source Path"
-        mt="xs" {...form.getInputProps(`actions.${index}.validate`, { type: 'checkbox' })}
+        mt="xs" {...form.getInputProps(`${actionType}.${index}.validate`, { type: 'checkbox' })}
         />
         <Select
             label="Target Printer" withAsterisk clearable
             description="Leave blank to use the systemsdefault printer."
             leftSection={loading?<Loader size="xs" />:<IconPrinter size={16} style={{ display: 'block', opacity: 0.8 }} />}
             placeholder="Select Printer"
-            {...form.getInputProps(`actions.${index}.target`)}
+            {...form.getInputProps(`${actionType}.${index}.target`)}
             data={deduplicated}
         />
     </Box>

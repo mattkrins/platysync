@@ -37,6 +37,7 @@ interface Rule {
     secondaries: {id: string, primary: string, secondaryKey: string, primaryKey: string}[];
     conditions: Condition[];
     actions: Action[];
+    after_actions: Action[];
 }
 
 type explore = (click: (d: string) => void) => void;
@@ -46,4 +47,5 @@ interface ActionItem {
     index: number;
     explorer: (key: string) => JSX.Element;
     explore: explore;
+    actionType: string
 }

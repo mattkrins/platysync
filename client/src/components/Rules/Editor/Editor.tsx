@@ -19,7 +19,8 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
   const initialValues = {
     secondaries: [],
     conditions: [],
-    actions: []
+    actions: [],
+    after_actions: [],
   } as unknown as Rule;
   const form = useForm({ initialValues, validate: {} });
   useEffect(()=>{

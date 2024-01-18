@@ -37,15 +37,16 @@ function ActionGroup({add, perRule, label}:{add: (name: string) => void, perRule
 </Group>)
 }
 
-function Action ( { form, index, a, explore }: {form: UseFormReturnType<Rule>, index: number, a: Action, explore: explore } ){
+function Action ( { form, index, a, explore, actionType }: {form: UseFormReturnType<Rule>, index: number, a: Action, explore: explore, actionType: string } ){
   const [opened, { toggle }] = useDisclosure(false);
   const theme = useMantineTheme();
   const { Icon, color, Component } = availableActions[a.name];
-  const copy = (v: Action) => () => form.insertListItem('actions', {...v});
-  const remove  = (index: number) => () => form.removeListItem('actions', index);
+  const copy = (v: Action) => () => form.insertListItem(actionType, {...v});
+  const remove  = (index: number) => () => form.removeListItem(actionType, index);
 
   const modifyCondition = (key: string)=> () => explore(() => (value: string) =>
-  form.setFieldValue(`actions.${index}.${key}`, `${form.values.actions[index][key]||''}{{${value}}}`) );
+  form.setFieldValue(`${actionType}.${index}.${key}`,
+  `${(actionType==="after_actions"?form.values.after_actions:form.values.actions)[index][key]||''}{{${value}}}`) );
   const explorer = (key: string) => <ActionIcon
   onClick={modifyCondition(key)}
   variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -62,26 +63,28 @@ function Action ( { form, index, a, explore }: {form: UseFormReturnType<Rule>, i
     </Grid.Col>
     <Grid.Col span={12} pt={0} pb={0} >
       <Collapse in={opened}>
-        <Component form={form} index={index} explorer={explorer} explore={explore} />
+        <Component form={form} index={index} explorer={explorer} explore={explore} actionType={actionType} />
       </Collapse>
     </Grid.Col>
   </>
   )
 }
 
-function ActionList( { form }: {form: UseFormReturnType<Rule>} ) {
+function ActionList( { form, actionType }: {form: UseFormReturnType<Rule>, actionType: string} ) {
   const { explorer, explore } = useContext(ExplorerContext);
+  const nonExplorer = (k:(d: string) => void) => k;
+  const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
   return (
     <Box>
         {explorer}
-        {(form.values.actions||[]).length===0&&<Text c="lighter" size="sm" >No actions configured.</Text>}
+        {actions.length===0&&<Text c="lighter" size="sm" >No {actionType==="after_actions"?'rule':'row'} actions configured.</Text>}
         <DragDropContext
-        onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) }
+        onDragEnd={({ destination, source }) => form.reorderListItem(actionType==="after_actions"?'after_actions':'actions', { from: source.index, to: destination? destination.index : 0 }) }
         >
         <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-            {(form.values.actions||[]).map((a, index)=>
+            {actions.map((a, index)=>
             <Draggable key={index} index={index} draggableId={index.toString()}>
               {(provided) => (
               <Grid align="center" ref={provided.innerRef} mt="xs" {...provided.draggableProps} gutter="xs"
@@ -90,7 +93,7 @@ function ActionList( { form }: {form: UseFormReturnType<Rule>} ) {
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
-                <Action form={form} index={index} a={a} explore={explore} />
+                <Action form={form} index={index} a={a} actionType={actionType} explore={actionType==="after_actions"?nonExplorer:explore} />
               </Grid>)}
             </Draggable>
             )}
@@ -106,24 +109,25 @@ function ActionList( { form }: {form: UseFormReturnType<Rule>} ) {
 
 export default function Actions( { form }: {form: UseFormReturnType<Rule>} ) {
   const add = (name: string) => form.insertListItem('actions', { name });
+  const addPerRule = (name: string) => form.insertListItem('after_actions', { name });
   return (
     <Box>
         <Text c="dimmed" size="sm" mt="xs" >Actions on this tab are executed sequentially if all conditions evaluated successfully.</Text>
         <Divider my="xs" variant="dashed" />
         <Group grow justify="apart" mb="xs" mt="xs" gap="xs">
-            <Text c="dimmed" size="sm" >Performed for each row.</Text>
+            <Text c="dimmed" size="sm" >Performed for each <b>row</b>.</Text>
             <ActionGroup add={add} label="Add Row Action" />
         </Group>
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} />
+          <ActionList form={form} actionType={"actions"} />
         </DragDropContext>
         <Divider my="xs" variant="dashed" />
         <Group grow justify="apart" mb="xs" mt="xs" gap="xs">
-            <Text c="dimmed" size="sm" >Performed for each rule, after the above per-row actions are completed.</Text>
-            <ActionGroup add={add} label="Add Rule Action" perRule />
+            <Text c="dimmed" size="sm" >Performed for each <b>rule</b>, after the above per-row actions are completed.</Text>
+            <ActionGroup add={addPerRule} label="Add Rule Action" perRule />
         </Group>
-        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} />
+        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('after_actions', { from: source.index, to: destination? destination.index : 0 }) } >
+          <ActionList form={form} actionType={"after_actions"} />
         </DragDropContext>
 
     </Box>

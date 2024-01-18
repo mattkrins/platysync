@@ -7,10 +7,11 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ldapAttributes } from "../../../../data/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
 
-function SecurityGroups( { form, index, explore }: { form: UseFormReturnType<Rule>, index: number, explore: explore } ) {
-    const data = (form.values.actions[index].groups || []) as string[];
+function SecurityGroups( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
+    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    const data = (actions[index].groups || []) as string[];
     const modifyCondition = (index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`actions.${index}.groups.${index2}`, `${form.values.actions[index].groups[index2]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.groups.${index2}`, `${actions[index].groups[index2]||''}{{${value}}}`) );
     const explorer = (index2: number) => <ActionIcon
     onClick={modifyCondition(index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -19,7 +20,7 @@ function SecurityGroups( { form, index, explore }: { form: UseFormReturnType<Rul
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No security groups configured.</Center>}
         <DragDropContext
-        onDragEnd={({ destination, source }) => form.reorderListItem(`actions.${index}.groups`, { from: source.index, to: destination? destination.index : 0 }) }
+        onDragEnd={({ destination, source }) => form.reorderListItem(`${actionType}.${index}.groups`, { from: source.index, to: destination? destination.index : 0 }) }
         >
         <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -36,13 +37,13 @@ function SecurityGroups( { form, index, explore }: { form: UseFormReturnType<Rul
                         <Grid.Col span="auto">
                             <TextInput
                                 placeholder="CN={{faculty}},OU={{faculty}},OU=Child,OU=Parent"
-                                {...form.getInputProps(`actions.${index}.groups.${index2}`)}
+                                {...form.getInputProps(`${actionType}.${index}.groups.${index2}`)}
                                 rightSection={explorer(index2)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">
                             <Group gap={0} justify="flex-end">
-                                <ActionIcon onClick={()=>form.removeListItem(`actions.${index}.groups`, index2)} variant="subtle" color="red">
+                                <ActionIcon onClick={()=>form.removeListItem(`${actionType}.${index}.groups`, index2)} variant="subtle" color="red">
                                     <IconTrash size="1.2rem" stroke={1.5} />
                                 </ActionIcon>
                             </Group>
@@ -60,10 +61,11 @@ function SecurityGroups( { form, index, explore }: { form: UseFormReturnType<Rul
     );
 }
 
-function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, index: number, explore: explore } ) {
-    const data = (form.values.actions[index].attributes || []);
+function Attributes( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
+    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    const data = (actions[index].attributes || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`actions.${index}.attributes.${index2}.${key}`, `${form.values.actions[index].attributes[index2][key]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`) );
     const explorer = (key: string, index2: number) => <ActionIcon
     onClick={modifyCondition(key, index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -72,7 +74,7 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No attributes configured.</Center>}
         <DragDropContext
-        onDragEnd={({ destination, source }) => form.reorderListItem(`actions.${index}.attributes`, { from: source.index, to: destination? destination.index : 0 }) }
+        onDragEnd={({ destination, source }) => form.reorderListItem(`${actionType}.${index}.attributes`, { from: source.index, to: destination? destination.index : 0 }) }
         >
         <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -89,20 +91,20 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
                         <Grid.Col span="auto">
                             <SelectCreatable
                             selectable={ldapAttributes}
-                            {...form.getInputProps(`actions.${index}.attributes.${index2}.name`)}
+                            {...form.getInputProps(`${actionType}.${index}.attributes.${index2}.name`)}
                             createLabel={(query) => `Add Custom Attribute: ${query}`}
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">
                             <TextInput
                                 placeholder="Value"
-                                {...form.getInputProps(`actions.${index}.attributes.${index2}.value`)}
+                                {...form.getInputProps(`${actionType}.${index}.attributes.${index2}.value`)}
                                 rightSection={explorer('value', index2)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">
                             <Group gap={0} justify="flex-end">
-                                <ActionIcon onClick={()=>form.removeListItem(`actions.${index}.attributes`, index2)} variant="subtle" color="red">
+                                <ActionIcon onClick={()=>form.removeListItem(`${actionType}.${index}.attributes`, index2)} variant="subtle" color="red">
                                     <IconTrash size="1.2rem" stroke={1.5} />
                                 </ActionIcon>
                             </Group>
@@ -120,63 +122,64 @@ function Attributes( { form, index, explore }: { form: UseFormReturnType<Rule>, 
     );
 }
 
-export default function CreateUser( { form, index, explorer, explore }: ActionItem){
-    if (!form.values.actions[index].attributes) form.setFieldValue(`actions.${index}.attributes`, []);
-    if (!form.values.actions[index].groups) form.setFieldValue(`actions.${index}.groups`, []);
-    const addA = () => form.insertListItem(`actions.${index}.attributes`, {name:'',value:''});
-    const addG = () => form.insertListItem(`actions.${index}.groups`, '');
+export default function CreateUser( { form, index, explorer, explore, actionType }: ActionItem){
+    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
+    if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
+    const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:''});
+    const addG = () => form.insertListItem(`${actionType}.${index}.groups`, '');
     return (
     <Box p="xs" pt={0} >
         <SelectConnector
             label="Target Directory" withAsterisk
             clearable
             leftSection={<IconBinaryTree2 size="1rem" />}
-            {...form.getInputProps(`actions.${index}.target`)}
+            {...form.getInputProps(`${actionType}.${index}.target`)}
             type="ldap"
         />
         <TextInput
             label="Canonical Name" withAsterisk
             leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}"
-            {...form.getInputProps(`actions.${index}.cn`)}
+            {...form.getInputProps(`${actionType}.${index}.cn`)}
             rightSection={explorer('cn')}
         />
         <TextInput
             label="User Principal Name" withAsterisk
             leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}@domain.com"
-            {...form.getInputProps(`actions.${index}.upn`)}
+            {...form.getInputProps(`${actionType}.${index}.upn`)}
             rightSection={explorer('upn')}
         />
         <TextInput
             label="SAM Account Name" withAsterisk
             leftSection={<IconHierarchy size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}"
-            {...form.getInputProps(`actions.${index}.sam`)}
+            {...form.getInputProps(`${actionType}.${index}.sam`)}
             rightSection={explorer('sam')}
         />
         <TextInput
             label="Organizational Unit" withAsterisk
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="ou={{faculty}},ou=child,ou=parent"
-            {...form.getInputProps(`actions.${index}.ou`)}
+            {...form.getInputProps(`${actionType}.${index}.ou`)}
             rightSection={explorer('ou')}
         />
         <TextInput
             label="Password"
             leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{word}}{{rand 1 9}}{{cap (word)}}{{special}}"
-            {...form.getInputProps(`actions.${index}.password`)}
+            {...form.getInputProps(`${actionType}.${index}.password`)}
             rightSection={explorer('password')}
         />
-        <Switch label="User Enabled" disabled={form.values.actions[index].password===""}
-        mt="xs" {...form.getInputProps(`actions.${index}.enable`, { type: 'checkbox' })}
+        <Switch label="User Enabled" disabled={actions[index].password===""}
+        mt="xs" {...form.getInputProps(`${actionType}.${index}.enable`, { type: 'checkbox' })}
         />
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Attributes form={form} index={index} explore={explore} />
+            <Attributes form={form} index={index} explore={explore} actionType={actionType} />
         </Concealer>
         <Concealer open label='Security Groups' rightSection={<Button onClick={()=>addG()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <SecurityGroups form={form} index={index} explore={explore} />
+            <SecurityGroups form={form} index={index} explore={explore} actionType={actionType} />
         </Concealer>
     </Box>
     )
