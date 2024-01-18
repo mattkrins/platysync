@@ -20,6 +20,7 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
     secondaries: [],
     conditions: [],
     actions: [],
+    before_actions: [],
     after_actions: [],
   } as unknown as Rule;
   const form = useForm({ initialValues, validate: {} });

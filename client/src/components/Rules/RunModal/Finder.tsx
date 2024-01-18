@@ -1,5 +1,5 @@
-import { Box, Button, Checkbox, Divider, Grid, Group, Pagination, Select, Switch, TextInput, Text, useMantineTheme, Indicator, Modal, Code } from "@mantine/core";
-import { IconSearch, IconRun } from "@tabler/icons-react";
+import { Box, Button, Checkbox, Divider, Grid, Group, Pagination, Select, Switch, TextInput, Text, useMantineTheme, Indicator, Modal, Code, Stepper } from "@mantine/core";
+import { IconSearch, IconRun, IconUserCheck } from "@tabler/icons-react";
 import { availableActions } from "../../../data/common";
 import { usePagination } from "@mantine/hooks";
 import { useState } from "react";
@@ -70,16 +70,19 @@ interface Props {
     dash?: boolean;
 }
 export default function Finder( { id, matches, loading, setData, run, resultant = false, dash = false } : Props ) {
+
+    const setMatches = (data: unknown) => setData((r: object) => ({...r, matches: data}));
+
     const [showActionless, setShowActionless] = useState<boolean>(true);
     const [query, setQuery] = useState<string>('');
     const [perPage, setPerPage] = useState<string>('15');
     const data = matches.filter((r: match)=>showActionless?true:(!r.actionable?false:true));
-    const toggle = (id: string) => () => setData((data||[]).map((r: match)=>r.id!==id?r:{...r, checked: !r.checked }));
+    const toggle = (id: string) => () => setMatches((data||[]).map((r: match)=>r.id!==id?r:{...r, checked: !r.checked }));
     const checked = (data||[]).filter((r: match)=>r.checked);
     const hasChecked = checked.length>0;
     const toggleAll = () => () => hasChecked ?
-    setData((data||[]).map((r: match)=>({...r, checked: false }))) :
-    setData((data||[]).map((r: match)=>(!r.actionable?r:{...r, checked: true })));
+    setMatches((data||[]).map((r: match)=>({...r, checked: false }))) :
+    setMatches((data||[]).map((r: match)=>(!r.actionable?r:{...r, checked: true })));
 
     const [action, setAction] = useState<action|undefined>(undefined);
     
@@ -146,6 +149,11 @@ export default function Finder( { id, matches, loading, setData, run, resultant 
     </Grid>
     <Divider mt="xs"/>
     </>}
+    <Divider mt="xs" label={<></>
+    //<Stepper active={0} mt="xs" >
+    //        <Stepper.Step icon={<IconUserCheck size={22} />} />
+    //</Stepper>
+    } />
     {loading&&<Group justify="center" ><Status resultant={resultant} /></Group>}
     {(data&&!loading)&&<>
     <Grid pt="xs" align="center">

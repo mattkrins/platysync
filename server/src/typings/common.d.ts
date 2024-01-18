@@ -61,6 +61,8 @@ export interface Rule {
   primaryKey: string;
   secondaries: secondary[];
   conditions: Condition[];
+  before_actions: Action[];
+  after_actions: Action[];
   actions: Action[];
 }
 

@@ -13,6 +13,7 @@ import CopyFolder from '../components/Rules/Editor/Operations/FolderCopy';
 import MoveFolder from '../components/Rules/Editor/Operations/FolderMove';
 import DeleteFolder from '../components/Rules/Editor/Operations/FolderDelete';
 import Template from '../components/Rules/Editor/Operations/SysTemplate';
+import FileWriteTxt from '../components/Rules/Editor/Operations/FileWriteTxt';
 
 export const ldapAttributes = [
     "name",
@@ -229,6 +230,13 @@ export const availableActions: {
         color: 'red',
         Component: DeleteFile,
     },
+    "Write To File": {
+        id: "Write To File",
+        catagory: 'file',
+        Icon: IconPencil,
+        color: 'lime',
+        Component: FileWriteTxt,
+    },
     "Copy Folder": {
         id: "Copy Folder",
         catagory: 'folder',
@@ -256,7 +264,7 @@ export const availableActions: {
         catagory: 'system',
         Icon: IconTemplate,
         Component: Template,
-        perRule: false
+        //perRule: false
     },
     //TODO - STMC upload
     //"Upload Student Passwords": {

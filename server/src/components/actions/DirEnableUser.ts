@@ -8,7 +8,15 @@ interface EnableUser extends Action {
     upn: string;
 }
 
-export default async function enableUser(execute = false, act: Action, template: template, connections: connections, disable = false): Promise <result> {
+export default async function enableUser(
+    execute = false,
+    act: Action,
+    template: template,
+    connections: connections,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fileHandles?: {[handle: string]: any},
+    disable = false
+): Promise <result> {
     const action = act as EnableUser;
     const data: {[k: string]: string} = {};
     try {

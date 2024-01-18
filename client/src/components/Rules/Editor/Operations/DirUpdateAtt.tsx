@@ -8,7 +8,7 @@ import { ldapAttributes } from "../../../../data/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
 
 function Attributes( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
-    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    const actions = form.values[actionType] as Action[];
     const data = (actions[index].attributes || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
     form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`) );
@@ -76,7 +76,7 @@ function Attributes( { form, index, explore, actionType }: { form: UseFormReturn
 }
 
 export default function UpdateAttributes( { form, index, explore, explorer, actionType }: ActionItem){
-    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    const actions = form.values[actionType] as Action[];
     if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
     if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:'', type: 'Replace'});

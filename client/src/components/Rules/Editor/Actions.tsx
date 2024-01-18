@@ -43,10 +43,11 @@ function Action ( { form, index, a, explore, actionType }: {form: UseFormReturnT
   const { Icon, color, Component } = availableActions[a.name];
   const copy = (v: Action) => () => form.insertListItem(actionType, {...v});
   const remove  = (index: number) => () => form.removeListItem(actionType, index);
-
+  
+  const actions = form.values[actionType] as Action[];
   const modifyCondition = (key: string)=> () => explore(() => (value: string) =>
   form.setFieldValue(`${actionType}.${index}.${key}`,
-  `${(actionType==="after_actions"?form.values.after_actions:form.values.actions)[index][key]||''}{{${value}}}`) );
+  `${actions[index][key]||''}{{${value}}}`) );
   const explorer = (key: string) => <ActionIcon
   onClick={modifyCondition(key)}
   variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -73,13 +74,12 @@ function Action ( { form, index, a, explore, actionType }: {form: UseFormReturnT
 function ActionList( { form, actionType }: {form: UseFormReturnType<Rule>, actionType: string} ) {
   const { explorer, explore } = useContext(ExplorerContext);
   const nonExplorer = (k:(d: string) => void) => k;
-  const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+  const actions = form.values[actionType] as Action[];
   return (
     <Box>
         {explorer}
-        {actions.length===0&&<Text c="lighter" size="sm" >No {actionType==="after_actions"?'rule':'row'} actions configured.</Text>}
         <DragDropContext
-        onDragEnd={({ destination, source }) => form.reorderListItem(actionType==="after_actions"?'after_actions':'actions', { from: source.index, to: destination? destination.index : 0 }) }
+        onDragEnd={({ destination, source }) => form.reorderListItem(actionType, { from: source.index, to: destination? destination.index : 0 }) }
         >
         <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -93,7 +93,7 @@ function ActionList( { form, actionType }: {form: UseFormReturnType<Rule>, actio
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
-                <Action form={form} index={index} a={a} actionType={actionType} explore={actionType==="after_actions"?nonExplorer:explore} />
+                <Action form={form} index={index} a={a} actionType={actionType} explore={actionType!=="actions"?nonExplorer:explore} />
               </Grid>)}
             </Draggable>
             )}
@@ -109,23 +109,20 @@ function ActionList( { form, actionType }: {form: UseFormReturnType<Rule>, actio
 
 export default function Actions( { form }: {form: UseFormReturnType<Rule>} ) {
   const add = (name: string) => form.insertListItem('actions', { name });
-  const addPerRule = (name: string) => form.insertListItem('after_actions', { name });
+  const addBeforeRule = (name: string) => form.insertListItem('before_actions', { name });
+  const addAfterRule = (name: string) => form.insertListItem('after_actions', { name });
   return (
     <Box>
-        <Text c="dimmed" size="sm" mt="xs" >Actions on this tab are executed sequentially if all conditions evaluated successfully.</Text>
-        <Divider my="xs" variant="dashed" />
-        <Group grow justify="apart" mb="xs" mt="xs" gap="xs">
-            <Text c="dimmed" size="sm" >Performed for each <b>row</b>.</Text>
-            <ActionGroup add={add} label="Add Row Action" />
-        </Group>
+        <Text c="dimmed" size="sm" mt="md" >Actions on this tab are executed sequentially if all conditions evaluated successfully.</Text>
+        <Divider label={<ActionGroup add={addBeforeRule} label="Initial Action" perRule />} labelPosition="right" />
+        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('before_actions', { from: source.index, to: destination? destination.index : 0 }) } >
+          <ActionList form={form} actionType={"before_actions"} />
+        </DragDropContext>
+        <Divider my="xs" label={<ActionGroup add={add} label="Row Action" />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
           <ActionList form={form} actionType={"actions"} />
         </DragDropContext>
-        <Divider my="xs" variant="dashed" />
-        <Group grow justify="apart" mb="xs" mt="xs" gap="xs">
-            <Text c="dimmed" size="sm" >Performed for each <b>rule</b>, after the above per-row actions are completed.</Text>
-            <ActionGroup add={addPerRule} label="Add Rule Action" perRule />
-        </Group>
+        <Divider my="xs" label={<ActionGroup add={addAfterRule} label="Final Action" perRule />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('after_actions', { from: source.index, to: destination? destination.index : 0 }) } >
           <ActionList form={form} actionType={"after_actions"} />
         </DragDropContext>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Condition, Rule, Schema, Action, secondary } from "../typings/common.js";
 import { CSV, STMC } from "./providers.js";
 import { anyProvider } from "../typings/providers.js";
@@ -20,6 +21,7 @@ import deleteFolder from "./actions/FolderDelete.js";
 import deleteUser from "./actions/DirDeleteUser.js";
 import moveOU from "./actions/DirMoveOU.js";
 import updateAtt from "./actions/DirUpdateAtt.js";
+import fileWriteTxt from "./actions/FileWriteTxt.js";
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -39,7 +41,7 @@ interface template {[connector: string]: {[header: string]: string}}
 
 async function getRows(connector: anyProvider, schema_name: string, attribute?: string): Promise<primaryResponse>  {
     switch (connector.id) {
-        case 'stmc': {
+        case 'stmc': { //FIXME - io.emit stops working in the STMC connector. No idea why.
             const stmc = new STMC(schema_name, connector.school, connector.proxy, connector.eduhub);
             const client = await stmc.configure();
             const password = await decrypt(connector.password as Hash);
@@ -60,8 +62,10 @@ async function getRows(connector: anyProvider, schema_name: string, attribute?: 
         }
         case 'ldap': {
             const client = new ldap();
+            server.io.emit("job_status", `Connecting to: ${connector.url}`);
             await client.connect(connector.url);
             const password = await decrypt(connector.password as Hash);
+            server.io.emit("job_status", `Logging into: ${connector.url}`);
             await client.login(connector.username, password);
             let base = connector.dse || await client.getRoot();
             if ((connector.base||'')!=='') base = `${connector.base},${base}`;
@@ -72,6 +76,7 @@ async function getRows(connector: anyProvider, schema_name: string, attribute?: 
                 attributes = connector.attributes;
                 for (const a of mustHave) if (!attributes.includes(a)) attributes.push(a);
             }
+            server.io.emit("job_status", `Loading users`);
             const { array, object } = await client.getUsers(attributes, attribute);
             return { rows: array, client, connector, object }
         }
@@ -128,7 +133,7 @@ async function matchedAllConditions(conditions: Condition[], template: template,
 }
 
 const actionMap: {
-    [name: string]: (execute: boolean|undefined, act: Action, template: template, connections: connections) =>
+    [name: string]: (execute: boolean|undefined, act: Action, template: template, connections: connections, fileHandles: {[handle: string]: any} ) =>
     Promise<{ error?: string; warning?: string; data?: unknown, template?: boolean }> } ={
     'Create User': createUser,
     'Enable User': enableUser,
@@ -138,6 +143,7 @@ const actionMap: {
     'Update Attributes': updateAtt,
     'Write PDF': writePDF,
     'Send To Printer': sendToPrinter,
+    'Write To File': fileWriteTxt,
     'Delete File': deleteFile,
     'Move File': moveFile,
     'Copy File': copyFile,
@@ -151,16 +157,16 @@ const actionMap: {
     //REVIEW - add icacls? might also be vulnerable. https://4sysops.com/archives/icacls-list-set-grant-remove-and-deny-permissions/
 }
 
-async function getActions(actions: Action[], connections: connections, template: template, execute = false){
+async function getActions(actions: Action[], connections: connections, template: template, fileHandles: {[handle: string]: any}, execute = false){
     const todo: {name: string, result: {error?: string, warning?: string } }[] = [];
     let _template = template;
-    for (const action of actions) {
+    for (const action of (actions||[])) {
         if (!(action.name in actionMap)) continue;
-        const result = await actionMap[action.name](execute, action, _template, connections );
+        const result = await actionMap[action.name](execute, action, _template, connections, fileHandles );
         if (result.template && result.data){ _template = { ..._template, ...result.data as object }; }
         todo.push({name: action.name, result });
-        if (result.error || result.warning) return todo;
-    } return todo;
+        if (result.error || result.warning) return {todo, _template};
+    } return {todo, _template};
 }
 
 function calculateTimeRemaining(currentWork: number, totalWork: number, speed: number): string {
@@ -185,11 +191,14 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
         const rows = await getRows(schema._connectors[secondary.primary] as anyProvider, schema.name, secondary.secondaryKey);
         secondaries[secondary.primary] = {...rows, ...secondary};
     }
-    server.io.emit("job_status", "Matching Data");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const matches: any[] = [];
     let i = 0;
     if (limitTo) primary.rows = primary.rows.filter(p=>limitTo.includes(p[rule.primaryKey]));
+    const fileHandles: {[handle: string]: any} = {};
+    const connections = { ...secondaries, [rule.primary]: primary  };
+    if ((rule.before_actions||[]).length>0) server.io.emit("job_status", "Running Init Actions");
+    const { todo: initActions, _template: initTemplate } = await getActions(rule.before_actions, connections, {}, fileHandles, !!limitTo);
+    server.io.emit("job_status", "Matching Data");
     for (const object of primary.rows) {
         const id = object[rule.primaryKey];
         i++;
@@ -200,7 +209,7 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
             server.io.emit("job_status", `Proccessing ${id}`);
             curTime = (new Date()).getTime();
         }
-        const template: template = {};
+        const template: template = {...initTemplate};
         template[`${rule.primary}`] = object;
         for (const name of Object.keys(secondaries)) {
             const secondary = secondaries[name];
@@ -210,16 +219,18 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
             } if (!found) continue;
             template[`${name}`] = found||{};
         }
-        const connections = { ...secondaries, [rule.primary]: primary  };
-        const todo = await getActions(rule.actions, connections, template, !!limitTo);
-        const display = (rule.display && rule.display!=='') ? Handlebars.compile(rule.display)(template) : id;
         if (!(await matchedAllConditions(rule.conditions, template, connections, id))) continue;
+        const display = (rule.display && rule.display!=='') ? Handlebars.compile(rule.display)(template) : id;
+        const { todo } = await getActions(rule.actions, connections, template, fileHandles, !!limitTo);
         const actionable = todo.filter(t=>t.result.warning||t.result.error).length <= 0;
         matches.push({id, display, actions: todo, actionable});
     }
+    if ((rule.after_actions||[]).length>0) server.io.emit("job_status", "Running Final Actions");
+    const { todo: finalActions } = await getActions(rule.after_actions, connections, initTemplate, fileHandles, !!limitTo);
+
     server.io.emit("job_status", "Idle");
     server.io.emit("global_status", {});
-    return matches;
+    return {matches};
 }
 
 export async function runActionFor(schema: Schema , rule: Rule, limitTo: string[]) {

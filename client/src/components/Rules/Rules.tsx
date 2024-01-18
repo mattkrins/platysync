@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext';
 import Container from '../Common/Container';
 import Head from '../Common/Head';
-import { Button, Group, Text, ActionIcon, useMantineTheme, Switch, Grid, Tooltip } from '@mantine/core';
+import { Button, Group, Text, ActionIcon, useMantineTheme, Switch, Grid, Tooltip, Divider } from '@mantine/core';
 import { IconCopy, IconGripVertical, IconInfoCircle, IconPencil, IconPlayerPlay, IconTrash } from '@tabler/icons-react';
 import { useDisclosure, useListState } from '@mantine/hooks';
 import useAPI, { handleError } from '../../hooks/useAPI.ts';
@@ -14,9 +14,19 @@ import Editor from './Editor/Editor.tsx';
 import RunModal from './RunModal/RunModal.tsx';
 import classes from '../../Theme.module.css';
 
+function RuleIcons({ actions }: { actions: Action[] }) {
+  const theme = useMantineTheme();
+  return (actions||[]).map((action, i)=>{
+    const { Icon, color } = availableActions[action.name];
+    return (
+    <Tooltip key={i} fz="xs" withArrow color={color?theme.colors[color][6]:undefined} label={action.name}>
+      <Icon color={color?theme.colors[color][6]:undefined} size={16} stroke={2} />
+    </Tooltip>)
+  })
+}
+
 export default function Rules() {
   const { schema, rules, mutate } = useContext(SchemaContext);
-  const theme = useMantineTheme();
   const [opened, { open, close }] = useDisclosure(false);
   const [ running, setRunning ] = useState<Rule|undefined>(undefined);
   const [ editing, setEditing ] = useState<Rule|undefined>(undefined);
@@ -114,13 +124,11 @@ export default function Rules() {
                         </Grid.Col>
                         <Grid.Col span="auto">
                             <Group>
-                            {item.actions.map((action, i)=>{
-                                const { Icon, color } = availableActions[action.name];
-                                return (
-                                <Tooltip key={i} fz="xs" withArrow color={color?theme.colors[color][6]:undefined} label={action.name}>
-                                  <Icon color={color?theme.colors[color][6]:undefined} size={16} stroke={2} />
-                                </Tooltip>)
-                            })}
+                              <RuleIcons actions={item.before_actions} />
+                              {(item.before_actions||[]).length>0&&<Divider orientation="vertical" />}
+                              <RuleIcons actions={item.actions} />
+                              {(item.after_actions||[]).length>0&&<Divider orientation="vertical" />}
+                              <RuleIcons actions={item.after_actions} />
                             </Group>
                         </Grid.Col>
                         <Grid.Col span="content">

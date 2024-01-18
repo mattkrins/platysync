@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface Schema {
     name: string;
     version: number;
@@ -37,7 +38,9 @@ interface Rule {
     secondaries: {id: string, primary: string, secondaryKey: string, primaryKey: string}[];
     conditions: Condition[];
     actions: Action[];
+    before_actions: Action[];
     after_actions: Action[];
+    [key: string]: unknown;
 }
 
 type explore = (click: (d: string) => void) => void;

@@ -23,17 +23,19 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
     }, [ rule ]);
     const canRun = form.values.conditions.length>0;
 
-    const { data: matches, post, loading, reset: r1, setData: _matches } = useAPI({
+    const { data: matchResults, post, loading, reset: r1, setData: setMatchResults } = useAPI({
         url: `/schema/${schema?.name}/rules/match`,
+        default: { matches: [] },
         data: {...rule, conditions: form.values.conditions},
     });
 
-    const { data: results, post: getResults, loading: running, reset: r2, setData: _results } = useAPI({
+    const { data: executionResults, post: getResults, loading: running, reset: r2, setData: setExecutionResults } = useAPI({
         url: `/schema/${schema?.name}/rules/run`,
+        default: { matches: [] },
         data: {
             ...rule,
             conditions: form.values.conditions,
-            matches: (matches||[]).filter((m: match)=>m.checked).map((m: match)=>m.id)
+            matches: matchResults.matches.filter((m: match)=>m.checked).map((m: match)=>m.id)
         },
     });
 
@@ -52,20 +54,17 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                 <Tabs.Tab disabled={loading||!canRun} leftSection={loading?<Loader size={15}/>:<IconSearch size={15} />} value="matches" onClick={post} >
                     Find Matches
                 </Tabs.Tab>
-                <Tabs.Tab disabled leftSection={running?<Loader size={15}/>:<IconRun size={15} />} value="results" >
-                Results
-                </Tabs.Tab>
-                <Tabs.Tab ml="auto" disabled value="log">Log</Tabs.Tab>
-                <Tabs.Tab leftSection={<IconX size="0.8rem" />} value="close" aria-label="close" onClick={close2} />
+                <Tabs.Tab disabled leftSection={running?<Loader size={15}/>:<IconRun size={15} />} value="results" >Results</Tabs.Tab>
+                <Tabs.Tab ml="auto" leftSection={<IconX size="0.8rem" />} value="close" aria-label="close" onClick={close2} />
             </Tabs.List>
             <Tabs.Panel mih={300} p="xs" pt={0} value="conditions">
                 <Conditions form={form} label="Add single-run modifications here."  />
             </Tabs.Panel>
             <Tabs.Panel value="matches">
-                <Finder id={rule?.primaryKey} matches={matches||[]} loading={loading} setData={_matches} run={run} />
+                <Finder id={rule?.primaryKey} matches={matchResults.matches||[]} loading={loading} setData={setMatchResults} run={run} />
             </Tabs.Panel>
             <Tabs.Panel value="results">
-                <Finder id={rule?.primaryKey} matches={results||[]} loading={running} setData={_results} resultant />
+                <Finder id={rule?.primaryKey} matches={executionResults.matches||[]} loading={running} setData={setExecutionResults} resultant />
             </Tabs.Panel>
             </Tabs>}
         </Modal>

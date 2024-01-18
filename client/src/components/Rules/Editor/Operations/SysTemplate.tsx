@@ -9,7 +9,7 @@ export default function Template( { form, index, explore, actionType }:{
     explore: explore,
     actionType: string
 },){
-    const actions = actionType==="after_actions"?form.values.after_actions : form.values.actions||[];
+    const actions = form.values[actionType] as Action[];
     if (!actions[index].templates) form.setFieldValue(`${actionType}.${index}.templates`, []);
     const add = () => form.insertListItem(`${actionType}.${index}.templates`, {name:'',value:''});
 

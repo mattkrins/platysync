@@ -9,7 +9,8 @@ export default function Print( { form, index, explorer, actionType }: ActionItem
         default: [],
         mutate: (data: {name: string}[]) => data.map(printer=>printer.name)
     });
-    const printer = form.values.actions[index].target as string;
+    const actions = form.values[actionType] as Action[];
+    const printer = actions[index].target as string;
     const printers2 = printer ? [...printers, printer] : printers as string[]
     const deduplicated = printers2.filter((v, i, self) => i === self.findIndex((t) => ( t === v )) );
     return (
