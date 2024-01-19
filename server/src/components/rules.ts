@@ -30,12 +30,11 @@ interface primaryResponse {
     object: {[k: string]: User};
 }
 
-interface secondaryResponse extends secondary, primaryResponse {
-
-}
+interface secondaryResponse extends secondary, primaryResponse {}
 
 export interface connections {[name: string]: primaryResponse | secondaryResponse}
 
+export type FileHandles = {[handle: string]: {type:'fileStream', handle:any}}
 
 interface template {[connector: string]: {[header: string]: string}}
 
@@ -133,7 +132,7 @@ async function matchedAllConditions(conditions: Condition[], template: template,
 }
 
 const actionMap: {
-    [name: string]: (execute: boolean|undefined, act: Action, template: template, connections: connections, fileHandles: {[handle: string]: any} ) =>
+    [name: string]: (execute: boolean|undefined, act: Action, template: template, connections: connections, fileHandles: FileHandles, close: boolean  ) =>
     Promise<{ error?: string; warning?: string; data?: unknown, template?: boolean }> } ={
     'Create User': createUser,
     'Enable User': enableUser,
@@ -157,12 +156,12 @@ const actionMap: {
     //REVIEW - add icacls? might also be vulnerable. https://4sysops.com/archives/icacls-list-set-grant-remove-and-deny-permissions/
 }
 
-async function getActions(actions: Action[], connections: connections, template: template, fileHandles: {[handle: string]: any}, execute = false){
+async function getActions(actions: Action[], connections: connections, template: template, fileHandles: FileHandles, execute = false, close = false){
     const todo: {name: string, result: {error?: string, warning?: string } }[] = [];
     let _template = template;
     for (const action of (actions||[])) {
         if (!(action.name in actionMap)) continue;
-        const result = await actionMap[action.name](execute, action, _template, connections, fileHandles );
+        const result = await actionMap[action.name](execute, action, _template, connections, fileHandles, close );
         if (result.template && result.data){ _template = { ..._template, ...result.data as object }; }
         todo.push({name: action.name, result });
         if (result.error || result.warning) return {todo, _template};
@@ -194,10 +193,16 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
     const matches: any[] = [];
     let i = 0;
     if (limitTo) primary.rows = primary.rows.filter(p=>limitTo.includes(p[rule.primaryKey]));
-    const fileHandles: {[handle: string]: any} = {};
+    const fileHandles: FileHandles = {};
     const connections = { ...secondaries, [rule.primary]: primary  };
-    if ((rule.before_actions||[]).length>0) server.io.emit("job_status", "Running Init Actions");
+    if ((rule.before_actions||[]).length>0) server.io.emit("job_status", `${!limitTo?'Checking':'Running'} Init Actions`);
     const { todo: initActions, _template: initTemplate } = await getActions(rule.before_actions, connections, {}, fileHandles, !!limitTo);
+    const initErrors = initActions.filter(r=>r.result.error);
+    if (initErrors.length > 0){
+        server.io.emit("job_status", "Idle");
+        server.io.emit("global_status", {});
+        return {matches, initActions};
+    }
     server.io.emit("job_status", "Matching Data");
     for (const object of primary.rows) {
         const id = object[rule.primaryKey];
@@ -225,12 +230,16 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
         const actionable = todo.filter(t=>t.result.warning||t.result.error).length <= 0;
         matches.push({id, display, actions: todo, actionable});
     }
-    if ((rule.after_actions||[]).length>0) server.io.emit("job_status", "Running Final Actions");
-    const { todo: finalActions } = await getActions(rule.after_actions, connections, initTemplate, fileHandles, !!limitTo);
+    if ((rule.after_actions||[]).length>0) server.io.emit("job_status", `${!limitTo?'Checking':'Running'} Final Actions`);
+    const { todo: finalActions } = await getActions(rule.after_actions, connections, initTemplate, fileHandles, !!limitTo, true);
+    
+    for (const file of Object.values(fileHandles)) {
+        if (file.type==="fileStream") file.handle.close();
+    }
 
     server.io.emit("job_status", "Idle");
     server.io.emit("global_status", {});
-    return {matches};
+    return {matches, initActions, finalActions};
 }
 
 export async function runActionFor(schema: Schema , rule: Rule, limitTo: string[]) {

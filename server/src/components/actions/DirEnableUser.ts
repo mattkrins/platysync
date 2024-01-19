@@ -15,6 +15,7 @@ export default async function enableUser(
     connections: connections,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     fileHandles?: {[handle: string]: any},
+    close?: boolean,
     disable = false
 ): Promise <result> {
     const action = act as EnableUser;

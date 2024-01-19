@@ -1,5 +1,5 @@
-import { Box, Button, Checkbox, Divider, Grid, Group, Pagination, Select, Switch, TextInput, Text, useMantineTheme, Indicator, Modal, Code, Stepper } from "@mantine/core";
-import { IconSearch, IconRun, IconUserCheck } from "@tabler/icons-react";
+import { Box, Button, Checkbox, Divider, Grid, Group, Pagination, Select, Switch, TextInput, Text, useMantineTheme, Indicator, Modal, Code } from "@mantine/core";
+import { IconSearch, IconRun } from "@tabler/icons-react";
 import { availableActions } from "../../../data/common";
 import { usePagination } from "@mantine/hooks";
 import { useState } from "react";
@@ -29,9 +29,21 @@ function search(query: string, match: match){
     if (match.display.includes(query)) return true;
     return false;
 }
+
 //TODO - consolidate errors and warnings.
-function Row( { match, toggle, setAction, resultant = false, dash }:{ match: match, toggle: (id: string)=>()=>void, setAction: (a: action)=>void, resultant: boolean, dash: boolean } ){
+function IconMap({ actions, setAction, size = 16 }: { actions: action[], setAction: (a: action)=>void, size: number }){
     const theme = useMantineTheme();
+    return actions.map((action,key)=>{
+        const { Icon, color } = availableActions[action.name];
+        const problem = action.result.error || action.result.warning;
+        const col = !problem ? color?theme.colors[color][6]:undefined : theme.colors.gray[8];
+        return <Indicator disabled={!problem} size={size/3} offset={3} color={action.result.warning?'orange':'red'} inline key={key}>
+            <Icon onClick={()=>setAction(action)} style={{cursor:"pointer"}} color={col} size={size} stroke={2} />
+        </Indicator>
+    })
+}
+
+function Row( { match, toggle, setAction, resultant = false, dash }:{ match: match, toggle: (id: string)=>()=>void, setAction: (a: action)=>void, resultant: boolean, dash: boolean } ){
     return (
         <Grid key={match.id} align="center">
         <Grid.Col pl="lg" span={1}>{!resultant&&<Switch disabled={!match.actionable} onChange={toggle(match.id)} checked={!!match.checked} />}</Grid.Col>
@@ -39,17 +51,14 @@ function Row( { match, toggle, setAction, resultant = false, dash }:{ match: mat
         {dash&&<Grid.Col span={1}>{match.rule}</Grid.Col>}
         <Grid.Col span={2}>{match.id}</Grid.Col>
         <Grid.Col span={dash?5:7}>{match.display}</Grid.Col>
-        <Grid.Col span={2}>{
-            match.actions.map((action,key)=>{
-            const { Icon, color } = availableActions[action.name];
-            if (action.result.warning) return <Icon onClick={()=>setAction(action)} style={{cursor:"pointer"}} key={key} color={theme.colors.gray[8]} size={16} stroke={2} />
-            if (action.result.error) return <Indicator size={6} offset={3} color="red" inline key={key}>
-                <Icon onClick={()=>setAction(action)} style={{cursor:"pointer"}} color={color?theme.colors[color][6]:undefined} size={16} stroke={2} />
-            </Indicator>
-            return <Icon onClick={()=>setAction(action)} key={key} style={{cursor:"pointer"}} color={color?theme.colors[color][6]:undefined} size={16} stroke={2} /> })}
-        </Grid.Col>
+        <Grid.Col span={2}><IconMap actions={match.actions} setAction={setAction} size={16} /></Grid.Col>
     </Grid>
     )
+}
+
+function RuleActions({ actions, setAction }: { actions: action[], setAction: (a: action)=>void }){
+    return actions.length<=0?<Divider mt="xs"/>:
+    <Divider mt="xs" label={<Group><IconMap actions={actions} setAction={setAction} size={22} /></Group>} />
 }
 
 function DataReader({ action, resultant = false }: { action: action, resultant: boolean }){
@@ -68,9 +77,10 @@ interface Props {
     loading: boolean;
     resultant?: boolean;
     dash?: boolean;
+    initActions: action[]
+    finalActions: action[]
 }
-export default function Finder( { id, matches, loading, setData, run, resultant = false, dash = false } : Props ) {
-
+export default function Finder( { id, matches, loading, setData, run, resultant = false, dash = false, initActions = [], finalActions = [] } : Props ) {
     const setMatches = (data: unknown) => setData((r: object) => ({...r, matches: data}));
 
     const [showActionless, setShowActionless] = useState<boolean>(true);
@@ -147,13 +157,8 @@ export default function Finder( { id, matches, loading, setData, run, resultant 
             {!resultant&&<Button onClick={run} leftSection={<IconRun />} disabled={!hasChecked} mt="xs" >Run {checked.length} Actions</Button>}
         </Grid.Col>
     </Grid>
-    <Divider mt="xs"/>
+    <RuleActions actions={initActions} setAction={setAction} />
     </>}
-    <Divider mt="xs" label={<></>
-    //<Stepper active={0} mt="xs" >
-    //        <Stepper.Step icon={<IconUserCheck size={22} />} />
-    //</Stepper>
-    } />
     {loading&&<Group justify="center" ><Status resultant={resultant} /></Group>}
     {(data&&!loading)&&<>
     <Grid pt="xs" align="center">
@@ -166,6 +171,7 @@ export default function Finder( { id, matches, loading, setData, run, resultant 
     </Grid>
     {paginated.map((match: match) => <Row key={match.id} match={match} toggle={toggle} setAction={(a: action)=>setAction(a)} resultant={resultant} dash={dash} />)}
     </>}
+    {!loading&&<RuleActions actions={finalActions} setAction={setAction} />}
     </Box>
     )
 }

@@ -61,10 +61,21 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                 <Conditions form={form} label="Add single-run modifications here."  />
             </Tabs.Panel>
             <Tabs.Panel value="matches">
-                <Finder id={rule?.primaryKey} matches={matchResults.matches||[]} loading={loading} setData={setMatchResults} run={run} />
+                <Finder id={rule?.primaryKey} loading={loading}
+                initActions={matchResults.initActions||[]}
+                finalActions={matchResults.finalActions||[]}
+                matches={matchResults.matches||[]}
+                setData={setMatchResults}
+                run={run}
+                />
             </Tabs.Panel>
             <Tabs.Panel value="results">
-                <Finder id={rule?.primaryKey} matches={executionResults.matches||[]} loading={running} setData={setExecutionResults} resultant />
+                <Finder id={rule?.primaryKey} loading={running} resultant
+                initActions={executionResults.initActions||[]}
+                finalActions={executionResults.finalActions||[]}
+                matches={executionResults.matches||[]}
+                setData={setExecutionResults}
+                 />
             </Tabs.Panel>
             </Tabs>}
         </Modal>
