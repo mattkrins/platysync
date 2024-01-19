@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Center, Grid, Group, TextInput } from "@mantine/core";
+import { ActionIcon, Box, Button, Center, Grid, Group, TextInput, Textarea } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -41,7 +41,7 @@ export default function Template( { form, index, explore, actionType }:{
                             <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                                 <Group><IconGripVertical size="1.2rem" /></Group>
                             </Grid.Col>
-                            <Grid.Col span="auto">
+                            <Grid.Col span={"content"}>
                                 <TextInput
                                     placeholder="Name"
                                     {...form.getInputProps(`${actionType}.${index}.templates.${index2}.name`)}
@@ -49,8 +49,9 @@ export default function Template( { form, index, explore, actionType }:{
                                 />
                             </Grid.Col>
                             <Grid.Col span="auto">
-                                <TextInput
+                                <Textarea
                                     placeholder="Value"
+                                    autosize maxRows={4}
                                     {...form.getInputProps(`${actionType}.${index}.templates.${index2}.value`)}
                                     rightSection={explorer('value', index2)}
                                 />
