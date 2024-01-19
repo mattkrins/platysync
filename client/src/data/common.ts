@@ -1,4 +1,4 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconFile, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconFile, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
 import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
 import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
@@ -15,6 +15,7 @@ import DeleteFolder from '../components/Rules/Editor/Operations/FolderDelete';
 import Template from '../components/Rules/Editor/Operations/SysTemplate';
 import FileWriteTxt from '../components/Rules/Editor/Operations/FileWriteTxt';
 import StmcUpload from '../components/Rules/Editor/Operations/StmcUpload';
+import EncryptString from '../components/Rules/Editor/Operations/EncryptString';
 
 export const ldapAttributes = [
     "name",
@@ -268,6 +269,12 @@ export const availableActions: {
         catagory: 'system',
         Icon: IconTemplate,
         Component: Template,
+    },
+    "Encrypt String": {
+        id: "Encrypt String",
+        catagory: 'system',
+        Icon: IconKey,
+        Component: EncryptString,
     },
     "Upload Student Passwords": {
         id: "Upload Student Passwords",

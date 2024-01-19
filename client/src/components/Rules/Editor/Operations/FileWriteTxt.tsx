@@ -1,5 +1,5 @@
 import { Box, Switch, TextInput, Textarea } from "@mantine/core";
-import { IconFileMinus } from "@tabler/icons-react";
+import { IconFilePencil } from "@tabler/icons-react";
 
 export default function FileWriteTxt( { form, index, explorer, actionType }: ActionItem ) {
     return (
@@ -9,7 +9,7 @@ export default function FileWriteTxt( { form, index, explorer, actionType }: Act
             description="Path of file to append text to."
             placeholder="D:/{{group}}/rows.csv"
             {...form.getInputProps(`${actionType}.${index}.target`)}
-            leftSection={<IconFileMinus size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            leftSection={<IconFilePencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             rightSection={explorer('target')}
         />
         <Switch label="Validate Path"

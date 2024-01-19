@@ -36,7 +36,6 @@ export interface Attribute {
 
 export interface Action {
   name: string;
-  target?: string;
   value?: string;
   source?: string;
   target?: string;

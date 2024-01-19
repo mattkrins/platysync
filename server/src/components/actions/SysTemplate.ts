@@ -5,7 +5,7 @@ interface Template extends Action  {
     templates: { name: string; value: string; }[];
 }
 
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async function templateData(execute = false, act: Action, template: template): Promise <result> {
     const action = act as Template;
     try {

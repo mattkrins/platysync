@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 import { keyring } from "@zowe/secrets-for-zowe-sdk";
 
-function salt(key: string): Promise<Buffer> {
+function salt(key: string, iterationCount = 100000): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    crypto.pbkdf2(key, 'salt', 100000, 32, 'sha512', (err, derivedKey) => {
+    crypto.pbkdf2(key, 'salt', iterationCount, 32, 'sha512', (err, derivedKey) => {
       if (err) reject(err);
       else resolve(derivedKey);
     });
@@ -13,6 +13,15 @@ function salt(key: string): Promise<Buffer> {
 export interface Hash {
     encrypted: string;
     iv: string;
+}
+
+export async function encryptString(secret: string, key: string, strength = 100000) {
+  const derivedKey = await salt(key, strength);
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', derivedKey, iv);
+  let encrypted = cipher.update(secret, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return { encrypted, iv: iv.toString('hex') };
 }
 
 export let key: string;
@@ -30,18 +39,13 @@ async function regenerate(force: boolean = false): Promise<string> {
 
 export async function encrypt(secret: string): Promise<Hash> {
   if (!key) await regenerate();
-  const derivedKey = await salt(key);
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', derivedKey, iv);
-  let encrypted = cipher.update(secret, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return { encrypted, iv: iv.toString('hex') };
+  return encryptString(secret, key);
 }
 
-export async function decrypt(hash: Hash): Promise<string> {
+export async function decrypt(hash: Hash, strength = 100000): Promise<string> {
   if (!key) await regenerate();
   try {
-    const derivedKey = await salt(key);
+    const derivedKey = await salt(key, strength);
     const decipher = crypto.createDecipheriv('aes-256-cbc', derivedKey, Buffer.from(hash.iv, 'hex'));
     decipher.setAutoPadding(true);
     let decrypted = decipher.update(hash.encrypted, 'hex', 'utf8');

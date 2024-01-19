@@ -23,6 +23,7 @@ import moveOU from "./actions/DirMoveOU.js";
 import updateAtt from "./actions/DirUpdateAtt.js";
 import fileWriteTxt from "./actions/FileWriteTxt.js";
 import * as fs from 'fs';
+import encryptString from "./actions/EncryptString.js";
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -41,7 +42,7 @@ interface template {[connector: string]: {[header: string]: string}}
 
 async function getRows(connector: anyProvider, schema_name: string, attribute?: string): Promise<primaryResponse>  {
     switch (connector.id) {
-        case 'stmc': { //FIXME - io.emit stops working in the STMC connector. No idea why.
+        case 'stmc': { //FIXME - io.emit stops working in the STMC connector. https://github.com/mattkrins/cdapp/issues/8
             const stmc = new STMC(schema_name, connector.school, connector.proxy, connector.eduhub);
             const client = await stmc.configure();
             const password = await decrypt(connector.password as Hash);
@@ -179,6 +180,7 @@ const actionMap: {
     'Move Folder': moveFolder,
     'Delete Folder': deleteFolder,
     'Template': templateData,
+    'Encrypt String': encryptString,
     //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
     //LINK - server\src\components\actions\SysRunCommand.tsx
     // 'Run Command': runCommand,
@@ -260,7 +262,6 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
     }
     if ((rule.after_actions||[]).length>0) server.io.emit("job_status", `${!limitTo?'Checking':'Running'} Final Actions`);
     await releaseFileHandles(fileHandles); // Release before final actions to prevent file locking after bulk actions.
-    console.log(fileHandles)
     const { todo: finalActions } = await getActions(rule.after_actions, connections, initTemplate, fileHandles, !!limitTo, true);
     await cleanup(fileHandles, connections);
     return {matches, initActions, finalActions};
