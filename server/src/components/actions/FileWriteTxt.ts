@@ -41,7 +41,7 @@ export default async function fileWriteTxt(
         data.data = Handlebars.compile(action.data)(template);
         if (action.validate) if (!fs.existsSync(data.target)) return {warning: `Target path does not exist.`, data};
         if (!execute) return {data};
-        if (!fileHandles[action.target]) fileHandles[action.target] = {type: 'fileStream', handle: await openStream(data.target)};
+        if (!fileHandles[action.target]) fileHandles[action.target] = {type: 'fileStream', id: action.target, handle: await openStream(data.target)};
         fileHandles[action.target].handle.write(data.data+(action.newline?"\r\n":''));
         if (close && fileHandles[action.target]){
             await closeStream(fileHandles[action.target].handle);

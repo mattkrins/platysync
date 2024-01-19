@@ -1,4 +1,4 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCopy, IconFile, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconFile, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
 import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
 import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
@@ -14,6 +14,7 @@ import MoveFolder from '../components/Rules/Editor/Operations/FolderMove';
 import DeleteFolder from '../components/Rules/Editor/Operations/FolderDelete';
 import Template from '../components/Rules/Editor/Operations/SysTemplate';
 import FileWriteTxt from '../components/Rules/Editor/Operations/FileWriteTxt';
+import StmcUpload from '../components/Rules/Editor/Operations/StmcUpload';
 
 export const ldapAttributes = [
     "name",
@@ -110,13 +111,12 @@ export const availableCatagories: {
         Icon: IconBinaryTree2,
         color: "blue",
     },
-    //TODO - eduSTAR Operations
-    //{
-    //    label: "eduSTAR Operations",
-    //    id: 'edustar',
-    //    Icon: IconSchool,
-    //    color: "yellow",
-    //},
+    {
+        label: "eduSTAR Operations",
+        id: 'edustar',
+        Icon: IconSchool,
+        color: "yellow",
+    },
     {
         label: "Document Operations",
         id: 'document',
@@ -150,7 +150,7 @@ export const availableActions: {
         color?: string;
         catagory: catagory;
         Component: (props: ActionItem) => JSX.Element;
-        perRule?: false;
+        perRule?: boolean;
     }
 } = {
     "Create User": {
@@ -264,16 +264,21 @@ export const availableActions: {
         catagory: 'system',
         Icon: IconTemplate,
         Component: Template,
-        //perRule: false
     },
-    //TODO - STMC upload
-    //"Upload Student Passwords": {
-    //    id: "Upload Student Passwords",
-    //    catagory: 'edustar',
-    //    Icon: IconCloudUpload,
-    //    color: 'yellow',
-    //},
+    "Upload Student Passwords": {
+        id: "Upload Student Passwords",
+        catagory: 'edustar',
+        Icon: IconCloudUpload,
+        color: 'yellow',
+        Component: StmcUpload
+    },
     //TODO - update groups
+    //TODO - emailing
+    //"Send Email": {
+    //    id: "Send Email",
+    //    catagory: 'system',
+    //    Icon: IconMail,
+    //},
     //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
     //LINK - client\src\components\Rules\Editor\Operations\RunCommand.tsx
     //"Run Command": {
@@ -281,11 +286,5 @@ export const availableActions: {
     //    catagory: 'system',
     //    Icon: IconTerminal,
     //    Component: RunCommand,
-    //},
-    //TODO - emailing
-    //"Send Email": {
-    //    id: "Send Email",
-    //    catagory: 'system',
-    //    Icon: IconMail,
     //},
 }

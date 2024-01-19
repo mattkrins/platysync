@@ -22,6 +22,7 @@ import deleteUser from "./actions/DirDeleteUser.js";
 import moveOU from "./actions/DirMoveOU.js";
 import updateAtt from "./actions/DirUpdateAtt.js";
 import fileWriteTxt from "./actions/FileWriteTxt.js";
+import * as fs from 'fs';
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -34,7 +35,7 @@ interface secondaryResponse extends secondary, primaryResponse {}
 
 export interface connections {[name: string]: primaryResponse | secondaryResponse}
 
-export type FileHandles = {[handle: string]: {type:'fileStream', handle:any}}
+export type FileHandles = {[handle: string]: {type:'fileStream', id: string, handle:any}}
 
 interface template {[connector: string]: {[header: string]: string}}
 
@@ -81,6 +82,34 @@ async function getRows(connector: anyProvider, schema_name: string, attribute?: 
         }
         default: throw Error("Unknown connector.");
     }
+}
+
+async function releaseFileHandles(fileHandles: FileHandles){
+    function closeStream(stream: fs.WriteStream): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!stream) return resolve();
+            stream.close((e)=>e?reject(e):resolve());
+        });
+    }
+    for (const file of Object.values(fileHandles)) {
+        if (file.type==="fileStream") await closeStream(file.handle);
+        delete fileHandles[file.id];
+    }
+}
+async function cleanup(fileHandles: FileHandles, connections: connections){
+    server.io.emit("job_status", "Cleaning up");
+    await releaseFileHandles(fileHandles); // Release file handles
+    for (const connection of Object.values(connections)) { // Close connector connections
+        switch (connection.connector.id) {
+            case 'ldap':{
+                const client = connection.client as ldap;
+                await client.close(); break;
+            }
+            default: continue;
+        }
+    }
+    server.io.emit("job_status", "Idle");
+    server.io.emit("global_status", {});
 }
 
 async function match(operator: string, key: string, value: string, connections: connections, id: string){
@@ -199,8 +228,7 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
     const { todo: initActions, _template: initTemplate } = await getActions(rule.before_actions, connections, {}, fileHandles, !!limitTo);
     const initErrors = initActions.filter(r=>r.result.error);
     if (initErrors.length > 0){
-        server.io.emit("job_status", "Idle");
-        server.io.emit("global_status", {});
+        await cleanup(fileHandles, connections);
         return {matches, initActions};
     }
     server.io.emit("job_status", "Matching Data");
@@ -231,14 +259,10 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
         matches.push({id, display, actions: todo, actionable});
     }
     if ((rule.after_actions||[]).length>0) server.io.emit("job_status", `${!limitTo?'Checking':'Running'} Final Actions`);
+    await releaseFileHandles(fileHandles); // Release before final actions to prevent file locking after bulk actions.
+    console.log(fileHandles)
     const { todo: finalActions } = await getActions(rule.after_actions, connections, initTemplate, fileHandles, !!limitTo, true);
-    
-    for (const file of Object.values(fileHandles)) {
-        if (file.type==="fileStream") file.handle.close();
-    }
-
-    server.io.emit("job_status", "Idle");
-    server.io.emit("global_status", {});
+    await cleanup(fileHandles, connections);
     return {matches, initActions, finalActions};
 }
 
