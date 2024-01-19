@@ -3,7 +3,7 @@ import SchemaContext from '../../providers/SchemaContext';
 import Container from '../Common/Container';
 import Head from '../Common/Head';
 import { Button, Badge, Table, Group, Text, ActionIcon, rem, useMantineTheme } from '@mantine/core';
-import { IconCopy, IconPencil, IconTrash } from '@tabler/icons-react';
+import { IconCopy, IconPencil, IconTestPipe, IconTrash } from '@tabler/icons-react';
 import providers from '../../modules/connectors.ts'
 import { useDisclosure } from '@mantine/hooks';
 import AddConnectors from './AddConnectors.tsx';
@@ -21,23 +21,35 @@ export default function Connectors() {
   const edit = (connector: Connector) => { setAdding(undefined); setEditing(connector); }
   const add = (provider: string) => { close(); setEditing(undefined); setAdding(provider); }
 
-  const { del, request: r1, loading: l1 } = useAPI({
+  const { del, request: r1 } = useAPI({
       url: `/schema/${schema?.name}/connector`,
       catch: (e) => handleError(e),
+      cleanup: true,
       then: ({connectors, _connectors, headers}) => {
         mutate({connectors, _connectors, headers});
         notifications.show({ title: "Success",message: 'Connector Removed.', color: 'lime', });
       },
   });
 
-  const { post: copy, request: r2, loading: l2 } = useAPI({
+  const { post: copy, request: r2 } = useAPI({
       url: `/schema/${schema?.name}/connector`,
       catch: (e) => handleError(e),
+      cleanup: true,
       then: ({connectors, _connectors, headers}) => {
         mutate({connectors, _connectors, headers});
         notifications.show({ title: "Success",message: 'Connector Copied.', color: 'lime', });
       },
   });
+
+  const { post: t1, request: r3 } = useAPI({
+    url: `/schema/${schema?.name}/connector`,
+    catch: (e) => handleError(e),
+    cleanup: true,
+    then: (name: string) => {
+      notifications.show({ title: "Success",message: `${name} connected successfully.`, color: 'lime', });
+    },
+  });
+  const test = (name: string) => t1({append_url: `/${name}/test`, loading: name});
 
   const remove = (name: string) =>
   modals.openConfirmModal({
@@ -53,8 +65,9 @@ export default function Connectors() {
       onConfirm: () => del({append_url: `/${name}`, loading: name}),
   });
   
-  const request = r1 || r2;
-  const loading = (l1 ||l2) ? (request as {loading: string|undefined}).loading : false;
+  const l1 = (n: string) => r1.loading=== n;
+  const l2 = (n: string) => r2.loading=== n;
+  const l3 = (n: string) => r3.loading=== n;
 
   if (!schema) return;
   return (
@@ -82,13 +95,16 @@ export default function Connectors() {
               <Table.Td><Badge color={theme.colors[provider.color][6]} variant="light">{provider.name}</Badge></Table.Td>
               <Table.Td miw={80} >
                 <Group gap={0} justify="flex-end">
+                  <ActionIcon onClick={()=>test(item.name)} loading={l3(item.name)} variant="subtle" color="lime" >
+                    <IconTestPipe style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                  </ActionIcon>
                   <ActionIcon onClick={()=>edit(item)} variant="subtle" color="orange">
                     <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                   </ActionIcon>
-                  <ActionIcon onClick={()=>copy({append_url: `/${item.name}/copy`, loading: item.name})} loading={loading===item.name} variant="subtle" color="indigo">
+                  <ActionIcon onClick={()=>copy({append_url: `/${item.name}/copy`, loading: item.name})} loading={l2(item.name)} variant="subtle" color="indigo">
                     <IconCopy style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                   </ActionIcon>
-                  <ActionIcon onClick={()=>remove(item.name)} loading={loading===item.name} variant="subtle" color="red">
+                  <ActionIcon onClick={()=>remove(item.name)} loading={l1(item.name)} variant="subtle" color="red">
                     <IconTrash style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                   </ActionIcon>
                 </Group>
