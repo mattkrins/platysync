@@ -104,10 +104,12 @@ export const availableCatagories: {
         label: string,
         Icon: (props: TablerIconsProps) => JSX.Element,
         color?: string,
+        requires?: string[];
 }[] = [
     {
         label: "Directory Operations",
         id: 'directory',
+        requires: ['ldap'],
         Icon: IconBinaryTree2,
         color: "blue",
     },
@@ -115,6 +117,7 @@ export const availableCatagories: {
         label: "eduSTAR Operations",
         id: 'edustar',
         Icon: IconSchool,
+        requires: ['stmc'],
         color: "yellow",
     },
     {
@@ -151,6 +154,7 @@ export const availableActions: {
         catagory: catagory;
         Component: (props: ActionItem) => JSX.Element;
         perRule?: boolean;
+        requires?: string[];
     }
 } = {
     "Create User": {

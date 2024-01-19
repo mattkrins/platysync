@@ -7,21 +7,24 @@ import ExplorerContext from "../../../providers/ExplorerContext";
 import { useDisclosure } from "@mantine/hooks";
 import { availableActions, availableCatagories } from "../../../data/common";
 import classes from './Actions.module.css';
+import SchemaContext from "../../../providers/SchemaContext";
 
-function ActionGroup({add, perRule, label}:{add: (name: string) => void, perRule?: boolean, label: string}) {
+function ActionGroup({add, perRule, label, connectors = []}:{add: (name: string) => void, perRule?: boolean, label: string, connectors: string[]}) {
   const [opened, { close, open }] = useDisclosure(false);
   const theme = useMantineTheme();
   const operations = Object.values(availableActions);
   const _add = (id: string) => () => { add(id); close(); };
-  return ( //TODO - hide Directory Operations etc when not ldap
+  const filteredCats = availableCatagories.filter(cat=>(cat.requires||[]).filter(r=>!connectors.includes(r)).length<=0)
+  return (
   <Group justify="right" gap="xs">
   <Popover width={300} position="left-start" shadow="md" opened={opened}>
   <Popover.Target>
       <Button variant="light" onClick={opened?close:open} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>{label}</Button>
   </Popover.Target>
   <Popover.Dropdown>
-      {availableCatagories.map(cat=>{
-      const filtered = operations.filter(action=>(perRule?action.perRule!==false&&action.catagory===cat.id:action.catagory===cat.id));
+      {filteredCats.map(cat=>{
+      const filtered = operations.filter(action=>(perRule?action.perRule!==false&&action.catagory===cat.id:action.catagory===cat.id))
+      .filter(action=>(action.requires||[]).filter(r=>!connectors.includes(r)).length<=0);
       if (filtered.length<=0) return;
       return (<NavLink key={cat.id} label={cat.label} className={classes.control}
       leftSection={<cat.Icon color={cat.color?theme.colors[cat.color][6]:undefined} size="1rem" stroke={1.5} />}
@@ -111,18 +114,22 @@ export default function Actions( { form }: {form: UseFormReturnType<Rule>} ) {
   const add = (name: string) => form.insertListItem('actions', { name });
   const addBeforeRule = (name: string) => form.insertListItem('before_actions', { name });
   const addAfterRule = (name: string) => form.insertListItem('after_actions', { name });
+  const { _connectors } = useContext(SchemaContext);
+  const connectors = [ form.values.primary, ...form.values.secondaries.map(s=>s.primary) ]
+  .filter(c=>c in _connectors)
+  .map(c=>_connectors[c].id);
   return (
     <Box>
         <Text c="dimmed" size="sm" mt="md" >Actions on this tab are executed sequentially if all conditions evaluated successfully.</Text>
-        <Divider label={<ActionGroup add={addBeforeRule} label="Initial Action" perRule />} labelPosition="right" />
+        <Divider label={<ActionGroup add={addBeforeRule} label="Initial Action" connectors={connectors} perRule />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('before_actions', { from: source.index, to: destination? destination.index : 0 }) } >
           <ActionList form={form} actionType={"before_actions"} />
         </DragDropContext>
-        <Divider my="xs" label={<ActionGroup add={add} label="Row Action" />} labelPosition="right" />
+        <Divider my="xs" label={<ActionGroup add={add} label="Row Action" connectors={connectors} />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
           <ActionList form={form} actionType={"actions"} />
         </DragDropContext>
-        <Divider my="xs" label={<ActionGroup add={addAfterRule} label="Final Action" perRule />} labelPosition="right" />
+        <Divider my="xs" label={<ActionGroup add={addAfterRule} label="Final Action" connectors={connectors} perRule />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('after_actions', { from: source.index, to: destination? destination.index : 0 }) } >
           <ActionList form={form} actionType={"after_actions"} />
         </DragDropContext>
