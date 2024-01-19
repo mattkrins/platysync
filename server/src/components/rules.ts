@@ -54,7 +54,7 @@ async function getRows(connector: anyProvider, schema_name: string, attribute?: 
                 server.io.emit("job_status", "Matching eduhub data");
                 users = client.bindEduhub();
             }
-            return { rows: users, connector, object: {} };
+            return { rows: users, client, connector, object: {} };
         }
         case 'csv': {
             const csv = new CSV(connector.path);

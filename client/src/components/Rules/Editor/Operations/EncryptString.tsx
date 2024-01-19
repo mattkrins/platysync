@@ -31,7 +31,7 @@ export default function EncryptString( { form, index, explorer, actionType }: Ac
         label="Encryption Strength"
         description={<>How many <a href="https://en.wikipedia.org/wiki/PBKDF2" target="_blank" >C</a> iterations to use. Direct trade-off between speed and stength of security. </>}
         >
-            <Slider mt="xs"
+            <Slider mt="xs"  //REVIEW - probably better as a number input...
                 defaultValue={1000}
                 min={100}
                 step={100}

@@ -30,6 +30,8 @@ interface Options {
     eduhub?: {[k: string]: string}[];
 }
 
+type passwordPayload = { _login: string, _pass: string }[];
+
 export interface AxiosFix extends AxiosStatic {
     default: AxiosStatic;
 }
@@ -95,13 +97,13 @@ export default class eduSTAR {
         try {
             const response = await this.client.post("/CookieAuth.dll?Logon", encoded);
             log.debug(response);
-            if (!response || !response.data) throw (Error("No response."));
+            if (!response || !response.data) throw Error("No response.");
             const cookies = await this.jar.getCookies(response.config.baseURL as string);
             if (!cookies || cookies.length <= 0){
                 const dom = new JSDOM(response.data);
                 const error = dom.window.document.querySelector('.wrng');
-                if (error&&error.textContent){ throw (Error(error.textContent as string));}
-                throw (Error("Unknown Error."));
+                if (error&&error.textContent){ throw Error(error.textContent as string);}
+                throw Error("Unknown Error.");
             }
             this.username = username;
         } catch (e) {
@@ -133,13 +135,28 @@ export default class eduSTAR {
         fs.writeFileSync(`${paths.cache}/${this.school}.users.json`, JSON.stringify(hash));
     }
     private async download(): Promise<User[]> {
-        try{
+        try {
             const response = await this.client.get(`/edustarmc/api/MC/GetStudents/${this.school}/FULL`);
-            if (!response || !response.data || typeof(response.data) !== "object") throw (Error("No response."));
+            if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
             this.cache(response.data);
             return response.data
         } catch (e) {
-            if ((e as E).response.data.Message&&(e as E).response.data.Message.includes("Object reference")) throw (Error("Incorrect School ID."));
+            if ((e as E).response.data.Message&&(e as E).response.data.Message.includes("Object reference")) throw Error("Incorrect School ID.");
+            throw e;
+        }
+    }
+    public async upload(payload: passwordPayload): Promise<User[]> {
+        try {
+            const data: { _schoolId: string, _rows: passwordPayload } = { "_schoolId" : this.school, "_rows" : payload };
+            const response = await this.client.post(`/edustarmc/api/MC/BulkSetPasswordCSV`, data);
+            if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
+            const results = (response.data || []) as {_outcome: string}[];
+            if (results.length <= 0) throw Error("Invalid response.");
+            const errors = results.filter(r=>r._outcome!=="OK");
+            if (errors.length > 0) throw new Error(`Error setting passwords: ${JSON.stringify(errors)}`);
+            return response.data;
+        } catch (e) {
+            if ((e as E).response.data.Message&&(e as E).response.data.Message.includes("Object reference")) throw Error("Incorrect School ID.");
             throw e;
         }
     }
