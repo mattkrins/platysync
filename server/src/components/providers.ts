@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import Papa from 'papaparse';
+import Papa, { ParseResult } from 'papaparse';
 import { getSchema } from '../routes/schema.js';
 import eduSTAR from '../modules/eduSTAR.js';
 import { Hash, decrypt } from '../modules/cryptography.js';
@@ -13,12 +13,12 @@ export class CSV {
         this.encoding = encoding || 'utf8';
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    open(): Promise<any> {
+    open(header=true): Promise<ParseResult<unknown>> {
         return new Promise((resolve, reject) => {
             try {
                 const file = fs.createReadStream(this.path, this.encoding);
                 Papa.parse(file, {
-                    header: true,
+                    header,
                     complete: resolve,
                     error: reject
                 });

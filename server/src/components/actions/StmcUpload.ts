@@ -9,6 +9,7 @@ interface StmcUpload extends Action {
     source: string;
     target: string;
     validate: boolean;
+    nohead: boolean;
 }
 
 export default async function stmcUpload(execute = false, act: Action, template: template, connections: connections): Promise <result> {
@@ -20,8 +21,11 @@ export default async function stmcUpload(execute = false, act: Action, template:
         if (!(action.target in connections)) return {error: 'Connector not found.', data};
         const client = connections[action.target].client as eduSTAR;
         const csv = new CSV(data.source);
-        //TODO - validate headers
-        const source = await csv.open() as { data: {[k: string]: string}[] };
+        const source = await csv.open(action.nohead?false:true);
+        if (action.nohead) {
+            //source.meta.fields
+            //TODO - validate headers & delimiter
+        }
         if (!execute) return {data};
         //await client.upload();
         

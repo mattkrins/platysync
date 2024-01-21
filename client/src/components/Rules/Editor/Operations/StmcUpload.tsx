@@ -16,6 +16,9 @@ export default function StmcUpload( { form, index, explorer, actionType }: Actio
         <Switch label="Validate Path"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.validate`, { type: 'checkbox' })}
         />
+        <Switch label="No headers"
+        mt="xs" {...form.getInputProps(`${actionType}.${index}.nohead`, { type: 'checkbox' })}
+        />
         <SelectConnector
             label="Target Endpoint" withAsterisk
             clearable mt="xs"
