@@ -145,7 +145,7 @@ export default function connector(route: FastifyInstance) {
             if (!schema._connectors[connector_name]) throw reply.code(404).send({ validation: { name: "Connector does not exist." } });
             const connector = schema._connectors[connector_name];
             if (!validators[connector.id]) throw Error("Unknown provider.");
-            request.body = { username: connector.username, password: connector.password };
+            request.body = { ...connector };
             await validate(connector, validators[connector.id], reply, request );
             return connector.name;
         } catch (e) {

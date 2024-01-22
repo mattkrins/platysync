@@ -1,5 +1,6 @@
 import Handlebars from "handlebars";
 import dictionary from './dictionary.js'
+import ldap from "./ldap.js";
 
 function toTitleCase(str: string) { return str.replace(/\w\S*/g, function(txt){ return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); }); }
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -19,5 +20,6 @@ Handlebars.registerHelper("grad", function(str: string) {
     return (12 - Number(str || 7)) + date.getFullYear();
 });
 Handlebars.registerHelper("inc", function(str: string) { return parseInt(str) + 1; });
+Handlebars.registerHelper("ouFromDn", function(str: string) { return ldap.ouFromDn(str); });
 
 export default Handlebars;
