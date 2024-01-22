@@ -25,6 +25,7 @@ import fileWriteTxt from "./actions/FileWriteTxt.js";
 import * as fs from 'fs';
 import encryptString from "./actions/EncryptString.js";
 import stmcUpload from "./actions/StmcUpload.js";
+import folderCreate from "./actions/FolderCreate.js";
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -180,6 +181,7 @@ const actionMap: {
     'Copy Folder': copyFolder,
     'Move Folder': moveFolder,
     'Delete Folder': deleteFolder,
+    'Create Folder': folderCreate,
     'Template': templateData,
     'Encrypt String': encryptString,
     'Upload Student Passwords': stmcUpload,

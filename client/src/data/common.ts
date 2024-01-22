@@ -1,4 +1,4 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconFile, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconFile, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPlus, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
 import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
 import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
@@ -16,6 +16,7 @@ import Template from '../components/Rules/Editor/Operations/SysTemplate';
 import FileWriteTxt from '../components/Rules/Editor/Operations/FileWriteTxt';
 import StmcUpload from '../components/Rules/Editor/Operations/StmcUpload';
 import EncryptString from '../components/Rules/Editor/Operations/EncryptString';
+import FolderCreate from '../components/Rules/Editor/Operations/FolderCreate';
 
 export const ldapAttributes = [
     "name",
@@ -262,6 +263,13 @@ export const availableActions: {
         Icon: IconTrash,
         color: 'red',
         Component: DeleteFolder,
+    },
+    "Create Folder": {
+        id: "Create Folder",
+        catagory: 'folder',
+        Icon: IconPlus,
+        color: 'lime',
+        Component: FolderCreate,
     },
     "Template": {
         label: "Build Data Template",
