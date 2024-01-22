@@ -24,6 +24,7 @@ import updateAtt from "./actions/DirUpdateAtt.js";
 import fileWriteTxt from "./actions/FileWriteTxt.js";
 import * as fs from 'fs';
 import encryptString from "./actions/EncryptString.js";
+import stmcUpload from "./actions/StmcUpload.js";
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -181,6 +182,7 @@ const actionMap: {
     'Delete Folder': deleteFolder,
     'Template': templateData,
     'Encrypt String': encryptString,
+    'Upload Student Passwords': stmcUpload,
     //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
     //LINK - server\src\components\actions\SysRunCommand.tsx
     // 'Run Command': runCommand,

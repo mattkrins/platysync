@@ -30,7 +30,7 @@ interface Options {
     eduhub?: {[k: string]: string}[];
 }
 
-type passwordPayload = { _login: string, _pass: string }[];
+export type passwordPayload = { _login: string, _pass: string }[];
 
 export interface AxiosFix extends AxiosStatic {
     default: AxiosStatic;
@@ -151,7 +151,7 @@ export default class eduSTAR {
             const response = await this.client.post(`/edustarmc/api/MC/BulkSetPasswordCSV`, data);
             if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
             const results = (response.data || []) as {_outcome: string}[];
-            if (results.length <= 0) throw Error("Invalid response.");
+            if (results.length <= 0) throw Error("Invalid response."); //
             const errors = results.filter(r=>r._outcome!=="OK");
             if (errors.length > 0) throw new Error(`Error setting passwords: ${JSON.stringify(errors)}`);
             return response.data;
