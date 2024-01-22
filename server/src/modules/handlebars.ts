@@ -19,7 +19,8 @@ Handlebars.registerHelper("grad", function(str: string) {
     const date = new Date();
     return (12 - Number(str || 7)) + date.getFullYear();
 });
-Handlebars.registerHelper("inc", function(str: string) { return parseInt(str) + 1; });
+Handlebars.registerHelper("inc", function(str: string) { return String(parseInt(str) + 1); });
+Handlebars.registerHelper("escape", function(str: string) { return Handlebars.escapeExpression(str); });
 Handlebars.registerHelper("ouFromDn", function(str: string) { return ldap.ouFromDn(str); });
 
 const compiler = Handlebars.compile;
