@@ -22,4 +22,9 @@ Handlebars.registerHelper("grad", function(str: string) {
 Handlebars.registerHelper("inc", function(str: string) { return parseInt(str) + 1; });
 Handlebars.registerHelper("ouFromDn", function(str: string) { return ldap.ouFromDn(str); });
 
+const compiler = Handlebars.compile;
+Handlebars.compile = function(input: string, options?: CompileOptions | undefined) {
+    return compiler(input, {...options, noEscape: true});
+}
+
 export default Handlebars;
