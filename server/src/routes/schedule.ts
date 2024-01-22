@@ -33,7 +33,7 @@ async function runSchedule(schedule: Schedule){
             if (!rule.enabled) continue;
             if (!rules.includes(rule.name)) continue;
             const matches = await findMatches(schema, rule );
-            const actionable = matches.filter(a=>a.actionable).map(a=>a.id) as string[];
+            const actionable = matches.matches.filter(a=>a.actionable).map(a=>a.id) as string[];
             if (actionable.length<=0) continue;
             await runActionFor(schema, rule, actionable );
         }

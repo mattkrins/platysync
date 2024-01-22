@@ -16,7 +16,7 @@ export default async function dashboard(route: FastifyInstance) {
                 if (schema_name!=="all schemas" && schema_name!==schema.name) continue;
                 for (const rule of schema.rules) {
                     if (!rule.enabled) continue;
-                    const rule_matches = (await findMatches(schema, rule )).map(m=>({...m, rule: rule.name, schema: schema.name}));
+                    const rule_matches = (await findMatches(schema, rule )).matches.map(m=>({...m, rule: rule.name, schema: schema.name}));
                     matches = [...matches, ...rule_matches];
                 }
             }
