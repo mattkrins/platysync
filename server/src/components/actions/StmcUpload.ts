@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import eduSTAR, { passwordPayload } from '../../modules/eduSTAR.js';
 import { CSV } from '../providers.js';
 import { server } from '../../server.js';
+import { ParseResult } from 'papaparse';
 
 interface StmcUpload extends Action {
     source: string;
@@ -18,14 +19,16 @@ export default async function stmcUpload(execute = false, act: Action, template:
     const data: {[k: string]: string} = {};
     try {
         data.source = Handlebars.compile(action.source)(template);
-        if (action.validate) if (!fs.existsSync(data.source)) return {error: `Source path does not exist.`, data};
         if (!(action.target in connections)) return {error: 'Connector not found.', data};
-        const client = connections[action.target].client as eduSTAR;
-        const csv = new CSV(data.source);
-        const source = await csv.open(action.nohead?false:true);
-        if (!source.data || source.data.length<=0) return {error: 'No rows found.', data};
-        if (source.meta.delimiter !== ",") return {error: 'Invalid delimiter.', data};
-        if (action.validate || execute) {
+        let client: eduSTAR|undefined = undefined;
+        let source: ParseResult<unknown>|undefined = undefined;
+        if (action.validate || execute){
+            if (!fs.existsSync(data.source)) return {error: `Source path does not exist.`, data};
+            client = connections[action.target].client as eduSTAR;
+            const csv = new CSV(data.source);
+            source = await csv.open(action.nohead?false:true);
+            if (!source.data || source.data.length<=0) return {error: 'No rows found.', data};
+            if (source.meta.delimiter !== ",") return {error: 'Invalid delimiter.', data};
             if (action.nohead) {
                 const r0 = source.data[0] as [string, string];
                 if (!r0[0]) return {error: `Missing header 1.`, data};
@@ -38,6 +41,8 @@ export default async function stmcUpload(execute = false, act: Action, template:
             }
         }
         if (!execute) return {data};
+        if (!source) return {error: `No data.`, data};
+        if (!client) return {error: `No client.`, data};
         const payload: passwordPayload = [];
         if (action.nohead) {
             const rows = source.data as [string, string][];
