@@ -13,6 +13,7 @@ export interface Schema {
     rules: Rule[];
     _rules: { [name: string]: Rule },
     headers: { [name: string]: string[] }
+    errors: string[];
 }
 
 export interface Connector {
