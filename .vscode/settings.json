@@ -3,7 +3,7 @@
         "*.jsx": "${capture}.js, ${capture}.module.css",
         "*.tsx": "${capture}.ts, ${capture}.module.css",
         "main.tsx": "vite-env.d.ts, Theme.module.css",
-        "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, tsconfig.json, .eslintrc.cjs, vite.config.ts, readme.md, .gitignore, postcss.config.js"
+        "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, tsconfig.json, .eslintrc.cjs, vite.config.ts, readme.md, .gitignore, postcss.config.js, LICENSE"
     },
     "files.associations": {
         "*.module.css": "scss"
