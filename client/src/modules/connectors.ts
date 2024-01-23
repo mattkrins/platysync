@@ -19,6 +19,13 @@ export const providers: {
   //    id: 'aad',
   //    name: "Azure Active Directory (Azure AD)",
   //    Icon: IconTopologyRing,
+  //    color: 'indigo'
+  //},
+  //aad: {
+  //    id: 'canvas',
+  //    name: "Canvas (Instructure)",
+  //    Icon: IconCircleDashed,
+  //    color: 'red'
   //},
   csv: {
       id: 'csv',
@@ -30,7 +37,7 @@ export const providers: {
       id: 'stmc',
       name: "eduSTAR Management Centre (STMC)",
       icon: IconSchool,
-      color: 'red'
+      color: 'yellow'
   },
   proxy: {
       id: 'proxy',
