@@ -1,6 +1,6 @@
-import * as fs from 'node:fs';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs-extra'
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -10,6 +10,7 @@ delete pack.devDependencies;
 delete pack.scripts;
 if (!fs.existsSync('dist')) fs.mkdirSync('dist');
 fs.writeFileSync('dist/package.json', JSON.stringify(pack, undefined, 2), 'utf8');
+if (fs.existsSync('dist/typings')) fs.removeSync('dist/typings');
 
 if (fs.existsSync('WinSW-x64.exe')){
     const xml = `<service>
