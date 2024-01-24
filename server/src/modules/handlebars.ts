@@ -15,6 +15,7 @@ Handlebars.registerHelper("title", function(str: string) { return toTitleCase(st
 Handlebars.registerHelper("cap", function(str: string) { return str.charAt(0).toUpperCase() + str.substr(1); });
 Handlebars.registerHelper("clean", function(str: string) { return str.replace(/\n/, "").replace(/\r/, "").trim(); });
 Handlebars.registerHelper("find", function(haystack: string, needle: string) { return haystack.includes(needle) });
+Handlebars.registerHelper("count", function(str: string) { return String(str.length); });
 Handlebars.registerHelper("grad", function(str: string) {
     const date = new Date();
     return (12 - Number(str || 7)) + date.getFullYear();
