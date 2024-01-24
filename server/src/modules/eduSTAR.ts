@@ -80,7 +80,8 @@ export default class eduSTAR {
             return response.data;
         } catch (e) {
             const error = e as { response: {status: number}, message: string }
-            if (error.response && error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
+            if (error.response && error.response.status === 403) throw Error("Not connected to edu-intranet.");
+            if (error.response && error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.");
             throw Error(error.message)
         }
     }
@@ -111,7 +112,6 @@ export default class eduSTAR {
             this.username = username;
         } catch (e) {
             const error = e as { response: {status: number}, message: string }
-            if (error.response && error.response.status === 401) throw Error("401 Validation error. This is likely due to access behind a VPN.")
             throw Error(error.message)
         }
     }

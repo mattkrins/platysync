@@ -43,18 +43,18 @@ export default async function updateAtt(execute = false, act: Action, template: 
             switch (a.type) {
                 case 'Add': {
                     const value = Handlebars.compile(a.value||"")(template);
-                    if (!(a.name in user.attributes)) changes.push({...a, value, currentValue: '' }); continue;
+                    if (!(a.name in user.attributes)) changes.push({...a, value, currentValue: '' }); break;
                 }
                 case 'Replace': {
                     const value = Handlebars.compile(a.value||"")(template);
                     const currentValue = String(user.attributes[a.name]||'');
-                    if (currentValue===value) continue;
+                    if (currentValue===value) break;
                     changes.push({...a, value, currentValue });
-                    continue;
+                    break;
                 }
                 case 'Delete': {
-                    if (!(a.name in user.attributes)) continue;
-                    changes.push({...a, currentValue: '' }); continue;
+                    if (!(a.name in user.attributes)) break;
+                    changes.push({...a, currentValue: '' }); break;
                 }
                 default: break;
             }

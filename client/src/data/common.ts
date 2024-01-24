@@ -17,6 +17,7 @@ import FileWriteTxt from '../components/Rules/Editor/Operations/FileWriteTxt';
 import StmcUpload from '../components/Rules/Editor/Operations/StmcUpload';
 import EncryptString from '../components/Rules/Editor/Operations/EncryptString';
 import FolderCreate from '../components/Rules/Editor/Operations/FolderCreate';
+import DirUpdateSec from '../components/Rules/Editor/Operations/DirUpdateSec';
 
 export const ldapAttributes = [
     "name",
@@ -193,6 +194,13 @@ export const availableActions: {
         Icon: IconPencil,
         color: 'orange',
         Component: UpdateAttributes,
+    },
+    "Update Groups": {
+        id: "Update Groups",
+        catagory: 'directory',
+        Icon: IconUsersGroup,
+        color: 'yellow',
+        Component: DirUpdateSec,
     },
     "Move Organisational Unit": {
         id: "Move Organisational Unit",

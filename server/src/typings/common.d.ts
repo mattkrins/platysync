@@ -46,7 +46,7 @@ export interface Action {
   upn?: string;
   ou?: string;
   attributes?: Attribute[];
-  groups?: string[];
+  groups?: unknown[];
   templates?: { name: string, value: string }[];
 }
 

@@ -78,7 +78,6 @@ function Attributes( { form, index, explore, actionType }: { form: UseFormReturn
 export default function UpdateAttributes( { form, index, explore, explorer, actionType }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
-    if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:'', type: 'Replace'});
     return (
     <Box p="xs" pt={0} >

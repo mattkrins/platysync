@@ -22,7 +22,7 @@ interface Condition {
 
 interface Action {
     name: string;
-    groups: string[];
+    groups: unknown[];
     attributes: {name:string,value:string, [k: string]: unknown;}[];
     templates: {name:string,value:string, [k: string]: unknown;}[];
     [k: string]: unknown;

@@ -26,6 +26,7 @@ import * as fs from 'fs';
 import encryptString from "./actions/EncryptString.js";
 import stmcUpload from "./actions/StmcUpload.js";
 import folderCreate from "./actions/FolderCreate.js";
+import dirUpdateSec from "./actions/DirUpdateSec.js";
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -172,6 +173,7 @@ const actionMap: {
     'Delete User': deleteUser,
     'Move Organisational Unit': moveOU,
     'Update Attributes': updateAtt,
+    'Update Groups': dirUpdateSec,
     'Write PDF': writePDF,
     'Send To Printer': sendToPrinter,
     'Write To File': fileWriteTxt,

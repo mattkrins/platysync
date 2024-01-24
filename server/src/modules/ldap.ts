@@ -394,8 +394,8 @@ export class User {
      * @param {string} dnOrName Security group DN path OR  top-level name.
     **/
     hasGroup = (dnOrName: string = ''): boolean => {
-        if (this.groups.includes(dnOrName)) return true;
-        if (this.attributes.memberOf.includes(dnOrName)) return true;
+        if (this.groups.map(g=>g.toLowerCase()).includes(dnOrName.toLowerCase())) return true;
+        if (this.attributes.memberOf.map(g=>g.toLowerCase()).includes(dnOrName.toLowerCase())) return true;
         return false;
     }
     /**
@@ -404,6 +404,7 @@ export class User {
     **/
     addGroup = (dn: string = '', remove = false): Promise<true> => {
         return new Promise((resolve, reject) => {
+            if (remove ? !this.hasGroup(dn) :  this.hasGroup(dn)) return true;
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
             if (!this.client) return reject("No client found.");
             const change = new ldapjs.Change({
