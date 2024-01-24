@@ -40,7 +40,7 @@ export default function Dashboard() {
         >Dashboard</Head>}
         >
             {haveSchema?<>
-            <Finder matches={matches||[]} loading={l1} setData={_matches} run={()=>{}} dash  />
+            <Finder initActions={[]} finalActions={[]}  matches={matches||[]} loading={l1} setData={_matches} run={()=>{}} dash  />
             {(!matches&&!l1)&&<Text fz="sm" c="dimmed" >Run a <a href="#" onClick={post} >check</a> to find actions to take.</Text>}
             </>:<Text fz="sm" c="dimmed" >Create a schema to begin.</Text>}
         </Container>

@@ -1,10 +1,6 @@
 {
 	"recommendations": [
 		"dbaeumer.vscode-eslint",
-		"esbenp.prettier-vscode",
-		"redhat.vscode-yaml",
-		"dsznajder.es7-react-js-snippets",
-		"christian-kohler.npm-intellisense",
 		"ExodiusStudios.comment-anchors",
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.

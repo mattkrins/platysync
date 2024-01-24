@@ -52,14 +52,17 @@ export default class eduSTAR {
         this.eduhub = options.eduhub;
         if (options.cache) this.cachePolicy = Number(options.cache);
         if (options.proxy) {
-            const url = new URL(options.proxy); // TODO: Add support for auth
+            const url = new URL(options.proxy);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const HttpProxyCookieAgent: any = createCookieAgent(HttpProxyAgent);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const HttpsProxyCookieAgent: any = createCookieAgent(HttpsProxyAgent);
-            httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port });
+            let proxyAuth: undefined|string;
+            if (url.username&&url.password) proxyAuth = `${url.username}:${url.password}`;
+            httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port, proxyAuth });
             httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port });
         }
+
         this.client = Axios.default.create({
             baseURL: 'https://apps.edustar.vic.edu.au',
             headers: { 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42' },
