@@ -1,7 +1,13 @@
-import { Box, NumberInput, PasswordInput, TextInput } from "@mantine/core";
-import { IconBraces, IconKey, IconLock, IconPencil } from "@tabler/icons-react";
+import { ActionIcon, Box, NumberInput, PasswordInput, TextInput } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { IconBraces, IconEye, IconEyeOff, IconKey, IconLock, IconPencil } from "@tabler/icons-react";
 
 export default function EncryptString( { form, index, explorer, actionType }: ActionItem ) {
+    const [visible, { toggle }] = useDisclosure(false);
+    const EyeIcon = <ActionIcon onClick={toggle} variant="subtle">{!visible ?
+        <IconEye style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} /> :
+        <IconEyeOff style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} />}
+    </ActionIcon>
     return (
     <Box p="xs" pt={0} >
         <TextInput
@@ -16,9 +22,11 @@ export default function EncryptString( { form, index, explorer, actionType }: Ac
             label="Encryption Key" withAsterisk mt="xs"
             description={<>String to encrypt the secret with. <b>Warning: this is stored in clear text</b></>}
             placeholder="password"
+            visible={visible}
             {...form.getInputProps(`${actionType}.${index}.password`)}
             leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={explorer('password')}
+            rightSection={<ActionIcon.Group>{EyeIcon}{explorer('source')}</ActionIcon.Group>}
+            rightSectionWidth={"calc(var(--psi-icon-size) * 4)"}
         />
         <NumberInput mt="xs" withAsterisk
             label="Encryption Strength"
