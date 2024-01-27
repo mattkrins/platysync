@@ -27,6 +27,7 @@ import encryptString from "./actions/EncryptString.js";
 import stmcUpload from "./actions/StmcUpload.js";
 import folderCreate from "./actions/FolderCreate.js";
 import dirUpdateSec from "./actions/DirUpdateSec.js";
+import sysComparator from "./actions/SysComparator.js";
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -45,7 +46,7 @@ interface template {[connector: string]: {[header: string]: string}}
 
 async function getRows(connector: anyProvider, schema_name: string, attribute?: string): Promise<primaryResponse>  {
     switch (connector.id) {
-        case 'stmc': { //FIXME - io.emit stops working in the STMC connector. https://github.com/mattkrins/cdapp/issues/8
+        case 'stmc': {
             const stmc = new STMC(schema_name, connector.school, connector.proxy, connector.eduhub);
             const client = await stmc.configure();
             const password = await decrypt(connector.password as Hash);
@@ -158,14 +159,14 @@ async function matchCondition(condition: Condition, template: template, connecti
     return delimiter ? await matchDelimited(key, value, condition, connections, id) : await match(condition.operator, key, value, connections, id);
 }
 
-async function matchedAllConditions(conditions: Condition[], template: template, connections: connections, id: string ){
+export async function matchedAllConditions(conditions: Condition[], template: template, connections: connections, id: string ){
     for (const condition of conditions) {
         if (!(await matchCondition(condition, template, connections, id))) return false;
     } return true;
 }
 
 const actionMap: {
-    [name: string]: (execute: boolean|undefined, act: Action, template: template, connections: connections, fileHandles: FileHandles, close: boolean  ) =>
+    [name: string]: (execute: boolean|undefined, act: Action, template: template, connections: connections, fileHandles: FileHandles, close: boolean, id?: string  ) =>
     Promise<{ error?: string; warning?: string; data?: unknown, template?: boolean }> } ={
     'Create User': createUser,
     'Enable User': enableUser,
@@ -186,6 +187,7 @@ const actionMap: {
     'Create Folder': folderCreate,
     'Template': templateData,
     'Encrypt String': encryptString,
+    'Comparator': sysComparator,
     'Upload Student Passwords': stmcUpload,
     //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
     //LINK - server\src\components\actions\SysRunCommand.tsx
@@ -193,12 +195,12 @@ const actionMap: {
     //REVIEW - add icacls? might also be vulnerable. https://4sysops.com/archives/icacls-list-set-grant-remove-and-deny-permissions/
 }
 
-async function getActions(actions: Action[], connections: connections, template: template, fileHandles: FileHandles, execute = false, close = false){
+async function getActions(actions: Action[], connections: connections, template: template, fileHandles: FileHandles, execute = false, close = false, id?: string){
     const todo: {name: string, result: {error?: string, warning?: string } }[] = [];
     let _template = template;
     for (const action of (actions||[])) {
         if (!(action.name in actionMap)) continue;
-        const result = await actionMap[action.name](execute, action, _template, connections, fileHandles, close );
+        const result = await actionMap[action.name](execute, action, _template, connections, fileHandles, close, id );
         if (result.template && result.data){ _template = { ..._template, ...result.data as object }; }
         todo.push({name: action.name, result });
         if (result.error || result.warning) return {todo, _template};
@@ -233,7 +235,7 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
     const fileHandles: FileHandles = {};
     const connections = { ...secondaries, [rule.primary]: primary  };
     if ((rule.before_actions||[]).length>0) server.io.emit("job_status", `${!limitTo?'Checking':'Running'} Init Actions`);
-    const { todo: initActions, _template: initTemplate } = await getActions(rule.before_actions, connections, {}, fileHandles, !!limitTo);
+    const { todo: initActions, _template: initTemplate } = await getActions(rule.before_actions, connections, {}, fileHandles, !!limitTo, false);
     const initErrors = initActions.filter(r=>r.result.error);
     if (initErrors.length > 0){
         await cleanup(fileHandles, connections);
@@ -262,7 +264,7 @@ export default async function findMatches(schema: Schema , rule: Rule, limitTo?:
         }
         if (!(await matchedAllConditions(rule.conditions, template, connections, id))) continue;
         const display = (rule.display && rule.display!=='') ? Handlebars.compile(rule.display)(template) : id;
-        const { todo } = await getActions(rule.actions, connections, template, fileHandles, !!limitTo);
+        const { todo } = await getActions(rule.actions, connections, template, fileHandles, !!limitTo, false, id);
         const actionable = todo.filter(t=>t.result.warning||t.result.error).length <= 0;
         matches.push({id, display, actions: todo, actionable});
     }

@@ -64,7 +64,7 @@ function ValueInput( { form, index, modifyCondition, delimit, delimited }: Value
   )
 }
 
-export default function Conditions( { form, label }: {form: UseFormReturnType<Rule>, label?: string } ) {
+export default function Conditions( { form, label, action }: {form: UseFormReturnType<Rule>, label?: string, action?: true } ) {
   const theme = useMantineTheme();
   const { explorer, explore, } = useContext(ExplorerContext);
   const { _connectors } = useContext(SchemaContext);
@@ -87,8 +87,7 @@ export default function Conditions( { form, label }: {form: UseFormReturnType<Ru
   const hasLDAP = ( (form.values.primary in _connectors) && _connectors[form.values.primary].id === "ldap" ) ||
   (form.values.secondaries||[]).filter(s=>(s.primary in _connectors) && _connectors[s.primary].id === "ldap").length>0;
 
-
-  return ( //TODO - add enable/disable etc
+  return (
     <Box>
         {explorer}
         <Group grow justify="apart" mb="xs" mt="xs" gap="xs">
@@ -96,7 +95,7 @@ export default function Conditions( { form, label }: {form: UseFormReturnType<Ru
             <Group justify="right" gap="xs">
                 <Menu position="bottom-end" >
                     <Menu.Target>
-                        <Button variant="light" rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>Add condition</Button>
+                        <Button size={action?"compact-xs":"sm"} variant="light" rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>Add condition</Button>
                     </Menu.Target>
                     <Menu.Dropdown>
                       <Menu.Label>Data Sources</Menu.Label>
@@ -113,7 +112,7 @@ export default function Conditions( { form, label }: {form: UseFormReturnType<Ru
                 </Menu>
             </Group>
         </Group>
-        {(form.values.conditions||[]).length===0&&<Text c="lighter" size="sm" >No conditions in effect. Rules must have at least one condition to evaluate.</Text>}
+        {(form.values.conditions||[]).length===0&&<Text c="lighter" size="sm" >No conditions in effect. A minimum of one condition is required for evaluation.</Text>}
         <DragDropContext
         onDragEnd={({ destination, source }) => form.reorderListItem('conditions', { from: source.index, to: destination? destination.index : 0 }) }
         >
