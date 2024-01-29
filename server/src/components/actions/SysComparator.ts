@@ -27,11 +27,11 @@ export default async function sysComparator(
         const matched = !await matchedAllConditions(action.conditions, template, connections, id||'' );
         const newTemplate: { [k:string]: string } = {};
         const output = action.output ? Handlebars.compile(action.target)(template) : false;
-        if (matched) {
-            if (!output) return { success: true, data};
+        if (!matched) {
+            if (output===false) return { success: true, data};
             newTemplate[output] = 'true';
         } else {
-            if (!output) return {error: 'Did not meet conditions.', data};
+            if (output===false) return {error: 'Did not meet conditions.', data};
             newTemplate[output] = 'false';
         }
         return {template: true, data: newTemplate};
