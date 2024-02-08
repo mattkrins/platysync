@@ -17,12 +17,14 @@ import SysTemplate from "./operations/SysTemplate.js";
 import SysEncryptString from "./operations/SysEncryptString.js";
 import { server } from "../server.js";
 import StmcUpload from "./operations/StmcUpload.js";
+import { User } from "../modules/ldap.js";
 
 export type actionProps = { action: Action, template: template, connections: connections, schema: Schema, execute: boolean, conclude: boolean, data: {[k: string]: string} };
 interface template {[connector: string]: {[header: string]: string}}
 interface connections { [k: string]: connection }
 interface connection {
     rows: {[k: string]: string}[];
+    keys?: {[k: string]: object};
     provider?: anyProvider;
     client?: unknown;
     close?: () => Promise<unknown>;
@@ -68,17 +70,36 @@ export async function connect(schema: Schema, connectorName: string, connections
             const prov = provider as LDAPProvider;
             const ldap = new LDAP(prov);
             const client = await ldap.configure();
-            const users = await client.search(ldap.attributes, (prov.filter && prov.filter.trim()!=='') ? prov.filter : undefined);
-            const data = users.map(user=>user.stringified);
+            const { users, keyed } = await client.search(ldap.attributes, (prov.filter && prov.filter.trim()!=='') ? prov.filter : undefined);
+            const data = users.map(user=>user.plain_attributes);
             const close = async () => client.close();
-            connection = { rows: data, provider, close }; break;
+            connection = { rows: data, keys: keyed, provider, close }; break;
         }
         default: throw Error("Unknown connector.");
     } connections[connectorName] = connection; return connection;
 }
 
-async function compare(key: string, value: string, operator: string, connections: connections): Promise<boolean> {
-    // connect if needed
+async function ldap_compare(schema: Schema, key: string, value: string, operator: string, connections: connections, id: string ) {
+    //const user = (key in connections) && (id in connections[key].object) && connections[key].object[id];
+    const connection = await connect(schema, key, connections);
+    if (!connection.keys || !(id in connection.keys)) return false;
+    const user = connection.keys[id] as User;
+
+    switch (operator) {
+        case 'exists': return !!user;
+        case 'notexists': return !user;
+        case 'enabled': return user && user.enabled();
+        case 'disabled': return user && user.disabled();
+        case 'member': return user && user.hasGroup(value);
+        case 'notmember': return user && user.hasGroup(value);
+        case 'child': return user && user.childOf(value);
+        case 'notchild': return user && user.childOf(value);
+        default: return false;
+    }
+}
+
+async function compare(schema: Schema, key: string, value: string, operator: string, connections: connections, id: string): Promise<boolean> {
+    if (operator.substring(0, 4)==="ldap") return ldap_compare(schema, key, value, operator, connections, id);
     switch (operator) {
         case '==': return key === value;
         case '!=': return key !== value;
@@ -97,23 +118,23 @@ async function compare(key: string, value: string, operator: string, connections
     }
 }
 
-async function delimit(key: string, value: string, condition: Condition, connections: connections): Promise<boolean> {
+async function delimit(schema: Schema, key: string, value: string, condition: Condition, connections: connections, id: string): Promise<boolean> {
     const delimited = value.split(condition.delimiter)
     for (const value of delimited) {
-        if ( await compare(key, value, condition.operator, connections) ) return true;
+        if ( await compare(schema, key, value, condition.operator, connections, id) ) return true;
     } return false;
 }
 
-async function evaluate(condition: Condition, template: template, connections: connections): Promise<boolean> {
+async function evaluate(schema: Schema, condition: Condition, template: template, connections: connections, id: string): Promise<boolean> {
     const key = compile(template, condition.key);
     const value = compile(template, condition.value);
     const delimiter = condition.delimiter !== "";
-    return delimiter ? await delimit(key, value, condition, connections) : await compare(key, value, condition.operator, connections);
+    return delimiter ? await delimit(schema, key, value, condition, connections, id) : await compare(schema, key, value, condition.operator, connections, id);
 }
 
-export async function evaluateAll(conditions: Condition[], template: template, connections: connections): Promise<boolean> {
+export async function evaluateAll(schema: Schema, conditions: Condition[], template: template, connections: connections, id: string): Promise<boolean> {
     for (const condition of conditions) {
-        if (!(await evaluate(condition, template, connections))) return false;
+        if (!(await evaluate(schema, condition, template, connections, id))) return false;
     } return true;
 }
 
@@ -150,7 +171,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             const joins = connections[secondary.primary].rows.filter(r=>r[secondary.secondaryKey]===row[secondary.primaryKey]);
             template[secondary.primary] = (joins.length <=0 || joins.length > 1) ? {} : joins[0];
         }
-        if (!(await evaluateAll(rule.conditions, template, connections))) continue;
+        if (!(await evaluateAll(schema, rule.conditions, template, connections, rule.primaryKey))) continue;
         const display = (rule.display && rule.display.trim()!=='') ? compile(template, rule.display) : id;
         if (!display || display.trim()==='') continue;
         const todo = await actions(rule.actions, template, connections, schema, !!idFilter)

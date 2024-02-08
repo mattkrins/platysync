@@ -66,6 +66,7 @@ const start = async () => {
     const port = typeof address === 'string' ? address : address?.port;
     log.info(`Server started on port ${port}.`);
     console.log(`  ➜  Server:   http://localhost:${port}/`);
+    console.log(`  ➜  logs:   ${path}/log.txt`);
   } catch (err) {
     server.log.error(err);
     log.error(err);

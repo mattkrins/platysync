@@ -8,21 +8,21 @@ import { availableConditions, mathOperators, stringOperators } from "../../../da
 import SelectConnector from "../../Common/SelectConnector";
 
 const groupOperators = [
-  { label: 'Member of group', value: 'member' },
-  { label: 'Not member of group', value: 'notmember' }
+  { label: 'Member of group', value: 'ldap.member' },
+  { label: 'Not member of group', value: 'ldap.notmember' }
 ];
 //TODO - :
 //  - file/folder exists condition
 const ouOperators = [
-  { label: 'Child of organisational unit', value: 'child' },
-  { label: 'Not child of organisational unit', value: 'notchild' }
+  { label: 'Child of organisational unit', value: 'ldap.child' },
+  { label: 'Not child of organisational unit', value: 'ldap.notchild' }
 ];
 
 const statusOperators = [
-  { label: 'Exists on', value: 'exists' },
-  { label: 'Does not exist on', value: 'notexists' },
-  { label: 'Enabled on ', value: 'enabled' },
-  { label: 'Disabled on', value: 'disabled' }
+  { label: 'Exists on', value: 'ldap.exists' },
+  { label: 'Does not exist on', value: 'ldap.notexists' },
+  { label: 'Enabled on ', value: 'ldap.enabled' },
+  { label: 'Disabled on', value: 'ldap.disabled' }
 ];
 
 const noValues = [ 'status' ];

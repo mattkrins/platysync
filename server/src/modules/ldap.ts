@@ -148,10 +148,11 @@ export class ldap {
      * @param {string[]} attributes Array of specific attributes to get (optional)
      * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
-    public search(attributes?: string[], filter: string = '(objectclass=person)'): Promise<User[]> {
+    public search(attributes?: string[], filter: string = '(objectclass=person)', key?: string): Promise<{users: User[], keyed: {[k: string]: User}}> {
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
-            const usersArray: User[] = [];
+            const users: User[] = [];
+            const keyed: {[k: string]: User} = {};
             const opts: ldapjs.SearchOptions = {
                 filter,
                 scope: 'sub',
@@ -167,18 +168,16 @@ export class ldap {
                     const endTime = performance.now();
                     const elapsedTime = endTime - startTime;
                     if (elapsedTime>5000) counter++; //REVIEW - might be worth adding timeout settings to GUI
-                    if (counter>3 && usersArray.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${usersArray.length} rows.`));
-                    const user: {[k: string]: string} = {};
-                    for (const attribute of entry.attributes) {
-                        user[attribute.type] = ((attribute.values||[]) as string[]).join();
-                    }
-                    usersArray.push(new User(entry, this.client ));
+                    if (counter>3 && users.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${users.length} rows.`));
+                    const user = new User(entry, this.client );
+                    users.push(user);
+                    if (key) keyed[key] = user;
                     startTime = performance.now();
                 });
                 res.on('error', (err) => reject(err));
                 res.on('end', (result) => {
                     if (!result || result.status !== 0) return reject(Error("Nothing found."));
-                    resolve(usersArray)
+                    resolve({users, keyed})
                 });
             });
         });
@@ -293,7 +292,7 @@ export const FLAGS = {
 **/
 export class User {
     private client: ldapjs.Client|undefined;
-    public stringified: { [attribute: string]: string } = {};
+    public plain_attributes: { [attribute: string]: string } = {};
     public attributes: {
         distinguishedName: string,
         memberOf: string[],
@@ -309,7 +308,7 @@ export class User {
     constructor(object: ldapjs.SearchEntry, client?: ldapjs.Client) {
         if (!object) throw Error("Failed to build class User: entry not defined");
         for (const attribute of object.attributes) {
-            this.stringified[attribute.type] = ((attribute.values||[]) as string[]).join();
+            this.plain_attributes[attribute.type] = ((attribute.values||[]) as string[]).join();
             this.attributes[attribute.type] =
             Array.isArray(attribute.values) && attribute.values.length === 1 ? attribute.values[0] : attribute.values;
         }
