@@ -161,12 +161,19 @@ export class ldap {
             };
             this.client.search(this.base, opts, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
                 if (err) return reject( err );
+                let startTime = performance.now();
+                let counter = 0;
                 res.on('searchEntry', (entry) => {
+                    const endTime = performance.now();
+                    const elapsedTime = endTime - startTime;
+                    if (elapsedTime>5000) counter++; //REVIEW - might be worth adding timeout settings to GUI
+                    if (counter>3 && usersArray.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${usersArray.length} rows.`));
                     const user: {[k: string]: string} = {};
                     for (const attribute of entry.attributes) {
                         user[attribute.type] = ((attribute.values||[]) as string[]).join();
                     }
                     usersArray.push(new User(entry, this.client ));
+                    startTime = performance.now();
                 });
                 res.on('error', (err) => reject(err));
                 res.on('end', (result) => {
