@@ -40,7 +40,7 @@ function ActionGroup({add, perRule, label, connectors = []}:{add: (name: string)
 </Group>)
 }
 
-function Action ( { form, index, a, explore, actionType }: {form: UseFormReturnType<Rule>, index: number, a: Action, explore: explore, actionType: string } ){
+function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFormReturnType<Rule>, index: number, a: Action, explore: explore, actionType: string, hasLDAP: boolean } ){
   const [opened, { toggle }] = useDisclosure(false);
   const theme = useMantineTheme();
   const { Icon, color, Component } = availableActions[a.name];
@@ -67,14 +67,14 @@ function Action ( { form, index, a, explore, actionType }: {form: UseFormReturnT
     </Grid.Col>
     <Grid.Col span={12} pt={0} pb={0} >
       <Collapse in={opened}>
-        <Component form={form} index={index} explorer={explorer} explore={explore} actionType={actionType} />
+        <Component form={form} index={index} explorer={explorer} explore={explore} actionType={actionType} hasLDAP={hasLDAP} />
       </Collapse>
     </Grid.Col>
   </>
   )
 }
 
-function ActionList( { form, actionType }: {form: UseFormReturnType<Rule>, actionType: string} ) {
+function ActionList( { form, actionType, hasLDAP }: {form: UseFormReturnType<Rule>, actionType: string, hasLDAP: boolean} ) {
   const { explorer, explore } = useContext(ExplorerContext);
   const nonExplorer = (k:(d: string) => void) => k;
   const actions = form.values[actionType] as Action[];
@@ -96,7 +96,7 @@ function ActionList( { form, actionType }: {form: UseFormReturnType<Rule>, actio
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
-                <Action form={form} index={index} a={a} actionType={actionType} explore={actionType!=="actions"?nonExplorer:explore} />
+                <Action form={form} index={index} a={a} actionType={actionType} explore={actionType!=="actions"?nonExplorer:explore} hasLDAP={hasLDAP} />
               </Grid>)}
             </Draggable>
             )}
@@ -118,20 +118,24 @@ export default function Actions( { form }: {form: UseFormReturnType<Rule>} ) {
   const connectors = [ form.values.primary, ...form.values.secondaries.map(s=>s.primary) ]
   .filter(c=>c in _connectors)
   .map(c=>_connectors[c].id);
+
+  const hasLDAP = ( (form.values.primary in _connectors) && _connectors[form.values.primary].id === "ldap" ) ||
+  (form.values.secondaries||[]).filter(s=>(s.primary in _connectors) && _connectors[s.primary].id === "ldap").length>0;
+
   return (
     <Box>
         <Text c="dimmed" size="sm" mt="md" >Actions on this tab are executed sequentially if all conditions evaluated successfully.</Text>
         <Divider label={<ActionGroup add={addBeforeRule} label="Initial Action" connectors={connectors} perRule />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('before_actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} actionType={"before_actions"} />
+          <ActionList form={form} actionType={"before_actions"} hasLDAP={false} />
         </DragDropContext>
         <Divider my="xs" label={<ActionGroup add={add} label="Row Action" connectors={connectors} />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} actionType={"actions"} />
+          <ActionList form={form} actionType={"actions"} hasLDAP={hasLDAP} />
         </DragDropContext>
         <Divider my="xs" label={<ActionGroup add={addAfterRule} label="Final Action" connectors={connectors} perRule />} labelPosition="right" />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('after_actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} actionType={"after_actions"} />
+          <ActionList form={form} actionType={"after_actions"} hasLDAP={false} />
         </DragDropContext>
 
     </Box>

@@ -4,7 +4,7 @@ import fs from 'fs-extra'
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const json = fs.readFileSync('package.json');
+const json = fs.readFileSync('package.json', 'utf-8');
 const pack = JSON.parse(json);
 delete pack.devDependencies;
 delete pack.scripts;

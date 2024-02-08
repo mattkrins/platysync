@@ -59,7 +59,7 @@ export default function connector(route: FastifyInstance) {
           reply.code(500).send({ error: error.message });
         }
     });
-    function hasHandle(haystack: string = "", needle: string){ return haystack.includes(`${needle}.`) || haystack.includes(`${needle}/`); }
+    function hasHandle(haystack: string|undefined = "", needle: string){ return String(haystack).includes(`${needle}.`) || String(haystack).includes(`${needle}/`); }
     function findDependencies(schema: Schema, name: string){ //TODO - find deps in other connectors
         for (const rule of schema.rules) {
             if (hasHandle(rule.display, name)) return rule.name;
@@ -74,7 +74,7 @@ export default function connector(route: FastifyInstance) {
                 if (hasHandle(action.upn, name)) return rule.name;
                 if (hasHandle(action.ou, name)) return rule.name;
                 for (const attribute of action.attributes||[]) if (hasHandle(attribute.value, name)) return rule.name;
-                for (const group of action.groups||[]) if (hasHandle(group, name)) return rule.name;
+                for (const group of action.groups||[]) if (hasHandle(group as string, name)) return rule.name;
                 for (const template of action.templates||[]) {
                     if (hasHandle(template.name, name)) return rule.name;
                     if (hasHandle(template.value, name)) return rule.name;

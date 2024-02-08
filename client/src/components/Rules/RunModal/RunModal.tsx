@@ -8,7 +8,7 @@ import Finder, { match } from './Finder';
 import useAPI from '../../../hooks/useAPI';
 
 export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>void } ) {
-    const { schema } = useContext(SchemaContext);
+    const { schema, _connectors } = useContext(SchemaContext);
 
     const [activeTab, setActiveTab] = useState<string | null>('conditions');
     const initialValues = {
@@ -46,6 +46,9 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
         getResults();
     }
 
+    const hasLDAP = ( (form.values.primary in _connectors) && _connectors[form.values.primary].id === "ldap" ) ||
+    (form.values.secondaries||[]).filter(s=>(s.primary in _connectors) && _connectors[s.primary].id === "ldap").length>0;
+
     return (
         <Modal withCloseButton={false} size="80%" opened={!!rule} closeOnClickOutside={false} onClose={close2} styles={{body:{padding: 0}}} >
           {rule&&<Tabs p={0} value={activeTab} onChange={setActiveTab}>
@@ -58,7 +61,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                 <Tabs.Tab ml="auto" leftSection={<IconX size="0.8rem" />} value="close" aria-label="close" onClick={close2} />
             </Tabs.List>
             <Tabs.Panel mih={300} p="xs" pt={0} value="conditions">
-                <Conditions form={form} label="Add single-run modifications here."  />
+                <Conditions showLDAP={hasLDAP} form={form} label="Add single-run modifications here."  />
             </Tabs.Panel>
             <Tabs.Panel value="matches">
                 <Finder id={rule?.primaryKey} loading={loading}

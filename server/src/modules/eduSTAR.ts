@@ -164,7 +164,7 @@ export default class eduSTAR {
         }
     }
     public bindEduhub() {
-        for (const row in this.users||[]) {
+        for (const row in this.users||[]) { //REVIEW - might be better to move this logic delay to each row; is it needed before and after actions?
             const starUser = this.users[row];
             const possible_matches: { hits: number, starUser: User, hubUser: {[k: string]: string} }[] = [];
             for (const hubUser of this.eduhub||[]) {

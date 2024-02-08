@@ -21,6 +21,9 @@ export const paths = {
   cache: `${path}/cache`
 };
 for (const path of Object.values(paths)) if (!fs.existsSync(path)) fs.mkdirSync(path);
+const pkg = fs.readFileSync('package.json', 'utf-8');
+const pack = JSON.parse(pkg) as { version: string };
+export const version = parseFloat(pack.version);
 
 export const log = winston.createLogger({ //TODO - connect this to settings gui
   level: 'debug', // silly > debug > verbose > http > info > warn > error

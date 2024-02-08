@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { path } from '../server.js';
+import { path, version } from '../server.js';
 import * as fs from 'fs';
 import { _Error } from "../server.js";
 import { deleteFolderRecursive, readYAML, writeYAML } from "../storage.js";
@@ -9,6 +9,7 @@ import AdmZip from 'adm-zip';
 import multer from 'fastify-multer';
 import YAML from 'yaml'
 import { getHeaders } from "./connector.js";
+import versioner from "../components/versioner.js";
 
 export let schemas: Schema[] = [];
 export let _schemas: { [name: string]: Schema } = {};
@@ -52,12 +53,19 @@ export async function cacheSchema(name: string) {
   _schemas[yaml.name] = schema;
   return schema;
 }
+export function mutateSchemaCache(mutated: Schema) {
+  schemas = schemas.map(s=>s.name!==mutated.name?s:mutated);
+  _schemas[mutated.name] = mutated;
+}
 export async function initSchemaCache() {
   schemas = [];
   _schemas = {};
   const schemasPath = `${path}/schemas`;
   const files = fs.readdirSync(schemasPath);
-  for (const name of files) await cacheSchema(name);
+  for (const name of files){
+    const schema = await cacheSchema(name);
+    await versioner(schema);
+  }
 }
 
 export function getSchema(name: string, reply?: FastifyReply) {
@@ -66,13 +74,14 @@ export function getSchema(name: string, reply?: FastifyReply) {
   throw Error("Schema not found.")
 }
 
+
 export default function schema(route: FastifyInstance) {
   initSchemaCache();
   const schemasPath = `${path}/schemas`;
   function createSchema(name: string){
     const folderPath = `${schemasPath}/${name}`;
     fs.mkdirSync(folderPath);
-    const schema: Schema = { name, version: 0.4, connectors: [], _connectors: {}, rules: [], _rules: {}, headers: {}, errors: [] };
+    const schema: Schema = { name, version, connectors: [], _connectors: {}, rules: [], _rules: {}, headers: {}, errors: [] };
     writeYAML(schema, `${folderPath}/schema.yaml`);
     writeYAML('', `${folderPath}/rules.yaml`);
     writeYAML('', `${folderPath}/connectors.yaml`);

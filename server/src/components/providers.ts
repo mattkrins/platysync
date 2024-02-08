@@ -3,24 +3,30 @@ import Papa, { ParseResult } from 'papaparse';
 import { getSchema } from '../routes/schema.js';
 import eduSTAR from '../modules/eduSTAR.js';
 import { Hash, decrypt } from '../modules/cryptography.js';
-import { PROXY, CSV as CSVProvider } from '../typings/providers.js';
+import { PROXY, CSV as CSVProvider, LDAP as LDAPProvider } from '../typings/providers.js';
+import ldap from '../modules/ldap.js';
 
 export class CSV {
-    path: string;
-    encoding: BufferEncoding = 'utf8';
-    constructor(path: string, encoding?: BufferEncoding) {
-        this.path = path;
-        this.encoding = encoding || 'utf8';
+    private path: string;
+    private encoding: BufferEncoding = 'utf8';
+    constructor(path?: string, encoding?: BufferEncoding, connector?: CSVProvider) {
+        this.path = connector ? connector.path : (path || '');
+        this.encoding = connector ? connector.encoding : (encoding || 'utf8');
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    open(header=true): Promise<ParseResult<unknown>> {
+    open(header=true, autoClose=true): Promise<ParseResult<unknown>> {
         return new Promise((resolve, reject) => {
             try {
                 const file = fs.createReadStream(this.path, this.encoding);
                 Papa.parse(file, {
                     header,
-                    complete: resolve,
-                    error: reject
+                    complete: (result: Papa.ParseResult<unknown> | PromiseLike<Papa.ParseResult<unknown>>) => {
+                        if (autoClose) file.close();
+                        return resolve(result);
+                    },
+                    error: (reason?: unknown) => {
+                        if (autoClose) file.close();
+                        return reject(reason);
+                    }
                 });
             } catch (e) { reject(e); }
         });
@@ -63,3 +69,26 @@ export class STMC {
     }
 }
 
+export class LDAP {
+    private mustHave = ['sAMAccountName', 'userPrincipalName', 'cn', 'uid', 'distinguishedName', 'userAccountControl', 'memberOf'];
+    public attributes: string[] = this.mustHave;
+    private connector: LDAPProvider;
+    constructor(connector: LDAPProvider) {
+        this.connector = connector;
+    }
+    async configure(): Promise<ldap> {
+        const client = new ldap();
+        await client.connect(this.connector.url);
+        const password = await decrypt(this.connector.password as Hash);
+        await client.login(this.connector.username, password);
+        let base: string = this.connector.dse || await client.getRoot();
+        if (!base || base.trim()==='') throw Error("Root DSE is empty.");
+        if ((this.connector.base||'')!=='') base = `${this.connector.base},${base}`;
+        client.base = base;
+        if (this.connector.attributes.length>0) {
+            this.attributes = this.connector.attributes;
+            for (const a of this.mustHave) if (!this.attributes.includes(a)) this.attributes.push(a);
+        }
+        return client;
+    }
+}

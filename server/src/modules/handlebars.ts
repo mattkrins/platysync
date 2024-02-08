@@ -29,4 +29,8 @@ Handlebars.compile = function(input: string, options?: CompileOptions | undefine
     return compiler(input, {...options, noEscape: true});
 }
 
+export function compile(template={}, input='') {
+    return Handlebars.compile(input)(template);
+}
+
 export default Handlebars;

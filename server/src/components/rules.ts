@@ -28,6 +28,7 @@ import stmcUpload from "./actions/StmcUpload.js";
 import folderCreate from "./actions/FolderCreate.js";
 import dirUpdateSec from "./actions/DirUpdateSec.js";
 import sysComparator from "./actions/SysComparator.js";
+import process from './engine.js'
 
 interface primaryResponse {
     rows: {[k: string]: string}[];
@@ -219,6 +220,9 @@ function calculateTimeRemaining(currentWork: number, totalWork: number, speed: n
 
 let curTime = (new Date()).getTime();
 export default async function findMatches(schema: Schema , rule: Rule, limitTo?: string[]) {
+
+    return process(schema, rule, limitTo);
+
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!limitTo });
     server.io.emit("job_status", "Loading Primary");
     const primaryConnector = schema._connectors[rule.primary] as anyProvider;

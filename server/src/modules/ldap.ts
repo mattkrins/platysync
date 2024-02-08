@@ -91,7 +91,7 @@ export class ldap {
                 res.on('searchEntry', (entry) => {
                     if (!entry.attributes || !entry.attributes[0] || !entry.attributes[0].values || !entry.attributes[0].values[0]) {
                         console.log(entry.attributes)
-                        return reject(Error("DC path could not be autoresolved."));
+                        return reject(Error("Root DSE could not be autoresolved."));
                     }
                     resolve(entry.attributes[0].values[0]);
                 });
@@ -144,11 +144,44 @@ export class ldap {
         });
     }
     /**
+     * Return all objects matching the filter.
+     * @param {string[]} attributes Array of specific attributes to get (optional)
+     * @param {string} filter Search filter. (optional, default: (objectclass=person) )
+    **/
+    public search(attributes?: string[], filter: string = '(objectclass=person)'): Promise<User[]> {
+        return new Promise((resolve, reject) => {
+            if (!this.client) return reject(Error("Not connected."));
+            const usersArray: User[] = [];
+            const opts: ldapjs.SearchOptions = {
+                filter,
+                scope: 'sub',
+                sizeLimit: 1000,
+                paged: true,
+                attributes
+            };
+            this.client.search(this.base, opts, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
+                if (err) return reject( err );
+                res.on('searchEntry', (entry) => {
+                    const user: {[k: string]: string} = {};
+                    for (const attribute of entry.attributes) {
+                        user[attribute.type] = ((attribute.values||[]) as string[]).join();
+                    }
+                    usersArray.push(new User(entry, this.client ));
+                });
+                res.on('error', (err) => reject(err));
+                res.on('end', (result) => {
+                    if (!result || result.status !== 0) return reject(Error("Nothing found."));
+                    resolve(usersArray)
+                });
+            });
+        });
+    }
+    /**
      * Return all users.
      * @param {string[]} attributes Array of specific attributes to get (optional)
      * @param {string} id Attribute to use as key for object response (optional)
     **/
-    public getUsers(attributes?: string[], id?: string): Promise<{array: {[k: string]: string}[], object: {[k: string]: User}}> {
+    public getUsers(attributes?: string[], id?: string): Promise<{array: {[k: string]: string}[], object: {[k: string]: User}}> { //TODO - remove this
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             const usersArray: {[k: string]: string}[] = [];
@@ -253,6 +286,7 @@ export const FLAGS = {
 **/
 export class User {
     private client: ldapjs.Client|undefined;
+    public stringified: { [attribute: string]: string } = {};
     public attributes: {
         distinguishedName: string,
         memberOf: string[],
@@ -268,6 +302,7 @@ export class User {
     constructor(object: ldapjs.SearchEntry, client?: ldapjs.Client) {
         if (!object) throw Error("Failed to build class User: entry not defined");
         for (const attribute of object.attributes) {
+            this.stringified[attribute.type] = ((attribute.values||[]) as string[]).join();
             this.attributes[attribute.type] =
             Array.isArray(attribute.values) && attribute.values.length === 1 ? attribute.values[0] : attribute.values;
         }

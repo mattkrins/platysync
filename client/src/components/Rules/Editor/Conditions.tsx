@@ -5,7 +5,6 @@ import { IconChevronDown, IconGripVertical, IconTrash, IconCode, IconCodeAsterix
 import { useContext } from "react";
 import ExplorerContext from "../../../providers/ExplorerContext";
 import { availableConditions, mathOperators, stringOperators } from "../../../data/common";
-import SchemaContext from "../../../providers/SchemaContext";
 import SelectConnector from "../../Common/SelectConnector";
 
 const groupOperators = [
@@ -64,10 +63,9 @@ function ValueInput( { form, index, modifyCondition, delimit, delimited }: Value
   )
 }
 
-export default function Conditions( { form, label, action }: {form: UseFormReturnType<Rule>, label?: string, action?: true } ) {
+export default function Conditions( { form, label, action, showLDAP = false }: {form: UseFormReturnType<Rule>, label?: string, action?: true, showLDAP: boolean } ) {
   const theme = useMantineTheme();
   const { explorer, explore, } = useContext(ExplorerContext);
-  const { _connectors } = useContext(SchemaContext);
   const add = (type: string, operator?: string) => () => form.insertListItem('conditions', {
     type,
     key: '',
@@ -84,9 +82,6 @@ export default function Conditions( { form, label, action }: {form: UseFormRetur
   const delimit = (index: number, delimiter: string) => () => form.setFieldValue(`conditions.${index}.delimiter`,  delimiter );
   const delimited = (index: number, delimiter: string) => form.values.conditions[index].delimiter === delimiter;
 
-  const hasLDAP = ( (form.values.primary in _connectors) && _connectors[form.values.primary].id === "ldap" ) ||
-  (form.values.secondaries||[]).filter(s=>(s.primary in _connectors) && _connectors[s.primary].id === "ldap").length>0;
-
   return (
     <Box>
         {explorer}
@@ -102,7 +97,7 @@ export default function Conditions( { form, label, action }: {form: UseFormRetur
                       {availableConditions.filter(c=>!c.connector).map(c=>
                         <Menu.Item key={c.id} onClick={add(c.id)} leftSection={<c.Icon color={theme.colors[c.color][6]} size="1rem" stroke={1.5} />}>{c.label}</Menu.Item>
                       )}
-                      {hasLDAP&&<>
+                      {showLDAP&&<>
                       <Menu.Label>Directory</Menu.Label>
                       {availableConditions.filter(c=>c.connector==="ldap").map(c=>
                         <Menu.Item key={c.id} onClick={add(c.id, c.id)} leftSection={<c.Icon color={theme.colors[c.color][6]} size="1rem" stroke={1.5} />}>{c.label}</Menu.Item>

@@ -5,7 +5,7 @@ import Head from '../Common/Head';
 import ActionButton from './ActionButton';
 import { useContext } from 'react';
 import SchemaContext from '../../providers/SchemaContext';
-import { TextInput } from '@mantine/core';
+import { TextInput, Text } from '@mantine/core';
 import { IconTag } from '@tabler/icons-react';
 import useAPI from '../../hooks/useAPI';
 import { notifications } from '@mantine/notifications';
@@ -29,6 +29,7 @@ export default function Schema() {
     });
     return (
     <Container label={<Head rightSection={<ActionButton saving={saving} save={save} />} >Schema Settings</Head>} >
+        <Text size="sm" >Schema Version: <b>{schema?.version}</b></Text>
         <TextInput
         label="Schema Name" placeholder="Schema Name"
         leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
