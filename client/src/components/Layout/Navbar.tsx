@@ -39,7 +39,7 @@ function Link( { link, active, onClick }: { link: Link, active?: boolean, onClic
 
 export default function Navbar({ closeNav }: { closeNav(): void }) {
   const { nav, changeNav } = useContext(CommonContext);
-  const { logout: clearAuth, session } = useContext(AuthContext);
+  const { logout: clearAuth, session, version } = useContext(AuthContext);
   const { schema, changeSchema, loading: loadingSchema } = useContext(SchemaContext);
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
   const [opened, { open, close }] = useDisclosure(false);
@@ -83,7 +83,7 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
         <Center><Status resultant={false} /></Center>
       </Modal>}
       {opened&&<NewSchema opened={opened} close={close} refresh={refresh} />}
-      {!isMobile&&<Box className={`${classes.section} ${classes.header}`} ><Header/></Box>}
+      {!isMobile&&<Box className={`${classes.section} ${classes.header}`} ><Header version={version} /></Box>}
       <Box pt="xs" className={classes.section}>
         <Box className={classes.links}>
           {commonLinks.map((link) => <Link key={link.label} onClick={()=>navigate(link.label)} active={nav===link.label} link={link} />)}

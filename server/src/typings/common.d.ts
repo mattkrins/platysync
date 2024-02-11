@@ -16,6 +16,13 @@ export interface Schema {
     errors: string[];
 }
 
+export interface SchemaYaml extends Schema {
+  _connectors?: { [name: string]: Connector }
+  _rules?: { [name: string]: Rule },
+  headers?: { [name: string]: string[] }
+  errors?: string[];
+}
+
 export interface Connector {
   id: string;
   name: string;

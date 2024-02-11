@@ -1,7 +1,8 @@
-import { mutateSchemaCache } from "../routes/schema.js";
+import { mutateSchema } from "../routes/schema.js";
 import { log, path } from "../server.js";
-import { writeYAML } from "../storage.js";
+import { readYAML } from "../storage.js";
 import { Condition, Schema } from "../typings/common.js";
+import * as fs from 'fs';
 
 const versions: {
     min?: number,
@@ -32,27 +33,44 @@ const versions: {
                     if (action.name!=="Comparator" || !action.conditions) continue;
                     upgrade(action.conditions);
                 }
-                schema._rules[schema.name] = rule;
             }
             log.info(`Upgraded ${schema.name} from 0.4 to 0.5.`);
         } catch (e) { log.error(`Failed to upgrade ${schema.name}.`, e); }
-        //const schemaPath = `${path}/schemas/${schema.name}/schema.yaml`;
-        //const rulePath = `${path}/schemas/${schema.name}/rules.yaml`;
-        //writeYAML(schema.rules, rulePath);
-        //writeYAML(schema, schemaPath);
         schema.version = 0.5;
-        mutateSchemaCache(schema);
+        mutateSchema(schema);
+        const folder = `${path}/schemas/${schema.name}`;
+        fs.renameSync(folder, `${folder}.backup`);
     }}
 ]
 
-export default async function versioner(cached: Schema) {
-    const schema = {...cached};
+function evaluate(schema: Schema) {
     for (const version of versions){
         if (version.max && schema.version > version.max) continue;
         if (version.min && schema.version < version.min) continue;
         log.info(`Upgrade detected for schema '${schema.name}'.`);
         version.upgrade(schema);
     }
-    
+}
+
+export default function versioner() {
+    const folderPath = `${path}/schemas/`;
+    const all = fs.readdirSync(`${path}/schemas/`);
+    const folders = all.filter(o => fs.statSync(`${folderPath}/${o}`).isDirectory() );
+    const files = all.filter(o => fs.statSync(`${folderPath}/${o}`).isFile() );
+    for (const folder of folders){
+        if (folder.includes(".backup")) continue;
+        const yaml: Schema = readYAML(`${folderPath}/${folder}/schema.yaml`);
+        const connectors: Schema['connectors'] = readYAML(`${folderPath}/${folder}/connectors.yaml`) || [];
+        const rules: Schema['rules'] = readYAML(`${folderPath}/${folder}/rules.yaml`) || [];
+        const schema = { ...yaml, connectors, rules };
+        evaluate(schema);
+    }
+    for (const file of files){
+        try {
+            const schema: Schema = readYAML(`${folderPath}/${file}`);
+            if (!schema.version) continue;
+            evaluate(schema);
+        } catch (e) { log.warn("Unexpected file in schemas", e); continue; }
+    }
 
 }

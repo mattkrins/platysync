@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { path, version } from '../server.js';
+import { log, path, version } from '../server.js';
 import * as fs from 'fs';
 import { _Error } from "../server.js";
-import { deleteFolderRecursive, readYAML, writeYAML } from "../storage.js";
-import { Schema } from '../typings/common.js'
+import { readYAML, writeYAML } from "../storage.js";
+import { Schema, SchemaYaml } from '../typings/common.js'
 import { form, validWindowsFilename } from "../components/validators.js";
 import AdmZip from 'adm-zip';
 import multer from 'fastify-multer';
@@ -22,29 +22,17 @@ async function buildHeaders(connectors: Schema['connectors']) {
 }
 
 export async function cacheSchema(name: string) {
-  const schemasPath = `${path}/schemas`;
-  const filePath = `${schemasPath}/${name}/schema.yaml`;
-  const yaml: Schema = readYAML(filePath);
-  const connectors: Schema['connectors'] = readYAML(`${schemasPath}/${name}/connectors.yaml`) || [];
-  const _connectors: Schema['_connectors'] = connectors.reduce((acc: Schema['_connectors'],c)=> (acc[c.name]=c,acc),{});
-  const rules: Schema['rules'] = readYAML(`${schemasPath}/${name}/rules.yaml`) || [];
-  const _rules: Schema['_rules'] = rules.reduce((acc: Schema['_rules'],r)=> (acc[r.name]=r,acc),{});
+  const yaml: Schema = readYAML(`${path}/schemas/${name}.yaml`);
+  const _connectors: Schema['_connectors'] = yaml.connectors.reduce((acc: Schema['_connectors'],c)=> (acc[c.name]=c,acc),{});
+  const _rules: Schema['_rules'] = yaml.rules.reduce((acc: Schema['_rules'],r)=> (acc[r.name]=r,acc),{});
   let headers: { [connector: string]: string[]; } = {};
   const errors: string[] = []; //REVIEW - Janky way of handling errors. Should think of a better way.
   try {
-    headers = await buildHeaders(connectors);
+    headers = await buildHeaders(yaml.connectors);
   } catch (e) {
     errors.push(_Error(e).message);
   }
-  const schema = {
-    ...yaml,
-    connectors,
-    _connectors,
-    rules,
-    _rules,
-    headers,
-    errors,
-  }
+  const schema = { ...yaml, _connectors, _rules, headers, errors };
   if (_schemas[yaml.name]) { // already cached
     schemas = schemas.map(s=>s.name!==name?s:schema);
   } else {
@@ -53,18 +41,17 @@ export async function cacheSchema(name: string) {
   _schemas[yaml.name] = schema;
   return schema;
 }
-export function mutateSchemaCache(mutated: Schema) {
-  schemas = schemas.map(s=>s.name!==mutated.name?s:mutated);
-  _schemas[mutated.name] = mutated;
-}
+
 export async function initSchemaCache() {
+  versioner();
   schemas = [];
   _schemas = {};
-  const schemasPath = `${path}/schemas`;
-  const files = fs.readdirSync(schemasPath);
-  for (const name of files){
-    const schema = await cacheSchema(name);
-    await versioner(schema);
+  const folderPath = `${path}/schemas/`;
+  const all = fs.readdirSync(folderPath);
+  const files = all.filter(o => fs.statSync(`${folderPath}/${o}`).isFile() );
+  for (const file of files){
+    const name = file.split(".")[0];
+    await cacheSchema(name);
   }
 }
 
@@ -74,20 +61,37 @@ export function getSchema(name: string, reply?: FastifyReply) {
   throw Error("Schema not found.")
 }
 
+export function removeSchema(name: string, save = true) {
+  delete _schemas[name];
+  schemas = schemas.filter(s=>s.name!==name);
+  if (!save) return;
+  fs.unlinkSync(`${path}/schemas/${name}.yaml`);
+}
+
+function cleanSchema(schema: Schema|object): SchemaYaml {
+  const clean = {...schema} as SchemaYaml;
+  delete clean._connectors;
+  delete clean._rules;
+  delete clean.headers;
+  delete clean.errors;
+  return clean;
+}
+
+export function mutateSchema(mutated: Schema, save = true) {
+  const schema = {...getSchema(mutated.name), ...mutated};
+  schemas = schemas.map(s=>s.name!==schema.name?s:schema);
+  _schemas[schema.name] = schema;
+  if (!save) return;
+  const schemaPath = `${path}/schemas/${schema.name}.yaml`;
+  writeYAML(cleanSchema(schema), schemaPath);
+}
 
 export default function schema(route: FastifyInstance) {
   initSchemaCache();
-  const schemasPath = `${path}/schemas`;
-  function createSchema(name: string){
-    const folderPath = `${schemasPath}/${name}`;
-    fs.mkdirSync(folderPath);
-    const schema: Schema = { name, version, connectors: [], _connectors: {}, rules: [], _rules: {}, headers: {}, errors: [] };
-    writeYAML(schema, `${folderPath}/schema.yaml`);
-    writeYAML('', `${folderPath}/rules.yaml`);
-    writeYAML('', `${folderPath}/connectors.yaml`);
-    _schemas[name] = schema;
-    schemas.push(schema);
-    return schema;
+  async function createSchema(name: string, schema?: object){
+    const init = schema ? cleanSchema(schema) : {};
+    writeYAML({ name, version, connectors: [], rules: [], ...init }, `${path}/schemas/${name}.yaml`);
+    return await cacheSchema(name);
   }
   route.get('/', async () => schemas);
   route.post('/', form({
@@ -96,7 +100,7 @@ export default function schema(route: FastifyInstance) {
     try {
       const { name } = request.body as { name: string };
       if (name in _schemas) throw reply.code(409).send({ validation: { name: "Schema name taken." } });
-      return createSchema(name);
+      return await createSchema(name);
     } catch (e) {
       const error = _Error(e);
       reply.code(500).send({ error: error.message });
@@ -106,11 +110,9 @@ export default function schema(route: FastifyInstance) {
     const { name } = request.params as { name: string };
     try {
       getSchema(name, reply);
-      const folderPath = `${path}/schemas/${name}`;
-      if (!fs.existsSync(folderPath)) throw reply.code(404).send({ error: "Folder not found." });
       const zipFileName = `${name}-export.zip`;
       const zip = new AdmZip();
-      zip.addLocalFolder(folderPath);
+      zip.addLocalFile(`${path}/schemas/${name}.yaml`, '', 'schema.yaml');
       const zipBuffer = zip.toBuffer();
       reply.header('Content-Disposition', `attachment; filename=${zipFileName}`);
       reply.type('application/zip');
@@ -129,10 +131,9 @@ export default function schema(route: FastifyInstance) {
     if (schemaFile.length<=0) throw Error("Invalid schema structure.");
     const contents = schemaFile[0].getData().toString("utf8");
     const yaml = YAML.parse(contents);
-    const folderPath = `${path}/schemas/${name}`;
-    zip.extractAllTo(folderPath, true);
-    const mutated = {...oldSchema, ...yaml, name }
-    writeYAML(mutated, `${folderPath}/schema.yaml`);
+    const mutated = {...oldSchema, ...yaml, name };
+    writeYAML(mutated, `${path}/schemas/${name}.yaml`);
+    versioner();
     return await cacheSchema(name);
   }
   const storage = multer.memoryStorage();
@@ -145,7 +146,7 @@ export default function schema(route: FastifyInstance) {
   }) } , async (request, reply) => {
     const { name } = request.body as { name: string };
     if (name in _schemas) throw reply.code(409).send({ validation: { name: "Schema name taken." } });
-    createSchema(name);
+    await createSchema(name);
     const schema = getSchema(name, reply);
     return await importSchema(schema, request);
   })
@@ -175,9 +176,7 @@ export default function schema(route: FastifyInstance) {
       const { name } = request.params as { name: string };
       try {
         getSchema(name, reply);
-        deleteFolderRecursive(`${path}/schemas/${name}`);
-        delete _schemas[name];
-        schemas = schemas.filter(s=>s.name!==name);
+        removeSchema(name);
         return true;
       } catch (e) {
         const error = _Error(e);
@@ -188,26 +187,18 @@ export default function schema(route: FastifyInstance) {
     name: validWindowsFilename('Invalid schema name.'),
   }), async (request, reply) => {
       const { name } = request.params as { name: string };
-      const { name: newName, connectors, rules, ...mutations } = request.body as Schema;
+      const { name: newName, ...mutations } = request.body as Schema;
       try {
         const schema = getSchema(name, reply);
-        let writePath = `${path}/schemas/${name}`;
-        const mutated = { ...schema, ...mutations, name: newName };
         if ( name!==newName ){
           if (newName in _schemas) throw reply.code(409).send({ validation: { name: "Schema name taken." } });
-          const newPath = `${path}/schemas/${newName}`;
-          fs.renameSync(writePath, newPath);
-          writePath = `${path}/schemas/${newName}`
-          delete _schemas[name];
-          _schemas[newName] = mutated;
-          schemas = schemas.filter(s=>s.name!==name);
-          schemas.push(mutated);
+          const filePath = `${path}/schemas/${name}.yaml`;
+          if (!fs.existsSync(filePath)) log.error(`${name} was renamed but ${filePath} did not exist.`);
+          removeSchema(name);
+          createSchema(newName, mutations);
         } else {
-          _schemas[name] = mutated;
-          schemas = schemas.map(s=>s.name!==name?s:mutated);
+          mutateSchema({...schema, ...mutations});
         }
-        const filePath = `${writePath}/schema.yaml`;
-        writeYAML(mutated, filePath);
         return true;
       } catch (e) {
         const error = _Error(e);

@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
-import { _Error } from "../server.js";
+import { _Error, version } from "../server.js";
 import { User, Session } from '../db/models.js';
 import { decrypt } from '../modules/cryptography.js';
 import { form, isNotEmpty } from '../components/validators.js';
@@ -30,7 +30,7 @@ export async function login(user: User){
     const currentDate = new Date();
     const oneHourFromNow = new Date(currentDate.getTime() + (12 * 60 * 60 * 1000));
     const session = await Session.create({UserUsername: user.username, expiresAt: oneHourFromNow });
-    return { username: user.username, session: session.id, expires: oneHourFromNow };
+    return { username: user.username, session: session.id, expires: oneHourFromNow, version };
 }
 
 export default function auth(route: FastifyInstance) {

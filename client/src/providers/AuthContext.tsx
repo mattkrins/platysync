@@ -8,11 +8,13 @@ const AuthContext = createContext<{
         session: string,
         expires: string,
     }
+    version: number,
     logout(): void;
     login(user: string): void;
 }>({
     authed: undefined,
     session: undefined,
+    version: 0,
     logout: () => {},
     login: () => {},
 });

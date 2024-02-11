@@ -1,9 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { _Error } from "../server.js";
-import { getSchema } from './schema.js'
+import { getSchema, mutateSchema } from './schema.js'
 import { anyProvider } from "../typings/providers.js";
-import { path } from "../server.js";
-import { writeYAML } from "../storage.js";
 import { validConnectorName, validators } from "../components/validators.js";
 import { form, validate } from "../components/validators.js";
 import { encrypt } from "../modules/cryptography.js";
@@ -42,7 +40,6 @@ export default function connector(route: FastifyInstance) {
             const body = request.body as anyProvider;
             if (schema._connectors[body.name]) throw reply.code(409).send({ validation: { name: "Connector name taken." } });
             if (!validators[body.id]) throw Error("Unknown provider.");
-            const filePath = `${path}/schemas/${schema.name}/connectors.yaml`;
             if (body.password) {
                 const hash = await encrypt(body.password);
                 body.password = hash;
@@ -51,8 +48,8 @@ export default function connector(route: FastifyInstance) {
             if (invalid) return;
             schema._connectors[body.name] = body;
             schema.connectors.push(body);
-            writeYAML(schema.connectors, filePath);
             if (body.id in getHeaders) schema.headers[body.name] = await getHeaders[body.id](body);
+            mutateSchema(schema);
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers };
         } catch (e) {
           const error = _Error(e);
@@ -109,9 +106,8 @@ export default function connector(route: FastifyInstance) {
                 schema._connectors[connector_name] = body;
                 schema.connectors = schema.connectors.map(c=>c.name!==connector_name?c:body);
             }
-            const filePath = `${path}/schemas/${schema.name}/connectors.yaml`;
-            writeYAML(schema.connectors, filePath);
             if (body.id in getHeaders) schema.headers[body.name] = await getHeaders[body.id](body);
+            mutateSchema(schema);
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers};
         } catch (e) {
           const error = _Error(e);
@@ -129,9 +125,8 @@ export default function connector(route: FastifyInstance) {
             const copy = { ...connector, name: newName };
             schema._connectors[newName] = copy;
             schema.connectors.push(copy);
-            const filePath = `${path}/schemas/${schema.name}/connectors.yaml`;
-            writeYAML(schema.connectors, filePath);
             if (copy.id in getHeaders) schema.headers[newName] = await getHeaders[copy.id](copy);
+            mutateSchema(schema);
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers};
         } catch (e) {
           const error = _Error(e);
@@ -160,11 +155,10 @@ export default function connector(route: FastifyInstance) {
             if (!schema._connectors[connector_name]) throw reply.code(404).send({ validation: { name: "Connector does not exist." } });
             const dependencies = findDependencies(schema, connector_name);
             if (dependencies) throw reply.code(400).send({ validation: { name: `Found references to name '${connector_name}' in rule '${dependencies}'.` } });
-            const filePath = `${path}/schemas/${schema.name}/connectors.yaml`;
             delete schema._connectors[connector_name];
             schema.connectors = schema.connectors.filter(c=>c.name!==connector_name);
-            writeYAML(schema.connectors, filePath);
             delete schema.headers[connector_name];
+            mutateSchema(schema);
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers};
         } catch (e) {
           const error = _Error(e);
