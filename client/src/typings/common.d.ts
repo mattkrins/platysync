@@ -35,7 +35,8 @@ interface Rule {
     primary: string;
     primaryKey: string;
     display: string;
-    secondaries: {id: string, primary: string, secondaryKey: string, primaryKey: string}[];
+    connectors: {name: string, key: string }[]; //TODO - clean old structures
+    secondaries: {id: string, primary: string, secondaryKey: string, primaryKey: string}[]; //TODO - clean old structures
     conditions: Condition[];
     actions: Action[];
     before_actions: Action[];

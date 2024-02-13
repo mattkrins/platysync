@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea } from "@mantine/core";
+import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea, Menu, useMantineTheme, Divider } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconCode, IconGripVertical, IconKey, IconPlus, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../Common/SelectConnector";
@@ -6,26 +6,88 @@ import { useContext } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import SchemaContext from "../../../providers/SchemaContext";
 import ExplorerContext from "../../../providers/ExplorerContext";
+import useModal from "../../../hooks/useModal";
+import providers from "../../../modules/connectors";
 
 export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
-    const { connectors } = useContext(SchemaContext);
+    const theme = useMantineTheme();
+    const { connectors, _connectors } = useContext(SchemaContext);
     const { explorer, explore } = useContext(ExplorerContext);
     const usable = connectors.filter(c=>c.id!=="proxy").length -1 ;
     const { headers } = useContext(SchemaContext);
-    const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' });
+    const add_old = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' });
     const remove  = (index: number) => form.removeListItem('secondaries', index);
     const taken = (form.values.secondaries||[]).map(s=>s.primary);
     const modify = () => (value: string) => form.setFieldValue('display', `${form.values.display||''}{{${value}}}`)
+    const { Modal } = useModal("Connector", true);
+    
+    const add = (name: string) => () => form.insertListItem('connectors', { name, key: '' });
+    
     return (
     <Box>
+        <Modal/>
         {explorer}
         <TextInput
-            label="Rule Name"
+            label="Name"
             leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="Rule Name"
             withAsterisk mb="xs"
             {...form.getInputProps('name')}
         />
+        <Group grow justify="apart" mb="xs" gap="xs">
+            <Text size="sm">Connectors</Text>
+            <Group justify="right" gap="xs" pt="xs" >
+                <Menu position="bottom-end" >
+                    <Menu.Target>
+                        <ActionIcon size="lg" variant="default" ><IconPlus size={15} stroke={1.5} /></ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                    {connectors.map(c=>{
+                        const provider = providers[c.id];
+                        return <Menu.Item key={c.name} onClick={add(c.name)} leftSection={<provider.icon color={theme.colors[provider.color][6]} />} >{c.name}</Menu.Item>
+                    })}
+                    </Menu.Dropdown>
+                </Menu>
+            </Group>
+        </Group>
+        <DragDropContext
+        onDragEnd={({ destination, source }) => form.reorderListItem('connectors', { from: source.index, to: destination? destination.index : 0 }) }
+        >
+        <Droppable droppableId="dnd-list" direction="vertical">
+            {(provided) => (
+            <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
+            {(form.values.connectors||[]).map(({ name }, index)=> {
+                const connector = _connectors[name];
+                const provider = providers[connector.id];
+                return <Draggable key={index} index={index} draggableId={index.toString()}>
+                    {(provided) => (
+                    <Grid align="center" ref={provided.innerRef} mt="xs" {...provided.draggableProps} gutter="xs"
+                    style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }}
+                    >
+                        <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
+                            <Group><IconGripVertical size="1.2rem" /></Group>
+                        </Grid.Col>
+                        <Grid.Col span="content">
+                            <Group><provider.icon color={theme.colors[provider.color][6]} /></Group>
+                        </Grid.Col>
+                        <Grid.Col span="auto">
+                            <Divider my="xs" label={name} labelPosition="left" />
+                        </Grid.Col>
+                        <Grid.Col span="content">
+                            <Group justify="right" gap="xs">
+                                <ActionIcon color='red' onClick={()=>form.removeListItem('connectors', index)} variant="default" size="lg"><IconTrash size={15}/></ActionIcon>
+                            </Group>
+                        </Grid.Col>
+                    </Grid>)}
+                </Draggable>}
+                )
+            }
+            </div>
+            )}
+        </Droppable>
+        </DragDropContext>
+
+
         <Grid>
             <Grid.Col span={8}>
                 <SelectConnector
@@ -51,7 +113,7 @@ export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
         <Group grow justify="apart" mb="xs" gap="xs">
             <Text size="sm">Secondary Data Sources</Text>
             <Group justify="right" gap="xs" pt="xs" >
-                <ActionIcon size="lg" variant="default" disabled={!form.values.primary||taken.length>=usable} onClick={add} ><IconPlus size={15} stroke={1.5} /></ActionIcon>
+                <ActionIcon size="lg" variant="default" disabled={!form.values.primary||taken.length>=usable} onClick={add_old} ><IconPlus size={15} stroke={1.5} /></ActionIcon>
             </Group>
         </Group>
         <DragDropContext
