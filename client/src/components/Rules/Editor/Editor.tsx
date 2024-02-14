@@ -17,7 +17,8 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
   const [activeTab, setActiveTab] = useState<string | null>('settings');
  
   const initialValues = {
-    secondaries: [],
+    secondaries: [], //TODO - clean up old structure
+    connectors: [],
     conditions: [],
     actions: [],
     before_actions: [],
