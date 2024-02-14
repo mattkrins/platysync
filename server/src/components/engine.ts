@@ -142,6 +142,7 @@ async function actions(actions: Action[], template: template, connections: conne
     let template_ = template;
     const todo: {name: string, result: {error?: string, warning?: string, data?: object, success?: true } }[] = [];
     for (const action of (actions||[])) {
+        if (!(action.name in availableActions)) throw Error(`Unknown action '${action.name}'.`);
         const result = await availableActions[action.name]({ action, template, connections, execute, schema, data: {} });
         if (!result) continue;
         if (result.template) template_ = { ...template_, ...result.data as object  };
@@ -171,6 +172,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             const joins = connections[secondary.primary].rows.filter(r=>r[secondary.secondaryKey]===row[secondary.primaryKey]);
             template[secondary.primary] = (joins.length <=0 || joins.length > 1) ? {} : joins[0];
         }
+        //TODO - allow searching per entry instead of preloading everything
         if (!(await evaluateAll(schema, rule.conditions, template, connections, rule.primaryKey))) continue;
         const display = (rule.display && rule.display.trim()!=='') ? compile(template, rule.display) : id;
         if (!display || display.trim()==='') continue;
