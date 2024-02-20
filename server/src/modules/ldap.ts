@@ -171,7 +171,7 @@ export class ldap {
                     if (counter>3 && users.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${users.length} rows.`));
                     const user = new User(entry, this.client );
                     users.push(user);
-                    if (key) keyed[key] = user;
+                    if (key) keyed[user.plain_attributes[key]] = user;
                     startTime = performance.now();
                 });
                 res.on('error', (err) => reject(err));

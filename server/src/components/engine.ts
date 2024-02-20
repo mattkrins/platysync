@@ -84,7 +84,6 @@ async function ldap_compare(schema: Schema, key: string, value: string, operator
     const connection = await connect(schema, key, connections);
     if (!connection.keys || !(id in connection.keys)) return false;
     const user = connection.keys[id] as User;
-
     switch (operator) {
         case 'exists': return !!user;
         case 'notexists': return !user;
@@ -99,7 +98,7 @@ async function ldap_compare(schema: Schema, key: string, value: string, operator
 }
 
 async function compare(schema: Schema, key: string, value: string, operator: string, connections: connections, id: string): Promise<boolean> {
-    if (operator.substring(0, 4)==="ldap") return ldap_compare(schema, key, value, operator, connections, id);
+    if (operator.substring(0, 4)==="ldap") return ldap_compare(schema, key, value, operator.substring(5), connections, id);
     switch (operator) {
         case '==': return key === value;
         case '!=': return key !== value;
