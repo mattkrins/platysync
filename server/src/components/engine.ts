@@ -152,20 +152,46 @@ async function actions(actions: Action[], template: template, connections: conne
 async function conclude(connections: connections) {
     for (const connection of Object.values(connections)) {
         if (connection.close) await connection.close();
-    } server.io.emit("job_status", "Idle");
+    }
+    server.io.emit("job_status", "Idle");
+    server.io.emit("global_status", {});
+}
+
+function calculateTimeRemaining(currentWork: number, totalWork: number, speed: number): string {
+    if (speed <= 0)  return "Estimating...";
+    const timeRemainingInSeconds: number = (totalWork - currentWork) / speed;
+    const hours: number = Math.floor(timeRemainingInSeconds / 3600);
+    const minutes: number = Math.floor((timeRemainingInSeconds % 3600) / 60);
+    const seconds: number = Math.round(timeRemainingInSeconds % 60);
+    const formattedTime: string = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return formattedTime;
+}
+
+let curTime = (new Date()).getTime();
+function progress(i: number, length: number, id: string) {
+    if (Math.abs(new Date().getTime() - curTime) > 1){
+        const eta: string = calculateTimeRemaining(i, length, 100);
+        const p = (i / length)*100;
+        server.io.emit("progress", { eta, i, p, m: length });
+        server.io.emit("job_status", `Proccessing ${id}`);
+        curTime = (new Date()).getTime();
+    }
 }
 
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[]) {
     server.io.emit("job_status", `Search engine initialized`);
+    server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
     const connections: connections = {};
     const primary = await connect(schema, rule.primary, connections);
     if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
     for (const secondary of rule.secondaries||[]) await connect(schema, secondary.primary, connections);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const matches: any[] = [];
+    let i = 0;
     for (const row of primary.rows) {
+        i++;
         const id = row[rule.primaryKey];
-        server.io.emit("job_status", `Proccessing ${id}`);
+        progress(i, primary.rows.length, id);
         const template: template = { [rule.primary]: row };
         for (const secondary of rule.secondaries||[])  {
             const joins = connections[secondary.primary].rows.filter(r=>r[secondary.secondaryKey]===row[secondary.primaryKey]);
