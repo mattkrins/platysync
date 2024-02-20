@@ -37,7 +37,7 @@ const versions: {
             log.info(`Upgraded ${schema.name} from 0.4 to 0.5.`);
         } catch (e) { log.error(`Failed to upgrade ${schema.name}.`, e); }
         schema.version = 0.5;
-        mutateSchema(schema);
+        mutateSchema(schema, true, true);
         const folder = `${path}/schemas/${schema.name}`;
         fs.renameSync(folder, `${folder}.backup`);
     }}

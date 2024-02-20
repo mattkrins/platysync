@@ -43,9 +43,9 @@ export async function cacheSchema(name: string) {
 }
 
 export async function initSchemaCache() {
-  versioner();
   schemas = [];
   _schemas = {};
+  versioner();
   const folderPath = `${path}/schemas/`;
   const all = fs.readdirSync(folderPath);
   const files = all.filter(o => fs.statSync(`${folderPath}/${o}`).isFile() );
@@ -77,8 +77,9 @@ function cleanSchema(schema: Schema|object): SchemaYaml {
   return clean;
 }
 
-export function mutateSchema(mutated: Schema, save = true) {
-  const schema = {...getSchema(mutated.name), ...mutated};
+export function mutateSchema(mutated: Schema, save = true, init = true) {
+  const oldSchema = init ? {} : getSchema(mutated.name);
+  const schema = {...oldSchema, ...mutated};
   schemas = schemas.map(s=>s.name!==schema.name?s:schema);
   _schemas[schema.name] = schema;
   if (!save) return;
