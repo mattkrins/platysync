@@ -56,7 +56,7 @@ export async function initSchemaCache() {
   schemas = [];
   _schemas = {};
   const schemasPath = `${path}/schemas`;
-  const files = fs.readdirSync(schemasPath);
+  const files = fs.readdirSync(schemasPath).filter(o => !fs.statSync(`${schemasPath}/${o}`).isFile() );
   for (const name of files) await cacheSchema(name);
 }
 
