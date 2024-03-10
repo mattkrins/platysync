@@ -15,7 +15,8 @@ export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
     const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' });
     const remove  = (index: number) => form.removeListItem('secondaries', index);
     const taken = (form.values.secondaries||[]).map(s=>s.primary);
-    const modify = () => (value: string) => form.setFieldValue('display', `${form.values.display||''}{{${value}}}`)
+    const modify = () => (value: string) => form.setFieldValue('display', `${form.values.display||''}{{${value}}}`);
+    const sources = [form.values.primary, ...taken];
     return (
     <Box>
         {explorer}
@@ -60,8 +61,11 @@ export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
         <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-            {(form.values.secondaries||[]).map(({ primary }, index)=>
-                <Draggable key={index} index={index} draggableId={index.toString()}>
+            {(form.values.secondaries||[]).map((_, index)=>{
+                const secondaryKey = () => (value: string) => form.setFieldValue(`secondaries.${index}.secondaryKey`, `{{${value}}}`);
+                const primaryKey = () => (value: string) => form.setFieldValue(`secondaries.${index}.primaryKey`, `{{${value}}}`);
+                const primary = form.values.secondaries[index].primary;
+                return <Draggable key={index} index={index} draggableId={index.toString()}>
                     {(provided) => (
                     <Grid align="center" ref={provided.innerRef} mt="xs" {...provided.draggableProps} gutter="xs"
                     style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }}
@@ -70,27 +74,27 @@ export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
                             <Group><IconGripVertical size="1.2rem" /></Group>
                         </Grid.Col>
                         <Grid.Col span="auto">
-                            <SelectConnector clearable
+                            <SelectConnector clearable disabled={!form.values.primary}
                             {...form.getInputProps(`secondaries.${index}.primary`)}
                             filter={data=>data.filter(c=>c.id!=="proxy"&&c.name!==form.values.primary&&!taken.includes(c.name))}
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">
-                            <Select clearable searchable
-                            placeholder="Foreign Key"
-                            leftSection={<IconKey size="1rem" />}
-                            disabled={!primary}
-                            data={ (primary in headers) ? headers[primary] : [] }
-                            {...form.getInputProps(`secondaries.${index}.secondaryKey`)}
+                            <TextInput
+                                leftSection={<IconKey size="1rem" />}
+                                disabled={!form.values.primary}
+                                placeholder={`{{${form.values.secondaries[index].primary}.${form.values.primaryKey}}}`}
+                                rightSection={ <ActionIcon onClick={()=>explore(secondaryKey, [form.values.secondaries[index].primary])} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
+                                {...form.getInputProps(`secondaries.${index}.secondaryKey`)}
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">
-                            <Select clearable searchable
-                            placeholder="Primary Key"
-                            leftSection={<IconKey size="1rem" />}
-                            disabled={!primary}
-                            data={ (form.values.primary in headers) ? headers[form.values.primary] : [] }
-                            {...form.getInputProps(`secondaries.${index}.primaryKey`)}
+                            <TextInput
+                                leftSection={<IconKey size="1rem" />}
+                                disabled={!form.values.primary}
+                                placeholder={`{{${form.values.primary}.${form.values.primaryKey}}}`}
+                                rightSection={ <ActionIcon onClick={()=>explore(primaryKey, sources.filter((s,i)=>s!==primary&&i<=index))} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
+                                {...form.getInputProps(`secondaries.${index}.primaryKey`)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">
@@ -99,7 +103,7 @@ export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
                             </Group>
                         </Grid.Col>
                     </Grid>)}
-                </Draggable>
+                </Draggable>}
                 )
             }
             </div>
@@ -113,7 +117,7 @@ export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
             placeholder="{{username}}"
             mt="xs"
             mb="xs"
-            rightSection={ <ActionIcon onClick={()=>explore(modify)} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
+            rightSection={ <ActionIcon onClick={()=>explore(modify, sources)} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
             {...form.getInputProps('display')}
         />
         <Switch {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>

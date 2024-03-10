@@ -146,12 +146,13 @@ export class ldap {
     /**
      * Return all objects matching the filter.
      * @param {string[]} attributes Array of specific attributes to get (optional)
+     * @param {string} id attribute to build object keys from (optional)
      * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
-    public search(attributes?: string[], filter: string = '(objectclass=person)', key?: string): Promise<{users: User[], keyed: {[k: string]: User}}> {
+    public search(attributes?: string[], id?: string, filter: string = '(objectclass=person)'): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: User}}> { //TODO - remove this
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
-            const users: User[] = [];
+            const users: {[k: string]: string}[] = [];
             const keyed: {[k: string]: User} = {};
             const opts: ldapjs.SearchOptions = {
                 filter,
@@ -169,9 +170,16 @@ export class ldap {
                     const elapsedTime = endTime - startTime;
                     if (elapsedTime>5000) counter++; //REVIEW - might be worth adding timeout settings to GUI
                     if (counter>3 && users.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${users.length} rows.`));
-                    const user = new User(entry, this.client );
-                    users.push(user);
-                    if (key) keyed[user.plain_attributes[key]] = user;
+                    const user: {[k: string]: string} = {};
+                    let IDfound = false;
+                    for (const attribute of entry.attributes) {
+                        user[attribute.type] = ((attribute.values||[]) as string[]).join();
+                        if (id&&attribute.type===id){
+                            IDfound = true;
+                            keyed[user[attribute.type]] = new User(entry, this.client );
+                        }
+                    }
+                    if (id && IDfound) users.push(user);
                     startTime = performance.now();
                 });
                 res.on('error', (err) => reject(err));

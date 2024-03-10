@@ -1,5 +1,5 @@
 import { Box, Drawer, Group, TextInput, UnstyledButton, Text, useMantineTheme, Flex, Button } from "@mantine/core";
-import { SetStateAction, useContext, useState } from "react";
+import { SetStateAction, useContext, useEffect, useState } from "react";
 import SchemaContext from "./SchemaContext";
 import { IconSearch, IconChevronRight } from "@tabler/icons-react";
 import providers from "../modules/connectors";
@@ -17,15 +17,28 @@ function flattenObjectToArray(obj: {[id: string]: string[]}) {
     } return result;
 }
 
-export default function ExplorerComponent({ opened, close, click }: { opened: boolean, close(): void, click: (d: string) => void }) {
+export default function ExplorerComponent({ opened, close, click, filter: allowed }: { opened: boolean, close(): void, click: (d: string) => void, filter?: string[] }) {
     const theme = useMantineTheme();
     const { _connectors, headers } = useContext(SchemaContext);
+
+    const filteredHeaders = !allowed ? headers : Object.keys(headers)
+    .filter(key => allowed.includes(key))
+    .reduce((obj: {[k: string]:string[]}, key) => {
+      obj[key] = headers[key];
+      return obj;
+    }, {});
+
     const [ filter, setFilter ] = useState<string>('');
     const handleInputChange = (event: { target: { value: SetStateAction<string>; }; }) => setFilter(event.target.value);
-    const flatHeaders = flattenObjectToArray(headers);
+    const flatHeaders = flattenObjectToArray(filteredHeaders);
     const headerSearch = flatHeaders.filter(item =>
         item.toLowerCase().includes(filter.toLowerCase())
     );
+
+    useEffect(()=>{
+        if (allowed && allowed.length === 1) {setFilter(`${allowed[0]}.`)}else{setFilter('')}
+    }, [allowed])
+
     return (
     <Drawer position="right" size="xs" opened={opened} onClose={close} title="Template Explorer" overlayProps={{ opacity: 0.2}} >
         <TextInput
@@ -33,7 +46,7 @@ export default function ExplorerComponent({ opened, close, click }: { opened: bo
         placeholder="Search" onChange={handleInputChange} value={filter}
         />
         { filter==="" ?
-            Object.keys(headers).map((name:string)=> {
+            Object.keys(filteredHeaders).map((name:string)=> {
                 if (!(name in _connectors)) return <>{name} ERROR</>
                 const { id } = _connectors[name];
                 const provider = providers[id];

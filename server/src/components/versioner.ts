@@ -33,6 +33,10 @@ const versions: {
                     if (action.name!=="Comparator" || !action.conditions) continue;
                     upgrade(action.conditions);
                 }
+                for (const secondary of rule.secondaries){
+                    secondary.secondaryKey = `{{${secondary.primary}.${secondary.secondaryKey}}}`;
+                    secondary.primaryKey = `{{${rule.primary}.${secondary.primaryKey}}}`;
+                }
             }
             log.info(`Upgraded ${schema.name} from 0.4 to 0.5.`);
         } catch (e) { log.error(`Failed to upgrade ${schema.name}.`, e); }

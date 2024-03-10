@@ -14,6 +14,7 @@ interface Props extends InputWrapperProps {
     leftSection?: ReactElement<unknown, string>|false;
     data?: string[]|{ component: JSX.Element, value: string }[];
     value?: string;
+    disabled?: boolean;
     type?: string;
     placeholder?: string;
     filter?: (data: extConnector[]) => extConnector[]|{ component: JSX.Element, value: string, id: string, name: string }[];
@@ -50,7 +51,7 @@ export default function SelectConnector({onChange, value: v2 = '', placeholder, 
     )});
     return (
     <Input.Wrapper {...props} >
-        <Combobox
+        <Combobox disabled={props.disabled||false}
         store={combobox}
         withinPortal={false}
         onOptionSubmit={(val) => {
