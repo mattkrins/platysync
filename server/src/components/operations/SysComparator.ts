@@ -1,5 +1,6 @@
 import { Action, Condition } from "../../typings/common.js";
 import { actionProps, evaluateAll } from "../engine.js";
+import { compile } from "../../modules/handlebars.js";
 
 interface props extends actionProps {
     action: Action & {
@@ -13,7 +14,7 @@ export default async function ({ action, template, connections, id }: props) {
     try {
         const matched = !await evaluateAll(action.conditions, template, connections, id );
         const newTemplate: { [k:string]: string } = {};
-        const output = action.output ? Handlebars.compile(action.target)(template) : false;
+        const output = action.output ? compile(template, action.target||"") : false;
         if (!matched) {
             if (output===false) return { success: true };
             newTemplate[output] = 'true';

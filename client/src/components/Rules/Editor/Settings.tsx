@@ -1,22 +1,20 @@
 import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconCode, IconGripVertical, IconKey, IconPlus, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
+import { IconCode, IconGripVertical, IconKey, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../Common/SelectConnector";
 import { useContext } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import SchemaContext from "../../../providers/SchemaContext";
 import ExplorerContext from "../../../providers/ExplorerContext";
 
-export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
+export default function Settings( { form, sources, taken }: {form: UseFormReturnType<Rule>, sources: string[], taken: string[]} ) {
     const { connectors } = useContext(SchemaContext);
     const { explorer, explore } = useContext(ExplorerContext);
     const usable = connectors.filter(c=>c.id!=="proxy").length -1 ;
     const { headers } = useContext(SchemaContext);
     const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' });
     const remove  = (index: number) => form.removeListItem('secondaries', index);
-    const taken = (form.values.secondaries||[]).map(s=>s.primary);
     const modify = () => (value: string) => form.setFieldValue('display', `${form.values.display||''}{{${value}}}`);
-    const sources = [form.values.primary, ...taken];
     return (
     <Box>
         {explorer}
@@ -99,6 +97,7 @@ export default function Settings( { form }: {form: UseFormReturnType<Rule>} ) {
                         </Grid.Col>
                         <Grid.Col span="content">
                             <Group justify="right" gap="xs">
+                                <ActionIcon color='red' variant="default" size="lg"><IconSettings size={15}/></ActionIcon>
                                 <ActionIcon color='red' onClick={()=>remove(index)} variant="default" size="lg"><IconTrash size={15}/></ActionIcon>
                             </Group>
                         </Grid.Col>

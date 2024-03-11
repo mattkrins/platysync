@@ -26,7 +26,6 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
         if (rule) {form.setValues(rule as never)}
     }, [ rule ]);
 
-
     const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI({
         url: `/schema/${schema?.name}/rules/match`,
         default: { evaluated: [] },
@@ -41,6 +40,9 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
        if (active==0) r1();
     }, [ active ]);
 
+    const taken = (form.values.secondaries||[]).map(s=>s.primary);
+    const sources = [form.values.primary, ...taken];
+
     return (
         <Modal fullScreen={fullscreen} size={maximized?"100%":"auto"} opened={!!rule} onClose={()=>null} closeOnClickOutside={false} withCloseButton={false} >
             <Group justify="space-between" mb="sm">
@@ -53,7 +55,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
             </Group>
             <Stepper active={active} onStepClick={setActive}>
                 <Stepper.Step label="Conditions" color={form.values.conditions.length===0?"red":undefined} description="Modify Conditions" icon={<IconEqual />} >
-                    <Conditions showLDAP={false} form={form} label="Add single-run modifications here."  />
+                    <Conditions form={form} label="Add single-run modifications here."  sources={sources}  />
                 </Stepper.Step>
                 <Stepper.Step
                 label="Evaluate"

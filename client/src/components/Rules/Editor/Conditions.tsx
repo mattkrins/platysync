@@ -6,6 +6,7 @@ import { useContext } from "react";
 import ExplorerContext from "../../../providers/ExplorerContext";
 import { availableConditions, mathOperators, stringOperators } from "../../../data/common";
 import SelectConnector from "../../Common/SelectConnector";
+import SchemaContext from "../../../providers/SchemaContext";
 
 const groupOperators = [
   { label: 'Member of group', value: 'ldap.member' },
@@ -63,8 +64,9 @@ function ValueInput( { form, index, modifyCondition, delimit, delimited }: Value
   )
 }
 
-export default function Conditions( { form, label, action, showLDAP = false }: {form: UseFormReturnType<Rule>, label?: string, action?: true, showLDAP: boolean } ) {
+export default function Conditions( { form, label, action, sources = [] }: {form: UseFormReturnType<Rule>, label?: string, action?: true, sources: string[] } ) {
   const theme = useMantineTheme();
+  const { _connectors } = useContext(SchemaContext);
   const { explorer, explore, } = useContext(ExplorerContext);
   const add = (type: string, operator?: string) => () => form.insertListItem('conditions', {
     type,
@@ -77,10 +79,12 @@ export default function Conditions( { form, label, action, showLDAP = false }: {
   const remove  = (index: number) => () => form.removeListItem('conditions', index);
   const modifyCondition = (key: string, index: number)=> () =>
   explore(() => (value: string) =>
-  form.setFieldValue(`conditions.${index}.${key}`, `${form.values.conditions[index][key]||''}{{${value}}}`) );
+  form.setFieldValue(`conditions.${index}.${key}`, `${form.values.conditions[index][key]||''}{{${value}}}`), sources );
 
   const delimit = (index: number, delimiter: string) => () => form.setFieldValue(`conditions.${index}.delimiter`,  delimiter );
   const delimited = (index: number, delimiter: string) => form.values.conditions[index].delimiter === delimiter;
+
+  const showLDAP = sources.filter(s=>(s in _connectors) && _connectors[s].id === "ldap").length>0;
 
   return (
     <Box>
@@ -144,7 +148,7 @@ export default function Conditions( { form, label, action, showLDAP = false }: {
                         <Grid.Col span="auto">
                             <SelectConnector clearable
                             {...form.getInputProps(`conditions.${index}.key`)}
-                            filter={data=>data.filter(c=>c.id==="ldap")}
+                            filter={data=>data.filter(c=>sources.includes(c.name) && c.id==="ldap")}
                             />
                         </Grid.Col>
                         }

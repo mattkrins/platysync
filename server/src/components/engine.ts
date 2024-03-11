@@ -53,9 +53,9 @@ const availableActions: { [k: string]: operation } = {
     //'Move Folder': FolderMove,
     //'Delete Folder': FolderDelete,
     //'Create Folder': FolderCreate,
-    //'Template': SysTemplate,
-    'Encrypt String': SysEncryptString,
+    'Template': SysTemplate,
     'Comparator': SysComparator,
+    //'Encrypt String': SysEncryptString,
     //'Upload Student Passwords': StmcUpload,
 }
 
@@ -107,6 +107,7 @@ async function actions(actions: Action[], template: template, connections: conne
         if (!result) continue;
         if (result.template) template_ = { ...template_, ...result.data as object  };
         todo.push({name: action.name, result });
+        if (result.error) break;
     } return todo;
 }
 
@@ -176,6 +177,7 @@ function progress(cur: cur, length: number, id: string) {
 }
 
 const wait = async () => new Promise((res)=>setTimeout(res, 200));
+const empty = (value?: string) => !value || value.trim()==='';
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[]) {
     server.io.emit("job_status", `Search engine initialized`);
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
@@ -183,10 +185,12 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     const primary = await connect(schema, rule.primary, connections, rule.primaryKey);
     if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
     for (const secondary of rule.secondaries||[]){
+        if (empty(secondary.secondaryKey)) secondary.secondaryKey = `{{${secondary.primary}.${rule.primaryKey}}}`;
+        if (empty(secondary.primaryKey)) secondary.primaryKey = `{{${rule.primary}.${rule.primaryKey}}}`;
         const key = secondary.secondaryKey.split(`${secondary.primary}.`)[1].split("}}")[0];
         await connect(schema, secondary.primary, connections, key);
     }
-    const evaluated: { id: string, display?: string }[] = [];
+    const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
     const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0 };
     for (const row of primary.rows) {
         const startTime = performance.now();
@@ -202,13 +206,11 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
                 return k1===k2; //TODO - add toggle for case
             });//TODO - add option to ignore row if no join found
             template[secondary.primary] = (joins.length <=0 || joins.length > 1) ? {} : joins[0]; //TODO - add an option to grab first match, rather than ignore > 1
-            const row: typeof evaluated[0] = { id };
-            if (rule.display && rule.display.trim()!=='') row.display = compile(template, rule.display);
+            const row: typeof evaluated[0] = { id, actions: [], actionable: false };
+            if (!empty(rule.display)) row.display = compile(template, rule.display);
             if (!(await evaluateAll(rule.conditions, template, connections, id))) continue;
-            const todo = await actions(rule.actions, template, connections, id, schema, !!idFilter);
-            const actionable = todo.filter(t=>t.result.warning||t.result.error).length <= 0;
-            console.log(actionable)
-            // matches.push({id, display, actions: todo, actionable});
+            row.actions = await actions(rule.actions, template, connections, id, schema, !!idFilter);
+            row.actionable = row.actions.filter(t=>t.result.warning||t.result.error).length <= 0;
             evaluated.push(row);
         }
         await wait();

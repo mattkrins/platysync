@@ -4,7 +4,7 @@ import { Box, Grid, Switch, TextInput, Textarea } from "@mantine/core";
 import { IconBraces, IconCheck, IconX } from "@tabler/icons-react";
 import { useEffect } from "react";
 
-export default function SysComparator( { form, index, explorer, actionType, hasLDAP }: ActionItem ) {
+export default function SysComparator( { form, index, explorer, actionType }: ActionItem ) {
     const initialValues = {conditions: form.values[actionType][index].conditions||[]} as unknown as Rule;
     const form2 = useForm({ initialValues, validate: {} });
     const checked = form.values[actionType][index].output||false;
@@ -12,9 +12,12 @@ export default function SysComparator( { form, index, explorer, actionType, hasL
         form.setFieldValue(`${actionType}.${index}.conditions`, form2.values.conditions)
     }, [JSON.stringify(form2.values.conditions)]);
     
+    const taken = (form.values.secondaries||[]).map((s: {primary:string})=>s.primary);
+    const sources = [form.values.primary, ...taken];
+
     return (
     <Box>
-        <Conditions showLDAP={hasLDAP||false} form={form2} label="This action can prevent futher execution, or build conditional templates." action />
+        <Conditions form={form2} label="This action can prevent futher execution, or build conditional templates." action sources={sources} />
         <Switch label="Output result to template"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.output`, { type: 'checkbox' })}
         />

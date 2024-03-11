@@ -1,9 +1,16 @@
-import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Paper, Table, TextInput, Text } from "@mantine/core";
+import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Paper, Table, TextInput, Text, useMantineTheme, Indicator, Tooltip } from "@mantine/core";
 import { useDisclosure, usePagination } from "@mantine/hooks";
 import { IconCheckbox, IconEqualNot, IconEye, IconEyeOff, IconMenu2, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
+import { availableActions } from "../../../data/common";
+import View from "./View";
 
-interface evaluated { id: string, display?: string, checked?: boolean }
+export interface action {
+    name: string;
+    result: { warning?: string, error?: string, data?: {[k: string]: unknown} };
+}
+
+interface evaluated { checked?: boolean, id: string, display?: string, actions: action[], actionable: boolean }
 
 function find(query: string, r: evaluated){
     if (r.id.includes(query)) return true;
@@ -39,7 +46,7 @@ function Head( { total, limit, perPage, pagination, count, sort, sorting, query,
         value={query}
         onChange={(event)=>search(event.currentTarget.value)}
         />
-        {perPage>0&&<Pagination total={total} onChange={(value)=>pagination.setPage(value)} value={pagination.active} />}
+        {(perPage>0&&total>1)&&<Pagination total={total} onChange={(value)=>pagination.setPage(value)} value={pagination.active} />}
         <Menu shadow="md" position="bottom-end" width={200}>
             <Menu.Target>
                 <ActionIcon color="gray" variant="subtle"><IconMenu2 /></ActionIcon>
@@ -69,19 +76,34 @@ function Head( { total, limit, perPage, pagination, count, sort, sorting, query,
     )
 }
 
-function Row( { row, check }: { row: evaluated, check: (id: string) => () => void } ) {
+function IconMap({ actions, size = 16, click }: { actions: action[], size?: number, click?: (open: string)=> () => void }){
+    const theme = useMantineTheme();
+    return actions.map((action,key)=>{
+        const { Icon, color } = availableActions[action.name];
+        const problem = action.result.error || action.result.warning;
+        const col = !problem ? color?theme.colors[color][6]:undefined : theme.colors.gray[8];
+        return <Tooltip key={key} fz="xs" withArrow color={color?theme.colors[color][6]:undefined} label={action.name}>
+        <Indicator disabled={!problem} size={size/3} offset={3} color={action.result.warning?'orange':'red'} inline>
+            <Icon onClick={click&&click(key.toString())} style={{cursor:"pointer"}} color={col} size={size} stroke={2} />
+        </Indicator></Tooltip>
+    })
+}
+
+function Row( { row, check, view }: { row: evaluated, check: (id: string) => () => void, view: (id: {name: string, open: string, actions: action[]}) => void } ) {
+    const click = (open: string) => () => view({name: row.display||row.id, open, actions: row.actions });
     return (
     <Table.Tr key={row.id}>
         <Table.Td><Checkbox onChange={check(row.id)} checked={row.checked} /></Table.Td>
         <Table.Td>{row.id}</Table.Td>
         <Table.Td>{row.display||row.id}</Table.Td>
-        <Table.Td></Table.Td>
+        <Table.Td><IconMap actions={row.actions} click={click} /></Table.Td>
     </Table.Tr>
     )
 }
 
 export default function Evaluate( { evaluated, setEvaluated }: { evaluated: evaluated[], setEvaluated: (data: (data: {evaluated: evaluated[]}) => void) => void } ) {
     const [display, setDisplay] = useState<number>(0);
+    const [viewing, view] = useState<{name: string, open: string, actions: action[]}|undefined>();
     const [sorting, setSort] = useState<string>("none");
     const [query, search] = useState<string>("");
     const sort = (sorting: string) => {
@@ -104,6 +126,7 @@ export default function Evaluate( { evaluated, setEvaluated }: { evaluated: eval
     return ( evaluated.length===0?
     <Paper radius="md" withBorder mt={32} mb={32} p="lg" style={{width:"100%"}} ><Group><IconEqualNot /> <Text>No entries matched.</Text></Group></Paper>:
     <Box>
+        <View viewing={viewing} view={view} />
         <Divider mb="xs"/>
         <Head
         pagination={pagination}
@@ -129,7 +152,7 @@ export default function Evaluate( { evaluated, setEvaluated }: { evaluated: eval
                     <Table.Th>Actions</Table.Th>
                 </Table.Tr>
             </Table.Thead>
-            <Table.Tbody>{(paginated||[]).map((row) =><Row row={row} check={check} />)}</Table.Tbody>
+            <Table.Tbody>{(paginated||[]).map((row) =><Row key={row.id} row={row} check={check} view={view} />)}</Table.Tbody>
         </Table>}
     </Box>
     )

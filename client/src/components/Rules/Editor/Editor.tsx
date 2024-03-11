@@ -13,7 +13,7 @@ import { notifications } from "@mantine/notifications";
 import SchemaContext from "../../../providers/SchemaContext";
 
 export default function Editor({ editing, close }: { editing: Rule|undefined, close(): void }) {
-  const { schema, mutate, _connectors } = useContext(SchemaContext);
+  const { schema, mutate } = useContext(SchemaContext);
   const [activeTab, setActiveTab] = useState<string | null>('settings');
  
   const initialValues = {
@@ -57,8 +57,8 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
   const conditionsAccess = !form.values.primary||!form.values.primaryKey;
   const actionsAccess = conditionsAccess||(form.values.conditions||[]).length<=0;
 
-  const hasLDAP = ( (form.values.primary in _connectors) && _connectors[form.values.primary].id === "ldap" ) ||
-  (form.values.secondaries||[]).filter(s=>(s.primary in _connectors) && _connectors[s.primary].id === "ldap").length>0;
+  const taken = (form.values.secondaries||[]).map(s=>s.primary);
+  const sources = [form.values.primary, ...taken];
 
   return (
   <Box>
@@ -75,8 +75,8 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
         <Tabs.Tab value="actions" disabled={actionsAccess} leftSection={<IconRun size="0.8rem" />}>Actions</Tabs.Tab>
       </Tabs.List>
 
-      <Tabs.Panel value="settings" p="xs" >{activeTab==="settings"&&<Settings form={form} />}</Tabs.Panel>
-      <Tabs.Panel value="conditions"><Conditions form={form} showLDAP={hasLDAP} /></Tabs.Panel>
+      <Tabs.Panel value="settings" p="xs" >{activeTab==="settings"&&<Settings form={form} sources={sources} taken={taken} />}</Tabs.Panel>
+      <Tabs.Panel value="conditions"><Conditions form={form} sources={sources} /></Tabs.Panel>
       <Tabs.Panel value="actions"><Actions form={form} /></Tabs.Panel>
     </Tabs>
     </Container>
