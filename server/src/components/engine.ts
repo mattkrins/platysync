@@ -19,6 +19,7 @@ import { server } from "../server.js";
 import StmcUpload from "./operations/StmcUpload.js";
 import { User } from "../modules/ldap.js";
 
+
 //export type actionProps = { action: Action, template: template, connections: connections, schema: Schema, execute: boolean, conclude: boolean, data: {[k: string]: string} };
 interface template {[connector: string]: {[header: string]: string}}
 interface connections { [k: string]: connection }
@@ -84,6 +85,14 @@ export async function connect(schema: Schema, connectorName: string, connections
         }
         default: throw Error("Unknown connector.");
     } connections[connectorName] = connection; return connection;
+}
+
+async function conclude(connections: connections) {
+    for (const connection of Object.values(connections)) {
+        if (connection.close) await connection.close();
+    }
+    server.io.emit("job_status", "Idle");
+    server.io.emit("global_status", {});
 }
 
 //async function ldap_compare(schema: Schema, key: string, value: string, operator: string, connections: connections, id: string ) {
@@ -156,38 +165,57 @@ export async function connect(schema: Schema, connectorName: string, connections
 //    } return todo;
 //}
 //
-//async function conclude(connections: connections) {
-//    for (const connection of Object.values(connections)) {
-//        if (connection.close) await connection.close();
-//    }
-//    server.io.emit("job_status", "Idle");
-//    server.io.emit("global_status", {});
-//}
-//
-//function calculateTimeRemaining(currentWork: number, totalWork: number, speed: number): string {
-//    if (speed <= 0)  return "Estimating...";
-//    const timeRemainingInSeconds: number = (totalWork - currentWork) / speed;
-//    const hours: number = Math.floor(timeRemainingInSeconds / 3600);
-//    const minutes: number = Math.floor((timeRemainingInSeconds % 3600) / 60);
-//    const seconds: number = Math.round(timeRemainingInSeconds % 60);
-//    const formattedTime: string = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-//    return formattedTime;
-//}
 
-//let curTime = (new Date()).getTime();
-//function progress(i: number, length: number, id: string) {
-//    if (Math.abs(new Date().getTime() - curTime) > 1){
-//        const eta: string = calculateTimeRemaining(i, length, 100);
-//        const p = (i / length)*100;
-//        server.io.emit("progress", { eta, i, p, m: length });
-//        server.io.emit("job_status", `Proccessing ${id}`);
-//        curTime = (new Date()).getTime();
-//    }
-//}
-function progress(i: number, length: number, id: string) {
-
+async function compare(key: string, value: string, operator: string, connections: connections, id: string): Promise<boolean> {
+    //if (operator.substring(0, 4)==="ldap") return ldap_compare(schema, key, value, operator.substring(5), connections, id);
+    switch (operator) {
+        case '==': return key === value;
+        case '!=': return key !== value;
+        case '><': return key.includes(value);
+        case '<>': return !key.includes(value);
+        case '>*': return key.startsWith(value);
+        case '*<': return key.endsWith(value);
+        case '//': return (new RegExp(value, 'g')).test(key);
+        case '===': return Number(key) === Number(value);
+        case '!==': return Number(key) !== Number(value);
+        case '>': return Number(key) > Number(value);
+        case '<': return Number(key) < Number(value);
+        case '>=': return Number(key) >= Number(value);
+        case '<=': return Number(key) <= Number(value);
+        default: return false;
+    }
 }
-const wait = async () => new Promise((res)=>setTimeout(res, 100))
+
+async function delimit(key: string, value: string, condition: Condition, connections: connections, id: string): Promise<boolean> {
+    const delimited = value.split(condition.delimiter)
+    for (const value of delimited) {
+        if ( await compare(key, value, condition.operator, connections, id) ) return true;
+    } return false;
+}
+
+async function evaluate(condition: Condition, template: template, connections: connections, id: string): Promise<boolean> {
+    const key = compile(template, condition.key);
+    const value = compile(template, condition.value);
+    const delimiter = condition.delimiter !== "";
+    return delimiter ? await delimit(key, value, condition, connections, id) : await compare(key, value, condition.operator, connections, id);
+}
+
+export async function evaluateAll(conditions: Condition[], template: template, connections: connections, id: string): Promise<boolean> {
+    for (const condition of conditions) {
+        if (!(await evaluate(condition, template, connections, id))) return false;
+    } return true;
+}
+
+interface cur { time: number, index: number, performance: number }
+function progress(cur: cur, length: number, id: string) {
+    if (Math.abs(new Date().getTime() - cur.time) < 1) return;
+    cur.time = (new Date()).getTime();
+    const p = (cur.index / length)*100;
+    server.io.emit("progress", { i: cur.index, p, m: length, s: cur.performance });
+    server.io.emit("job_status", `Proccessing ${id}`);
+}
+
+const wait = async () => new Promise((res)=>setTimeout(res, 200));
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[]) {
     server.io.emit("job_status", `Search engine initialized`);
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
@@ -198,12 +226,13 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         const key = secondary.secondaryKey.split(`${secondary.primary}.`)[1].split("}}")[0];
         await connect(schema, secondary.primary, connections, key);
     }
-    console.log(primary.rows.length, 'rows')
-    let i = 0;
+    const evaluated: { id: string, display?: string }[] = [];
+    const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0 };
     for (const row of primary.rows) {
-        i++;
+        const startTime = performance.now();
+        cur.index ++;
         const id = row[rule.primaryKey];
-        progress(i, primary.rows.length, id);
+        progress(cur, primary.rows.length, id);
         const template: template = { [rule.primary]: row };
         for (const secondary of rule.secondaries||[]) {
             if (!connections[secondary.primary]) continue;
@@ -213,21 +242,15 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
                 return k1===k2; //TODO - add toggle for case
             });//TODO - add option to ignore row if no join found
             template[secondary.primary] = (joins.length <=0 || joins.length > 1) ? {} : joins[0]; //TODO - add an option to grab first match, rather than ignore > 1
+            const row: typeof evaluated[0] = { id };
+            if (rule.display && rule.display.trim()!=='') row.display = compile(template, rule.display);
+            if (!(await evaluateAll(rule.conditions, template, connections, id))) continue;
+            evaluated.push(row);
         }
         await wait();
+        cur.performance = performance.now() - startTime;
     }
-    //// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //const matches: any[] = [];
-    //let i = 0;
     //for (const row of primary.rows) {
-    //    i++;
-    //    const id = row[rule.primaryKey];
-    //    progress(i, primary.rows.length, id);
-    //    const template: template = { [rule.primary]: row };
-    //    for (const secondary of rule.secondaries||[])  {
-    //        const joins = connections[secondary.primary].rows.filter(r=>r[secondary.secondaryKey]===row[secondary.primaryKey]);
-    //        template[secondary.primary] = (joins.length <=0 || joins.length > 1) ? {} : joins[0];
-    //    }
     //    if (!(await evaluateAll(schema, rule.conditions, template, connections, rule.primaryKey))) continue;
     //    const display = (rule.display && rule.display.trim()!=='') ? compile(template, rule.display) : id;
     //    if (!display || display.trim()==='') continue;
@@ -235,6 +258,6 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     //    const actionable = todo.filter(t=>t.result.warning||t.result.error).length <= 0;
     //    matches.push({id, display, actions: todo, actionable});
     //}
-    //await conclude(connections);
-    return {matches: [], initActions: [], finalActions: []};
+    await conclude(connections);
+    return {evaluated, initActions: [], finalActions: []};
 }

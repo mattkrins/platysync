@@ -1,13 +1,13 @@
-import { ActionIcon, Group, Modal, Stepper, Text } from "@mantine/core";
+import { ActionIcon, Group, Modal, Stepper, Text, Notification } from "@mantine/core";
 import { useContext, useEffect, useState } from "react";
 import Conditions from "../Editor/Conditions";
 import { useForm } from "@mantine/form";
-import { IconEqualNot, IconListSearch, IconMaximize, IconMinimize, IconRun,IconViewportNarrow, IconViewportWide, IconX } from "@tabler/icons-react";
+import { IconEqual, IconListSearch, IconMaximize, IconMinimize, IconRun,IconViewportNarrow, IconViewportWide, IconX } from "@tabler/icons-react";
 import useAPI from "../../../hooks/useAPI";
 import SchemaContext from "../../../providers/SchemaContext";
-import Progress from "../RunModal/Progress";
 import { useDisclosure, useFullscreen } from "@mantine/hooks";
 import Evaluate from "./Evaluate";
+import Status from "../RunModal/Status";
 
 export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>void } ) {
     const { schema } = useContext(SchemaContext);
@@ -27,37 +27,55 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
     }, [ rule ]);
 
 
-    const { data: matchResults, post: evaluate, loading: l1, reset: r1, setData: setMatchResults } = useAPI({
+    const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI({
         url: `/schema/${schema?.name}/rules/match`,
-        default: { matches: [] },
+        default: { evaluated: [] },
         data: {...rule, conditions: form.values.conditions},
     });
+    const checkedCount: number = evaluated.evaluated.filter((r: {checked: boolean})=>r.checked).length;
 
-    const close2 = () => { close(); setActive(0) };
+    const close2 = () => { close(); r1(); setActive(0); if (fullscreen) toggleFS(); };
 
     useEffect(()=>{
        if (active==1) evaluate();
+       if (active==0) r1();
     }, [ active ]);
 
     return (
-        <Modal fullScreen={fullscreen} size={maximized?"100%":"auto"} opened={!!rule} onClose={close2} closeOnClickOutside={false} withCloseButton={false} >
+        <Modal fullScreen={fullscreen} size={maximized?"100%":"auto"} opened={!!rule} onClose={()=>null} closeOnClickOutside={false} withCloseButton={false} >
             <Group justify="space-between" mb="sm">
-            <Text>Run {rule?.name}</Text>
-            <ActionIcon.Group>
-                <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleMax}>{maximized?<IconViewportNarrow/>:<IconViewportWide />}</ActionIcon>
-                <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleFS}>{fullscreen?<IconMinimize/>:<IconMaximize />}</ActionIcon>
-                <ActionIcon variant="subtle" color="gray" size="sm" onClick={close2}><IconX/></ActionIcon>
-            </ActionIcon.Group>
+                <Text>Run {rule?.name}</Text>
+                <ActionIcon.Group>
+                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleMax}>{maximized?<IconViewportNarrow/>:<IconViewportWide />}</ActionIcon>
+                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleFS}>{fullscreen?<IconMinimize/>:<IconMaximize />}</ActionIcon>
+                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={close2}><IconX/></ActionIcon>
+                </ActionIcon.Group>
             </Group>
             <Stepper active={active} onStepClick={setActive}>
-                <Stepper.Step label="Conditions" description="Modify Conditions" icon={<IconEqualNot />} >
+                <Stepper.Step label="Conditions" color={form.values.conditions.length===0?"red":undefined} description="Modify Conditions" icon={<IconEqual />} >
                     <Conditions showLDAP={false} form={form} label="Add single-run modifications here."  />
                 </Stepper.Step>
-                <Stepper.Step label="Evaluate" color="red" description="Find Matches" loading={l1} icon={<IconListSearch />} allowStepSelect={form.values.conditions.length>0} >
-                <Evaluate/>
-                <Group justify="center" ><Progress resultant={false} /></Group>
+                <Stepper.Step
+                label="Evaluate"
+                description="Find Matches"
+                color={e1&&"red"}
+                loading={l1}
+                icon={<IconListSearch />}
+                allowStepSelect={form.values.conditions.length>0&&!e1}
+                styles={form.values.conditions.length===0?{step:{cursor:"not-allowed"}}:undefined}
+                >
+                    {e1?<Notification icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error!">
+                        {e1}
+                    </Notification>:(l1?<Group justify="center" ><Status resultant={false} /></Group>:<Evaluate evaluated={evaluated.evaluated} setEvaluated={setEvaluated} />)
+                    }
                 </Stepper.Step>
-                <Stepper.Step label="Execute" description="Perform Actions" icon={<IconRun />} allowStepSelect={false} >
+                <Stepper.Step
+                label="Execute"
+                description={`Perform ${checkedCount} Actions`}
+                icon={<IconRun/>}
+                allowStepSelect={checkedCount>0}
+                styles={checkedCount===0?{step:{cursor:"not-allowed"}}:undefined}
+                >
                 Execute
                 </Stepper.Step>
                 <Stepper.Completed>
