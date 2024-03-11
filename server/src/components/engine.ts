@@ -20,7 +20,7 @@ import StmcUpload from "./operations/StmcUpload.js";
 import { User } from "../modules/ldap.js";
 
 
-//export type actionProps = { action: Action, template: template, connections: connections, schema: Schema, execute: boolean, conclude: boolean, data: {[k: string]: string} };
+export type actionProps = { action: Action, template: template, connections: connections, id: string, schema: Schema, execute: boolean, data: {[k: string]: string} };
 interface template {[connector: string]: {[header: string]: string}}
 interface connections { [k: string]: connection }
 interface connection {
@@ -30,32 +30,35 @@ interface connection {
     client?: unknown;
     close?: () => Promise<unknown>;
 }
-//// eslint-disable-next-line @typescript-eslint/no-explicit-any
-//export type operation = (props: any) => any;
-//const availableActions: { [k: string]: operation } = {
-//    //'Create User': createUser,
-//    //'Enable User': enableUser,
-//    //'Disable User': disableUser,
-//    //'Delete User': deleteUser,
-//    //'Move Organisational Unit': moveOU,
-//    //'Update Attributes': updateAtt,
-//    //'Update Groups': dirUpdateSec,
-//    'Send To Printer': DocPrint,
-//    'Write PDF': DocWritePDF,
-//    'Write To File': FileWriteTxt,
-//    'Delete File': FileDelete,
-//    'Move File': FileMove,
-//    'Copy File': FileCopy,
-//    'Copy Folder': FolderCopy,
-//    'Move Folder': FolderMove,
-//    'Delete Folder': FolderDelete,
-//    'Create Folder': FolderCreate,
-//    'Template': SysTemplate,
-//    'Encrypt String': SysEncryptString,
-//    'Comparator': SysComparator,
-//    'Upload Student Passwords': StmcUpload,
-//}
-//
+
+interface result {template?: boolean, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type operation = (props: any) => Promise<result>;
+const availableActions: { [k: string]: operation } = {
+    //'Create User': createUser,
+    //'Enable User': enableUser,
+    //'Disable User': disableUser,
+    //'Delete User': deleteUser,
+    //'Move Organisational Unit': moveOU,
+    //'Update Attributes': updateAtt,
+    //'Update Groups': dirUpdateSec,
+    //'Send To Printer': DocPrint,
+    //'Write PDF': DocWritePDF,
+    //'Write To File': FileWriteTxt,
+    //'Delete File': FileDelete,
+    //'Move File': FileMove,
+    //'Copy File': FileCopy,
+    //'Copy Folder': FolderCopy,
+    //'Move Folder': FolderMove,
+    //'Delete Folder': FolderDelete,
+    //'Create Folder': FolderCreate,
+    //'Template': SysTemplate,
+    'Encrypt String': SysEncryptString,
+    'Comparator': SysComparator,
+    //'Upload Student Passwords': StmcUpload,
+}
+
 export async function connect(schema: Schema, connectorName: string, connections: connections, id: string): Promise<connection> {
     if (connections[connectorName]) return connections[connectorName];
     const provider = schema._connectors[connectorName] as anyProvider;
@@ -95,79 +98,36 @@ async function conclude(connections: connections) {
     server.io.emit("global_status", {});
 }
 
-//async function ldap_compare(schema: Schema, key: string, value: string, operator: string, connections: connections, id: string ) {
-//    //const user = (key in connections) && (id in connections[key].object) && connections[key].object[id];
-//    const connection = await connect(schema, key, connections);
-//    if (!connection.keys || !(id in connection.keys)) return false;
-//    const user = connection.keys[id] as User;
-//    switch (operator) {
-//        case 'exists': return !!user;
-//        case 'notexists': return !user;
-//        case 'enabled': return user && user.enabled();
-//        case 'disabled': return user && user.disabled();
-//        case 'member': return user && user.hasGroup(value);
-//        case 'notmember': return user && user.hasGroup(value);
-//        case 'child': return user && user.childOf(value);
-//        case 'notchild': return user && user.childOf(value);
-//        default: return false;
-//    }
-//}
-//
-//async function compare(schema: Schema, key: string, value: string, operator: string, connections: connections, id: string): Promise<boolean> {
-//    if (operator.substring(0, 4)==="ldap") return ldap_compare(schema, key, value, operator.substring(5), connections, id);
-//    switch (operator) {
-//        case '==': return key === value;
-//        case '!=': return key !== value;
-//        case '><': return key.includes(value);
-//        case '<>': return !key.includes(value);
-//        case '>*': return key.startsWith(value);
-//        case '*<': return key.endsWith(value);
-//        case '//': return (new RegExp(value, 'g')).test(key);
-//        case '===': return Number(key) === Number(value);
-//        case '!==': return Number(key) !== Number(value);
-//        case '>': return Number(key) > Number(value);
-//        case '<': return Number(key) < Number(value);
-//        case '>=': return Number(key) >= Number(value);
-//        case '<=': return Number(key) <= Number(value);
-//        default: return false;
-//    }
-//}
-//
-//async function delimit(schema: Schema, key: string, value: string, condition: Condition, connections: connections, id: string): Promise<boolean> {
-//    const delimited = value.split(condition.delimiter)
-//    for (const value of delimited) {
-//        if ( await compare(schema, key, value, condition.operator, connections, id) ) return true;
-//    } return false;
-//}
-//
-//async function evaluate(schema: Schema, condition: Condition, template: template, connections: connections, id: string): Promise<boolean> {
-//    const key = compile(template, condition.key);
-//    const value = compile(template, condition.value);
-//    const delimiter = condition.delimiter !== "";
-//    return delimiter ? await delimit(schema, key, value, condition, connections, id) : await compare(schema, key, value, condition.operator, connections, id);
-//}
-//
-//export async function evaluateAll(schema: Schema, conditions: Condition[], template: template, connections: connections, id: string): Promise<boolean> {
-//    for (const condition of conditions) {
-//        if (!(await evaluate(schema, condition, template, connections, id))) return false;
-//    } return true;
-//}
-//
-//async function actions(actions: Action[], template: template, connections: connections, schema: Schema, execute = false) {
-//    let template_ = template;
-//    const todo: {name: string, result: {error?: string, warning?: string, data?: object, success?: true } }[] = [];
-//    for (const action of (actions||[])) {
-//        if (!(action.name in availableActions)) throw Error(`Unknown action '${action.name}'.`);
-//        const result = await availableActions[action.name]({ action, template, connections, execute, schema, data: {} });
-//        if (!result) continue;
-//        if (result.template) template_ = { ...template_, ...result.data as object  };
-//        todo.push({name: action.name, result });
-//    } return todo;
-//}
-//
+async function actions(actions: Action[], template: template, connections: connections, id: string, schema: Schema, execute = false) {
+    let template_ = template;
+    const todo: {name: string, result: result }[] = [];
+    for (const action of (actions||[])) {
+        if (!(action.name in availableActions)) throw Error(`Unknown action '${action.name}'.`);
+        const result = await availableActions[action.name]({ action, template, connections, execute, schema, id, data: {} });
+        if (!result) continue;
+        if (result.template) template_ = { ...template_, ...result.data as object  };
+        todo.push({name: action.name, result });
+    } return todo;
+}
 
+
+async function ldap_compare(key: string, value: string, operator: string, connections: connections, id: string ) {
+    if (!(key in connections)) return false;
+    const user: User|undefined = connections[key].keyed[id] as User||undefined;
+    switch (operator) {
+        case 'exists': return !!user;
+        case 'notexists': return !user;
+        case 'enabled': return user && user.enabled();
+        case 'disabled': return user && user.disabled();
+        case 'member': return user && user.hasGroup(value);
+        case 'notmember': return user && user.hasGroup(value);
+        case 'child': return user && user.childOf(value);
+        case 'notchild': return user && user.childOf(value);
+        default: return false;
+    }
+}
 async function compare(key: string, value: string, operator: string, connections: connections, id: string): Promise<boolean> {
-    //if (operator.substring(0, 4)==="ldap") return ldap_compare(schema, key, value, operator.substring(5), connections, id);
+    if (operator.substring(0, 4)==="ldap") return ldap_compare(key, value, operator.substring(5), connections, id);
     switch (operator) {
         case '==': return key === value;
         case '!=': return key !== value;
@@ -245,19 +205,15 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             const row: typeof evaluated[0] = { id };
             if (rule.display && rule.display.trim()!=='') row.display = compile(template, rule.display);
             if (!(await evaluateAll(rule.conditions, template, connections, id))) continue;
+            const todo = await actions(rule.actions, template, connections, id, schema, !!idFilter);
+            const actionable = todo.filter(t=>t.result.warning||t.result.error).length <= 0;
+            console.log(actionable)
+            // matches.push({id, display, actions: todo, actionable});
             evaluated.push(row);
         }
         await wait();
         cur.performance = performance.now() - startTime;
     }
-    //for (const row of primary.rows) {
-    //    if (!(await evaluateAll(schema, rule.conditions, template, connections, rule.primaryKey))) continue;
-    //    const display = (rule.display && rule.display.trim()!=='') ? compile(template, rule.display) : id;
-    //    if (!display || display.trim()==='') continue;
-    //    const todo = await actions(rule.actions, template, connections, schema, !!idFilter)
-    //    const actionable = todo.filter(t=>t.result.warning||t.result.error).length <= 0;
-    //    matches.push({id, display, actions: todo, actionable});
-    //}
     await conclude(connections);
     return {evaluated, initActions: [], finalActions: []};
 }

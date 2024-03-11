@@ -12,8 +12,8 @@ export default async function ({ action, template, data }: props) {
     try {
         const newTemplate: { [k:string]: string } = {};
         for (const t of action.templates) {
-            const name = compile(template, t.name||"")
-            const value = compile(template, t.value||"")
+            const name = compile(template, t.name||"");
+            const value = compile(template, t.value||"");
             newTemplate[name] = value;
         }
         return {template: true, data: newTemplate};

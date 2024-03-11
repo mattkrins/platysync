@@ -9,9 +9,9 @@ interface props extends actionProps {
     }
 }
 
-export default async function ({ action, template, connections }: props) {
+export default async function ({ action, template, connections, id }: props) {
     try {
-        const matched = !await evaluateAll(action.conditions, template, connections );
+        const matched = !await evaluateAll(action.conditions, template, connections, id );
         const newTemplate: { [k:string]: string } = {};
         const output = action.output ? Handlebars.compile(action.target)(template) : false;
         if (!matched) {

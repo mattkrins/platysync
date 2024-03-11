@@ -60,7 +60,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                 description="Find Matches"
                 color={e1&&"red"}
                 loading={l1}
-                icon={<IconListSearch />}
+                icon={<IconListSearch color={form.values.conditions.length===0?"gray":undefined} />}
                 allowStepSelect={form.values.conditions.length>0&&!e1}
                 styles={form.values.conditions.length===0?{step:{cursor:"not-allowed"}}:undefined}
                 >
@@ -72,7 +72,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                 <Stepper.Step
                 label="Execute"
                 description={`Perform ${checkedCount} Actions`}
-                icon={<IconRun/>}
+                icon={<IconRun color={checkedCount===0?"gray":undefined} />}
                 allowStepSelect={checkedCount>0}
                 styles={checkedCount===0?{step:{cursor:"not-allowed"}}:undefined}
                 >
