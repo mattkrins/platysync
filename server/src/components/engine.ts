@@ -21,7 +21,7 @@ import { User } from "../modules/ldap.js";
 
 
 export type actionProps = { action: Action, template: template, connections: connections, id: string, schema: Schema, execute: boolean, data: {[k: string]: string} };
-interface template {[connector: string]: {[header: string]: string}}
+interface template {[connector: string]: {[header: string]: string}|string}
 interface connections { [k: string]: connection }
 interface connection {
     rows: {[k: string]: string}[];
@@ -31,7 +31,7 @@ interface connection {
     close?: () => Promise<unknown>;
 }
 
-interface result {template?: boolean, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
+interface result {template?: object, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type operation = (props: any) => Promise<result>;
@@ -99,16 +99,14 @@ async function conclude(connections: connections) {
 }
 
 async function actions(actions: Action[], template: template, connections: connections, id: string, schema: Schema, execute = false) {
-    let template_ = template;
     const todo: {name: string, result: result }[] = [];
     for (const action of (actions||[])) {
         if (!(action.name in availableActions)) throw Error(`Unknown action '${action.name}'.`);
         const result = await availableActions[action.name]({ action, template, connections, execute, schema, id, data: {} });
         if (!result) continue;
-        if (result.template) template_ = { ...template_, ...result.data as object  };
         todo.push({name: action.name, result });
         if (result.error) break;
-    } return todo;
+    } return {todo, template};
 }
 
 
@@ -187,9 +185,15 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     for (const secondary of rule.secondaries||[]){
         if (empty(secondary.secondaryKey)) secondary.secondaryKey = `{{${secondary.primary}.${rule.primaryKey}}}`;
         if (empty(secondary.primaryKey)) secondary.primaryKey = `{{${rule.primary}.${rule.primaryKey}}}`;
+        if (!secondary.secondaryKey.includes('{{')) throw Error(`Invalid key '${secondary.secondaryKey}' for joining ${secondary.primary} connector.`);
+        if (!secondary.primaryKey.includes('{{')) throw Error(`Invalid key '${secondary.primaryKey}' for joining ${secondary.primary} connector.`);
         const key = secondary.secondaryKey.split(`${secondary.primary}.`)[1].split("}}")[0];
         await connect(schema, secondary.primary, connections, key);
     }
+
+    const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, {}, connections, "id", schema, !!idFilter);
+    if (initActions.filter(r=>r.result.error).length>0){ await conclude(connections); return {evaluated: [], initActions, finalActions: []} }
+
     const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
     const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0 };
     for (const row of primary.rows) {
@@ -197,25 +201,26 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         cur.index ++;
         const id = row[rule.primaryKey];
         progress(cur, primary.rows.length, id);
-        const template: template = { [rule.primary]: row };
+        const template: template = { ...initTemplate, [rule.primary]: row };
         for (const secondary of rule.secondaries||[]) {
             if (!connections[secondary.primary]) continue;
-            const joins = connections[secondary.primary].rows.filter(r=>{
+            for (const r of connections[secondary.primary].rows||[]) {
                 const k1 = compile({ [secondary.primary]: r }, secondary.secondaryKey);
                 const k2 = compile(template, secondary.primaryKey);
-                return k1===k2; //TODO - add toggle for case
-            });//TODO - add option to ignore row if no join found
-            template[secondary.primary] = (joins.length <=0 || joins.length > 1) ? {} : joins[0]; //TODO - add an option to grab first match, rather than ignore > 1
-            const row: typeof evaluated[0] = { id, actions: [], actionable: false };
-            if (!empty(rule.display)) row.display = compile(template, rule.display);
-            if (!(await evaluateAll(rule.conditions, template, connections, id))) continue;
-            row.actions = await actions(rule.actions, template, connections, id, schema, !!idFilter);
-            row.actionable = row.actions.filter(t=>t.result.warning||t.result.error).length <= 0;
-            evaluated.push(row);
+                if (k1===k2){ template[secondary.primary] = r; break; }
+            } if (!template[secondary.primary]) template[secondary.primary] = {};
+            //TODO - add toggle for case
+            //TODO - add option to ignore row if not found or multiple foun
         }
         await wait();
+        if (!(await evaluateAll(rule.conditions, template, connections, id))){ cur.performance = performance.now() - startTime; continue;}
+        const output: typeof evaluated[0] = { id, actions: [], actionable: false };
+        if (!empty(rule.display)) output.display = compile(template, rule.display);
+        output.actions = (await actions(rule.actions, template, connections, id, schema, !!idFilter)).todo;
+        output.actionable = output.actions.filter(t=>t.result.warning||t.result.error).length <= 0;
+        evaluated.push(output);
         cur.performance = performance.now() - startTime;
     }
     await conclude(connections);
-    return {evaluated, initActions: [], finalActions: []};
+    return {evaluated, initActions, finalActions: []};
 }

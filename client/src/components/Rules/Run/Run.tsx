@@ -28,7 +28,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
 
     const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI({
         url: `/schema/${schema?.name}/rules/match`,
-        default: { evaluated: [] },
+        default: { evaluated: [], initActions: [], finalActions: [] },
         data: {...rule, conditions: form.values.conditions},
     });
     const checkedCount: number = evaluated.evaluated.filter((r: {checked: boolean})=>r.checked).length;
@@ -68,7 +68,13 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                 >
                     {e1?<Notification icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error!">
                         {e1}
-                    </Notification>:(l1?<Group justify="center" ><Status resultant={false} /></Group>:<Evaluate evaluated={evaluated.evaluated} setEvaluated={setEvaluated} />)
+                    </Notification>:(l1?<Group justify="center" ><Status resultant={false} /></Group>:
+                    <Evaluate
+                    evaluated={evaluated.evaluated}
+                    setEvaluated={setEvaluated}
+                    initActions={evaluated.initActions}
+                    finalActions={evaluated.finalActions}
+                    />)
                     }
                 </Stepper.Step>
                 <Stepper.Step

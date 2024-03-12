@@ -1,6 +1,6 @@
-import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Paper, Table, TextInput, Text, useMantineTheme, Indicator, Tooltip } from "@mantine/core";
+import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Paper, Table, TextInput, Text, useMantineTheme, Indicator, Tooltip, Notification } from "@mantine/core";
 import { useDisclosure, usePagination } from "@mantine/hooks";
-import { IconCheckbox, IconEqualNot, IconEye, IconEyeOff, IconMenu2, IconSearch } from "@tabler/icons-react";
+import { IconCheckbox, IconEqualNot, IconEye, IconEyeOff, IconHandStop, IconMenu2, IconQuestionMark, IconSearch, IconX } from "@tabler/icons-react";
 import { useState } from "react";
 import { availableActions } from "../../../data/common";
 import View from "./View";
@@ -89,19 +89,31 @@ function IconMap({ actions, size = 16, click }: { actions: action[], size?: numb
     })
 }
 
-function Row( { row, check, view }: { row: evaluated, check: (id: string) => () => void, view: (id: {name: string, open: string, actions: action[]}) => void } ) {
+function ActionMap({ actions, view }: { actions: action[], view: (id: {name: string, open: string, actions: action[]}) => void }){
+    const click = (open: string) => () => view({name: 'Init', open, actions });
+    return actions.length<=0?<Divider />:
+    <Divider label={<Group><IconMap actions={actions} size={22} click={click} /></Group>} />
+}
+
+function Row( { row, check, view, display }: { row: evaluated, display: number, check: (id: string) => () => void, view: (id: {name: string, open: string, actions: action[]}) => void } ) {
     const click = (open: string) => () => view({name: row.display||row.id, open, actions: row.actions });
     return (
-    <Table.Tr key={row.id}>
-        <Table.Td><Checkbox onChange={check(row.id)} checked={row.checked} /></Table.Td>
-        <Table.Td>{row.id}</Table.Td>
-        <Table.Td>{row.display||row.id}</Table.Td>
+    <Table.Tr key={row.id} bg={row.checked ? 'var(--mantine-color-blue-light)' : undefined} >
+        <Table.Td><Checkbox color={row.actionable?undefined:"red"} disabled={display<2&&!row.actionable} onChange={check(row.id)} checked={row.checked} /></Table.Td>
+        <Table.Td c={row.actionable?undefined:"dimmed"} >{row.id}</Table.Td>
+        <Table.Td c={row.actionable?undefined:"dimmed"} >{row.display||row.id}</Table.Td>
         <Table.Td><IconMap actions={row.actions} click={click} /></Table.Td>
     </Table.Tr>
     )
 }
 
-export default function Evaluate( { evaluated, setEvaluated }: { evaluated: evaluated[], setEvaluated: (data: (data: {evaluated: evaluated[]}) => void) => void } ) {
+interface EvalProps {
+    evaluated: evaluated[];
+    setEvaluated: (data: (data: {evaluated: evaluated[]}) => void) => void;
+    initActions: action[];
+    finalActions: action[];
+}
+export default function Evaluate( { evaluated, setEvaluated, initActions = [], finalActions = [] }: EvalProps ) {
     const [display, setDisplay] = useState<number>(0);
     const [viewing, view] = useState<{name: string, open: string, actions: action[]}|undefined>();
     const [sorting, setSort] = useState<string>("none");
@@ -115,45 +127,54 @@ export default function Evaluate( { evaluated, setEvaluated }: { evaluated: eval
     };
     const check = (id: string) => () => { setEvaluated((e) => ({...e, evaluated: e.evaluated.map(r=>r.id!==id?r:{...r, checked: !r.checked})}) ); };
     const checkedCount = evaluated.filter(r=>r.checked).length;
-    const checkAll = () => { setEvaluated((e) => ({...e, evaluated: e.evaluated.map(r=>({...r, checked: checkedCount===0}))}) ); };
+    const checkAll = () => { setEvaluated((e) => ({...e, evaluated: e.evaluated.map(r=>({...r,
+        checked: checkedCount===0 ? (display === 0 ? r.actionable : (display === 2 ? true : r.actionable)) : false
+    }))}) ); };
     
     const [perPage, limit] = useState<number>(50);
-    const filtered = query==='' ? (evaluated||[]) : (evaluated||[]).filter((r)=>find(query, r));
+    const cleaned = display === 0 ? (evaluated||[]).filter(e=>e.actionable) : evaluated;
+    const filtered = query==='' ? cleaned : cleaned.filter((r)=>find(query, r));
     const total = Math.ceil(filtered.length / Number(perPage));
     const pagination = usePagination({ total, initialPage: 1 });
     const paginated = perPage === 0 ? filtered : filtered.slice((pagination.active-1)*Number(perPage), pagination.active*Number(perPage));
-    
-    return ( evaluated.length===0?
-    <Paper radius="md" withBorder mt={32} mb={32} p="lg" style={{width:"100%"}} ><Group><IconEqualNot /> <Text>No entries matched.</Text></Group></Paper>:
-    <Box>
+    const initErrors = initActions.filter(a=>a.result.error).length > 0;
+    return (<Box>
         <View viewing={viewing} view={view} />
-        <Divider mb="xs"/>
-        <Head
-        pagination={pagination}
-        total={total}
-        limit={limit}
-        perPage={perPage}
-        count={filtered.length}
-        sort={sort}
-        sorting={sorting}
-        query={query}
-        search={search}
-        display={display}
-        setDisplay={setDisplay}
-        />
-        <Divider mt="xs"/>
-        {filtered.length===0?<Text ta="center" mt="sm" >No entries found.</Text>:
-        <Table>
-            <Table.Thead>
-                <Table.Tr>
-                    <Table.Th><Checkbox onChange={checkAll} checked={checkedCount > 0} /></Table.Th>
-                    <Table.Th>ID</Table.Th>
-                    <Table.Th>Display</Table.Th>
-                    <Table.Th>Actions</Table.Th>
-                </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>{(paginated||[]).map((row) =><Row key={row.id} row={row} check={check} view={view} />)}</Table.Tbody>
-        </Table>}
+        <ActionMap actions={initActions} view={view}  />
+        {cleaned.length===0?
+        <Box>{initErrors?
+            <Notification icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Evaluation Halted">Initial actions contained an error.</Notification>:
+            <Notification icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>}
+        </Box>:
+        <Box>
+            <Head
+            pagination={pagination}
+            total={total}
+            limit={limit}
+            perPage={perPage}
+            count={filtered.length}
+            sort={sort}
+            sorting={sorting}
+            query={query}
+            search={search}
+            display={display}
+            setDisplay={setDisplay}
+            />
+            <Divider mt="xs"/>
+            {filtered.length===0?<Text ta="center" mt="sm" >No entries found.</Text>:
+            <Table>
+                <Table.Thead>
+                    <Table.Tr>
+                        <Table.Th><Checkbox onChange={checkAll} checked={checkedCount > 0} /></Table.Th>
+                        <Table.Th>ID</Table.Th>
+                        <Table.Th>Display</Table.Th>
+                        <Table.Th>Actions</Table.Th>
+                    </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>{(paginated||[]).map((row) =><Row key={row.id} row={row} check={check} view={view} display={display} />)}</Table.Tbody>
+            </Table>}
+            <ActionMap actions={finalActions} view={view}  />
+        </Box>}
     </Box>
     )
 }

@@ -10,13 +10,12 @@ interface props extends actionProps {
 
 export default async function ({ action, template, data }: props) {
     try {
-        const newTemplate: { [k:string]: string } = {};
         for (const t of action.templates) {
-            const name = compile(template, t.name||"");
-            const value = compile(template, t.value||"");
-            newTemplate[name] = value;
+            data.name = compile(template, t.name||"");
+            data.value = compile(template, t.value||"");
+            template[data.name] = data.value;
         }
-        return {template: true, data: newTemplate};
+        return {success: true, data};
     } catch (e){
         return {error: String(e), data};
     }
