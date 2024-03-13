@@ -1,6 +1,6 @@
-import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Paper, Table, TextInput, Text, useMantineTheme, Indicator, Tooltip, Notification } from "@mantine/core";
+import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Table, TextInput, Text, useMantineTheme, Indicator, Tooltip, Notification } from "@mantine/core";
 import { useDisclosure, usePagination } from "@mantine/hooks";
-import { IconCheckbox, IconEqualNot, IconEye, IconEyeOff, IconHandStop, IconMenu2, IconQuestionMark, IconSearch, IconX } from "@tabler/icons-react";
+import { IconCheckbox, IconEye, IconEyeOff, IconHandStop, IconMenu2, IconQuestionMark, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
 import { availableActions } from "../../../data/common";
 import View from "./View";
@@ -138,7 +138,8 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
     const pagination = usePagination({ total, initialPage: 1 });
     const paginated = perPage === 0 ? filtered : filtered.slice((pagination.active-1)*Number(perPage), pagination.active*Number(perPage));
     const initErrors = initActions.filter(a=>a.result.error).length > 0;
-    return (<Box>
+    return (
+    <Box>
         <View viewing={viewing} view={view} />
         <ActionMap actions={initActions} view={view}  />
         {cleaned.length===0?
@@ -146,7 +147,7 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
             <Notification icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Evaluation Halted">Initial actions contained an error.</Notification>:
             <Notification icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>}
         </Box>:
-        <Box>
+        <Box pt={initActions.length===0?"xs":undefined} >
             <Head
             pagination={pagination}
             total={total}

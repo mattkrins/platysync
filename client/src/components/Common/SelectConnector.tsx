@@ -61,7 +61,7 @@ export default function SelectConnector({onChange, value: v2 = '', placeholder, 
         }}
         >
         <Combobox.Target>
-            <InputBase
+            <InputBase disabled={props.disabled||false}
             component="button"
             type="button"
             pointer

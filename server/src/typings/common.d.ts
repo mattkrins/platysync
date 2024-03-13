@@ -58,7 +58,15 @@ export interface Action {
   templates?: { name: string, value: string }[];
 }
 
-export interface secondary {id: string, primary: string, secondaryKey: string, primaryKey: string}
+export interface secondary {
+  id: string;
+  primary: string;
+  secondaryKey: string;
+  primaryKey: string;
+  case?: string;
+  req?: string;
+  oto?: string;
+}
 
 export interface Rule {
   name: string;

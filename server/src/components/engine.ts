@@ -165,23 +165,29 @@ export async function evaluateAll(conditions: Condition[], template: template, c
     } return true;
 }
 
-interface cur { time: number, index: number, performance: number }
-function progress(cur: cur, length: number, id: string) {
-    if (Math.abs(new Date().getTime() - cur.time) < 1) return;
+interface cur { time: number, index: number, performance: number, startTime: number }
+function progress(cur: cur, length: number, id: string, start: number = 0) {
+    if (Math.abs(new Date().getTime() - cur.time) < 100) return;
     cur.time = (new Date()).getTime();
-    const p = (cur.index / length)*100;
-    server.io.emit("progress", { i: cur.index, p, m: length, s: cur.performance });
+    cur.performance = performance.now() - cur.startTime;
+    const p = start + ((cur.index / length)*(100 - start));
+    server.io.emit("progress", { i: cur.index, p, m: length, s: cur.performance, c: start !== 0  });
     server.io.emit("job_status", `Proccessing ${id}`);
+    cur.startTime = performance.now();
 }
 
-const wait = async () => new Promise((res)=>setTimeout(res, 200));
+const wait = async (t = 100) => new Promise((res)=>setTimeout(res, t));
 const empty = (value?: string) => !value || value.trim()==='';
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[]) {
-    server.io.emit("job_status", `Search engine initialized`);
+    const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now() };
+    progress(cur, 0, 'Search engine initialized');
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
     const connections: connections = {};
     const primary = await connect(schema, rule.primary, connections, rule.primaryKey);
+    cur.index = 5;
+    progress(cur, 100, 'secondaries');
     if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
+    await wait(500);
     for (const secondary of rule.secondaries||[]){
         if (empty(secondary.secondaryKey)) secondary.secondaryKey = `{{${secondary.primary}.${rule.primaryKey}}}`;
         if (empty(secondary.primaryKey)) secondary.primaryKey = `{{${rule.primary}.${rule.primaryKey}}}`;
@@ -190,37 +196,46 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         const key = secondary.secondaryKey.split(`${secondary.primary}.`)[1].split("}}")[0];
         await connect(schema, secondary.primary, connections, key);
     }
-
+    cur.index = 10;
+    progress(cur, 100, 'init actions');
+    await wait(1000);
     const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, {}, connections, "id", schema, !!idFilter);
     if (initActions.filter(r=>r.result.error).length>0){ await conclude(connections); return {evaluated: [], initActions, finalActions: []} }
-
+    cur.index = 15;
+    progress(cur, 100, 'init actions');
+    await wait(1000);
     const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
-    const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0 };
+    cur.index = 0;
     for (const row of primary.rows) {
-        const startTime = performance.now();
+        
         cur.index ++;
         const id = row[rule.primaryKey];
-        progress(cur, primary.rows.length, id);
+        progress(cur, primary.rows.length, id, 15);
         const template: template = { ...initTemplate, [rule.primary]: row };
+        let skip = false;
         for (const secondary of rule.secondaries||[]) {
             if (!connections[secondary.primary]) continue;
+            let s = 0;
             for (const r of connections[secondary.primary].rows||[]) {
                 const k1 = compile({ [secondary.primary]: r }, secondary.secondaryKey);
                 const k2 = compile(template, secondary.primaryKey);
-                if (k1===k2){ template[secondary.primary] = r; break; }
+                if (secondary.case?k1.toLowerCase()===k2.toLowerCase():k1===k2){ s++; template[secondary.primary] = r; if (secondary.oto){ break; } }
             } if (!template[secondary.primary]) template[secondary.primary] = {};
-            //TODO - add toggle for case
-            //TODO - add option to ignore row if not found or multiple foun
-        }
-        await wait();
-        if (!(await evaluateAll(rule.conditions, template, connections, id))){ cur.performance = performance.now() - startTime; continue;}
+            if (secondary.req && Object.keys(template[secondary.primary]).length===0) skip = true;
+            if (secondary.oto && s>1) skip = true;
+        } if (skip){  continue;}
+        await wait(500);
+        if (!(await evaluateAll(rule.conditions, template, connections, id))){  continue;}
         const output: typeof evaluated[0] = { id, actions: [], actionable: false };
         if (!empty(rule.display)) output.display = compile(template, rule.display);
         output.actions = (await actions(rule.actions, template, connections, id, schema, !!idFilter)).todo;
         output.actionable = output.actions.filter(t=>t.result.warning||t.result.error).length <= 0;
         evaluated.push(output);
-        cur.performance = performance.now() - startTime;
+        
     }
+    server.io.emit("job_status", `Evaluating final actions`);
+    await wait(1000);
+    const {todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, "id", schema, !!idFilter);
     await conclude(connections);
-    return {evaluated, initActions, finalActions: []};
+    return {evaluated, initActions, finalActions};
 }

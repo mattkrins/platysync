@@ -25,10 +25,10 @@ export default async function ({ action, template, data, connections, id }: prop
             data[key] = matched ? tru : fals;
         }
         if (matched) {
-            if (action.output===false) return { success: true, data };
+            if (!action.output) return { success: true, data };
             template[key] = tru;
         } else {
-            if (action.output===false) return { error: 'Did not meet conditions.', data };
+            if (!action.output) return { error: 'Did not meet conditions.', data };
             template[key] = fals;
         }
         return { success: true, data };

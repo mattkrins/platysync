@@ -1,22 +1,48 @@
-import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea } from "@mantine/core";
+import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea, Modal } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconCode, IconGripVertical, IconKey, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../Common/SelectConnector";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import SchemaContext from "../../../providers/SchemaContext";
 import ExplorerContext from "../../../providers/ExplorerContext";
 
+interface Secondary {
+    primary: string;
+    secondaryKey: string;
+    primaryKey: string;
+}
+function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, config: ()=>void, form: UseFormReturnType<Rule> } ) {
+    const index = form.values.secondaries.findIndex(s =>s.primary ===secondary?.primary);
+    return (
+      <Modal opened={!!secondary} onClose={config} title={`Configure ${secondary?.primary} `}>
+        {secondary&&<Box>
+            <Switch label="Case Insensitive" mb="xs"
+            {...form.getInputProps(`secondaries.${index}.case`, { type: 'checkbox' })} 
+            />
+            <Switch label="Required" mb={4} description={`Skip entries if no join found in '${secondary.primary}'.`}
+            {...form.getInputProps(`secondaries.${index}.req`, { type: 'checkbox' })}
+            />
+            <Switch label="One-To-One" description={`Skip entries on multiple join potentials in '${secondary.primary}' found.`}
+            {...form.getInputProps(`secondaries.${index}.oto`, { type: 'checkbox' })}
+            />
+        </Box>}
+      </Modal>
+    )
+}
+
 export default function Settings( { form, sources, taken }: {form: UseFormReturnType<Rule>, sources: string[], taken: string[]} ) {
     const { connectors } = useContext(SchemaContext);
     const { explorer, explore } = useContext(ExplorerContext);
+    const [secondary, config] = useState<Secondary|undefined>(undefined);
     const usable = connectors.filter(c=>c.id!=="proxy").length -1 ;
     const { headers } = useContext(SchemaContext);
-    const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' });
+    const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' } as Secondary);
     const remove  = (index: number) => form.removeListItem('secondaries', index);
     const modify = () => (value: string) => form.setFieldValue('display', `${form.values.display||''}{{${value}}}`);
     return (
     <Box>
+        <SecondaryConfig secondary={secondary} config={()=>config(undefined)} form={form} />
         {explorer}
         <TextInput
             label="Rule Name"
@@ -32,7 +58,8 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
                 description="Rule conditions will be evaluated for each entry in this connector. For each row, each user, etc."
                 clearable
                 {...form.getInputProps('primary')}
-                filter={data=>data.filter(c=>c.id!=="proxy")}
+                disabled={(form.values.secondaries||[]).length>0}
+                filter={data=>data.filter(c=>c.id!=="proxy")  }
                 />
             </Grid.Col>
             <Grid.Col span={4}>
@@ -97,7 +124,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
                         </Grid.Col>
                         <Grid.Col span="content">
                             <Group justify="right" gap="xs">
-                                <ActionIcon color='red' variant="default" size="lg"><IconSettings size={15}/></ActionIcon>
+                                <ActionIcon color='red' onClick={()=>config(form.values.secondaries[index])} variant="default" size="lg"><IconSettings size={15}/></ActionIcon>
                                 <ActionIcon color='red' onClick={()=>remove(index)} variant="default" size="lg"><IconTrash size={15}/></ActionIcon>
                             </Group>
                         </Grid.Col>
