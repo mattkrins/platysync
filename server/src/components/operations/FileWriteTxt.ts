@@ -1,6 +1,6 @@
 import { compile } from "../../modules/handlebars.js";
 import { Action } from "../../typings/common.js";
-import { actionProps } from "../engine.js";
+import { actionProps, empty } from "../engine.js";
 import * as fs from 'fs';
 
 interface props extends actionProps {
@@ -30,13 +30,14 @@ function closeStream(stream: fs.WriteStream): Promise<void> {
 export default async function ({ action, template, execute, data, connections }: props) {
     try {
         data.target = compile(template, action.target);
-        data.data = compile(template, action.data);
-        if (action.validate) if (!fs.existsSync(data.target)) return {warning: `Target path does not exist.`, data};
-        if (!execute) return {data};
+        if (empty(data.target)) throw Error("No target provided.");
+        data.data = compile(template, action.data||"");
+        if (action.validate) if (!fs.existsSync(data.target)) throw Error("Target path does not exist.");
+        if (!execute) return { data };
         if (!connections[action.target]) {
             const client = await openStream(data.target);
             connections[action.target] = {
-                rows: [], client, close: async () => {
+                rows: [], keyed: {}, client, close: async () => {
                     await closeStream(client);
                     delete connections[action.target];
                     return true;
@@ -44,8 +45,8 @@ export default async function ({ action, template, execute, data, connections }:
             }
         }
         (connections[action.target].client as fs.WriteStream).write(data.data+(action.newline?"\r\n":''));
-        return {success: true, data, connections};
+        return { success: true, data, connections };
     } catch (e){
-        return {error: String(e), data};
+        return { error: String(e), data };
     }
 }

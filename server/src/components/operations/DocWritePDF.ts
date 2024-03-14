@@ -1,6 +1,6 @@
 import { compile } from "../../modules/handlebars.js";
 import { Action } from "../../typings/common.js";
-import { actionProps } from "../engine.js";
+import { actionProps, empty } from "../engine.js";
 import * as fs from 'fs';
 import { PDFDocument } from 'pdf-lib'
 import QRCode from 'qrcode'
@@ -17,9 +17,11 @@ interface props extends actionProps {
 export default async function ({ action, template, execute, data }: props) {
     try {
         data.source = compile(template, action.source);
+        if (empty(data.source)) throw Error("No source provided.");
         data.target = compile(template, action.target);
-        if (!fs.existsSync(data.source)) return {error: `Path '${data.source}' does not exist`, data};
-        if (!execute) return {data};
+        if (empty(data.target)) throw Error("No target provided.");
+        if (!fs.existsSync(data.source)) throw Error(`Path '${data.source}' does not exist`);
+        if (!execute) return { data };
         const sourceFile = fs.readFileSync(data.source);
         const pdfDoc = await PDFDocument.load(sourceFile);
         const form = pdfDoc.getForm();
@@ -47,8 +49,8 @@ export default async function ({ action, template, execute, data }: props) {
         const folder = path.dirname(data.target);
         if (!fs.existsSync(folder)) fs.mkdirSync(folder);
         fs.writeFileSync(data.target, pdfBytes);
-        return {success: true, data};
+        return { success: true, data };
     } catch (e){
-        return {error: String(e), data};
+        return { error: String(e), data };
     }
 }

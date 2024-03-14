@@ -1,6 +1,6 @@
 import { compile } from "../../modules/handlebars.js";
 import { Action } from "../../typings/common.js";
-import { actionProps } from "../engine.js";
+import { actionProps, empty } from "../engine.js";
 
 interface props extends actionProps {
     action: Action & {
@@ -12,11 +12,12 @@ export default async function ({ action, template, data }: props) {
     try {
         for (const t of action.templates) {
             data.name = compile(template, t.name||"");
+            if (empty(data.name)) throw Error("Key not provided.");
             data.value = compile(template, t.value||"");
             template[data.name] = data.value;
         }
-        return {success: true, data};
+        return { success: true, data };
     } catch (e){
-        return {error: String(e), data};
+        return { error: String(e), data };
     }
 }

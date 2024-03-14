@@ -17,7 +17,7 @@ function flattenObjectToArray(obj: {[id: string]: string[]}) {
     } return result;
 }
 
-export default function ExplorerComponent({ opened, close, click, filter: allowed }: { opened: boolean, close(): void, click: (d: string) => void, filter?: string[] }) {
+export default function ExplorerComponent({ opened, close, click, filter: allowed, templates }: { opened: boolean, close(): void, click: (d: string) => void, filter?: string[], templates?: string[] }) {
     const theme = useMantineTheme();
     const { _connectors, headers } = useContext(SchemaContext);
 
@@ -31,7 +31,10 @@ export default function ExplorerComponent({ opened, close, click, filter: allowe
     const [ filter, setFilter ] = useState<string>('');
     const handleInputChange = (event: { target: { value: SetStateAction<string>; }; }) => setFilter(event.target.value);
     const flatHeaders = flattenObjectToArray(filteredHeaders);
-    const headerSearch = flatHeaders.filter(item =>
+
+    const flatHeadersXTemplate = !templates ? flatHeaders : [...flatHeaders, ...templates];
+
+    const headerSearch = flatHeadersXTemplate.filter(item =>
         item.toLowerCase().includes(filter.toLowerCase())
     );
 

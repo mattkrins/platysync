@@ -23,15 +23,9 @@ interface props extends actionProps {
 
 export default async function ({ action, template, execute, data, connections, schema }: props) {
     try {
-        await connect(schema, action.target, connections);
-        const client = connections[action.target].client as ldap;
-        if (!client) return {error: 'LDAP client not found.', data};
-        //data.upn = compile(template, action.upn);
-        const found = await client.searchUser('userPrincipalName', data.upn, ['distinguishedName', 'memberOf'] );
-        
 
-        return { success: true, data};
+        return { success: true, data };
     } catch (e){
-        return {error: String(e), data};
+        return { error: String(e), data };
     }
 }

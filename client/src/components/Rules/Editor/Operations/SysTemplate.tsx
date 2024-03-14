@@ -13,9 +13,32 @@ export default function Template( { form, index, explore, actionType }:{
     if (!actions[index].templates) form.setFieldValue(`${actionType}.${index}.templates`, []);
     const add = () => form.insertListItem(`${actionType}.${index}.templates`, {name:'',value:''});
 
+    const taken = (form.values.secondaries||[]).map(s=>s.primary);
+    const sources = [form.values.primary, ...taken];
+    const templates: string[] = [];
+    const allActions = 
+    actionType==="before_actions" ? [] : 
+    actionType==="actions" ? form.values.before_actions||[] : 
+    actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[]] : [];
+    for (const action of allActions){
+      switch (action.name) {
+        case "Encrypt String":{ templates.push(action.source as string); break; }
+        case "Comparator":{ templates.push(action.target as string); break; }
+        case "Template": {
+          for (const template of action.templates||[]) {
+            if (!template.name || template.name.trim()==="") continue;
+            templates.push(template.name);
+          }
+        break; }
+        default: break;
+      }
+    }
+
+
     const data = (actions[index].templates || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`${actionType}.${index}.templates.${index2}.${key}`, `${actions[index].templates[index2][key]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.templates.${index2}.${key}`, `${actions[index].templates[index2][key]||''}{{${value}}}`),
+    actionType === "actions" ? sources : [], templates );
     const explorer = (key: string, index2: number) => <ActionIcon
     onClick={modifyCondition(key, index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />

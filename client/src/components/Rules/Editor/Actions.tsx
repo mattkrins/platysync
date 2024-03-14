@@ -46,15 +46,36 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
   const { Icon, color, Component } = availableActions[a.name];
   const copy = (v: Action) => () => form.insertListItem(actionType, {...v});
   const remove  = (index: number) => () => form.removeListItem(actionType, index);
-  
+  const taken = (form.values.secondaries||[]).map(s=>s.primary);
+  const sources = [form.values.primary, ...taken];
+
+  const templates: string[] = [];
+  const allActions = 
+  actionType==="before_actions" ? [] : 
+  actionType==="actions" ? form.values.before_actions||[] : 
+  actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[]] : [];
+  for (const action of allActions){
+    switch (action.name) {
+      case "Encrypt String":{ templates.push(action.source as string); break; }
+      case "Comparator":{ templates.push(action.target as string); break; }
+      case "Template": {
+        for (const template of action.templates||[]) {
+          if (!template.name || template.name.trim()==="") continue;
+          templates.push(template.name);
+        }
+      break; }
+      default: break;
+    }
+  }
+
   const actions = form.values[actionType] as Action[];
   const modifyCondition = (key: string)=> () => explore(() => (value: string) =>
   form.setFieldValue(`${actionType}.${index}.${key}`,
-  `${actions[index][key]||''}{{${value}}}`) );
+  `${actions[index][key]||''}{{${value}}}`), actionType === "actions" ? sources : [], templates );
   const explorer = (key: string) => <ActionIcon
   onClick={modifyCondition(key)}
   variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
-  </ActionIcon>
+  </ActionIcon>;
 
   return (<>
     <Grid.Col span="auto">{index+1}. <Icon color={color?theme.colors[color][6]:undefined} size={18} stroke={1.5} /> {a.name}</Grid.Col>
@@ -76,7 +97,7 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
 
 function ActionList( { form, actionType, hasLDAP }: {form: UseFormReturnType<Rule>, actionType: string, hasLDAP: boolean} ) {
   const { explorer, explore } = useContext(ExplorerContext);
-  const nonExplorer = (k:(d: string) => void) => k;
+  //const nonExplorer = (k:(d: string) => void) => k;
   const actions = form.values[actionType] as Action[];
   return (
     <Box>
@@ -96,7 +117,7 @@ function ActionList( { form, actionType, hasLDAP }: {form: UseFormReturnType<Rul
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
-                <Action form={form} index={index} a={a} actionType={actionType} explore={actionType!=="actions"?nonExplorer:explore} hasLDAP={hasLDAP} />
+                <Action form={form} index={index} a={a} actionType={actionType} explore={explore} hasLDAP={hasLDAP} />
               </Grid>)}
             </Draggable>
             )}

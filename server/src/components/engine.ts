@@ -19,7 +19,6 @@ import { server } from "../server.js";
 import StmcUpload from "./operations/StmcUpload.js";
 import { User } from "../modules/ldap.js";
 
-
 export type actionProps = { action: Action, template: template, connections: connections, id: string, schema: Schema, execute: boolean, data: {[k: string]: string} };
 interface template {[connector: string]: {[header: string]: string}|string}
 interface connections { [k: string]: connection }
@@ -43,19 +42,19 @@ const availableActions: { [k: string]: operation } = {
     //'Move Organisational Unit': moveOU,
     //'Update Attributes': updateAtt,
     //'Update Groups': dirUpdateSec,
-    //'Send To Printer': DocPrint,
-    //'Write PDF': DocWritePDF,
-    //'Write To File': FileWriteTxt,
-    //'Delete File': FileDelete,
-    //'Move File': FileMove,
-    //'Copy File': FileCopy,
-    //'Copy Folder': FolderCopy,
-    //'Move Folder': FolderMove,
-    //'Delete Folder': FolderDelete,
-    //'Create Folder': FolderCreate,
+    'Send To Printer': DocPrint,
+    'Write PDF': DocWritePDF,
+    'Write To File': FileWriteTxt,
+    'Delete File': FileDelete,
+    'Move File': FileMove,
+    'Copy File': FileCopy,
+    'Copy Folder': FolderCopy,
+    'Move Folder': FolderMove,
+    'Delete Folder': FolderDelete,
+    'Create Folder': FolderCreate,
     'Template': SysTemplate,
     'Comparator': SysComparator,
-    //'Encrypt String': SysEncryptString,
+    'Encrypt String': SysEncryptString,
     //'Upload Student Passwords': StmcUpload,
 }
 
@@ -177,12 +176,13 @@ function progress(cur: cur, length: number, id: string, start: number = 0) {
 }
 
 const wait = async (t = 100) => new Promise((res)=>setTimeout(res, t));
-const empty = (value?: string) => !value || value.trim()==='';
+export const empty = (value?: string) => !value || value.trim()==='';
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[]) {
     const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now() };
     progress(cur, 0, 'Search engine initialized');
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
     const connections: connections = {};
+    if (!rule.primaryKey) rule.primaryKey = 'id';
     const primary = await connect(schema, rule.primary, connections, rule.primaryKey);
     cur.index = 5;
     progress(cur, 100, 'secondaries');

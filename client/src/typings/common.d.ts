@@ -43,7 +43,7 @@ interface Rule {
     [key: string]: unknown;
 }
 
-type explore = (click: (d: string) => void, filter?: string[]) => void;
+type explore = (click: (d: string) => void, filter?: string[], templates?: string[]) => void;
 
 interface ActionItem {
     form: UseFormReturnType<Rule>;

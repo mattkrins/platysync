@@ -107,17 +107,17 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
                         <Grid.Col span="auto">
                             <TextInput
                                 leftSection={<IconKey size="1rem" />}
-                                disabled={!form.values.primary}
-                                placeholder={`{{${form.values.secondaries[index].primary}.${form.values.primaryKey}}}`}
-                                rightSection={ <ActionIcon onClick={()=>explore(secondaryKey, [form.values.secondaries[index].primary])} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
+                                disabled={!form.values.primary||!primary}
+                                placeholder={primary?`{{${primary}.${form.values.primaryKey||'id'}}}`:'{{Secondary.Key}}'}
+                                rightSection={ <ActionIcon onClick={()=>explore(secondaryKey, [primary])} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
                                 {...form.getInputProps(`secondaries.${index}.secondaryKey`)}
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">
                             <TextInput
                                 leftSection={<IconKey size="1rem" />}
-                                disabled={!form.values.primary}
-                                placeholder={`{{${form.values.primary}.${form.values.primaryKey}}}`}
+                                disabled={!form.values.primary||!primary}
+                                placeholder={`{{${form.values.primary}.${form.values.primaryKey||'id'}}}`}
                                 rightSection={ <ActionIcon onClick={()=>explore(primaryKey, sources.filter((s,i)=>s!==primary&&i<=index))} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
                                 {...form.getInputProps(`secondaries.${index}.primaryKey`)}
                             />
@@ -149,7 +149,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
         <Switch {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
         <Textarea
             label="Rule Description"
-            placeholder="Describe what this rule does"
+            placeholder="Describe what this rule does. Displayed on the rules overview page."
             mt="xs"
             {...form.getInputProps('description')}
         />

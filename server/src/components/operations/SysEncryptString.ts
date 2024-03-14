@@ -20,16 +20,14 @@ function ensureMinimumValue(value: number | string): number {
 export default async function ({ action, template, data }: props) {
     try {
         data.source = compile(template, action.source);
-        data.target = compile(template, action.target);
+        data.target = compile(template, action.target||"encrypted");
         data.password = compile(template, action.password);
         data.strength = action.value||"100";
         const strength = ensureMinimumValue(data.strength);
         const encrypted = await encrypt(data.source, data.password, strength);
-        const newTemplate: { [k:string]: string } = {
-            [data.target]: JSON.stringify(encrypted)
-        };
-        return {template: true, data: newTemplate};
+        template[data.target] = JSON.stringify(encrypted);
+        return { success: true, data };
     } catch (e){
-        return {error: String(e), data};
+        return { error: String(e), data };
     }
 }
