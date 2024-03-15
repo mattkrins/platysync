@@ -51,5 +51,6 @@ interface ActionItem {
     explorer: (key: string) => JSX.Element;
     explore: explore;
     actionType: string;
-    hasLDAP?: boolean
+    hasLDAP?: boolean;
+    sources: string[];
 }

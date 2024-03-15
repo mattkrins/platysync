@@ -5,29 +5,29 @@ import { anyProvider } from "../typings/providers.js";
 import ldap, { User } from "../modules/ldap.js";
 import { Hash, decrypt } from "../modules/cryptography.js";
 import Handlebars from "handlebars";
-import createUser from "./actions/DirCreateUser.js";
-import enableUser from "./actions/DirEnableUser.js";
-import writePDF from "./actions/DocWritePDF.js";
-import sendToPrinter from "./actions/DocSendToPrinter.js";
-import templateData from "./actions/SysTemplate.js";
+//import createUser from "./actions/DirCreateUser.js";
+//import enableUser from "./actions/DirEnableUser.js";
+//import writePDF from "./actions/DocWritePDF.js";
+//import sendToPrinter from "./actions/DocSendToPrinter.js";
+//import templateData from "./actions/SysTemplate.js";
+//import disableUser from "./actions/DirDisableUser.js";
+//import deleteFile from "./actions/FileDelete.js";
+//import moveFile from "./actions/FileMove.js";
+//import copyFile from "./actions/FileCopy.js";
+//import copyFolder from "./actions/FolderCopy.js";
+//import moveFolder from "./actions/FolderMove.js";
+//import deleteFolder from "./actions/FolderDelete.js";
+//import deleteUser from "./actions/DirDeleteUser.js";
+//import moveOU from "./actions/DirMoveOU.js";
+//import updateAtt from "./actions/DirUpdateAtt.js";
+//import fileWriteTxt from "./actions/FileWriteTxt.js";
+//import encryptString from "./actions/EncryptString.js";
+//import folderCreate from "./actions/FolderCreate.js";
+//import stmcUpload from "./actions/StmcUpload.js";
+//import sysComparator from "./actions/SysComparator.js";
+//import dirUpdateSec from "./actions/DirUpdateSec.js";
 import { server } from "../server.js";
-import disableUser from "./actions/DirDisableUser.js";
-import deleteFile from "./actions/FileDelete.js";
-import moveFile from "./actions/FileMove.js";
-import copyFile from "./actions/FileCopy.js";
-import copyFolder from "./actions/FolderCopy.js";
-import moveFolder from "./actions/FolderMove.js";
-import deleteFolder from "./actions/FolderDelete.js";
-import deleteUser from "./actions/DirDeleteUser.js";
-import moveOU from "./actions/DirMoveOU.js";
-import updateAtt from "./actions/DirUpdateAtt.js";
-import fileWriteTxt from "./actions/FileWriteTxt.js";
 import * as fs from 'fs';
-import encryptString from "./actions/EncryptString.js";
-import stmcUpload from "./actions/StmcUpload.js";
-import folderCreate from "./actions/FolderCreate.js";
-import dirUpdateSec from "./actions/DirUpdateSec.js";
-import sysComparator from "./actions/SysComparator.js";
 import process from './engine.js'
 
 interface primaryResponse {
@@ -169,27 +169,27 @@ export async function matchedAllConditions(conditions: Condition[], template: te
 const actionMap: {
     [name: string]: (execute: boolean|undefined, act: Action, template: template, connections: connections, fileHandles: FileHandles, close: boolean, id?: string  ) =>
     Promise<{ error?: string; warning?: string; data?: unknown, template?: boolean }> } ={
-    'Create User': createUser,
-    'Enable User': enableUser,
-    'Disable User': disableUser,
-    'Delete User': deleteUser,
-    'Move Organisational Unit': moveOU,
-    'Update Attributes': updateAtt,
-    'Update Groups': dirUpdateSec,
-    'Write PDF': writePDF,
-    'Send To Printer': sendToPrinter,
-    'Write To File': fileWriteTxt,
-    'Delete File': deleteFile,
-    'Move File': moveFile,
-    'Copy File': copyFile,
-    'Copy Folder': copyFolder,
-    'Move Folder': moveFolder,
-    'Delete Folder': deleteFolder,
-    'Create Folder': folderCreate,
-    'Template': templateData,
-    'Encrypt String': encryptString,
-    'Comparator': sysComparator,
-    'Upload Student Passwords': stmcUpload,
+//    'Create User': createUser,
+//    'Enable User': enableUser,
+//    'Disable User': disableUser,
+//    'Delete User': deleteUser,
+//    'Move Organisational Unit': moveOU,
+//    'Update Attributes': updateAtt,
+//    'Update Groups': dirUpdateSec,
+//    'Write PDF': writePDF,
+//    'Send To Printer': sendToPrinter,
+//    'Write To File': fileWriteTxt,
+//    'Delete File': deleteFile,
+//    'Move File': moveFile,
+//    'Copy File': copyFile,
+//    'Copy Folder': copyFolder,
+//    'Move Folder': moveFolder,
+//    'Delete Folder': deleteFolder,
+//    'Create Folder': folderCreate,
+//    'Template': templateData,
+//    'Encrypt String': encryptString,
+//    'Comparator': sysComparator,
+//    'Upload Student Passwords': stmcUpload,
     //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
     //LINK - server\src\components\actions\SysRunCommand.tsx
     // 'Run Command': runCommand,

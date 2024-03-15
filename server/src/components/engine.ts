@@ -1,5 +1,5 @@
 import { compile } from "../modules/handlebars.js";
-import { Action, Condition, Rule, Schema } from "../typings/common.js";
+import { Action, Condition, Rule, Schema, secondary } from "../typings/common.js";
 import { anyProvider, CSV as CSVProvider, LDAP as LDAPProvider } from "../typings/providers.js";
 import { CSV, LDAP } from "./providers.js";
 import FileCopy from "./operations/FileCopy.js";
@@ -15,11 +15,13 @@ import FolderDelete from "./operations/FolderDelete.js";
 import FolderCreate from "./operations/FolderCreate.js";
 import SysTemplate from "./operations/SysTemplate.js";
 import SysEncryptString from "./operations/SysEncryptString.js";
+import DirUpdateSec from "./operations/DirUpdateSec.js";
 import { server } from "../server.js";
 import StmcUpload from "./operations/StmcUpload.js";
 import { User } from "../modules/ldap.js";
 
-export type actionProps = { action: Action, template: template, connections: connections, id: string, schema: Schema, execute: boolean, data: {[k: string]: string} };
+interface sKeys { [k: string]: string }
+export type actionProps = { action: Action, template: template, connections: connections, id: string, schema: Schema, execute: boolean, keys: sKeys, data: {[k: string]: string} };
 interface template {[connector: string]: {[header: string]: string}|string}
 interface connections { [k: string]: connection }
 interface connection {
@@ -41,7 +43,7 @@ const availableActions: { [k: string]: operation } = {
     //'Delete User': deleteUser,
     //'Move Organisational Unit': moveOU,
     //'Update Attributes': updateAtt,
-    //'Update Groups': dirUpdateSec,
+    'Update Groups': DirUpdateSec,
     'Send To Printer': DocPrint,
     'Write PDF': DocWritePDF,
     'Write To File': FileWriteTxt,
@@ -58,7 +60,7 @@ const availableActions: { [k: string]: operation } = {
     //'Upload Student Passwords': StmcUpload,
 }
 
-export async function connect(schema: Schema, connectorName: string, connections: connections, id: string): Promise<connection> {
+async function connect(schema: Schema, connectorName: string, connections: connections, id: string): Promise<connection> {
     if (connections[connectorName]) return connections[connectorName];
     const provider = schema._connectors[connectorName] as anyProvider;
     server.io.emit("job_status", `Connecting to ${connectorName}`);
@@ -97,11 +99,11 @@ async function conclude(connections: connections) {
     server.io.emit("global_status", {});
 }
 
-async function actions(actions: Action[], template: template, connections: connections, id: string, schema: Schema, execute = false) {
+async function actions(actions: Action[], template: template, connections: connections, keys: sKeys, schema: Schema, execute = false) {
     const todo: {name: string, result: result }[] = [];
     for (const action of (actions||[])) {
         if (!(action.name in availableActions)) throw Error(`Unknown action '${action.name}'.`);
-        const result = await availableActions[action.name]({ action, template, connections, execute, schema, id, data: {} });
+        const result = await availableActions[action.name]({ action, template, connections, execute, schema, keys, data: {} });
         if (!result) continue;
         todo.push({name: action.name, result });
         if (result.error) break;
@@ -109,8 +111,9 @@ async function actions(actions: Action[], template: template, connections: conne
 }
 
 
-async function ldap_compare(key: string, value: string, operator: string, connections: connections, id: string ) {
+async function ldap_compare(key: string, value: string, operator: string, connections: connections, keys: sKeys ) {
     if (!(key in connections)) return false;
+    const id = keys[key];
     const user: User|undefined = connections[key].keyed[id] as User||undefined;
     switch (operator) {
         case 'exists': return !!user;
@@ -124,8 +127,8 @@ async function ldap_compare(key: string, value: string, operator: string, connec
         default: return false;
     }
 }
-async function compare(key: string, value: string, operator: string, connections: connections, id: string): Promise<boolean> {
-    if (operator.substring(0, 4)==="ldap") return ldap_compare(key, value, operator.substring(5), connections, id);
+async function compare(key: string, value: string, operator: string, connections: connections, keys: sKeys): Promise<boolean> {
+    if (operator.substring(0, 4)==="ldap") return ldap_compare(key, value, operator.substring(5), connections, keys);
     switch (operator) {
         case '==': return key === value;
         case '!=': return key !== value;
@@ -144,23 +147,23 @@ async function compare(key: string, value: string, operator: string, connections
     }
 }
 
-async function delimit(key: string, value: string, condition: Condition, connections: connections, id: string): Promise<boolean> {
+async function delimit(key: string, value: string, condition: Condition, connections: connections, keys: sKeys): Promise<boolean> {
     const delimited = value.split(condition.delimiter)
     for (const value of delimited) {
-        if ( await compare(key, value, condition.operator, connections, id) ) return true;
+        if ( await compare(key, value, condition.operator, connections, keys) ) return true;
     } return false;
 }
 
-async function evaluate(condition: Condition, template: template, connections: connections, id: string): Promise<boolean> {
+async function evaluate(condition: Condition, template: template, connections: connections, keys: sKeys): Promise<boolean> {
     const key = compile(template, condition.key);
     const value = compile(template, condition.value);
     const delimiter = condition.delimiter !== "";
-    return delimiter ? await delimit(key, value, condition, connections, id) : await compare(key, value, condition.operator, connections, id);
+    return delimiter ? await delimit(key, value, condition, connections, keys) : await compare(key, value, condition.operator, connections, keys);
 }
 
-export async function evaluateAll(conditions: Condition[], template: template, connections: connections, id: string): Promise<boolean> {
+export async function evaluateAll(conditions: Condition[], template: template, connections: connections, keys: sKeys): Promise<boolean> {
     for (const condition of conditions) {
-        if (!(await evaluate(condition, template, connections, id))) return false;
+        if (!(await evaluate(condition, template, connections, keys))) return false;
     } return true;
 }
 
@@ -199,7 +202,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     cur.index = 10;
     progress(cur, 100, 'init actions');
     await wait(1000);
-    const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, {}, connections, "id", schema, !!idFilter);
+    const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, {}, connections, {}, schema, !!idFilter);
     if (initActions.filter(r=>r.result.error).length>0){ await conclude(connections); return {evaluated: [], initActions, finalActions: []} }
     cur.index = 15;
     progress(cur, 100, 'init actions');
@@ -207,35 +210,37 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
     cur.index = 0;
     for (const row of primary.rows) {
-        
         cur.index ++;
         const id = row[rule.primaryKey];
         progress(cur, primary.rows.length, id, 15);
         const template: template = { ...initTemplate, [rule.primary]: row };
         let skip = false;
+        const keys: sKeys = {};
         for (const secondary of rule.secondaries||[]) {
             if (!connections[secondary.primary]) continue;
             let s = 0;
             for (const r of connections[secondary.primary].rows||[]) {
                 const k1 = compile({ [secondary.primary]: r }, secondary.secondaryKey);
                 const k2 = compile(template, secondary.primaryKey);
-                if (secondary.case?k1.toLowerCase()===k2.toLowerCase():k1===k2){ s++; template[secondary.primary] = r; if (secondary.oto){ break; } }
+                if (secondary.case?k1.toLowerCase()===k2.toLowerCase():k1===k2){
+                    keys[secondary.primary] = k1;
+                    s++; template[secondary.primary] = r; if (secondary.oto){ break; }
+                }
             } if (!template[secondary.primary]) template[secondary.primary] = {};
             if (secondary.req && Object.keys(template[secondary.primary]).length===0) skip = true;
             if (secondary.oto && s>1) skip = true;
-        } if (skip){  continue;}
-        await wait(500);
-        if (!(await evaluateAll(rule.conditions, template, connections, id))){  continue;}
+        } if (skip) continue;
+        await wait(100);
+        if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
         const output: typeof evaluated[0] = { id, actions: [], actionable: false };
         if (!empty(rule.display)) output.display = compile(template, rule.display);
-        output.actions = (await actions(rule.actions, template, connections, id, schema, !!idFilter)).todo;
-        output.actionable = output.actions.filter(t=>t.result.warning||t.result.error).length <= 0;
+        output.actions = (await actions(rule.actions, template, connections, keys, schema, !!idFilter)).todo;
+        output.actionable = output.actions.filter(t=>t.result.error).length <= 0;
         evaluated.push(output);
-        
     }
     server.io.emit("job_status", `Evaluating final actions`);
     await wait(1000);
-    const {todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, "id", schema, !!idFilter);
+    const {todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
     await conclude(connections);
     return {evaluated, initActions, finalActions};
 }

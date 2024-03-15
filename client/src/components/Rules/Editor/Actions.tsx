@@ -2,7 +2,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useMantineTheme, Box, Group, Button, Grid, ActionIcon, Text, NavLink, Popover, Collapse, Divider } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconCode } from "@tabler/icons-react";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import ExplorerContext from "../../../providers/ExplorerContext";
 import { useDisclosure } from "@mantine/hooks";
 import { availableActions, availableCatagories } from "../../../data/common";
@@ -14,7 +14,9 @@ function ActionGroup({add, perRule, label, connectors = []}:{add: (name: string)
   const theme = useMantineTheme();
   const operations = Object.values(availableActions);
   const _add = (id: string) => () => { add(id); close(); };
-  const filteredCats = availableCatagories.filter(cat=>(cat.requires||[]).filter(r=>!connectors.includes(r)).length<=0)
+  const filteredCats = availableCatagories.filter(cat=>(cat.requires||[])
+  .filter(r=>!connectors.includes(r)).length<=0)
+  .filter(c=>perRule?!c.requires?.includes('ldap'):true);
   return (
   <Group justify="right" gap="xs">
   <Popover width={300} position="left-start" shadow="md" opened={opened}>
@@ -49,25 +51,27 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
   const taken = (form.values.secondaries||[]).map(s=>s.primary);
   const sources = [form.values.primary, ...taken];
 
-  const templates: string[] = [];
-  const allActions = 
-  actionType==="before_actions" ? [] : 
-  actionType==="actions" ? form.values.before_actions||[] : 
-  actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[]] : [];
-  for (const action of allActions){
-    switch (action.name) {
-      case "Encrypt String":{ templates.push(action.source as string); break; }
-      case "Comparator":{ templates.push(action.target as string); break; }
-      case "Template": {
-        for (const template of action.templates||[]) {
-          if (!template.name || template.name.trim()==="") continue;
-          templates.push(template.name);
-        }
-      break; }
-      default: break;
-    }
-  }
-
+  const templates: string[] = useMemo(()=>{
+    const t: string[] = [];
+    const allActions = 
+    actionType==="before_actions" ? [] : 
+    actionType==="actions" ? form.values.before_actions||[] : 
+    actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[]] : [];
+    for (const action of allActions){
+      switch (action.name) {
+        case "Encrypt String":{ t.push(action.source as string); break; }
+        case "Comparator":{ t.push(action.target as string); break; }
+        case "Template": {
+          for (const template of action.templates||[]) {
+            if (!template.name || template.name.trim()==="") continue;
+            t.push(template.name);
+          }
+        break; }
+        default: break;
+      }
+    } return t;
+  }, [ form.values.before_actions, form.values.actions, form.values.after_actions ]);
+  
   const actions = form.values[actionType] as Action[];
   const modifyCondition = (key: string)=> () => explore(() => (value: string) =>
   form.setFieldValue(`${actionType}.${index}.${key}`,
@@ -88,7 +92,7 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
     </Grid.Col>
     <Grid.Col span={12} pt={0} pb={0} >
       <Collapse in={opened}>
-        <Component form={form} index={index} explorer={explorer} explore={explore} actionType={actionType} hasLDAP={hasLDAP} />
+        <Component form={form} index={index} explorer={explorer} explore={explore} actionType={actionType} hasLDAP={hasLDAP} sources={sources} />
       </Collapse>
     </Grid.Col>
   </>
@@ -97,7 +101,6 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
 
 function ActionList( { form, actionType, hasLDAP }: {form: UseFormReturnType<Rule>, actionType: string, hasLDAP: boolean} ) {
   const { explorer, explore } = useContext(ExplorerContext);
-  //const nonExplorer = (k:(d: string) => void) => k;
   const actions = form.values[actionType] as Action[];
   return (
     <Box>

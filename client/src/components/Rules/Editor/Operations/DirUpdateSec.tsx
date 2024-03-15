@@ -1,20 +1,19 @@
 import { ActionIcon, Box, Button, Center, Grid, Group, Select, Switch, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconAt, IconBinaryTree2, IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
+import { IconBinaryTree2, IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-function Groups( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
+function Groups( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].groups || []) as {value:string, [k: string]: unknown;}[];
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`${actionType}.${index}.groups.${index2}.${key}`, `${data[index2][key]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.groups.${index2}.${key}`, `${data[index2][key]||''}{{${value}}}`), sources );
     const explorer = (key: string, index2: number) => <ActionIcon
     onClick={modifyCondition(key, index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
     </ActionIcon>
-  
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No security groups configured.</Center>}
         <DragDropContext
@@ -66,7 +65,7 @@ function Groups( { form, index, explore, actionType }: { form: UseFormReturnType
     );
 }
 
-export default function DirUpdateSec( { form, index, explore, explorer, actionType }: ActionItem){
+export default function DirUpdateSec( { form, index, explore, actionType, sources }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.groups`, {name:'',value:'', type: 'Add'});
@@ -74,24 +73,21 @@ export default function DirUpdateSec( { form, index, explore, explorer, actionTy
     <Box p="xs" pt={0} >
         <SelectConnector
             label="Target Directory" withAsterisk
-            clearable
+            
             leftSection={<IconBinaryTree2 size="1rem" />}
             {...form.getInputProps(`${actionType}.${index}.target`)}
             type="ldap"
-        />
-        <TextInput
-            label="User Principal Name" withAsterisk
-            leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="{{username}}@domain.com"
-            {...form.getInputProps(`${actionType}.${index}.upn`)}
-            rightSection={explorer('upn')}
-        />
-        <Switch label="Remove from all groups not listed in this action"
-        mt="xs" {...form.getInputProps(`${actionType}.${index}.clean`, { type: 'checkbox' })}
+            sources={sources}
         />
         <Concealer open label='Security Groups' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Groups form={form} index={index} explore={explore} actionType={actionType} />
+            <Groups form={form} index={index} explore={explore} sources={sources} actionType={actionType} />
         </Concealer>
+        <Switch label="Sanitize" description="Remove any existing groups not listed above"
+        mt="xs" {...form.getInputProps(`${actionType}.${index}.clean`, { type: 'checkbox' })}
+        />
+        <Switch label="Optional" description="Skip on zero changes detected"
+        mt="xs" {...form.getInputProps(`${actionType}.${index}.fail`, { type: 'checkbox' })}
+        />
     </Box>
     )
 }

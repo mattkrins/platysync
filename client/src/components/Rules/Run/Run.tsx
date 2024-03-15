@@ -77,7 +77,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                     />)
                     }
                 </Stepper.Step>
-                <Stepper.Step
+                <Stepper.Step miw={180}
                 label="Execute"
                 description={`Perform ${checkedCount} Actions`}
                 icon={<IconRun color={checkedCount===0?"gray":undefined} />}

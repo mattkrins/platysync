@@ -82,7 +82,7 @@ function IconMap({ actions, size = 16, click }: { actions: action[], size?: numb
         const { Icon, color } = availableActions[action.name];
         const problem = action.result.error || action.result.warning;
         const col = !problem ? color?theme.colors[color][6]:undefined : theme.colors.gray[8];
-        return <Tooltip key={key} fz="xs" withArrow color={color?theme.colors[color][6]:undefined} label={action.name}>
+        return <Tooltip key={key} fz="xs" withArrow label={action.name}>
         <Indicator disabled={!problem} size={size/3} offset={3} color={action.result.warning?'orange':'red'} inline>
             <Icon onClick={click&&click(key.toString())} style={{cursor:"pointer"}} color={col} size={size} stroke={2} />
         </Indicator></Tooltip>
@@ -114,7 +114,7 @@ interface EvalProps {
     finalActions: action[];
 }
 export default function Evaluate( { evaluated, setEvaluated, initActions = [], finalActions = [] }: EvalProps ) {
-    const [display, setDisplay] = useState<number>(0);
+    const [display, setDisplay] = useState<number>(1);
     const [viewing, view] = useState<{name: string, open: string, actions: action[]}|undefined>();
     const [sorting, setSort] = useState<string>("none");
     const [query, search] = useState<string>("");
