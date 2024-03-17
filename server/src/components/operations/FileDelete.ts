@@ -1,6 +1,6 @@
 import { compile } from "../../modules/handlebars.js";
-import { Action } from "../../typings/common.js";
-import { actionProps, empty } from "../engine.js";
+import { Action, actionProps } from "../../typings/common.js";
+import { empty } from "../engine.js";
 import fs from 'fs-extra';
 
 export interface props extends actionProps {

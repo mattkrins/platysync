@@ -17,8 +17,9 @@ export default function SysComparator( { form, index, explorer, actionType }: Ac
 
     return (
     <Box>
-        <Conditions form={form2} label="This action can prevent futher execution, or build conditional templates." action sources={sources} />
+        <Conditions form={form2} label="This action can halt futher execution, or build conditional templates." action sources={sources} />
         <Switch label="Output result to template"
+        description={checked?undefined:"Execution will currently be halted if conditions do not pass."}
         mt="xs" {...form.getInputProps(`${actionType}.${index}.output`, { type: 'checkbox' })}
         />
         {checked&&

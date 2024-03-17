@@ -7,11 +7,11 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ldapAttributes } from "../../../../data/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
 
-function SecurityGroups( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
+function SecurityGroups( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].groups || []) as string[];
     const modifyCondition = (index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`${actionType}.${index}.groups.${index2}`, `${actions[index].groups[index2]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.groups.${index2}`, `${actions[index].groups[index2]||''}{{${value}}}`), sources );
     const explorer = (index2: number) => <ActionIcon
     onClick={modifyCondition(index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -61,11 +61,11 @@ function SecurityGroups( { form, index, explore, actionType }: { form: UseFormRe
     );
 }
 
-function Attributes( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
+function Attributes( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].attributes || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`), sources );
     const explorer = (key: string, index2: number) => <ActionIcon
     onClick={modifyCondition(key, index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -122,7 +122,7 @@ function Attributes( { form, index, explore, actionType }: { form: UseFormReturn
     );
 }
 
-export default function CreateUser( { form, index, explorer, explore, actionType }: ActionItem){
+export default function CreateUser( { form, index, explorer, explore, actionType, sources }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
     if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
@@ -136,6 +136,7 @@ export default function CreateUser( { form, index, explorer, explore, actionType
             leftSection={<IconBinaryTree2 size="1rem" />}
             {...form.getInputProps(`${actionType}.${index}.target`)}
             type="ldap"
+            sources={sources}
         />
         <TextInput
             label="Canonical Name" withAsterisk
@@ -176,10 +177,10 @@ export default function CreateUser( { form, index, explorer, explore, actionType
         mt="xs" {...form.getInputProps(`${actionType}.${index}.enable`, { type: 'checkbox' })}
         />
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Attributes form={form} index={index} explore={explore} actionType={actionType} />
+            <Attributes form={form} index={index} explore={explore} actionType={actionType} sources={sources} />
         </Concealer>
         <Concealer open label='Security Groups' rightSection={<Button onClick={()=>addG()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <SecurityGroups form={form} index={index} explore={explore} actionType={actionType} />
+            <SecurityGroups form={form} index={index} explore={explore} actionType={actionType} sources={sources} />
         </Concealer>
     </Box>
     )

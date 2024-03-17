@@ -7,6 +7,13 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import SchemaContext from "../../../providers/SchemaContext";
 import ExplorerContext from "../../../providers/ExplorerContext";
 
+const logLevels = [
+    { value: '0', label: 'Disabled' },
+    { value: '1', label: 'Per-execution timestamp' },
+    { value: '2', label: 'Per-execution summary' },
+    { value: '3', label: 'Per-action summary' },
+];
+
 interface Secondary {
     primary: string;
     secondaryKey: string;
@@ -40,6 +47,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
     const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' } as Secondary);
     const remove  = (index: number) => form.removeListItem('secondaries', index);
     const modify = () => (value: string) => form.setFieldValue('display', `${form.values.display||''}{{${value}}}`);
+    const log = form.values.log==="0"?false:!!form.values.log;
     return (
     <Box>
         <SecondaryConfig secondary={secondary} config={()=>config(undefined)} form={form} />
@@ -142,11 +150,23 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
             leftSection={<IconTable size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="{{username}}"
             mt="xs"
-            mb="xs"
             rightSection={ <ActionIcon onClick={()=>explore(modify, sources)} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
             {...form.getInputProps('display')}
         />
-        <Switch {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
+        <Switch mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
+        <Group grow>
+            <Switch mt="xs" label="Logging Enabled"
+            checked={log}
+            onChange={e=>e.currentTarget.checked?
+                form.setFieldValue(`log`, '1'):form.setFieldValue(`log`, undefined)
+            }
+            />
+            {log&&<Select
+            placeholder="Log level"
+            data={logLevels}
+            {...form.getInputProps('log')}
+            />}
+        </Group>
         <Textarea
             label="Rule Description"
             placeholder="Describe what this rule does. Displayed on the rules overview page."

@@ -299,6 +299,14 @@ export const availableActions: {
         Icon: IconEqualNot,
         Component: SysComparator,
     },
+    //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
+    //LINK - client\src\components\Rules\Editor\Operations\SysRunCommand.tsx
+    //"Run Command": {
+    //    id: "Run Command",
+    //    catagory: 'system',
+    //    Icon: IconTerminal,
+    //    Component: RunCommand,
+    //},
     "Upload Student Passwords": {
         id: "Upload Student Passwords",
         catagory: 'edustar',
@@ -312,13 +320,5 @@ export const availableActions: {
     //    id: "Send Email",
     //    catagory: 'system',
     //    Icon: IconMail,
-    //},
-    //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
-    //LINK - client\src\components\Rules\Editor\Operations\RunCommand.tsx
-    //"Run Command": {
-    //    id: "Run Command",
-    //    catagory: 'system',
-    //    Icon: IconTerminal,
-    //    Component: RunCommand,
     //},
 }

@@ -1,6 +1,5 @@
-import { Action } from "../../typings/common.js";
-import { actionProps } from "../engine.js";
-import ldap, { User } from "../../modules/ldap.js";
+import { Action, actionProps } from "../../typings/common.js";
+import { getUser } from "../engine.js";
 
 interface Group {
     type: 'Add'|'Delete';
@@ -17,7 +16,6 @@ interface props extends actionProps {
     data: any;
     action: Action & {
         target: string;
-        upn: string;
         groups: Group[];
         clean: boolean;
     }
@@ -25,11 +23,7 @@ interface props extends actionProps {
 
 export default async function ({ action, template, execute, data, connections, keys }: props) {
     try {
-        data.directory = action.target;
-        if (!(action.target in connections)) throw Error(`Connector ${action.target} not found.`);
-        const id = keys[action.target];
-        if (!(id in connections[action.target].keyed)) throw Error(`Useer ${id} not found in ${action.target}.`);
-        const user = connections[action.target].keyed[id] as User;
+        const user = getUser(action, connections, keys, data);
         data.groups = user.groups;
         const changes: update[] = [];
         const adding = action.groups.filter((g:{type: string})=>g.type==="Add").map(g=>g.value);
@@ -54,9 +48,9 @@ export default async function ({ action, template, execute, data, connections, k
                 default: break;
             }
         }
-        if (changes.length<=0) throw Error('No changes required.');
+        if (changes.length<=0) return { warn: 'No changes detected', data };
         data.changes = changes;
-        if (!execute) return {data};
+        if (!execute) return { data };
         for (const i in changes) {
             const {type, value} = changes[i];
             try {

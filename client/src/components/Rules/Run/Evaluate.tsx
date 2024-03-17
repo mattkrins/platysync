@@ -7,7 +7,7 @@ import View from "./View";
 
 export interface action {
     name: string;
-    result: { warning?: string, error?: string, data?: {[k: string]: unknown} };
+    result: { warn?: string, error?: string, data?: {[k: string]: unknown} };
 }
 
 interface evaluated { checked?: boolean, id: string, display?: string, actions: action[], actionable: boolean }
@@ -80,10 +80,10 @@ function IconMap({ actions, size = 16, click }: { actions: action[], size?: numb
     const theme = useMantineTheme();
     return actions.map((action,key)=>{
         const { Icon, color } = availableActions[action.name];
-        const problem = action.result.error || action.result.warning;
+        const problem = action.result.error || action.result.warn;
         const col = !problem ? color?theme.colors[color][6]:undefined : theme.colors.gray[8];
         return <Tooltip key={key} fz="xs" withArrow label={action.name}>
-        <Indicator disabled={!problem} size={size/3} offset={3} color={action.result.warning?'orange':'red'} inline>
+        <Indicator disabled={!problem} size={size/3} offset={3} color={action.result.warn?'orange':'red'} inline>
             <Icon onClick={click&&click(key.toString())} style={{cursor:"pointer"}} color={col} size={size} stroke={2} />
         </Indicator></Tooltip>
     })

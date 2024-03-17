@@ -1,8 +1,8 @@
 import { Box, TextInput } from "@mantine/core";
-import { IconAt, IconBinaryTree2, IconFolder } from "@tabler/icons-react";
+import { IconBinaryTree2, IconFolder } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 
-export default function MoveOU( { form, index, explorer, actionType }: ActionItem ) {
+export default function MoveOU( { form, index, explorer, actionType, sources }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <SelectConnector
@@ -11,16 +11,10 @@ export default function MoveOU( { form, index, explorer, actionType }: ActionIte
             leftSection={<IconBinaryTree2 size="1rem" />}
             {...form.getInputProps(`${actionType}.${index}.target`)}
             type="ldap"
+            sources={sources}
         />
         <TextInput
-            label="User Principal Name" withAsterisk
-            leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="{{username}}@domain.com"
-            {...form.getInputProps(`${actionType}.${index}.upn`)}
-            rightSection={explorer('upn')}
-        />
-        <TextInput
-            label="Organizational Unit" withAsterisk
+            label="Organizational Unit" withAsterisk pt="xs"
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="ou={{faculty}},ou=child,ou=parent"
             {...form.getInputProps(`${actionType}.${index}.ou`)}

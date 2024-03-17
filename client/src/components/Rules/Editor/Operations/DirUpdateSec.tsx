@@ -73,7 +73,6 @@ export default function DirUpdateSec( { form, index, explore, actionType, source
     <Box p="xs" pt={0} >
         <SelectConnector
             label="Target Directory" withAsterisk
-            
             leftSection={<IconBinaryTree2 size="1rem" />}
             {...form.getInputProps(`${actionType}.${index}.target`)}
             type="ldap"
@@ -84,9 +83,6 @@ export default function DirUpdateSec( { form, index, explore, actionType, source
         </Concealer>
         <Switch label="Sanitize" description="Remove any existing groups not listed above"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.clean`, { type: 'checkbox' })}
-        />
-        <Switch label="Optional" description="Skip on zero changes detected"
-        mt="xs" {...form.getInputProps(`${actionType}.${index}.fail`, { type: 'checkbox' })}
         />
     </Box>
     )

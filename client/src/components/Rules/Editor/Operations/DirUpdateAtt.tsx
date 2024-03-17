@@ -1,17 +1,17 @@
 import { ActionIcon, Box, Button, Center, Grid, Group, Select, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconAt, IconBinaryTree2, IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
+import { IconBinaryTree2, IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ldapAttributes } from "../../../../data/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
 
-function Attributes( { form, index, explore, actionType }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string } ) {
+function Attributes( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].attributes || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`) );
+    form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`), sources );
     const explorer = (key: string, index2: number) => <ActionIcon
     onClick={modifyCondition(key, index2)}
     variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
@@ -75,7 +75,7 @@ function Attributes( { form, index, explore, actionType }: { form: UseFormReturn
     );
 }
 
-export default function UpdateAttributes( { form, index, explore, explorer, actionType }: ActionItem){
+export default function UpdateAttributes( { form, index, explore, actionType, sources }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:'', type: 'Replace'});
@@ -87,16 +87,10 @@ export default function UpdateAttributes( { form, index, explore, explorer, acti
             leftSection={<IconBinaryTree2 size="1rem" />}
             {...form.getInputProps(`${actionType}.${index}.target`)}
             type="ldap"
-        />
-        <TextInput
-            label="User Principal Name" withAsterisk
-            leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="{{username}}@domain.com"
-            {...form.getInputProps(`${actionType}.${index}.upn`)}
-            rightSection={explorer('upn')}
+            sources={sources}
         />
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Attributes form={form} index={index} explore={explore} actionType={actionType} />
+            <Attributes form={form} index={index} explore={explore} actionType={actionType} sources={sources} />
         </Concealer>
     </Box>
     )

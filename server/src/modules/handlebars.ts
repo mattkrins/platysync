@@ -29,6 +29,11 @@ Handlebars.compile = function(input: string, options?: CompileOptions | undefine
     return compiler(input, {...options, noEscape: true});
 }
 
+/**
+ * Handlebars compile
+ * @param {object} template Template object
+ * @param {string} input String to parse with template
+**/
 export function compile(template={}, input='') {
     return Handlebars.compile(input)(template);
 }

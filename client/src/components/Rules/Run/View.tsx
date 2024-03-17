@@ -3,7 +3,7 @@ import { action } from './Evaluate'
 import { availableActions } from '../../../data/common';
 import Concealer from '../../Common/Concealer';
 import Common from '../RunModal/Operations/Common';
-import { IconHandStop, IconX } from '@tabler/icons-react';
+import { IconAlertTriangle, IconHandStop, IconX } from '@tabler/icons-react';
 
 function DataReader({ action, resultant = false }: { action: action, resultant: boolean }){
     switch (action.name) {
@@ -18,6 +18,9 @@ function Action( { action }: { action: action } ) {
         <Box>
             {action.result.error&&<Notification mb="xs" icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error!">
             {action.result.error}
+            </Notification>}
+            {action.result.warn&&<Notification mb="xs" icon={<IconAlertTriangle size={20} />} withCloseButton={false} color="orange">
+            {action.result.warn}
             </Notification>}
 
             <DataReader action={action} resultant={false} />
@@ -36,12 +39,12 @@ export default function View( { viewing, view }: { viewing?: {name: string, open
         <Accordion multiple defaultValue={[ viewing?.open||'0' ]}>
             {viewing?.actions.map((action, i)=>{
                 const { Icon, color } = availableActions[action.name];
-                const problem = action.result.error;
+                const problem = action.result.error || action.result.warn;
                 const col = !problem ? color?theme.colors[color][6]:undefined : theme.colors.gray[8];
                 return (
                 <Accordion.Item key={i} value={i.toString()} >
                     <Accordion.Control icon={
-                    <Indicator disabled={!problem} size={12} color='red' inline><Icon color={col} /></Indicator>
+                    <Indicator disabled={!problem} size={12} color={action.result.warn?'orange':'red'} inline><Icon color={col} /></Indicator>
                     }>{action.name}</Accordion.Control>
                     <Accordion.Panel><Action action={action} /></Accordion.Panel>
                 </Accordion.Item>)

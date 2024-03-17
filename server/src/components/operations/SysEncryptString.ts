@@ -1,6 +1,5 @@
 import { compile } from "../../modules/handlebars.js";
-import { Action } from "../../typings/common.js";
-import { actionProps } from "../engine.js";
+import { Action, actionProps } from "../../typings/common.js";
 import { encryptString as encrypt } from "../../modules/cryptography.js"
 
 interface props extends actionProps {

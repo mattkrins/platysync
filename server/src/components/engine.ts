@@ -1,5 +1,5 @@
 import { compile } from "../modules/handlebars.js";
-import { Action, Condition, Rule, Schema, secondary } from "../typings/common.js";
+import { Action, Condition, Rule, Schema, connections } from "../typings/common.js";
 import { anyProvider, CSV as CSVProvider, LDAP as LDAPProvider } from "../typings/providers.js";
 import { CSV, LDAP } from "./providers.js";
 import FileCopy from "./operations/FileCopy.js";
@@ -17,13 +17,16 @@ import SysTemplate from "./operations/SysTemplate.js";
 import SysEncryptString from "./operations/SysEncryptString.js";
 import DirUpdateSec from "./operations/DirUpdateSec.js";
 import { server } from "../server.js";
-import StmcUpload from "./operations/StmcUpload.js";
 import { User } from "../modules/ldap.js";
+import DirUpdateAtt from "./operations/DirUpdateAtt.js";
+import DirMoveOU from "./operations/DirMoveOU.js";
+import DirDeleteUser from "./operations/DirDeleteUser.js";
+import DirDisableUser from "./operations/DirDisableUser.js";
+import DirEnableUser from "./operations/DirEnableUser.js";
+import DirCreateUser from "./operations/DirCreateUser.js";
 
 interface sKeys { [k: string]: string }
-export type actionProps = { action: Action, template: template, connections: connections, id: string, schema: Schema, execute: boolean, keys: sKeys, data: {[k: string]: string} };
 interface template {[connector: string]: {[header: string]: string}|string}
-interface connections { [k: string]: connection }
 interface connection {
     rows: {[k: string]: string}[];
     keyed: {[k: string]: object};
@@ -34,30 +37,40 @@ interface connection {
 
 interface result {template?: object, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
 
+export function getUser(action: Action & { target: string }, connections: connections, keys: sKeys, data: { [k:string]: string }): User {
+    data.directory = action.target;
+    if (!(action.target in connections)) throw Error(`Connector ${action.target} not found.`);
+    const id = keys[action.target];
+    if (!(id in connections[action.target].keyed)) throw Error(`User ${id} not found in ${action.target}.`);
+    return connections[action.target].keyed[id] as User;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type operation = (props: any) => Promise<result>;
 const availableActions: { [k: string]: operation } = {
-    //'Create User': createUser,
-    //'Enable User': enableUser,
-    //'Disable User': disableUser,
-    //'Delete User': deleteUser,
-    //'Move Organisational Unit': moveOU,
-    //'Update Attributes': updateAtt,
+    'Create User': DirCreateUser,
+    'Delete User': DirDeleteUser,
+    'Disable User': DirDisableUser,
+    'Enable User': DirEnableUser,
+    'Move Organisational Unit': DirMoveOU,
+    'Update Attributes': DirUpdateAtt,
     'Update Groups': DirUpdateSec,
     'Send To Printer': DocPrint,
     'Write PDF': DocWritePDF,
-    'Write To File': FileWriteTxt,
+    'Copy File': FileCopy,
     'Delete File': FileDelete,
     'Move File': FileMove,
-    'Copy File': FileCopy,
+    'Write To File': FileWriteTxt,
     'Copy Folder': FolderCopy,
-    'Move Folder': FolderMove,
-    'Delete Folder': FolderDelete,
     'Create Folder': FolderCreate,
-    'Template': SysTemplate,
+    'Delete Folder': FolderDelete,
+    'Move Folder': FolderMove,
     'Comparator': SysComparator,
     'Encrypt String': SysEncryptString,
-    //'Upload Student Passwords': StmcUpload,
+    'Template': SysTemplate,
+    //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
+    //LINK - server\src\components\operations\SysRunCommand.ts
+    //'Upload Student Passwords': SysRunCommand, //
 }
 
 async function connect(schema: Schema, connectorName: string, connections: connections, id: string): Promise<connection> {

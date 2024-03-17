@@ -1,6 +1,6 @@
 import { compile } from "../../modules/handlebars.js";
-import { Action } from "../../typings/common.js";
-import { actionProps, empty } from "../engine.js";
+import { Action, actionProps } from "../../typings/common.js";
+import { empty } from "../engine.js";
 
 interface props extends actionProps {
     action: Action & {

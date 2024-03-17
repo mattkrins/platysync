@@ -9,17 +9,17 @@ export interface Schema {
     name: string;
     version: number;
     connectors: Connector[];
-    _connectors: { [name: string]: Connector }
+    _connectors: { [name: string]: Connector };
     rules: Rule[];
-    _rules: { [name: string]: Rule },
-    headers: { [name: string]: string[] }
+    _rules: { [name: string]: Rule };
+    headers: { [name: string]: string[] };
     errors: string[];
 }
 
 export interface SchemaYaml extends Schema {
-  _connectors?: { [name: string]: Connector }
-  _rules?: { [name: string]: Rule },
-  headers?: { [name: string]: string[] }
+  _connectors?: { [name: string]: Connector };
+  _rules?: { [name: string]: Rule };
+  headers?: { [name: string]: string[] };
   errors?: string[];
 }
 
@@ -82,13 +82,28 @@ export interface Rule {
   actions: Action[];
 }
 
-export interface template {[connector: string]: {[header: string]: string}}
-
+export interface template {
+  [connector: string]: {
+    [header: string]: string
+  } | string;
+}
 
 export interface result {
-  error?: string,
-  warning?: string,
-  success?: true,
-  template?: true,
-  data?: {[k: string]: unknown}
+  error?: string;
+  warning?: string;
+  success?: true;
+  template?: true;
+  data?: {[k: string]: unknown};
+}
+
+export interface connections { [k: string]: connection }
+export interface actionProps {
+  action: Action;
+  template: template;
+  connections: connections;
+  id: string;
+  schema: Schema;
+  execute: boolean;
+  keys: sKeys;
+  data: {[k: string]: string};
 }

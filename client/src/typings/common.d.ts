@@ -40,6 +40,7 @@ interface Rule {
     actions: Action[];
     before_actions: Action[];
     after_actions: Action[];
+    log?: string;
     [key: string]: unknown;
 }
 

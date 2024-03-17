@@ -1,6 +1,6 @@
 import { compile } from "../../modules/handlebars.js";
-import { Action } from "../../typings/common.js";
-import { actionProps, empty } from "../engine.js";
+import { Action, actionProps } from "../../typings/common.js";
+import { empty } from "../engine.js";
 import * as fs from 'fs';
 import { moveFileSync } from 'move-file';
 

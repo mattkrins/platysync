@@ -1,5 +1,5 @@
-import { Action, Condition } from "../../typings/common.js";
-import { actionProps, evaluateAll } from "../engine.js";
+import { Action, actionProps, Condition } from "../../typings/common.js";
+import { evaluateAll } from "../engine.js";
 import { compile } from "../../modules/handlebars.js";
 
 interface props extends actionProps {
@@ -12,9 +12,9 @@ interface props extends actionProps {
     }
 }
 
-export default async function ({ action, template, data, connections, id }: props) {
+export default async function ({ action, template, data, connections, keys }: props) {
     try {
-        const matched = await evaluateAll(action.conditions, template, connections, id );
+        const matched = await evaluateAll(action.conditions, template, connections, keys );
         const key = action.target && action.target.trim()!=='' ? compile(template, action.target||"") : 'result';
         const tru = action.true && action.true.trim()!=='' ? compile(template, action.true||"") : 'true';
         const fals = action.false && action.false.trim()!=='' ? compile(template, action.false||"") : 'false';
