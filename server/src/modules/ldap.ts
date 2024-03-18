@@ -147,9 +147,10 @@ export class ldap {
      * Return all objects matching the filter.
      * @param {string[]} attributes Array of specific attributes to get (optional)
      * @param {string} id attribute to build object keys from (optional)
+     * @param {boolean} caseSen should object keys be lowercased (optional)
      * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
-    public search(attributes?: string[], id?: string, filter: string = '(objectclass=person)'): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: User}}> { //TODO - remove this
+    public search(attributes?: string[], id?: string, caseSen = false, filter: string = '(objectclass=person)'): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: User}}> { //TODO - remove this
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             const users: {[k: string]: string}[] = [];
@@ -176,7 +177,7 @@ export class ldap {
                         user[attribute.type] = ((attribute.values||[]) as string[]).join();
                         if (id&&attribute.type===id){
                             IDfound = true;
-                            keyed[user[attribute.type]] = new User(entry, this.client );
+                            keyed[caseSen?user[attribute.type]:(user[attribute.type]).toLowerCase()] = new User(entry, this.client );
                         }
                     }
                     if (id && IDfound) users.push(user);

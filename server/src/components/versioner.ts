@@ -33,9 +33,13 @@ const versions: {
                     if (action.name!=="Comparator" || !action.conditions) continue;
                     upgrade(action.conditions);
                 }
-                for (const secondary of rule.secondaries){
-                    secondary.secondaryKey = `{{${secondary.primary}.${secondary.secondaryKey}}}`;
-                    secondary.primaryKey = `{{${rule.primary}.${secondary.primaryKey}}}`;
+                for (const action of rule.before_actions){
+                    if (action.name!=="Comparator" || !action.conditions) continue;
+                    upgrade(action.conditions);
+                }
+                for (const action of rule.after_actions){
+                    if (action.name!=="Comparator" || !action.conditions) continue;
+                    upgrade(action.conditions);
                 }
             }
             log.info(`Upgraded ${schema.name} from 0.4 to 0.5.`);

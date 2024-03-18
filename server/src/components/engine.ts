@@ -1,5 +1,5 @@
 import { compile } from "../modules/handlebars.js";
-import { Action, Condition, Rule, Schema, connections } from "../typings/common.js";
+import { Action, Condition, Rule, Schema, connection, connections } from "../typings/common.js";
 import { anyProvider, CSV as CSVProvider, LDAP as LDAPProvider } from "../typings/providers.js";
 import { CSV, LDAP } from "./providers.js";
 import FileCopy from "./operations/FileCopy.js";
@@ -26,14 +26,7 @@ import DirEnableUser from "./operations/DirEnableUser.js";
 import DirCreateUser from "./operations/DirCreateUser.js";
 
 interface sKeys { [k: string]: string }
-interface template {[connector: string]: {[header: string]: string}|string}
-interface connection {
-    rows: {[k: string]: string}[];
-    keyed: {[k: string]: object};
-    provider?: anyProvider;
-    client?: unknown;
-    close?: () => Promise<unknown>;
-}
+interface template {[connector: string]: {[header: string]: string}|string|object}
 
 interface result {template?: object, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
 
@@ -73,7 +66,7 @@ const availableActions: { [k: string]: operation } = {
     //'Upload Student Passwords': SysRunCommand, //
 }
 
-async function connect(schema: Schema, connectorName: string, connections: connections, id: string): Promise<connection> {
+async function connect(schema: Schema, connectorName: string, connections: connections, id: string, caseSen = false): Promise<connection> {
     if (connections[connectorName]) return connections[connectorName];
     const provider = schema._connectors[connectorName] as anyProvider;
     server.io.emit("job_status", `Connecting to ${connectorName}`);
@@ -86,7 +79,7 @@ async function connect(schema: Schema, connectorName: string, connections: conne
             const rows = [];
             for (const row of data.data){
                 if (keyed[row[id]]) continue; //REVIEW - skips non-unqiue rows; what should happen here? 
-                keyed[row[id]] = row;
+                keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
                 rows.push(row);
             } data.data = [];
             connection = { rows, provider, keyed }; break;
@@ -96,7 +89,7 @@ async function connect(schema: Schema, connectorName: string, connections: conne
             const ldap = new LDAP(prov);
             const client = await ldap.configure();
             //const { users, keyed } = await client.search(ldap.attributes, (prov.filter && prov.filter.trim()!=='') ? prov.filter : undefined);
-            const { users, keyed } = await client.search(ldap.attributes, id);
+            const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
             const close = async () => client.close();
             connection = { rows: users, keyed, provider, close }; break;
         }
@@ -199,26 +192,25 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
     const connections: connections = {};
     if (!rule.primaryKey) rule.primaryKey = 'id';
-    const primary = await connect(schema, rule.primary, connections, rule.primaryKey);
+    const caseSen = rule.secondaries.filter(s=>s.case).length > 0;
+    const primary = await connect(schema, rule.primary, connections, rule.primaryKey, caseSen);
     cur.index = 5;
     progress(cur, 100, 'secondaries');
     if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
     await wait(500);
     for (const secondary of rule.secondaries||[]){
-        if (empty(secondary.secondaryKey)) secondary.secondaryKey = `{{${secondary.primary}.${rule.primaryKey}}}`;
-        if (empty(secondary.primaryKey)) secondary.primaryKey = `{{${rule.primary}.${rule.primaryKey}}}`;
-        if (!secondary.secondaryKey.includes('{{')) throw Error(`Invalid key '${secondary.secondaryKey}' for joining ${secondary.primary} connector.`);
-        if (!secondary.primaryKey.includes('{{')) throw Error(`Invalid key '${secondary.primaryKey}' for joining ${secondary.primary} connector.`);
-        const key = secondary.secondaryKey.split(`${secondary.primary}.`)[1].split("}}")[0];
-        await connect(schema, secondary.primary, connections, key);
+        if (empty(secondary.secondaryKey)) secondary.secondaryKey = rule.primaryKey;
+        if (empty(secondary.primaryKey)) secondary.primaryKey = rule.primaryKey;
+        await connect(schema, secondary.primary, connections, secondary.secondaryKey, secondary.case);
+        await wait(500);
     }
     cur.index = 10;
     progress(cur, 100, 'init actions');
-    await wait(1000);
+    await wait(500);
     const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, {}, connections, {}, schema, !!idFilter);
     if (initActions.filter(r=>r.result.error).length>0){ await conclude(connections); return {evaluated: [], initActions, finalActions: []} }
     cur.index = 15;
-    progress(cur, 100, 'init actions');
+    progress(cur, 100, 'entries');
     await wait(1000);
     const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
     cur.index = 0;
@@ -228,22 +220,21 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         progress(cur, primary.rows.length, id, 15);
         const template: template = { ...initTemplate, [rule.primary]: row };
         let skip = false;
-        const keys: sKeys = {};
+        const keys: sKeys = { [rule.primary]: id };
         for (const secondary of rule.secondaries||[]) {
-            if (!connections[secondary.primary]) continue;
-            let s = 0;
-            for (const r of connections[secondary.primary].rows||[]) {
-                const k1 = compile({ [secondary.primary]: r }, secondary.secondaryKey);
-                const k2 = compile(template, secondary.primaryKey);
-                if (secondary.case?k1.toLowerCase()===k2.toLowerCase():k1===k2){
-                    keys[secondary.primary] = k1;
-                    s++; template[secondary.primary] = r; if (secondary.oto){ break; }
-                }
-            } if (!template[secondary.primary]) template[secondary.primary] = {};
-            if (secondary.req && Object.keys(template[secondary.primary]).length===0) skip = true;
-            if (secondary.oto && s>1) skip = true;
+            if (!(secondary.primary in connections)) continue;
+            const primaryKey = row[secondary.primaryKey];
+            if (secondary.req && !primaryKey){ skip = true; break; }
+            if (!primaryKey) continue;
+            const secondaryJoin = connections[secondary.primary].keyed[secondary.case?primaryKey:primaryKey.toLowerCase()]||{};
+            if (secondary.req && !secondaryJoin){ skip = true; break; }
+            const joins = Object.keys(connections[secondary.primary].keyed).filter(k=>k===(secondary.case?primaryKey:primaryKey.toLowerCase()));
+            if (secondary.req && joins.length <= 0){ skip = true; break; }
+            if (secondary.oto && joins.length > 1){ skip = true; break; }
+            template[secondary.primary] = secondaryJoin;
+            keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
         } if (skip) continue;
-        await wait(100);
+        //await wait(100);
         if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
         const output: typeof evaluated[0] = { id, actions: [], actionable: false };
         if (!empty(rule.display)) output.display = compile(template, rule.display);

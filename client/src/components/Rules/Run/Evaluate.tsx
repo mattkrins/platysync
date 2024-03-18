@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Table, TextInput, Text, useMantineTheme, Indicator, Tooltip, Notification } from "@mantine/core";
 import { useDisclosure, usePagination } from "@mantine/hooks";
-import { IconCheckbox, IconEye, IconEyeOff, IconHandStop, IconMenu2, IconQuestionMark, IconSearch } from "@tabler/icons-react";
+import { IconCheckbox, IconEye, IconEyeOff, IconHandStop, IconLetterCase, IconMenu2, IconQuestionMark, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
 import { availableActions } from "../../../data/common";
 import View from "./View";
@@ -12,9 +12,9 @@ export interface action {
 
 interface evaluated { checked?: boolean, id: string, display?: string, actions: action[], actionable: boolean }
 
-function find(query: string, r: evaluated){
-    if (r.id.includes(query)) return true;
-    if (r.display && r.display.includes(query)) return true;
+function find(query: string, r: evaluated, caseSen: boolean){
+    if (caseSen?r.id.toLowerCase().includes(query):r.id.includes(query)) return true;
+    if (r.display&&(caseSen?r.display.toLowerCase().includes(query):r.display.includes(query))) return true;
     return false;
 }
 
@@ -30,8 +30,10 @@ interface Head {
     search: (query: string) => void;
     display: number;
     setDisplay: (query: number) => void;
+    setCase: () => void;
+    caseSen: boolean
 }
-function Head( { total, limit, perPage, pagination, count, sort, sorting, query, search, display, setDisplay }: Head ) {
+function Head( { total, limit, perPage, pagination, count, sort, sorting, query, search, display, setDisplay, caseSen, setCase }: Head ) {
     const [o1, { toggle: t1 }] = useDisclosure(false);
     const [o2, { toggle: t2 }] = useDisclosure(false);
     const [o3, { toggle: t3 }] = useDisclosure(false);
@@ -45,6 +47,7 @@ function Head( { total, limit, perPage, pagination, count, sort, sorting, query,
         visibleFrom="xs"
         value={query}
         onChange={(event)=>search(event.currentTarget.value)}
+        rightSection={<ActionIcon variant={caseSen?"light":"subtle"} onClick={setCase} color="gray" size={24}><IconLetterCase size={18} /></ActionIcon>}
         />
         {(perPage>0&&total>1)&&<Pagination total={total} onChange={(value)=>pagination.setPage(value)} value={pagination.active} />}
         <Menu shadow="md" position="bottom-end" width={200}>
@@ -115,6 +118,7 @@ interface EvalProps {
 }
 export default function Evaluate( { evaluated, setEvaluated, initActions = [], finalActions = [] }: EvalProps ) {
     const [display, setDisplay] = useState<number>(1);
+    const [caseSen, { toggle: setCase }] = useDisclosure(false);
     const [viewing, view] = useState<{name: string, open: string, actions: action[]}|undefined>();
     const [sorting, setSort] = useState<string>("none");
     const [query, search] = useState<string>("");
@@ -133,7 +137,7 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
     
     const [perPage, limit] = useState<number>(50);
     const cleaned = display === 0 ? (evaluated||[]).filter(e=>e.actionable) : evaluated;
-    const filtered = query==='' ? cleaned : cleaned.filter((r)=>find(query, r));
+    const filtered = query==='' ? cleaned : cleaned.filter((r)=>find(caseSen?query.toLowerCase():query, r, caseSen));
     const total = Math.ceil(filtered.length / Number(perPage));
     const pagination = usePagination({ total, initialPage: 1 });
     const paginated = perPage === 0 ? filtered : filtered.slice((pagination.active-1)*Number(perPage), pagination.active*Number(perPage));
@@ -148,7 +152,8 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
             <Notification icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>}
         </Box>:
         <Box pt={initActions.length===0?"xs":undefined} >
-            <Head
+            <Head caseSen={caseSen}
+            setCase={setCase}
             pagination={pagination}
             total={total}
             limit={limit}
@@ -163,7 +168,7 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
             />
             <Divider mt="xs"/>
             {filtered.length===0?<Text ta="center" mt="sm" >No entries found.</Text>:
-            <Table>
+            <Table stickyHeader >
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th><Checkbox onChange={checkAll} checked={checkedCount > 0} /></Table.Th>

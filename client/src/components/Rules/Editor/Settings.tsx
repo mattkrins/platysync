@@ -6,6 +6,7 @@ import { useContext, useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import SchemaContext from "../../../providers/SchemaContext";
 import ExplorerContext from "../../../providers/ExplorerContext";
+import providers from "../../../modules/connectors";
 
 const logLevels = [
     { value: '0', label: 'Disabled' },
@@ -22,16 +23,16 @@ interface Secondary {
 function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, config: ()=>void, form: UseFormReturnType<Rule> } ) {
     const index = form.values.secondaries.findIndex(s =>s.primary ===secondary?.primary);
     return (
-      <Modal opened={!!secondary} onClose={config} title={`Configure ${secondary?.primary} `}>
+      <Modal opened={!!secondary} onClose={config} title={`Configure '${secondary?.primary}' joiner`}>
         {secondary&&<Box>
-            <Switch label="Case Insensitive" mb="xs"
-            {...form.getInputProps(`secondaries.${index}.case`, { type: 'checkbox' })} 
-            />
             <Switch label="Required" mb={4} description={`Skip entries if no join found in '${secondary.primary}'.`}
             {...form.getInputProps(`secondaries.${index}.req`, { type: 'checkbox' })}
             />
             <Switch label="One-To-One" description={`Skip entries on multiple join potentials in '${secondary.primary}' found.`}
             {...form.getInputProps(`secondaries.${index}.oto`, { type: 'checkbox' })}
+            />
+            <Switch label="Case Sensitive" mb="xs" description={<Text inline size="xs" c="orange">Warning: Setting this on any secondary lowers all primary keys.</Text>}
+            {...form.getInputProps(`secondaries.${index}.case`, { type: 'checkbox' })} 
             />
         </Box>}
       </Modal>
@@ -39,7 +40,7 @@ function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, 
 }
 
 export default function Settings( { form, sources, taken }: {form: UseFormReturnType<Rule>, sources: string[], taken: string[]} ) {
-    const { connectors } = useContext(SchemaContext);
+    const { connectors, _connectors } = useContext(SchemaContext);
     const { explorer, explore } = useContext(ExplorerContext);
     const [secondary, config] = useState<Secondary|undefined>(undefined);
     const usable = connectors.filter(c=>c.id!=="proxy").length -1 ;
@@ -95,9 +96,9 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
             {(form.values.secondaries||[]).map((_, index)=>{
-                const secondaryKey = () => (value: string) => form.setFieldValue(`secondaries.${index}.secondaryKey`, `{{${value}}}`);
-                const primaryKey = () => (value: string) => form.setFieldValue(`secondaries.${index}.primaryKey`, `{{${value}}}`);
                 const primary = form.values.secondaries[index].primary;
+                const provider1 = primary ? providers[_connectors[primary].id] : undefined;
+                const provider2 = primary ? providers[_connectors[form.values.primary].id] : undefined;
                 return <Draggable key={index} index={index} draggableId={index.toString()}>
                     {(provided) => (
                     <Grid align="center" ref={provided.innerRef} mt="xs" {...provided.draggableProps} gutter="xs"
@@ -113,21 +114,23 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">
-                            <TextInput
-                                leftSection={<IconKey size="1rem" />}
-                                disabled={!form.values.primary||!primary}
-                                placeholder={primary?`{{${primary}.${form.values.primaryKey||'id'}}}`:'{{Secondary.Key}}'}
-                                rightSection={ <ActionIcon onClick={()=>explore(secondaryKey, [primary])} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
-                                {...form.getInputProps(`secondaries.${index}.secondaryKey`)}
+                            <Select
+                            placeholder={primary?form.values.primaryKey||'id':'Secondary Key'}
+                            data={ (form.values.primary in headers) ? headers[primary] : [] }
+                            disabled={!form.values.primary||!primary}
+                            searchable leftSection={<IconKey size="1rem" />}
+                            rightSection={provider1?<provider1.icon size={18} />:undefined}
+                            {...form.getInputProps(`secondaries.${index}.secondaryKey`)}
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">
-                            <TextInput
-                                leftSection={<IconKey size="1rem" />}
-                                disabled={!form.values.primary||!primary}
-                                placeholder={`{{${form.values.primary}.${form.values.primaryKey||'id'}}}`}
-                                rightSection={ <ActionIcon onClick={()=>explore(primaryKey, sources.filter((s,i)=>s!==primary&&i<=index))} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
-                                {...form.getInputProps(`secondaries.${index}.primaryKey`)}
+                            <Select
+                            placeholder={primary?form.values.primaryKey||'id':'Primary Key'}
+                            data={ (form.values.primary in headers) ? headers[form.values.primary] : [] }
+                            disabled={!form.values.primary||!primary}
+                            searchable leftSection={<IconKey size="1rem" />}
+                            rightSection={provider2?<provider2.icon size={18} />:undefined}
+                            {...form.getInputProps(`secondaries.${index}.primaryKey`)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">

@@ -63,9 +63,9 @@ export interface secondary {
   primary: string;
   secondaryKey: string;
   primaryKey: string;
-  case?: string;
-  req?: string;
-  oto?: string;
+  case?: boolean;
+  req?: boolean;
+  oto?: boolean;
 }
 
 export interface Rule {
@@ -96,6 +96,13 @@ export interface result {
   data?: {[k: string]: unknown};
 }
 
+export interface connection {
+  rows: {[k: string]: string}[];
+  keyed: {[k: string]: object};
+  provider?: anyProvider;
+  client?: unknown;
+  close?: () => Promise<unknown>;
+}
 export interface connections { [k: string]: connection }
 export interface actionProps {
   action: Action;
