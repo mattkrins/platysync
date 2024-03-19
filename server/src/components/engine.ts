@@ -1,7 +1,7 @@
 import { compile } from "../modules/handlebars.js";
 import { Action, Condition, Rule, Schema, connection, connections } from "../typings/common.js";
-import { anyProvider, CSV as CSVProvider, LDAP as LDAPProvider } from "../typings/providers.js";
-import { CSV, LDAP } from "./providers.js";
+import { anyProvider, CSV as CSVProvider, STMC as STMCProvider, LDAP as LDAPProvider } from "../typings/providers.js";
+import { CSV, LDAP, STMC } from "./providers.js";
 import FileCopy from "./operations/FileCopy.js";
 import SysComparator from "./operations/SysComparator.js";
 import FileMove from "./operations/FileMove.js";
@@ -72,10 +72,23 @@ async function connect(schema: Schema, connectorName: string, connections: conne
     server.io.emit("job_status", `Connecting to ${connectorName}`);
     let connection: connection = {rows:[], keyed: {}, provider};
     switch (provider.id) {
+        case 'stmc': {
+            const stmc = new STMC(schema, provider as STMCProvider);
+            const client = await stmc.configure();
+            const users = await client.getUsers();
+            const keyed: {[k: string]: object} = {};
+            const rows = [];
+            for (const row of users){
+                if (keyed[row[id]]) continue;
+                keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
+                rows.push(row);
+            }
+            connection = { rows: users, provider, keyed }; break;
+        }
         case 'csv': {
             const csv = new CSV(undefined, undefined, provider as CSVProvider );
             const data = await csv.open() as { data: {[k: string]: string}[] };
-            const keyed: {[k: string]: object} = {}
+            const keyed: {[k: string]: object} = {};
             const rows = [];
             for (const row of data.data){
                 if (keyed[row[id]]) continue; //REVIEW - skips non-unqiue rows; what should happen here? 
@@ -178,8 +191,7 @@ function progress(cur: cur, length: number, id: string, start: number = 0) {
     if (Math.abs(new Date().getTime() - cur.time) < 100) return;
     cur.time = (new Date()).getTime();
     cur.performance = performance.now() - cur.startTime;
-    const p = Math.floor(start + ((cur.index / length)*(100 - start)));
-    // if (p % 5 === 0) every 5%
+    const p = start + ((cur.index / length)*(100 - start));
     server.io.emit("progress", { i: cur.index, p, m: length, s: cur.performance, c: start !== 0  });
     server.io.emit("job_status", `Proccessing ${id}`);
     cur.startTime = performance.now();
@@ -235,7 +247,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             template[secondary.primary] = secondaryJoin;
             keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
         } if (skip) continue;
-        //await wait(100);
+        await wait(100);
         if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
         const output: typeof evaluated[0] = { id, actions: [], actionable: false };
         if (!empty(rule.display)) output.display = compile(template, rule.display);

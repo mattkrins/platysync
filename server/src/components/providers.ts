@@ -1,9 +1,9 @@
 import * as fs from 'fs';
+import { Schema } from "../typings/common.js";
 import Papa, { ParseResult } from 'papaparse';
-import { getSchema } from '../routes/schema.js';
 import eduSTAR from '../modules/eduSTAR.js';
 import { Hash, decrypt } from '../modules/cryptography.js';
-import { PROXY, CSV as CSVProvider, LDAP as LDAPProvider } from '../typings/providers.js';
+import { PROXY, CSV as CSVProvider, STMC as STMCProvider, LDAP as LDAPProvider } from '../typings/providers.js';
 import ldap from '../modules/ldap.js';
 
 export class CSV {
@@ -34,21 +34,20 @@ export class CSV {
 }
 
 export class STMC {
-    schema: string;
-    school: string;
+    schema: Schema;
+    connector: STMCProvider;
     proxy?: URL|string;
     eduhub?: string;
-    constructor(schema: string, school: string, proxy?: string, eduhub?: string) {
+    constructor(schema: Schema, connector: STMCProvider) {
         this.schema = schema;
-        this.school = school;
-        this.proxy = proxy;
-        this.eduhub = eduhub;
+        this.connector = connector;
+        this.proxy = connector.proxy;
+        this.eduhub = connector.eduhub;
     }
     async configure(): Promise<eduSTAR> {
-        const schema = getSchema(this.schema);
         if (this.proxy && String(this.proxy).trim()!==""){
-            if (!schema._connectors[String(this.proxy)]) throw Error(`Connector '${this.proxy}' does not exist.`);
-            const connector = schema._connectors[String(this.proxy)] as PROXY;
+            if (!this.schema._connectors[String(this.proxy)]) throw Error(`Connector '${this.proxy}' does not exist.`);
+            const connector = this.schema._connectors[String(this.proxy)] as PROXY;
             const url = new URL(connector.url);
             if (connector.username) url.username = connector.username;
             if (connector.password) url.password = await decrypt(connector.password as Hash);
@@ -56,16 +55,19 @@ export class STMC {
         }
         let data;
         if (this.eduhub){
-            if (!schema._connectors[this.eduhub]) throw Error(`Connector '${this.eduhub}' does not exist.`);
-            const connector = schema._connectors[this.eduhub] as CSVProvider;
+            if (!this.schema._connectors[this.eduhub]) throw Error(`Connector '${this.eduhub}' does not exist.`);
+            const connector = this.schema._connectors[this.eduhub] as CSVProvider;
             const csv = new CSV(connector.path);
             data = await csv.open() as { data: {[k: string]: string}[] };
         }
-        return new eduSTAR({
-            school: this.school,
+        const client = new eduSTAR({
+            school: this.connector.school,
             proxy: this.proxy,
             eduhub: data?.data
         });
+        const password = await decrypt(this.connector.password as Hash);
+        await client.login(this.connector.username, password);
+        return client;
     }
 }
 
