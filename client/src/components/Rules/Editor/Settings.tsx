@@ -31,7 +31,7 @@ function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, 
             <Switch label="One-To-One" description={`Skip entries on multiple join potentials in '${secondary.primary}' found.`}
             {...form.getInputProps(`secondaries.${index}.oto`, { type: 'checkbox' })}
             />
-            <Switch label="Case Sensitive" mb="xs" description={<Text inline size="xs" c="orange">Warning: Setting this on any secondary lowers all primary keys.</Text>}
+            <Switch label="Case Sensitive" mb="xs" description={<Text inline size="xs" c="orange">Warning: Setting this on any secondary also effects the primary.</Text>}
             {...form.getInputProps(`secondaries.${index}.case`, { type: 'checkbox' })} 
             />
         </Box>}

@@ -1,3 +1,4 @@
+import { compile } from "../../modules/handlebars.js";
 import { Action, actionProps } from "../../typings/common.js";
 import { getUser } from "../engine.js";
 
@@ -29,13 +30,13 @@ export default async function ({ action, template, execute, data, connections, k
         const adding = action.groups.filter((g:{type: string})=>g.type==="Add").map(g=>g.value);
         if (action.clean){
             for (const v of user.attributes.memberOf) {
-                const value = Handlebars.compile(v||"")(template);
+                const value = compile(template, v||"");
                 if (adding.includes(value)) continue;
                 changes.push({ type: 'Delete', value });
             }
         }
         for (const {type, value: v} of action.groups) {
-            const value = Handlebars.compile(v||"")(template);
+            const value = compile(template, v||"");
             switch (type) {
                 case 'Add': {
                     if (user.hasGroup(value)) break;

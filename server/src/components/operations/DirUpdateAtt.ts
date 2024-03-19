@@ -1,6 +1,7 @@
 import { Action, actionProps } from "../../typings/common.js";
 import { default as ldapjs } from "ldapjs";
 import { getUser } from "../engine.js";
+import { compile } from "../../modules/handlebars.js";
 
 interface Attribute {
     type: 'Add'|'Replace'|'Delete';
@@ -31,11 +32,11 @@ export default async function ({ action, template, execute, data, connections, k
         for (const a of action.attributes) {
             switch (a.type) {
                 case 'Add': {
-                    const value = Handlebars.compile(a.value||"")(template);
+                    const value = compile(template, a.value||"");
                     if (!(a.name in user.attributes)) changes.push({...a, value, currentValue: '' }); break;
                 }
                 case 'Replace': {
-                    const value = Handlebars.compile(a.value||"")(template);
+                    const value = compile(template, a.value||"");
                     const currentValue = String(user.attributes[a.name]||'');
                     if (currentValue===value) break;
                     changes.push({...a, value, currentValue });

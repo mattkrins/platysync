@@ -29,15 +29,15 @@ const versions: {
                     }
                 }
                 upgrade(rule.conditions);
-                for (const action of rule.actions){
+                for (const action of rule.actions||[]){
                     if (action.name!=="Comparator" || !action.conditions) continue;
                     upgrade(action.conditions);
                 }
-                for (const action of rule.before_actions){
+                for (const action of rule.before_actions||[]){
                     if (action.name!=="Comparator" || !action.conditions) continue;
                     upgrade(action.conditions);
                 }
-                for (const action of rule.after_actions){
+                for (const action of rule.after_actions||[]){
                     if (action.name!=="Comparator" || !action.conditions) continue;
                     upgrade(action.conditions);
                 }

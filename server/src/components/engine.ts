@@ -178,7 +178,8 @@ function progress(cur: cur, length: number, id: string, start: number = 0) {
     if (Math.abs(new Date().getTime() - cur.time) < 100) return;
     cur.time = (new Date()).getTime();
     cur.performance = performance.now() - cur.startTime;
-    const p = start + ((cur.index / length)*(100 - start));
+    const p = Math.floor(start + ((cur.index / length)*(100 - start)));
+    // if (p % 5 === 0) every 5%
     server.io.emit("progress", { i: cur.index, p, m: length, s: cur.performance, c: start !== 0  });
     server.io.emit("job_status", `Proccessing ${id}`);
     cur.startTime = performance.now();
@@ -220,7 +221,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         progress(cur, primary.rows.length, id, 15);
         const template: template = { ...initTemplate, [rule.primary]: row };
         let skip = false;
-        const keys: sKeys = { [rule.primary]: id };
+        const keys: sKeys = { [rule.primary]: caseSen?id:id.toLowerCase() };
         for (const secondary of rule.secondaries||[]) {
             if (!(secondary.primary in connections)) continue;
             const primaryKey = row[secondary.primaryKey];
