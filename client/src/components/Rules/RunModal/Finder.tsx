@@ -1,6 +1,6 @@
 import { Box, Button, Checkbox, Divider, Grid, Group, Pagination, Select, Switch, TextInput, Text, useMantineTheme, Indicator, Modal, Code } from "@mantine/core";
 import { IconSearch, IconRun } from "@tabler/icons-react";
-import { availableActions } from "../../../data/common";
+import { availableActions } from "../../../modules/common";
 import { usePagination } from "@mantine/hooks";
 import { useState } from "react";
 import CreateUser from "./Operations/CreateUser";

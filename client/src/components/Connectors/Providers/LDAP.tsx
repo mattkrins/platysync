@@ -4,7 +4,7 @@ import { IconTag, IconWorld, IconUser, IconKey, IconEdit, IconGripVertical, Icon
 import Concealer from '../../Common/Concealer';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { SelectCreatable } from '../../Common/SelectCreatable';
-import { ldapAttributes } from '../../../data/common';
+import { ldapAttributes } from '../../../modules/common';
 
 function Attributes( { form }: { form: UseFormReturnType<Record<string, unknown>> } ) {
     const data = (form.values.attributes || []) as string[];

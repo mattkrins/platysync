@@ -2,7 +2,7 @@ import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, 
 import { useDisclosure, usePagination } from "@mantine/hooks";
 import { IconCheckbox, IconEye, IconEyeOff, IconHandStop, IconLetterCase, IconMenu2, IconQuestionMark, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
-import { availableActions } from "../../../data/common";
+import { availableActions } from "../../../modules/common";
 import View from "./View";
 
 export interface action {

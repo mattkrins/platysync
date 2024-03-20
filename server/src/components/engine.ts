@@ -67,7 +67,6 @@ const availableActions: { [k: string]: operation } = {
     //'Run Command': SysRunCommand,
 }
 
-
 async function conclude(connections: connections) {
     for (const connection of Object.values(connections)) {
         if (connection.close) await connection.close();
@@ -86,7 +85,6 @@ async function actions(actions: Action[], template: template, connections: conne
         if (result.error) break;
     } return {todo, template};
 }
-
 
 async function ldap_compare(key: string, value: string, operator: string, connections: connections, keys: sKeys ) {
     if (!(key in connections)) return false;

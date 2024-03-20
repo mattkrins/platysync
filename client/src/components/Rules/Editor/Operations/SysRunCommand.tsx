@@ -2,7 +2,7 @@ import { Box, TextInput } from "@mantine/core";
 import { IconTerminal } from "@tabler/icons-react";
 
 //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
-//LINK - client\src\data\common.ts:303
+//LINK - client\src\modules\common.ts:303
 //LINK - server\src\components\operations\SysRunCommand.ts
 
 export default function RunCommand( { form, index, explorer, actionType }: ActionItem ) {

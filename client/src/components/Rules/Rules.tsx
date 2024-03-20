@@ -9,7 +9,7 @@ import useAPI, { handleError } from '../../hooks/useAPI.ts';
 import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { availableActions } from '../../data/common.ts';
+import { availableActions } from '../../modules/common.ts';
 import Editor from './Editor/Editor.tsx';
 import RunModal from './RunModal/RunModal.tsx';
 import RunModalNew from './Run/Run.tsx';

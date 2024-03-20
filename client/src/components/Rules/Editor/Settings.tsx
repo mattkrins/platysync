@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea, Modal } from "@mantine/core";
+import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea, Modal, Divider } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconCode, IconGripVertical, IconKey, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../Common/SelectConnector";
@@ -22,8 +22,10 @@ interface Secondary {
 }
 function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, config: ()=>void, form: UseFormReturnType<Rule> } ) {
     const index = form.values.secondaries.findIndex(s =>s.primary ===secondary?.primary);
+    const { _connectors } = useContext(SchemaContext);
+    const provider = secondary && providers[_connectors[secondary?.primary].id];
     return (
-      <Modal opened={!!secondary} onClose={config} title={`Configure '${secondary?.primary}' joiner`}>
+      <Modal opened={!!secondary} onClose={config} title={<Group>{provider&&<provider.icon size={18} />}{`Configure '${secondary?.primary}' joiner`}</Group>}>
         {secondary&&<Box>
             <Switch label="Required" mb={4} description={`Skip entries if no join found in '${secondary.primary}'.`}
             {...form.getInputProps(`secondaries.${index}.req`, { type: 'checkbox' })}
@@ -34,6 +36,9 @@ function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, 
             <Switch label="Case Sensitive" mb="xs" description={<Text inline size="xs" c="orange">Warning: Setting this on any secondary also effects the primary.</Text>}
             {...form.getInputProps(`secondaries.${index}.case`, { type: 'checkbox' })} 
             />
+            {(provider&&provider.Config)&&<>
+            <Divider my="xs" label={`${provider.id} options`} labelPosition="left" />{<provider.Config form={form} k={`secondaries.${index}`} provider={provider} />}
+            </>}
         </Box>}
       </Modal>
     )
@@ -135,7 +140,10 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
                         </Grid.Col>
                         <Grid.Col span="content">
                             <Group justify="right" gap="xs">
-                                <ActionIcon color='red' onClick={()=>config(form.values.secondaries[index])} variant="default" size="lg"><IconSettings size={15}/></ActionIcon>
+                                <ActionIcon color='red' onClick={()=>config(form.values.secondaries[index])}
+                                variant="default" size="lg"
+                                disabled={!form.values.primary||!primary}
+                                ><IconSettings size={15}/></ActionIcon>
                                 <ActionIcon color='red' onClick={()=>remove(index)} variant="default" size="lg"><IconTrash size={15}/></ActionIcon>
                             </Group>
                         </Grid.Col>

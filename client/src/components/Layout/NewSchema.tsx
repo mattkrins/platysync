@@ -1,7 +1,7 @@
 import { Alert, Button, FileButton, Group, Modal, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconTag } from '@tabler/icons-react';
-import { validWindowsFilename } from '../../modules/common';
+import { validWindowsFilename } from "../../modules/common";
 import useAPI from '../../hooks/useAPI';
 import { useContext, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext';

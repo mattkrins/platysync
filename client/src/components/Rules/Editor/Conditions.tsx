@@ -4,7 +4,7 @@ import { UseFormReturnType } from "@mantine/form";
 import { IconChevronDown, IconGripVertical, IconTrash, IconCode, IconCodeAsterix, IconDots, IconCopy } from "@tabler/icons-react";
 import { useContext } from "react";
 import ExplorerContext from "../../../providers/ExplorerContext";
-import { availableConditions, mathOperators, stringOperators } from "../../../data/common";
+import { availableConditions, mathOperators, stringOperators } from "../../../modules/common";
 import SelectConnector from "../../Common/SelectConnector";
 import SchemaContext from "../../../providers/SchemaContext";
 

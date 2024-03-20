@@ -5,7 +5,7 @@ import { IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, Ico
 import { useContext, useMemo } from "react";
 import ExplorerContext from "../../../providers/ExplorerContext";
 import { useDisclosure } from "@mantine/hooks";
-import { availableActions, availableCatagories } from "../../../data/common";
+import { availableActions, availableCatagories } from "../../../modules/common";
 import classes from './Actions.module.css';
 import SchemaContext from "../../../providers/SchemaContext";
 

@@ -1,13 +1,18 @@
 import { IconBinaryTree2, IconFileTypeCsv, IconSchool, IconNetwork, TablerIconsProps } from "@tabler/icons-react";
+import STMC from "../components/Rules/Editor/Providers/STMC";
+import { UseFormReturnType } from "@mantine/form";
+
+export interface provider {
+    id: string;
+    name: string;
+    icon: (props: TablerIconsProps) => JSX.Element;
+    color: string;
+    proxy?: true;
+    Config?: (props: { form: UseFormReturnType<Rule>, provider: provider, k: string }) => JSX.Element;
+}
 
 export const providers: {
-    [name: string]: {
-        id: string;
-        name: string;
-        icon: (props: TablerIconsProps) => JSX.Element;
-        color: string;
-        proxy?: true
-    }
+    [name: string]: provider
 } = {
   ldap: {
       id: 'ldap',
@@ -37,7 +42,8 @@ export const providers: {
       id: 'stmc',
       name: "eduSTAR Management Centre (STMC)",
       icon: IconSchool,
-      color: 'yellow'
+      color: 'yellow',
+      Config: STMC
   },
   proxy: {
       id: 'proxy',

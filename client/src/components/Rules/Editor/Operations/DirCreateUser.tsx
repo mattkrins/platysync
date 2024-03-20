@@ -4,7 +4,7 @@ import { IconAt, IconBinaryTree2, IconCode, IconFolder, IconGripVertical, IconHi
 import SelectConnector from "../../../Common/SelectConnector";
 import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { ldapAttributes } from "../../../../data/common";
+import { ldapAttributes } from "../../../../modules/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
 
 function SecurityGroups( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {

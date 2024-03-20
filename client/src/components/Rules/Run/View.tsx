@@ -1,6 +1,6 @@
 import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification } from '@mantine/core'
 import { action } from './Evaluate'
-import { availableActions } from '../../../data/common';
+import { availableActions } from '../../../modules/common';
 import Concealer from '../../Common/Concealer';
 import Common from '../RunModal/Operations/Common';
 import { IconAlertTriangle, IconHandStop, IconX } from '@tabler/icons-react';
