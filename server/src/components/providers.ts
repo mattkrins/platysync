@@ -1,10 +1,55 @@
 import * as fs from 'fs';
-import { Schema } from "../typings/common.js";
+import { Schema, connection, connections } from "../typings/common.js";
 import Papa, { ParseResult } from 'papaparse';
 import eduSTAR from '../modules/eduSTAR.js';
 import { Hash, decrypt } from '../modules/cryptography.js';
-import { PROXY, CSV as CSVProvider, STMC as STMCProvider, LDAP as LDAPProvider } from '../typings/providers.js';
+import { PROXY, anyProvider, CSV as CSVProvider, STMC as STMCProvider, LDAP as LDAPProvider } from '../typings/providers.js';
 import ldap from '../modules/ldap.js';
+import { server } from '../server.js';
+
+export default async function connect(schema: Schema, connectorName: string, connections: connections, id: string, caseSen = false): Promise<connection> {
+    if (connections[connectorName]) return connections[connectorName];
+    const provider = schema._connectors[connectorName] as anyProvider;
+    server.io.emit("job_status", `Connecting to ${connectorName}`);
+    let connection: connection = {rows:[], keyed: {}, provider};
+    switch (provider.id) {
+        case 'stmc': {
+            const stmc = new STMC(schema, provider as STMCProvider);
+            const client = await stmc.configure();
+            const users = await client.getUsers();
+            const keyed: {[k: string]: object} = {};
+            const rows = [];
+            for (const row of users){
+                if (keyed[row[id]]) continue;
+                keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
+                rows.push(row);
+            }
+            connection = { rows: users, provider, keyed }; break;
+        }
+        case 'csv': {
+            const csv = new CSV(undefined, undefined, provider as CSVProvider );
+            const data = await csv.open() as { data: {[k: string]: string}[] };
+            const keyed: {[k: string]: object} = {};
+            const rows = [];
+            for (const row of data.data){
+                if (keyed[row[id]]) continue; //REVIEW - skips non-unqiue rows; what should happen here? 
+                keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
+                rows.push(row);
+            } data.data = [];
+            connection = { rows, provider, keyed }; break;
+        }
+        case 'ldap': {
+            const prov = provider as LDAPProvider;
+            const ldap = new LDAP(prov);
+            const client = await ldap.configure();
+            //const { users, keyed } = await client.search(ldap.attributes, (prov.filter && prov.filter.trim()!=='') ? prov.filter : undefined);
+            const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
+            const close = async () => client.close();
+            connection = { rows: users, keyed, provider, close }; break;
+        }
+        default: throw Error("Unknown connector.");
+    } connections[connectorName] = connection; return connection;
+}
 
 export class CSV {
     private path: string;

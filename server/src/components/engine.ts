@@ -1,7 +1,8 @@
 import { compile } from "../modules/handlebars.js";
-import { Action, Condition, Rule, Schema, connection, connections } from "../typings/common.js";
-import { anyProvider, CSV as CSVProvider, STMC as STMCProvider, LDAP as LDAPProvider } from "../typings/providers.js";
-import { CSV, LDAP, STMC } from "./providers.js";
+import { Action, Condition, Rule, Schema, connections } from "../typings/common.js";
+import connect from "./providers.js";
+import { server } from "../server.js";
+import { User } from "../modules/ldap.js";
 import FileCopy from "./operations/FileCopy.js";
 import SysComparator from "./operations/SysComparator.js";
 import FileMove from "./operations/FileMove.js";
@@ -16,14 +17,13 @@ import FolderCreate from "./operations/FolderCreate.js";
 import SysTemplate from "./operations/SysTemplate.js";
 import SysEncryptString from "./operations/SysEncryptString.js";
 import DirUpdateSec from "./operations/DirUpdateSec.js";
-import { server } from "../server.js";
-import { User } from "../modules/ldap.js";
 import DirUpdateAtt from "./operations/DirUpdateAtt.js";
 import DirMoveOU from "./operations/DirMoveOU.js";
 import DirDeleteUser from "./operations/DirDeleteUser.js";
 import DirDisableUser from "./operations/DirDisableUser.js";
 import DirEnableUser from "./operations/DirEnableUser.js";
 import DirCreateUser from "./operations/DirCreateUser.js";
+import StmcUpload from "./operations/StmcUpload.js";
 
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}
@@ -61,54 +61,12 @@ const availableActions: { [k: string]: operation } = {
     'Comparator': SysComparator,
     'Encrypt String': SysEncryptString,
     'Template': SysTemplate,
+    'Upload Student Passwords': StmcUpload,
     //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
     //LINK - server\src\components\operations\SysRunCommand.ts
-    //'Upload Student Passwords': SysRunCommand, //
+    //'Run Command': SysRunCommand,
 }
 
-async function connect(schema: Schema, connectorName: string, connections: connections, id: string, caseSen = false): Promise<connection> {
-    if (connections[connectorName]) return connections[connectorName];
-    const provider = schema._connectors[connectorName] as anyProvider;
-    server.io.emit("job_status", `Connecting to ${connectorName}`);
-    let connection: connection = {rows:[], keyed: {}, provider};
-    switch (provider.id) {
-        case 'stmc': {
-            const stmc = new STMC(schema, provider as STMCProvider);
-            const client = await stmc.configure();
-            const users = await client.getUsers();
-            const keyed: {[k: string]: object} = {};
-            const rows = [];
-            for (const row of users){
-                if (keyed[row[id]]) continue;
-                keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
-                rows.push(row);
-            }
-            connection = { rows: users, provider, keyed }; break;
-        }
-        case 'csv': {
-            const csv = new CSV(undefined, undefined, provider as CSVProvider );
-            const data = await csv.open() as { data: {[k: string]: string}[] };
-            const keyed: {[k: string]: object} = {};
-            const rows = [];
-            for (const row of data.data){
-                if (keyed[row[id]]) continue; //REVIEW - skips non-unqiue rows; what should happen here? 
-                keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
-                rows.push(row);
-            } data.data = [];
-            connection = { rows, provider, keyed }; break;
-        }
-        case 'ldap': {
-            const prov = provider as LDAPProvider;
-            const ldap = new LDAP(prov);
-            const client = await ldap.configure();
-            //const { users, keyed } = await client.search(ldap.attributes, (prov.filter && prov.filter.trim()!=='') ? prov.filter : undefined);
-            const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
-            const close = async () => client.close();
-            connection = { rows: users, keyed, provider, close }; break;
-        }
-        default: throw Error("Unknown connector.");
-    } connections[connectorName] = connection; return connection;
-}
 
 async function conclude(connections: connections) {
     for (const connection of Object.values(connections)) {
@@ -247,7 +205,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             template[secondary.primary] = secondaryJoin;
             keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
         } if (skip) continue;
-        await wait(100);
+        //await wait(100);
         if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
         const output: typeof evaluated[0] = { id, actions: [], actionable: false };
         if (!empty(rule.display)) output.display = compile(template, rule.display);
