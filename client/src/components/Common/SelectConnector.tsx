@@ -12,6 +12,7 @@ interface extConnector extends Connector {
 interface Props extends InputWrapperProps {
     clearable?: boolean;
     leftSection?: ReactElement<unknown, string>|false;
+    rightSection?: ReactElement<unknown, string>|false;
     data?: string[]|{ component: JSX.Element, value: string }[];
     value?: string;
     disabled?: boolean;
@@ -71,8 +72,8 @@ export default function SelectConnector({onChange, value: v2 = '', placeholder, 
                 icon ? icon : <IconPlug size={16} style={{ display: 'block', opacity: 0.5 }}/>
             }
             mt={props.label?5:undefined}
-            rightSection={
-                (props.clearable&&value !== null) ? (
+            rightSection={props.rightSection?props.rightSection:
+                ((props.clearable&&value !== null) ? (
                 <CloseButton
                     size="sm"
                     onMouseDown={(event) => event.preventDefault()}
@@ -84,7 +85,7 @@ export default function SelectConnector({onChange, value: v2 = '', placeholder, 
                 />
                 ) : (
                 <Combobox.Chevron />
-                )
+                ))
             }
             onClick={() => combobox.toggleDropdown()}
             rightSectionPointerEvents={ (!props.clearable || value === null) ? 'none' : 'all'}

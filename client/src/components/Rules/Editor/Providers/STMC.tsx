@@ -10,7 +10,7 @@ export default function STMC( { form, k }: Props ) {
       <SelectConnector clearable
       label="EduHUB Match"
       description="Find and add active CASES codes from EduHUB data."
-      {...form.getInputProps(`${k}.eduhub`)}
+      {...form.getInputProps(`${k}eduhub`)}
       type="csv"
       //disabled={(form.values.secondaries||[]).length>0}
       //filter={data=>data.filter(c=>c.id==="proxy")  }
@@ -24,7 +24,7 @@ export default function STMC( { form, k }: Props ) {
       <Switch mt="md"
       label="Include Inactive"
       description="LEFT, LVNG & DEL accounts will also be matched."
-      {...form.getInputProps(`${k}.eduhub_inactive`, { type: 'checkbox' })}
+      {...form.getInputProps(`${k}eduhub_inactive`, { type: 'checkbox' })}
       />
       </>}
     </>

@@ -24,20 +24,37 @@ function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, 
     const index = form.values.secondaries.findIndex(s =>s.primary ===secondary?.primary);
     const { _connectors } = useContext(SchemaContext);
     const provider = secondary && providers[_connectors[secondary?.primary].id];
+    const formKey = `secondaries.${index}.`;
     return (
-      <Modal opened={!!secondary} onClose={config} title={<Group>{provider&&<provider.icon size={18} />}{`Configure '${secondary?.primary}' joiner`}</Group>}>
+      <Modal opened={!!secondary} onClose={config} title={<Group gap="xs">{provider&&<provider.icon size={18} />}{`Configure '${secondary?.primary}' joiner`}</Group>}>
         {secondary&&<Box>
             <Switch label="Required" mb={4} description={`Skip entries if no join found in '${secondary.primary}'.`}
-            {...form.getInputProps(`secondaries.${index}.req`, { type: 'checkbox' })}
+            {...form.getInputProps(`${formKey}.req`, { type: 'checkbox' })}
             />
             <Switch label="One-To-One" description={`Skip entries on multiple join potentials in '${secondary.primary}' found.`}
-            {...form.getInputProps(`secondaries.${index}.oto`, { type: 'checkbox' })}
+            {...form.getInputProps(`${formKey}.oto`, { type: 'checkbox' })}
             />
             <Switch label="Case Sensitive" mb="xs" description={<Text inline size="xs" c="orange">Warning: Setting this on any secondary also effects the primary.</Text>}
-            {...form.getInputProps(`secondaries.${index}.case`, { type: 'checkbox' })} 
+            {...form.getInputProps(`${formKey}.case`, { type: 'checkbox' })}
             />
             {(provider&&provider.Config)&&<>
-            <Divider my="xs" label={`${provider.id} options`} labelPosition="left" />{<provider.Config form={form} k={`secondaries.${index}`} provider={provider} />}
+            <Divider my="xs" label={`${provider.id} options`} labelPosition="left" />{<provider.Config form={form} k={formKey} provider={provider} />}
+            </>}
+        </Box>}
+      </Modal>
+    )
+}
+
+function PrimaryConfig( { opened, config, form }: { opened: boolean, config: ()=>void, form: UseFormReturnType<Rule> } ) {
+    const primary = form.values.primary;
+    const { _connectors } = useContext(SchemaContext);
+    const provider = primary ? providers[_connectors[primary].id] : undefined;
+    const formKey = "config.";
+    return (
+      <Modal opened={opened} size="auto" onClose={config} title={<Group gap="xs" >{provider&&<provider.icon size={18} />}{`Configure ${primary}`}</Group>}>
+        {primary&&<Box>
+            {(provider&&provider.Config)&&<>
+            <Divider my="xs" label={`${provider.id} options`} labelPosition="left" />{<provider.Config form={form} k={formKey} provider={provider} />}
             </>}
         </Box>}
       </Modal>
@@ -47,7 +64,8 @@ function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, 
 export default function Settings( { form, sources, taken }: {form: UseFormReturnType<Rule>, sources: string[], taken: string[]} ) {
     const { connectors, _connectors } = useContext(SchemaContext);
     const { explorer, explore } = useContext(ExplorerContext);
-    const [secondary, config] = useState<Secondary|undefined>(undefined);
+    const [primOpen, config1] = useState<boolean>(false);
+    const [secondary, config2] = useState<Secondary|undefined>(undefined);
     const usable = connectors.filter(c=>c.id!=="proxy").length -1 ;
     const { headers } = useContext(SchemaContext);
     const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' } as Secondary);
@@ -56,7 +74,8 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
     const log = form.values.log==="0"?false:!!form.values.log;
     return (
     <Box>
-        <SecondaryConfig secondary={secondary} config={()=>config(undefined)} form={form} />
+        <PrimaryConfig opened={primOpen} config={()=>config1(false)} form={form} />
+        <SecondaryConfig secondary={secondary} config={()=>config2(undefined)} form={form} />
         {explorer}
         <TextInput
             label="Rule Name"
@@ -74,6 +93,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
                 {...form.getInputProps('primary')}
                 disabled={(form.values.secondaries||[]).length>0}
                 filter={data=>data.filter(c=>c.id!=="proxy")  }
+                rightSection={<ActionIcon disabled={!form.values.primary} onClick={()=>config1(true)} variant="subtle" color="grey" ><IconSettings size={15}/></ActionIcon>}
                 />
             </Grid.Col>
             <Grid.Col span={4}>
@@ -140,7 +160,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
                         </Grid.Col>
                         <Grid.Col span="content">
                             <Group justify="right" gap="xs">
-                                <ActionIcon color='red' onClick={()=>config(form.values.secondaries[index])}
+                                <ActionIcon color='red' onClick={()=>config2(form.values.secondaries[index])}
                                 variant="default" size="lg"
                                 disabled={!form.values.primary||!primary}
                                 ><IconSettings size={15}/></ActionIcon>
