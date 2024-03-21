@@ -161,8 +161,8 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
     const connections: connections = {};
     if (!rule.primaryKey) rule.primaryKey = 'id';
-    const caseSen = rule.secondaries.filter(s=>s.case).length > 0;
-    const primary = await connect(schema, rule.primary, connections, rule.primaryKey, caseSen);
+    const caseSen = rule.secondaries.filter(s=>s.case).length > 0; rule.config = rule.config || {};
+    const primary = await connect(schema, rule.primary, connections, rule.primaryKey, rule.config[rule.primary], caseSen);
     cur.index = 5;
     progress(cur, 100, 'secondaries');
     if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
@@ -170,7 +170,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     for (const secondary of rule.secondaries||[]){
         if (empty(secondary.secondaryKey)) secondary.secondaryKey = rule.primaryKey;
         if (empty(secondary.primaryKey)) secondary.primaryKey = rule.primaryKey;
-        await connect(schema, secondary.primary, connections, secondary.secondaryKey, secondary.case);
+        await connect(schema, secondary.primary, connections, secondary.secondaryKey, rule.config[secondary.primary], secondary.case);
         await wait(500);
     }
     cur.index = 10;

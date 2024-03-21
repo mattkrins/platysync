@@ -7,14 +7,15 @@ import { PROXY, anyProvider, CSV as CSVProvider, STMC as STMCProvider, LDAP as L
 import ldap from '../modules/ldap.js';
 import { server } from '../server.js';
 
-export default async function connect(schema: Schema, connectorName: string, connections: connections, id: string, caseSen = false): Promise<connection> {
+interface connectorConfig {[k: string]: unknown}
+export default async function connect(schema: Schema, connectorName: string, connections: connections, id: string, config: connectorConfig = {}, caseSen = false): Promise<connection> {
     if (connections[connectorName]) return connections[connectorName];
     const provider = schema._connectors[connectorName] as anyProvider;
     server.io.emit("job_status", `Connecting to ${connectorName}`);
     let connection: connection = {rows:[], keyed: {}, provider};
     switch (provider.id) {
         case 'stmc': {
-            const stmc = new STMC(schema, provider as STMCProvider);
+            const stmc = new STMC(schema, provider as STMCProvider, config);
             const client = await stmc.configure();
             const users = await client.getUsers();
             const keyed: {[k: string]: object} = {};
@@ -40,7 +41,7 @@ export default async function connect(schema: Schema, connectorName: string, con
         }
         case 'ldap': {
             const prov = provider as LDAPProvider;
-            const ldap = new LDAP(prov);
+            const ldap = new LDAP(prov, config);
             const client = await ldap.configure();
             //const { users, keyed } = await client.search(ldap.attributes, (prov.filter && prov.filter.trim()!=='') ? prov.filter : undefined);
             const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
@@ -83,7 +84,7 @@ export class STMC {
     connector: STMCProvider;
     proxy?: URL|string;
     eduhub?: string;
-    constructor(schema: Schema, connector: STMCProvider) {
+    constructor(schema: Schema, connector: STMCProvider, config: connectorConfig) {
         this.schema = schema;
         this.connector = connector;
         this.proxy = connector.proxy;
@@ -120,7 +121,7 @@ export class LDAP {
     private mustHave = ['sAMAccountName', 'userPrincipalName', 'cn', 'uid', 'distinguishedName', 'userAccountControl', 'memberOf'];
     public attributes: string[] = this.mustHave;
     private connector: LDAPProvider;
-    constructor(connector: LDAPProvider) {
+    constructor(connector: LDAPProvider, config: connectorConfig) {
         this.connector = connector;
     }
     async configure(): Promise<ldap> {

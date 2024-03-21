@@ -22,6 +22,7 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
     actions: [],
     before_actions: [],
     after_actions: [],
+    config: {},
   } as unknown as Rule;
   const form = useForm({ initialValues, validate: {} });
   useEffect(()=>{

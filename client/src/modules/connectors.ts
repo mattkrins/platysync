@@ -1,6 +1,7 @@
 import { IconBinaryTree2, IconFileTypeCsv, IconSchool, IconNetwork, TablerIconsProps } from "@tabler/icons-react";
 import STMC from "../components/Rules/Editor/Providers/STMC";
 import { UseFormReturnType } from "@mantine/form";
+import LDAP from "../components/Rules/Editor/Providers/LDAP";
 
 export interface provider {
     id: string;
@@ -8,7 +9,7 @@ export interface provider {
     icon: (props: TablerIconsProps) => JSX.Element;
     color: string;
     proxy?: true;
-    Config?: (props: { form: UseFormReturnType<Rule>, provider: provider, k: string }) => JSX.Element;
+    Config?: (props: { form: UseFormReturnType<Rule>, name: string }) => JSX.Element;
 }
 
 export const providers: {
@@ -18,7 +19,8 @@ export const providers: {
       id: 'ldap',
       name: "Lightweight Directory Access Protocol (LDAP)",
       icon: IconBinaryTree2,
-      color: 'blue'
+      color: 'blue',
+      Config: LDAP
   },
   //aad: {
   //    id: 'aad',

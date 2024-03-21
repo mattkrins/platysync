@@ -80,6 +80,7 @@ export interface Rule {
   before_actions: Action[];
   after_actions: Action[];
   actions: Action[];
+  config: {[k: string]: {[k: string]: unknown} };
 }
 
 export interface template {

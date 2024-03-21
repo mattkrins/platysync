@@ -41,6 +41,7 @@ interface Rule {
     before_actions: Action[];
     after_actions: Action[];
     log?: string;
+    config: { [key: string]: unknown };
     [key: string]: unknown;
 }
 
