@@ -1,5 +1,5 @@
 import { ActionIcon, Group, Modal, Stepper, Text, Notification } from "@mantine/core";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import Conditions from "../Editor/Conditions";
 import { useForm } from "@mantine/form";
 import { IconEqual, IconListSearch, IconMaximize, IconMinimize, IconRun,IconViewportNarrow, IconViewportWide, IconX } from "@tabler/icons-react";
@@ -8,6 +8,9 @@ import SchemaContext from "../../../providers/SchemaContext";
 import { useDisclosure, useFullscreen } from "@mantine/hooks";
 import Evaluate from "./Evaluate";
 import Status from "../RunModal/Status";
+
+interface result {template?: object, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
+interface evaluated { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean, checked?: boolean }
 
 export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>void } ) {
     const { schema } = useContext(SchemaContext);
@@ -31,12 +34,22 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
         default: { evaluated: [], initActions: [], finalActions: [] },
         data: {...rule, conditions: form.values.conditions},
     });
-    const checkedCount: number = evaluated.evaluated.filter((r: {checked: boolean})=>r.checked).length;
+    
+    const checked = useMemo(()=> (evaluated.evaluated as evaluated[]).filter(r=>r.checked).map(r=>r.id), [ evaluated.evaluated ]);
+    const checkedCount = checked.length;
+
+    const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI({
+        url: `/schema/${schema?.name}/rules/run`,
+        default: { evaluated: [], initActions: [], finalActions: [] },
+        data: {...rule, conditions: form.values.conditions, evaluated: checked  },
+    });
+
 
     const close2 = () => { close(); r1(); setActive(0); if (fullscreen) toggleFS(); };
 
     useEffect(()=>{
-       if (active==1) evaluate();
+       if (active==2) execute();
+       if (active==1){ evaluate(); r2(); }
        if (active==0) r1();
     }, [ active ]);
 
@@ -80,11 +93,22 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                 <Stepper.Step miw={180}
                 label="Execute"
                 description={`Perform ${checkedCount} Actions`}
+                loading={l2}
                 icon={<IconRun color={checkedCount===0?"gray":undefined} />}
                 allowStepSelect={checkedCount>0}
                 styles={checkedCount===0?{step:{cursor:"not-allowed"}}:undefined}
                 >
-                Execute
+                    {e2?<Notification icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error!">
+                        {e2}
+                    </Notification>:(l2?<Group justify="center" ><Status resultant={false} /></Group>:
+                    <Evaluate
+                    evaluated={executed.evaluated}
+                    setEvaluated={setExecuted}
+                    initActions={executed.initActions}
+                    finalActions={executed.finalActions}
+                    executed
+                    />)
+                    }
                 </Stepper.Step>
                 <Stepper.Completed>
                     Completed, click back button to get to previous step

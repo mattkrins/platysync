@@ -11,17 +11,16 @@ import Schema from './components/Schema/Schema';
 import Connectors from './components/Connectors/Connectors';
 import Rules from './components/Rules/Rules';
 import Schedules from './components/Schedules/Schedules';
-import Dashboard from './components/Dashboard/Dashboard';
 
 function Switcher(){
   const { nav } = useContext(CommonContext);
   switch (nav) {
-    case "Settings": return <Settings/>
+    //case "Settings": return <Settings/>
     case "Schedules": return <Schedules/>
     case "Schema": return <Schema/>
     case "Connectors": return <Connectors/>
     case "Rules": return <Rules/>
-    default: return <Dashboard/>
+    default: return <Settings/>
   }
 }
 

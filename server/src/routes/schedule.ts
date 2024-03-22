@@ -5,7 +5,7 @@ import { Schedule } from "../db/models.js";
 import * as fs from 'fs';
 import Cron from "croner";
 import { _schemas } from "./schema.js";
-import findMatches, { runActionFor } from "../components/rules.js";
+import process, { processActions } from "../components/engine.js";
 
 const scheduled: { [k: string]:  Cron } = {};
 const monitored: { [k: string]:  fs.FSWatcher } = {};
@@ -32,10 +32,10 @@ async function runSchedule(schedule: Schedule){
         for (const rule of schema.rules) {
             if (!rule.enabled) continue;
             if (!rules.includes(rule.name)) continue;
-            const matches = await findMatches(schema, rule );
-            const actionable = matches.matches.filter(a=>a.actionable).map(a=>a.id) as string[];
+            const matches = await process(schema, rule);
+            const actionable = matches.evaluated.filter(a=>a.actionable).map(a=>a.id) as string[];
             if (actionable.length<=0) continue;
-            await runActionFor(schema, rule, actionable );
+            await processActions(schema, rule, actionable );
         }
     } catch (e) {
         console.error(`Schedule ${schedule.id} failed to run: `, e);

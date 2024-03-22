@@ -1,6 +1,7 @@
 import Handlebars from "handlebars";
 import dictionary from './dictionary.js'
 import ldap from "./ldap.js";
+import { paths } from "../server.js";
 
 function toTitleCase(str: string) { return str.replace(/\w\S*/g, function(txt){ return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); }); }
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -23,6 +24,9 @@ Handlebars.registerHelper("grad", function(str: string) {
 Handlebars.registerHelper("inc", function(str: string) { return String(parseInt(str) + 1); });
 Handlebars.registerHelper("escape", function(str: string) { return Handlebars.escapeExpression(str); });
 Handlebars.registerHelper("ouFromDn", function(str: string) { return ldap.ouFromDn(str); });
+
+Handlebars.registerHelper("$dir", function() { return paths.path; });
+Handlebars.registerHelper("$cache", function() { return paths.cache; });
 
 const compiler = Handlebars.compile;
 Handlebars.compile = function(input: string, options?: CompileOptions | undefined) {

@@ -8,7 +8,6 @@ import rule, { rules }  from './routes/rule.js';
 import { User } from './db/models.js';
 import { form, isNotEmpty, hasLength } from './components/validators.js';
 import schedule from './routes/schedule.js';
-import dashboard from './routes/dashboard.js';
 const { getPrinters } = pdfPrinter;
 
 
@@ -51,7 +50,6 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
 
   addRoute(api, '/auth', auth, false );
   
-  addRoute(api, '/', dashboard );
   addRoute(api, '/schedule', schedule );
   addRoute(api, '/schema', schema );
   addRoute(api, '/schema/:schema_name/connector', connector );

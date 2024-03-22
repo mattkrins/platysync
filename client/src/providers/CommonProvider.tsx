@@ -3,7 +3,7 @@ import CommonContext from './CommonContext';
 
 // LINK: ./CommonContext.tsx
 export default function CommonProvider({ children  }: PropsWithChildren) {
-    const [nav, setNav] = useState<string>('Dashboard');
+    const [nav, setNav] = useState<string>('Settings');
     const changeNav = (nav: string) => setNav(nav);
     return (
         <CommonContext.Provider value={{ nav, changeNav }}>

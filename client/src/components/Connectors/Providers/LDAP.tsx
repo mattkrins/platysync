@@ -1,6 +1,6 @@
 import { TextInput, SimpleGrid, PasswordInput, ActionIcon, Button, Group, Grid, Center, Checkbox } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
-import { IconTag, IconWorld, IconUser, IconKey, IconEdit, IconGripVertical, IconTrash, IconFolder, IconServer, IconSearch } from '@tabler/icons-react'
+import { IconTag, IconWorld, IconUser, IconKey, IconEdit, IconGripVertical, IconTrash, IconFolder, IconServer } from '@tabler/icons-react'
 import Concealer from '../../Common/Concealer';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { SelectCreatable } from '../../Common/SelectCreatable';
@@ -117,13 +117,6 @@ export default function LDAP( { form, editing }: { form: UseFormReturnType<Recor
             placeholder="ou=child,ou=parent"
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.5 }} />}
             {...form.getInputProps('base')}
-            />
-            <TextInput mt="md"
-            label="Search Filter"
-            description={<>Searches will be refined using this <a href='https://ldap.com/ldap-filters/' target='_blank'>filter</a>.</>}
-            placeholder="(objectclass=person)"
-            leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }} />}
-            {...form.getInputProps('filter')}
             />
         </Concealer>
     </>)

@@ -13,7 +13,7 @@ export default function SchemaProvider({ children  }: PropsWithChildren) {
         url: `/schema/${name}`,
         loading: name,
         preserve: true,
-        before: () => changeNav('Dashboard'),
+        before: () => changeNav('Settings'),
         then: data => {
             changeNav('Schema');
             if (!data.errors || data.errors.length <= 0) return;
@@ -22,7 +22,7 @@ export default function SchemaProvider({ children  }: PropsWithChildren) {
     });
     const loading = l ? (request as {loading: string|undefined}).loading : false;
     useEffect(()=>{
-        if (name) { fetch(); } else { reset(); changeNav('Dashboard') }
+        if (name) { fetch(); } else { reset(); changeNav('Settings') }
     }, [ name ])
 
     const changeSchema = (nav: string|undefined) => _name(nav);

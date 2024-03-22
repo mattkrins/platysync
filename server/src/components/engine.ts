@@ -142,21 +142,23 @@ export async function evaluateAll(conditions: Condition[], template: template, c
     } return true;
 }
 
-interface cur { time: number, index: number, performance: number, startTime: number }
+interface cur { time: number, index: number, performance: number, startTime: number, progress: number }
 function progress(cur: cur, length: number, id: string, start: number = 0) {
     if (Math.abs(new Date().getTime() - cur.time) < 100) return;
     cur.time = (new Date()).getTime();
     cur.performance = performance.now() - cur.startTime;
-    const p = start + ((cur.index / length)*(100 - start));
-    server.io.emit("progress", { i: cur.index, p, m: length, s: cur.performance, c: start !== 0  });
+    const progress = start + ((cur.index / length)*(100 - start));
+    const diff = progress - cur.progress;
+    if (diff >= 1) server.io.emit("progress", { i: cur.index, p: progress, m: length, s: cur.performance, c: start !== 0  });
     server.io.emit("job_status", `Proccessing ${id}`);
+    cur.progress = progress;
     cur.startTime = performance.now();
 }
 
 const wait = async (t = 100) => new Promise((res)=>setTimeout(res, t));
 export const empty = (value?: string) => !value || value.trim()==='';
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[]) {
-    const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now() };
+    const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now(), progress: 0 };
     progress(cur, 0, 'Search engine initialized');
     server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
     const connections: connections = {};
@@ -180,7 +182,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     if (initActions.filter(r=>r.result.error).length>0){ await conclude(connections); return {evaluated: [], initActions, finalActions: []} }
     cur.index = 15;
     progress(cur, 100, 'entries');
-    await wait(1000);
+    await wait(50);
     const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
     cur.index = 0;
     for (const row of primary.rows) {
@@ -203,7 +205,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             template[secondary.primary] = secondaryJoin;
             keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
         } if (skip) continue;
-        //await wait(100);
+        await wait(100);
         if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
         const output: typeof evaluated[0] = { id, actions: [], actionable: false };
         if (!empty(rule.display)) output.display = compile(template, rule.display);
@@ -216,4 +218,9 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     const {todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
     await conclude(connections);
     return {evaluated, initActions, finalActions};
+}
+
+export async function processActions(schema: Schema , rule: Rule, limitTo: string[]) {
+    if (!limitTo || limitTo.length <= 0) throw (Error("Unreviewed bulk actions not allowed"));
+    return process(schema, rule, limitTo );
 }

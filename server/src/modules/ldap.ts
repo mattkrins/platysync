@@ -4,6 +4,7 @@ export class ldap {
     public client: ldapjs.Client|undefined;
     public connected: boolean = false;
     public base: string = '';
+    public filter: string = '(objectclass=person)'
     constructor() {
     }
     /**
@@ -112,7 +113,7 @@ export class ldap {
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             const opts: ldapjs.SearchOptions = {
-                filter: `(&(objectCategory=Person)(${key}=${value}))`,
+                filter: `(&${this.filter}(${key}=${value}))`,
                 scope: 'sub',
                 sizeLimit: 1000,
                 paged : true,
@@ -150,13 +151,13 @@ export class ldap {
      * @param {boolean} caseSen should object keys be lowercased (optional)
      * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
-    public search(attributes?: string[], id?: string, caseSen = false, filter: string = '(objectclass=person)'): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: User}}> { //TODO - remove this
+    public search(attributes?: string[], id?: string, caseSen = false): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: User}}> { //TODO - remove this
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             const users: {[k: string]: string}[] = [];
             const keyed: {[k: string]: User} = {};
             const opts: ldapjs.SearchOptions = {
-                filter,
+                filter: this.filter,
                 scope: 'sub',
                 sizeLimit: 1000,
                 paged: true,
@@ -187,41 +188,6 @@ export class ldap {
                 res.on('end', (result) => {
                     if (!result || result.status !== 0) return reject(Error("Nothing found."));
                     resolve({users, keyed})
-                });
-            });
-        });
-    }
-    /**
-     * Return all users.
-     * @param {string[]} attributes Array of specific attributes to get (optional)
-     * @param {string} id Attribute to use as key for object response (optional)
-    **/
-    public getUsers(attributes?: string[], id?: string): Promise<{array: {[k: string]: string}[], object: {[k: string]: User}}> { //TODO - remove this
-        return new Promise((resolve, reject) => {
-            if (!this.client) return reject(Error("Not connected."));
-            const usersArray: {[k: string]: string}[] = [];
-            const userObj: {[k: string]: User} = {};
-            const opts: ldapjs.SearchOptions = {
-                filter: '(objectclass=person)',
-                scope: 'sub',
-                sizeLimit: 1000,
-                paged: true,
-                attributes
-            };
-            this.client.search(this.base, opts, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
-                if (err) return reject( err );
-                res.on('searchEntry', (entry) => {
-                    const user: {[k: string]: string} = {};
-                    for (const attribute of entry.attributes) {
-                        user[attribute.type] = ((attribute.values||[]) as string[]).join();
-                        if (id&&attribute.type===id){ userObj[user[attribute.type]] = new User(entry, this.client ); }
-                    }
-                    usersArray.push(user);
-                });
-                res.on('error', (err) => reject(err));
-                res.on('end', (result) => {
-                    if (!result || result.status !== 0) return reject(Error("Nothing found."));
-                    resolve({array: usersArray, object: userObj})
                 });
             });
         });

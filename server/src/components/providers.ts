@@ -43,7 +43,6 @@ export default async function connect(schema: Schema, connectorName: string, con
             const prov = provider as LDAPProvider;
             const ldap = new LDAP(prov, config);
             const client = await ldap.configure();
-            //const { users, keyed } = await client.search(ldap.attributes, (prov.filter && prov.filter.trim()!=='') ? prov.filter : undefined);
             const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
             const close = async () => client.close();
             connection = { rows: users, keyed, provider, close }; break;
@@ -136,6 +135,7 @@ export class LDAP {
     }
     public async configure(): Promise<ldap> {
         const client = new ldap();
+        if (this.config.filter) client.filter = this.config.filter;
         await client.connect(this.connector.url);
         const password = await decrypt(this.connector.password as Hash);
         await client.login(this.connector.username, password);

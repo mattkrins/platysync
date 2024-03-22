@@ -3,7 +3,7 @@ import { _Error } from "../server.js";
 import { getSchema, mutateSchema } from './schema.js'
 import { Rule } from "../typings/common.js";
 import { form, isNotEmpty } from "../components/validators.js";
-import findMatches, { runActionFor } from "../components/rules.js";
+import process, { processActions } from "../components/engine.js";
 
 export function rules(route: FastifyInstance) {
     route.get('/', async (request, reply) => {
@@ -36,7 +36,7 @@ export function rules(route: FastifyInstance) {
           const body = request.body as Rule;
           if (!schema._rules[body.name]) throw reply.code(409).send({ validation: { name: "Rule does not exist." } });
           const rule = schema._rules[body.name];
-          return await findMatches(schema, {...rule, conditions: body.conditions } );
+          return await process(schema, {...rule, conditions: body.conditions } );
       } catch (e) {
         const error = _Error(e);
         reply.code(500).send({ error: error.message });
@@ -47,12 +47,12 @@ export function rules(route: FastifyInstance) {
       try {
           const schema = getSchema(schema_name, reply);
           interface RuleExt extends Rule {
-            matches: string[]
+            evaluated: string[]
           }
           const body = request.body as RuleExt;
           if (!schema._rules[body.name]) throw reply.code(409).send({ validation: { name: "Rule does not exist." } });
           const rule = schema._rules[body.name];
-          return await runActionFor(schema, {...rule, conditions: body.conditions }, body.matches );
+          return await processActions(schema, {...rule, conditions: body.conditions }, body.evaluated );
       } catch (e) {
         const error = _Error(e);
         reply.code(500).send({ error: error.message });
