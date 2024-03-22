@@ -26,6 +26,7 @@ interface Cache {
 interface Options {
     school: string;
     cache?: string;
+    inactive?: boolean;
     proxy?: string|URL;
     eduhub?: {[k: string]: string}[];
 }
@@ -39,17 +40,17 @@ export interface AxiosFix extends AxiosStatic {
 export default class eduSTAR {
     public client: AxiosInstance;
     private school: string;
+    private inactive: boolean;
     private cachePolicy: number = 1440;
     private username: string|undefined;
     private jar = new CookieJar();
-    private users: User[];
     private eduhub?: {[k: string]: string}[];
     constructor(options: Options) {
-        this.users = [];
         let httpAgent;
         let httpsAgent;
         this.school = options.school;
         this.eduhub = options.eduhub;
+        this.inactive = options.inactive||false;
         if (options.cache) this.cachePolicy = Number(options.cache);
         if (options.proxy) {
             const url = new URL(options.proxy);
@@ -117,10 +118,10 @@ export default class eduSTAR {
     }
     public async getUsers(): Promise<User[]> {
         const cache = await this.getUserCache();
-        const ret = (users: User[]) => { this.users = users; return this.users; };
-        if (!cache) return ret(await this.download());
-        if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) return ret(await this.download());
-        return ret(cache.data);
+        if (!cache) return await this.download();
+        if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) return await this.download();
+        if (this.eduhub) this.bindEduhub(cache.data);
+        return cache.data;
     }
     private async getUserCache(): Promise<Cache|undefined> {
         if (!fs.existsSync(`${paths.cache}/${this.school}.users.json`)) return;
@@ -163,12 +164,12 @@ export default class eduSTAR {
             throw e;
         }
     }
-    public bindEduhub() {
-        for (const row in this.users||[]) { //REVIEW - might be better to move this logic delay to each row; is it needed before and after actions?
-            const starUser = this.users[row];
+    private bindEduhub(users: User[]) {
+        for (const row in users||[]) {
+            const starUser = users[row];
             const possible_matches: { hits: number, starUser: User, hubUser: {[k: string]: string} }[] = [];
             for (const hubUser of this.eduhub||[]) {
-                if (["LEFT","LVNG","DEL"].includes(hubUser.STATUS)) continue; //REVIEW - this should be a gui toggle; saves time but some may want these matches.
+                if (!this.inactive && ["LEFT","LVNG","DEL"].includes(hubUser.STATUS)) continue;
                 if (!hubUser.STKEY || !hubUser.SURNAME) continue;
                 let hits = 0;
                 const DISPLAY_NAME = `${hubUser.PREF_NAME} ${hubUser.SURNAME}`;
@@ -194,10 +195,10 @@ export default class eduSTAR {
             if (possible_matches.length<=0) continue;
             const best_match = possible_matches.reduce(function(prev, current) {
                 return (prev && prev.hits > current.hits) ? prev : current
-            }) //TODO - make gui toggle to ensure certainty; maybe a slider?
+            })
             if (!best_match) continue;
-            this.users[row]._eduhub = best_match.hubUser.STKEY;
+            users[row]._eduhub = best_match.hubUser.STKEY;
         }
-        return this.users;
+        return users;
     }
 }

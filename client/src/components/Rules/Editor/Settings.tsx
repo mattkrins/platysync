@@ -20,46 +20,6 @@ interface Secondary {
     secondaryKey: string;
     primaryKey: string;
 }
-//function SecondaryConfig( { secondary, config, form }: { secondary?: Secondary, config: ()=>void, form: UseFormReturnType<Rule> } ) {
-//    const index = form.values.secondaries.findIndex(s =>s.primary ===secondary?.primary);
-//    const { _connectors } = useContext(SchemaContext);
-//    const provider = secondary && providers[_connectors[secondary?.primary].id];
-//    const formKey = `secondaries.${index}.`;
-//    return (
-//      <Modal opened={!!secondary} onClose={config} title={<Group gap="xs">{provider&&<provider.icon size={18} />}{`Configure '${secondary?.primary}' joiner`}</Group>}>
-//        {secondary&&<Box>
-//            <Switch label="Required" mb={4} description={`Skip entries if no join found in '${secondary.primary}'.`}
-//            {...form.getInputProps(`${formKey}.req`, { type: 'checkbox' })}
-//            />
-//            <Switch label="One-To-One" description={`Skip entries on multiple join potentials in '${secondary.primary}' found.`}
-//            {...form.getInputProps(`${formKey}.oto`, { type: 'checkbox' })}
-//            />
-//            <Switch label="Case Sensitive" mb="xs" description={<Text inline size="xs" c="orange">Warning: Setting this on any secondary also effects the primary.</Text>}
-//            {...form.getInputProps(`${formKey}.case`, { type: 'checkbox' })}
-//            />
-//            {(provider&&provider.Config)&&<>
-//            <Divider my="xs" label={`${provider.id} options`} labelPosition="left" />{<provider.Config form={form} k={formKey} provider={provider} />}
-//            </>}
-//        </Box>}
-//      </Modal>
-//    )
-//}
-//
-//function PrimaryConfig( { opened, config, form }: { opened: boolean, config: ()=>void, form: UseFormReturnType<Rule> } ) {
-//    const primary = form.values.primary;
-//    const { _connectors } = useContext(SchemaContext);
-//    const provider = primary ? providers[_connectors[primary].id] : undefined;
-//    const formKey = "config.";
-//    return (
-//      <Modal opened={opened} size="auto" onClose={config} title={<Group gap="xs" >{provider&&<provider.icon size={18} />}{`Configure ${primary}`}</Group>}>
-//        {primary&&<Box>
-//            {(provider&&provider.Config)&&<>
-//            <Divider my="xs" label={`${provider.id} options`} labelPosition="left" />{<provider.Config form={form} k={formKey} provider={provider} />}
-//            </>}
-//        </Box>}
-//      </Modal>
-//    )
-//}
 
 function Config( { opened, close, form  }: { opened?: string, close: ()=>void, form: UseFormReturnType<Rule> } ) {
     const { _connectors } = useContext(SchemaContext);

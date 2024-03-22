@@ -79,18 +79,28 @@ export class CSV {
     }
 }
 
+interface STMCConfig extends connectorConfig {
+    match?: string;
+    inactive?: boolean;
+}
 export class STMC {
-    schema: Schema;
-    connector: STMCProvider;
-    proxy?: URL|string;
-    eduhub?: string;
-    constructor(schema: Schema, connector: STMCProvider, config: connectorConfig) {
+    private schema: Schema;
+    private connector: STMCProvider;
+    private proxy?: URL|string;
+    private config: STMCConfig;
+    constructor(schema: Schema, connector: STMCProvider, config: STMCConfig) {
         this.schema = schema;
         this.connector = connector;
         this.proxy = connector.proxy;
-        this.eduhub = connector.eduhub;
+        this.config  = config;
     }
-    async configure(): Promise<eduSTAR> {
+    private async eduhub(name: string): Promise<{ data: {[k: string]: string}[] }> {
+        if (!this.schema._connectors[name]) throw Error(`Connector '${name}' does not exist.`);
+        const connector = this.schema._connectors[name] as CSVProvider;
+        const csv = new CSV(connector.path);
+        return await csv.open() as { data: {[k: string]: string}[] };
+    }
+    public async configure(): Promise<eduSTAR> {
         if (this.proxy && String(this.proxy).trim()!==""){
             if (!this.schema._connectors[String(this.proxy)]) throw Error(`Connector '${this.proxy}' does not exist.`);
             const connector = this.schema._connectors[String(this.proxy)] as PROXY;
@@ -99,17 +109,12 @@ export class STMC {
             if (connector.password) url.password = await decrypt(connector.password as Hash);
             this.proxy = url;
         }
-        let data;
-        if (this.eduhub){
-            if (!this.schema._connectors[this.eduhub]) throw Error(`Connector '${this.eduhub}' does not exist.`);
-            const connector = this.schema._connectors[this.eduhub] as CSVProvider;
-            const csv = new CSV(connector.path);
-            data = await csv.open() as { data: {[k: string]: string}[] };
-        }
+        const eduhub = this.config.match ? (await this.eduhub(this.config.match)).data : undefined;
         const client = new eduSTAR({
             school: this.connector.school,
             proxy: this.proxy,
-            eduhub: data?.data
+            inactive: this.config.inactive,
+            eduhub
         });
         const password = await decrypt(this.connector.password as Hash);
         await client.login(this.connector.username, password);
@@ -117,14 +122,19 @@ export class STMC {
     }
 }
 
+interface LDAPConfig extends connectorConfig {
+    filter?: string;
+}
 export class LDAP {
     private mustHave = ['sAMAccountName', 'userPrincipalName', 'cn', 'uid', 'distinguishedName', 'userAccountControl', 'memberOf'];
     public attributes: string[] = this.mustHave;
     private connector: LDAPProvider;
-    constructor(connector: LDAPProvider, config: connectorConfig) {
+    private config: LDAPConfig;
+    constructor(connector: LDAPProvider, config: LDAPConfig) {
         this.connector = connector;
+        this.config = config;
     }
-    async configure(): Promise<ldap> {
+    public async configure(): Promise<ldap> {
         const client = new ldap();
         await client.connect(this.connector.url);
         const password = await decrypt(this.connector.password as Hash);

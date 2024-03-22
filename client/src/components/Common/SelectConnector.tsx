@@ -16,6 +16,7 @@ interface Props extends InputWrapperProps {
     data?: string[]|{ component: JSX.Element, value: string }[];
     value?: string;
     disabled?: boolean;
+    withinPortal?: boolean;
     type?: string;
     sources?: string[];
     placeholder?: string;
@@ -56,7 +57,7 @@ export default function SelectConnector({onChange, value: v2 = '', placeholder, 
     <Input.Wrapper {...props} >
         <Combobox disabled={props.disabled||false}
         store={combobox}
-        withinPortal={false}
+        withinPortal={props.withinPortal||false}
         onOptionSubmit={(val) => {
             setValue(val);
             if (onChange) onChange(val);
