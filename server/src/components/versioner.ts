@@ -1,3 +1,4 @@
+import { db } from "../db/database.js";
 import { mutateSchema } from "../routes/schema.js";
 import { log, path } from "../server.js";
 import { readYAML } from "../storage.js";
@@ -7,11 +8,12 @@ import * as fs from 'fs';
 const versions: {
     min?: number,
     max?: number,
-    upgrade: (schema: Schema) => void
+    upgrade: (schema: Schema) => Promise<void>
 }[] = [
     {
         max: 0.4,
-        upgrade: (schema: Schema) => { try {
+        upgrade: async (schema: Schema) => { try {
+            await db.sync( { alter: true} );
             for (const rule of schema.rules){
                 const upgrade = (conditions: Condition[]) => {
                     for (const condition of conditions){
@@ -51,16 +53,16 @@ const versions: {
     }}
 ]
 
-function evaluate(schema: Schema) {
+async function evaluate(schema: Schema) {
     for (const version of versions){
         if (version.max && schema.version > version.max) continue;
         if (version.min && schema.version < version.min) continue;
         log.info(`Upgrade detected for schema '${schema.name}'.`);
-        version.upgrade(schema);
+        await version.upgrade(schema);
     }
 }
 
-export default function versioner() {
+export default async function versioner() {
     const folderPath = `${path}/schemas/`;
     const all = fs.readdirSync(`${path}/schemas/`);
     const folders = all.filter(o => fs.statSync(`${folderPath}/${o}`).isDirectory() );
@@ -71,13 +73,13 @@ export default function versioner() {
         const connectors: Schema['connectors'] = readYAML(`${folderPath}/${folder}/connectors.yaml`) || [];
         const rules: Schema['rules'] = readYAML(`${folderPath}/${folder}/rules.yaml`) || [];
         const schema = { ...yaml, connectors, rules };
-        evaluate(schema);
+        await evaluate(schema);
     }
     for (const file of files){
         try {
             const schema: Schema = readYAML(`${folderPath}/${file}`);
             if (!schema.version) continue;
-            evaluate(schema);
+            await evaluate(schema);
         } catch (e) { log.warn("Unexpected file in schemas", e); continue; }
     }
 

@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize';
 import models from './models.js';
 
+export let db: Sequelize;
 export async function database(path: string){
     const sequelize = new Sequelize({
         dialect: 'sqlite',
@@ -8,6 +9,7 @@ export async function database(path: string){
         logging: false
     });
     models(sequelize);
+    db = sequelize;
     await sequelize.sync();
     //await sequelize.sync({ force: true });
 }

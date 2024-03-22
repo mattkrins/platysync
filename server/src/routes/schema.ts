@@ -45,7 +45,7 @@ export async function cacheSchema(name: string) {
 export async function initSchemaCache() {
   schemas = [];
   _schemas = {};
-  versioner();
+  await versioner();
   const folderPath = `${path}/schemas/`;
   const all = fs.readdirSync(folderPath);
   const files = all.filter(o => fs.statSync(`${folderPath}/${o}`).isFile() );

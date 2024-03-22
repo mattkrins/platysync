@@ -28,7 +28,12 @@ export class Schedule extends Model {
     declare expiresAt: string;
 }
 
-//TODO - printing
+export class Doc extends Model {
+    declare id: string;
+    declare index: number;
+    declare name: string;
+    declare type: string;
+}
 
 export default function models( sequelize: Sequelize ) {
     User.init( {
@@ -42,20 +47,20 @@ export default function models( sequelize: Sequelize ) {
     }, { sequelize, modelName: 'Session', updatedAt: false } );
     Schedule.init( {
         id: { type: DT.STRING, defaultValue: DT.UUIDV1, primaryKey: true },
-        index: { type: DT.INTEGER, allowNull: false },
+        index: { type: DT.INTEGER, allowNull: false, defaultValue: 0 },
         schema: { type: DT.STRING, allowNull: false },
         rules: { type: DT.STRING, allowNull: true },
         cron: { type: DT.STRING, allowNull: true },
         monitor: { type: DT.STRING, allowNull: true },
         enabled: { type: DT.BOOLEAN, allowNull: false, defaultValue: false },
     }, { sequelize, modelName: 'Schedule', updatedAt: false } );
-    Schedule.beforeValidate (async (schedule) => {
-        if (!schedule.isNewRecord) return;
+    Schedule.beforeValidate (async (row) => {
+        if (!row.isNewRecord) return;
         const i = await Schedule.count();
-        schedule.index = i;
+        row.index = i;
     });
-    Schedule.beforeDestroy (async (schedule) => {
-        const higher = await Schedule.findAll({where: { index: { [Op.gt]: schedule.index } }});
+    Schedule.beforeDestroy (async (row) => {
+        const higher = await Schedule.findAll({where: { index: { [Op.gt]: row.index } }});
         for (const s of higher) {
             s.index = s.index - 1;
             await s.save();
@@ -68,5 +73,22 @@ export default function models( sequelize: Sequelize ) {
         const { encrypted, iv } = await encrypt(user.password);
         user.password = encrypted;
         user.iv = iv;
+    });
+    Doc.init( {
+        id: { type: DT.STRING, defaultValue: DT.UUIDV1, primaryKey: true },
+        schema: { type: DT.STRING, allowNull: false },
+        type: { type: DT.STRING, allowNull: true },
+    }, { sequelize, modelName: 'File' } );
+    Doc.beforeValidate (async (row) => {
+        if (!row.isNewRecord) return;
+        const i = await Schedule.count();
+        row.index = i;
+    });
+    Doc.beforeDestroy (async (row) => {
+        const higher = await Schedule.findAll({where: { index: { [Op.gt]: row.index } }});
+        for (const s of higher) {
+            s.index = s.index - 1;
+            await s.save();
+        }
     });
 }

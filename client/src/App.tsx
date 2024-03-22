@@ -11,12 +11,14 @@ import Schema from './components/Schema/Schema';
 import Connectors from './components/Connectors/Connectors';
 import Rules from './components/Rules/Rules';
 import Schedules from './components/Schedules/Schedules';
+import Files from './components/Files/Files';
 
 function Switcher(){
   const { nav } = useContext(CommonContext);
-  switch (nav) {
+  switch (nav) { //LINK - client\src\components\Layout\Navbar.tsx
     //case "Settings": return <Settings/>
     case "Schedules": return <Schedules/>
+    case "Files": return <Files/>
     case "Schema": return <Schema/>
     case "Connectors": return <Connectors/>
     case "Rules": return <Rules/>
