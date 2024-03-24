@@ -24,7 +24,7 @@ export interface FetchProps extends AxiosRequestConfig {
   [key: string]: unknown;
 }
 
-interface Exports {
+export interface Exports {
     loading: boolean;
     response: unknown|undefined;
     data: any|undefined;
@@ -35,9 +35,14 @@ interface Exports {
     get(options?: object): any;
     post(options?: object): any;
     put(options?: object): any;
+    save(options?: object): any;
     del(options?: object): any;
     reset(): void;
     setData(data: unknown): void;
+    set(data: unknown): void;
+    helpers: {
+        reorderObjects: (from: number, to: number, index?: string) => void;
+    }
 }
 
 interface eResponse {
@@ -123,21 +128,36 @@ export default function useFetch( props : FetchProps = {} ) {
     const put = (params: FetchProps = {}) => fetch({...params, method: "put"});
     const get = (params: FetchProps = {}) => fetch({...params, method: "get"});
     const del = (params: FetchProps = {}) => fetch({...params, method: "delete"});
+    const reorderObjects = (from: number, to: number, index: string = "index") => {
+        setData((items: any[])=>{
+            const copy = [...items];
+            const f = copy.find(d=>d[index]===from);
+            const t = copy.find(d=>d[index]===to);
+            if (!f || !t) return;
+            f[index] = to; t[index] = from;
+            return copy;
+        });
+    }
 
     const exports: Exports = {
         fetch,
         post,
         put,
+        save: put,
         get,
         del,
         reset,
         setData,
+        set: setData,
         loading,
         request,
         response,
         data,
         error,
-        invalid
+        invalid,
+        helpers: {
+            reorderObjects
+        }
     };
     return (
         exports

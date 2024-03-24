@@ -18,7 +18,8 @@ export const path = `${dataPath}/cdapp`;
 export const paths = {
   path,
   schemas: `${path}/schemas`,
-  cache: `${path}/cache`
+  cache: `${path}/cache`,
+  storage: `${path}/storage`,
 };
 for (const path of Object.values(paths)) if (!fs.existsSync(path)) fs.mkdirSync(path);
 const pkg = fs.readFileSync('package.json', 'utf-8');

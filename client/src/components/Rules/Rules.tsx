@@ -11,7 +11,6 @@ import { modals } from '@mantine/modals';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { availableActions } from '../../modules/common.ts';
 import Editor from './Editor/Editor.tsx';
-import RunModal from './RunModal/RunModal.tsx';
 import RunModalNew from './Run/Run.tsx';
 import classes from '../../Theme.module.css';
 

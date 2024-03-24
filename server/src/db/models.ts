@@ -31,8 +31,9 @@ export class Schedule extends Model {
 export class Doc extends Model {
     declare id: string;
     declare index: number;
+    declare schema: string;
     declare name: string;
-    declare type: string;
+    declare ext?: string;
 }
 
 export default function models( sequelize: Sequelize ) {
@@ -76,16 +77,19 @@ export default function models( sequelize: Sequelize ) {
     });
     Doc.init( {
         id: { type: DT.STRING, defaultValue: DT.UUIDV1, primaryKey: true },
+        index: { type: DT.INTEGER, allowNull: false, defaultValue: 0 },
         schema: { type: DT.STRING, allowNull: false },
-        type: { type: DT.STRING, allowNull: true },
+        name: { type: DT.STRING, allowNull: false },
+        ext: { type: DT.STRING, allowNull: true },
     }, { sequelize, modelName: 'File' } );
     Doc.beforeValidate (async (row) => {
         if (!row.isNewRecord) return;
-        const i = await Schedule.count();
+        row.ext = row.ext || (row.name||"unknown").split(".")[1];
+        const i = await Doc.count({where: { schema: row.schema }});
         row.index = i;
     });
     Doc.beforeDestroy (async (row) => {
-        const higher = await Schedule.findAll({where: { index: { [Op.gt]: row.index } }});
+        const higher = await Doc.findAll({where: { index: { [Op.gt]: row.index }, schema: row.schema }});
         for (const s of higher) {
             s.index = s.index - 1;
             await s.save();

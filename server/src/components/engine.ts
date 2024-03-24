@@ -1,7 +1,7 @@
 import { compile } from "../modules/handlebars.js";
 import { Action, Condition, Rule, Schema, connections } from "../typings/common.js";
 import connect from "./providers.js";
-import { server } from "../server.js";
+import { paths, server } from "../server.js";
 import { User } from "../modules/ldap.js";
 import FileCopy from "./operations/FileCopy.js";
 import SysComparator from "./operations/SysComparator.js";
@@ -24,6 +24,7 @@ import DirDisableUser from "./operations/DirDisableUser.js";
 import DirEnableUser from "./operations/DirEnableUser.js";
 import DirCreateUser from "./operations/DirCreateUser.js";
 import StmcUpload from "./operations/StmcUpload.js";
+import { Doc } from "../db/models.js";
 
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}
@@ -178,7 +179,14 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     cur.index = 10;
     progress(cur, 100, 'init actions');
     await wait(500);
-    const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, {}, connections, {}, schema, !!idFilter);
+
+    const docsTemplate: template = { $file: {} };
+    const docs = await Doc.findAll({where: { schema: schema.name }, raw: true });
+    for (const doc of docs) {
+        const path = `${paths.storage}/${schema.name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
+        (docsTemplate.$file as { [k: string]: string })[doc.name] = path;
+    }
+    const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, docsTemplate, connections, {}, schema, !!idFilter);
     if (initActions.filter(r=>r.result.error).length>0){ await conclude(connections); return {evaluated: [], initActions, finalActions: []} }
     cur.index = 15;
     progress(cur, 100, 'entries');

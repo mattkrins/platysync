@@ -1,4 +1,4 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPlus, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFileText, IconFileTypeCsv, IconFileTypeDocx, IconFileTypeXls, IconFileZip, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPhoto, IconPlus, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
 import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
 import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
@@ -19,6 +19,17 @@ import EncryptString from '../components/Rules/Editor/Operations/SysEncryptStrin
 import FolderCreate from '../components/Rules/Editor/Operations/FolderCreate';
 import DirUpdateSec from '../components/Rules/Editor/Operations/DirUpdateSec';
 import SysComparator from '../components/Rules/Editor/Operations/SysComparator';
+
+/**
+    Check if string is valid for the windows filesystem.
+    @param value - Any string
+    @returns true|false
+*/
+export function validWindowsFilename(value: string): boolean {
+    const invalidChars = /[<>:"/\\|?*]/g;
+    const reservedNames = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+    return !invalidChars.test(value) && !reservedNames.test(value) && value.length <= 260 && value.length > 0;
+}
 
 export const ldapAttributes = [
     "name",
@@ -323,13 +334,25 @@ export const availableActions: {
     //},
 }
 
-/**
-    Check if string is valid for the windows filesystem.
-    @param value - Any string
-    @returns true|false
-*/
-export function validWindowsFilename(value: string): boolean {
-  const invalidChars = /[<>:"/\\|?*]/g;
-  const reservedNames = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
-  return !invalidChars.test(value) && !reservedNames.test(value) && value.length <= 260 && value.length > 0;
-}
+export const extIcons: { [k: string]: (props: TablerIconsProps) => JSX.Element } = {
+    jpg: IconPhoto,
+    jpeg: IconPhoto,
+    png: IconPhoto,
+    gif: IconPhoto,
+    svg: IconPhoto,
+    bmp: IconPhoto,
+    pdf: IconFileTypePdf,
+    doc: IconFileTypeDocx,
+    docx: IconFileTypeDocx,
+    xls: IconFileTypeXls,
+    xlsx: IconFileTypeXls,
+    txt: IconFileText,
+    csv: IconFileTypeCsv,
+    json: IconFileText,
+    xml: IconFileText,
+    zip: IconFileZip,
+    rar: IconFileZip,
+    tar: IconFileZip,
+    gz: IconFileZip,
+    dmg: IconFileZip,
+};

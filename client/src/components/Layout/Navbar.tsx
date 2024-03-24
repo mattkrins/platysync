@@ -10,16 +10,16 @@ import SchemaContext from '../../providers/SchemaContext';
 import NewSchema from './NewSchema';
 import AuthContext from '../../providers/AuthContext';
 import useSocket from '../../hooks/useSocket';
-import Status from '../Rules/RunModal/Status';
+import Status from '../Rules/Run/Status';
 
 const commonLinks = [
   { icon: IconAdjustmentsHorizontal, label: 'Settings' },
   { icon: IconClock, label: 'Schedules' },
-  { icon: IconFiles, label: 'Files' },
 ];
 
 const schemaLinks = [
   { icon: IconSettings, label: 'Schema' },
+  { icon: IconFiles, label: 'Files' },
   { icon: IconPlug, label: 'Connectors' },
   { icon: IconCheckbox, label: 'Rules' },
 ];

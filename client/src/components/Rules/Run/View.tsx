@@ -9,7 +9,7 @@ function DataReader({ action, resultant = false }: { action: action, resultant: 
     switch (action.name) {
       //case "Create User": return <CreateUser action={action} resultant={resultant} />
       //case "Update Attributes": return <UpdateAtts action={action} resultant={resultant} />
-      default: return <Common action={action} resultant={resultant} />
+      default: return <Common action={action} resultant={resultant} /> //TODO - improve and cleanup
     }
 }
 

@@ -1,7 +1,8 @@
 import { useContext } from 'react';
 import AuthContext from '../providers/AuthContext';
-import useFetch, { FetchProps } from './useFetch';
+import useFetch, { FetchProps, Exports as ex } from './useFetch';
 import { notifications } from '@mantine/notifications';
+export interface Exports extends ex { }
 
 interface Validation {
     [k: string]: string;

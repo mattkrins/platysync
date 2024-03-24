@@ -1,12 +1,11 @@
 import { Box, Code, List } from '@mantine/core'
-import { action } from '../Finder'
 import classes from '../../../../Theme.module.css';
 
 interface data {
     [k: string]: string;
 }
 
-export default function Common({ action }:{ action: action, resultant: boolean }) {
+export default function Common({ action }:{ action: any, resultant: boolean }) {
     if (!action.result.data) return <></>;
     const data = action.result.data as data;
     return (

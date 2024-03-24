@@ -7,7 +7,7 @@ import useAPI from "../../../hooks/useAPI";
 import SchemaContext from "../../../providers/SchemaContext";
 import { useDisclosure, useFullscreen } from "@mantine/hooks";
 import Evaluate from "./Evaluate";
-import Status from "../RunModal/Status";
+import Status from "./Status";
 
 interface result {template?: object, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
 interface evaluated { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean, checked?: boolean }

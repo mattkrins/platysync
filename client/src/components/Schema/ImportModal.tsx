@@ -1,5 +1,5 @@
 import { Box, Group, Text } from '@mantine/core';
-import { Dropzone, FileWithPath } from '@mantine/dropzone';
+import { Dropzone } from '@mantine/dropzone';
 import { IconUpload, IconX, IconFile } from '@tabler/icons-react';
 import { useContext } from 'react';
 import SchemaContext from '../../providers/SchemaContext';
@@ -13,7 +13,7 @@ export default function ImportModal({ close }: { close(): void }) {
         headers: { 'Content-Type': 'multipart/form-data' },
         then: () => { close(); reload(); }
     });
-    const upload = (files: FileWithPath[]) => {
+    const upload = (files: File[]) => {
         const formData = new FormData();
         formData.append('file', files[0]);
         post({data: formData});
