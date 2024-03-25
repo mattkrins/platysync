@@ -1,4 +1,4 @@
-import { Box, Tabs } from "@mantine/core";
+import { Anchor, Box, Breadcrumbs, Tabs, Text } from "@mantine/core";
 import { IconSettings, IconFilter, IconRun, IconX } from "@tabler/icons-react";
 import { useContext, useEffect, useState } from "react";
 import Settings from "./Settings";
@@ -11,6 +11,7 @@ import Actions from "./Actions";
 import useAPI from "../../../hooks/useAPI";
 import { notifications } from "@mantine/notifications";
 import SchemaContext from "../../../providers/SchemaContext";
+import { modals } from '@mantine/modals';
 
 export default function Editor({ editing, close }: { editing: Rule|undefined, close(): void }) {
   const { schema, mutate } = useContext(SchemaContext);
@@ -61,14 +62,32 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
   const taken = (form.values.secondaries||[]).map(s=>s.primary);
   const sources = [form.values.primary, ...taken];
 
+  const safeClose = () => form.isTouched() ? modals.openConfirmModal({
+        title: 'Attention: Unsaved Changes Detected',
+        centered: true,
+        children: (
+        <Text size="sm">
+            It appears that you have made changes to the rule.<br/>
+            Closing without saving will result in the loss of your modifications.<br/>
+            Would you like to close without saving?
+        </Text>
+        ),
+        labels: { confirm: 'Close', cancel: "Cancel" },
+        confirmProps: { color: 'red' },
+        onConfirm: () => close(),
+    }) : close();
+
   return (
   <Box>
     <Container label={<Head rightSection={
       <SplitButton loading={loading} variant="light" onClick={editing?save:add} options={[
-        {  onClick:()=>close(), label: 'Cancel', leftSection: <IconX size={16}  /> }
+        {  onClick:()=>safeClose(), label: 'Cancel', leftSection: <IconX size={16}  /> }
       ]} >{editing?'Save':'Create'}</SplitButton>
       
-    } >Rule{editing?' - Edit':' - New'}</Head>} >
+    } ><Breadcrumbs>
+      <Anchor onClick={()=>safeClose()} fz={26} fw="bold" >Rules</Anchor>
+      <Text fz={26} fw="bold" >Rule{editing?' - Edit':' - New'}</Text>
+    </Breadcrumbs></Head>} >
     <Tabs value={activeTab} onChange={setActiveTab}>
       <Tabs.List>
         <Tabs.Tab value="settings" leftSection={<IconSettings size="0.8rem" />} >Settings</Tabs.Tab>
