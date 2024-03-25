@@ -1,12 +1,13 @@
 import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea, Modal, Divider } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconCode, IconGripVertical, IconKey, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
+import { IconGripVertical, IconKey, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../Common/SelectConnector";
 import { useContext, useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import SchemaContext from "../../../providers/SchemaContext";
 import ExplorerContext from "../../../providers/ExplorerContext";
 import providers from "../../../modules/connectors";
+import useTemplate from "../../../hooks/useTemplate";
 
 const logLevels = [
     { value: '0', label: 'Disabled' },
@@ -46,6 +47,9 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
     const { connectors, _connectors } = useContext(SchemaContext);
     const { explorer, explore } = useContext(ExplorerContext);
     const [opened, config] = useState<string|undefined>(undefined);
+
+    const [ templateProps ] = useTemplate(sources);
+
     const openConfig = (name: string) => {
         const c = form.values.config;
         if (!(name in c) || c[name]===undefined) form.setFieldValue('config', { ...c, [name]: {} });
@@ -172,8 +176,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
             leftSection={<IconTable size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="{{username}}"
             mt="xs"
-            rightSection={ <ActionIcon onClick={()=>explore(modify, sources)} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon> }
-            {...form.getInputProps('display')}
+            {...templateProps(()=>explore(modify, sources), form.getInputProps('display'), sources)}
         />
         <Switch mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
         <Group grow>

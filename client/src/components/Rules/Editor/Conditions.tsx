@@ -7,6 +7,7 @@ import ExplorerContext from "../../../providers/ExplorerContext";
 import { availableConditions, mathOperators, stringOperators } from "../../../modules/common";
 import SelectConnector from "../../Common/SelectConnector";
 import SchemaContext from "../../../providers/SchemaContext";
+import useTemplate, { templateProps } from "../../../hooks/useTemplate";
 
 const groupOperators = [
   { label: 'Member of group', value: 'ldap.member' },
@@ -35,13 +36,13 @@ interface ValueInput {
   modifyCondition: (key: string, index: number) => () => void;
   delimit: (index: number, delimiter: string) => () => void;
   delimited: (index: number, delimiter: string) => boolean;
+  templateProps: templateProps;
 }
 function ValueInput( { form, index, modifyCondition, delimit, delimited }: ValueInput ) {
   const icon =
   delimited(index, '') ? <IconDots size={16} style={{ display: 'block', opacity: 0.8 }} />:
   <IconCodeAsterix size={16} style={{ display: 'block', opacity: 0.8 }} />
-
-  return (
+  return ( //TODO - implement templateProps
     <TextInput placeholder='Value'
     {...form.getInputProps(`conditions.${index}.value`)}
     rightSection={
@@ -68,6 +69,7 @@ export default function Conditions( { form, label, action, sources = [] }: {form
   const theme = useMantineTheme();
   const { _connectors } = useContext(SchemaContext);
   const { explorer, explore, } = useContext(ExplorerContext);
+  const [ templateProps ] = useTemplate(sources);
   const add = (type: string, operator?: string) => () => form.insertListItem('conditions', {
     type,
     key: '',
@@ -139,10 +141,7 @@ export default function Conditions( { form, label, action, sources = [] }: {form
                         <Grid.Col span="auto">
                           <TextInput placeholder='Key'
                           {...form.getInputProps(`conditions.${index}.key`)}
-                          rightSection={ <ActionIcon
-                            onClick={modifyCondition('key',index)}
-                            variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon>
-                          }
+                          {...templateProps(modifyCondition('key',index), form.getInputProps(`conditions.${index}.key`), sources)}
                           />
                         </Grid.Col>:
                         <Grid.Col span="auto">
@@ -169,7 +168,7 @@ export default function Conditions( { form, label, action, sources = [] }: {form
                           />
                         </Grid.Col>}
                         {!noValues.includes(c.type)&&<Grid.Col span="auto">
-                            <ValueInput form={form} index={index} delimit={delimit} delimited={delimited} modifyCondition={modifyCondition} />
+                            <ValueInput templateProps={templateProps} form={form} index={index} delimit={delimit} delimited={delimited} modifyCondition={modifyCondition} />
                         </Grid.Col>}
                         <Grid.Col span="content">
                             <Group justify="right" gap="xs">
