@@ -64,7 +64,7 @@ export function Login() {
                 <PasswordInput classNames={{ input: classes.input }} onKeyUp={onKeyUp} {...form.getInputProps('password')} label="Password" placeholder="Your password" required mt="md" />
                 <Group justify="space-between" mt="lg">
                     <Checkbox label="Remember me" {...form.getInputProps('checked', { type: 'checkbox' })} />
-                    <Anchor component="button" size="sm">Forgot password?</Anchor>
+                    <Anchor href="https://github.com/mattkrins/cdapp/wiki/Troubleshooting#forgot-password" target="_blank" size="sm">Forgot password?</Anchor>
                 </Group>
                 <Button onClick={()=>validate()} loading={loading} fullWidth mt="xl">Sign in</Button>
             </Paper>

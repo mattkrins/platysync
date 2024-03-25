@@ -213,7 +213,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             template[secondary.primary] = secondaryJoin;
             keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
         } if (skip) continue;
-        await wait(100);
+        //await wait(100);
         if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
         const output: typeof evaluated[0] = { id, actions: [], actionable: false };
         if (!empty(rule.display)) output.display = compile(template, rule.display);
