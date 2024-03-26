@@ -45,7 +45,7 @@ export default async function ({ action, template, execute, data, connections }:
             }
         }
         (connections[action.target].client as fs.WriteStream).write(data.data+(action.newline?"\r\n":''));
-        return { success: true, data, connections };
+        return { success: true, data };
     } catch (e){
         return { error: String(e), data };
     }
