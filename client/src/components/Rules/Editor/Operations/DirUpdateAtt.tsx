@@ -1,21 +1,29 @@
 import { ActionIcon, Box, Button, Center, Grid, Group, Select, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconBinaryTree2, IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
+import { IconBinaryTree2, IconGripVertical, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ldapAttributes } from "../../../../modules/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
+import useTemplate from "../../../../hooks/useTemplate";
 
-function Attributes( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
+function Attributes( { form, index, explore, actionType, sources, templates }: {
+    form: UseFormReturnType<Rule>,
+    index: number,
+    explore: explore,
+    actionType: string,
+    sources: string[],
+    templates: string[],
+} ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].attributes || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
     form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`), sources );
-    const explorer = (key: string, index2: number) => <ActionIcon
-    onClick={modifyCondition(key, index2)}
-    variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
-    </ActionIcon>
+
+    const [ templateProps ] = useTemplate(sources, templates);
+    const inputProps = (key: string, index2: number) =>
+    templateProps(modifyCondition(key, index2), form.getInputProps(`${actionType}.${index}.attributes.${index2}.${key}`));
   
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No attributes configured.</Center>}
@@ -51,8 +59,7 @@ function Attributes( { form, index, explore, actionType, sources }: { form: UseF
                         {(actions[index].attributes[index2].type as string)!=="Delete"&&<Grid.Col span="auto">
                             <TextInput
                                 placeholder="Value"
-                                {...form.getInputProps(`${actionType}.${index}.attributes.${index2}.value`)}
-                                rightSection={explorer('value', index2)}
+                                {...inputProps('value', index2)}
                             />
                         </Grid.Col>}
                         <Grid.Col span="content">
@@ -75,7 +82,7 @@ function Attributes( { form, index, explore, actionType, sources }: { form: UseF
     );
 }
 
-export default function UpdateAttributes( { form, index, explore, actionType, sources }: ActionItem){
+export default function UpdateAttributes( { form, index, explore, actionType, sources, templates }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:'', type: 'Replace'});
@@ -90,7 +97,7 @@ export default function UpdateAttributes( { form, index, explore, actionType, so
             sources={sources}
         />
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Attributes form={form} index={index} explore={explore} actionType={actionType} sources={sources} />
+            <Attributes form={form} index={index} explore={explore} actionType={actionType} sources={sources} templates={templates} />
         </Concealer>
     </Box>
     )

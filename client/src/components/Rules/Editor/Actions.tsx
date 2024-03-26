@@ -1,13 +1,14 @@
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useMantineTheme, Box, Group, Button, Grid, ActionIcon, Text, NavLink, Popover, Collapse, Divider } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconCode } from "@tabler/icons-react";
+import { IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil } from "@tabler/icons-react";
 import { useContext, useMemo } from "react";
 import ExplorerContext from "../../../providers/ExplorerContext";
 import { useDisclosure } from "@mantine/hooks";
 import { availableActions, availableCatagories } from "../../../modules/common";
 import classes from './Actions.module.css';
 import SchemaContext from "../../../providers/SchemaContext";
+import useTemplate from "../../../hooks/useTemplate";
 
 function ActionGroup({add, perRule, label, connectors = []}:{add: (name: string) => void, perRule?: boolean, label: string, connectors: string[]}) {
   const [opened, { close, open }] = useDisclosure(false);
@@ -44,6 +45,7 @@ function ActionGroup({add, perRule, label, connectors = []}:{add: (name: string)
 
 function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFormReturnType<Rule>, index: number, a: Action, explore: explore, actionType: string, hasLDAP: boolean } ){
   const [opened, { toggle }] = useDisclosure(false);
+  
   const theme = useMantineTheme();
   const { Icon, color, Component } = availableActions[a.name];
   const copy = (v: Action) => () => form.insertListItem(actionType, {...v});
@@ -54,9 +56,9 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
   const templates: string[] = useMemo(()=>{
     const t: string[] = [];
     const allActions = 
-    actionType==="before_actions" ? [] : 
-    actionType==="actions" ? form.values.before_actions||[] : 
-    actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[]] : [];
+    actionType==="before_actions" ? form.values.before_actions||[] : 
+    actionType==="actions" ? [...form.values.before_actions||[], ...form.values.actions||[]] : 
+    actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[], ...form.values.after_actions||[]] : [];
     for (const action of allActions){
       switch (action.name) {
         case "Encrypt String":{ t.push(action.source as string); break; }
@@ -71,15 +73,14 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
       }
     } return t;
   }, [ form.values.before_actions, form.values.actions, form.values.after_actions ]);
+  const [ templateProps ] = useTemplate(actionType === "actions" ? sources : [], templates);
   
   const actions = form.values[actionType] as Action[];
   const modifyCondition = (key: string)=> () => explore(() => (value: string) =>
   form.setFieldValue(`${actionType}.${index}.${key}`,
   `${actions[index][key]||''}{{${value}}}`), actionType === "actions" ? sources : [], templates );
-  const explorer = (key: string) => <ActionIcon
-  onClick={modifyCondition(key)}
-  variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
-  </ActionIcon>;
+  
+  const inputProps = (key: string) => templateProps( modifyCondition(key), form.getInputProps(`${actionType}.${index}.${key}`)  );
 
   return (<>
     <Grid.Col span="auto">{index+1}. <Icon color={color?theme.colors[color][6]:undefined} size={18} stroke={1.5} /> {a.name}</Grid.Col>
@@ -92,7 +93,7 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
     </Grid.Col>
     <Grid.Col span={12} pt={0} pb={0} >
       <Collapse in={opened}>
-        <Component form={form} index={index} explorer={explorer} explore={explore} actionType={actionType} hasLDAP={hasLDAP} sources={sources} />
+        <Component form={form} index={index} inputProps={inputProps} explore={explore} actionType={actionType} hasLDAP={hasLDAP} sources={sources} templates={templates} />
       </Collapse>
     </Grid.Col>
   </>

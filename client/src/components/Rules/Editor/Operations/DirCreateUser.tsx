@@ -1,21 +1,27 @@
 import { ActionIcon, Box, Button, Center, Grid, Group, Switch, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconAt, IconBinaryTree2, IconCode, IconFolder, IconGripVertical, IconHierarchy, IconKey, IconTrash, IconUser } from "@tabler/icons-react";
+import { IconAt, IconBinaryTree2, IconFolder, IconGripVertical, IconHierarchy, IconKey, IconTrash, IconUser } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ldapAttributes } from "../../../../modules/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
+import useTemplate, { templateProps } from "../../../../hooks/useTemplate";
 
-function SecurityGroups( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
+function SecurityGroups( { form, index, explore, actionType, sources, templateProps }: {
+    form: UseFormReturnType<Rule>,
+    index: number, explore: explore,
+    actionType: string,
+    sources: string[],
+    templateProps: templateProps
+} ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].groups || []) as string[];
     const modifyCondition = (index2: number)=> () => explore(() => (value: string) =>
     form.setFieldValue(`${actionType}.${index}.groups.${index2}`, `${actions[index].groups[index2]||''}{{${value}}}`), sources );
-    const explorer = (index2: number) => <ActionIcon
-    onClick={modifyCondition(index2)}
-    variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
-    </ActionIcon>
+
+    const inputProps = (index2: number) =>
+    templateProps(modifyCondition(index2), form.getInputProps(`${actionType}.${index}.groups.${index2}`));
   
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No security groups configured.</Center>}
@@ -37,8 +43,7 @@ function SecurityGroups( { form, index, explore, actionType, sources }: { form: 
                         <Grid.Col span="auto">
                             <TextInput
                                 placeholder="CN={{faculty}},OU={{faculty}},OU=Child,OU=Parent"
-                                {...form.getInputProps(`${actionType}.${index}.groups.${index2}`)}
-                                rightSection={explorer(index2)}
+                                {...inputProps(index2)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">
@@ -61,16 +66,20 @@ function SecurityGroups( { form, index, explore, actionType, sources }: { form: 
     );
 }
 
-function Attributes( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
+function Attributes( { form, index, explore, actionType, sources, templateProps }: {
+    form: UseFormReturnType<Rule>,
+    index: number, explore: explore,
+    actionType: string, sources: string[],
+    templateProps: templateProps
+} ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].attributes || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
     form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`), sources );
-    const explorer = (key: string, index2: number) => <ActionIcon
-    onClick={modifyCondition(key, index2)}
-    variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
-    </ActionIcon>
   
+    const inputProps = (key: string, index2: number) =>
+    templateProps(modifyCondition(key, index2), form.getInputProps(`${actionType}.${index}.attributes.${index2}.${key}`));
+
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No attributes configured.</Center>}
         <DragDropContext
@@ -98,8 +107,7 @@ function Attributes( { form, index, explore, actionType, sources }: { form: UseF
                         <Grid.Col span="auto">
                             <TextInput
                                 placeholder="Value"
-                                {...form.getInputProps(`${actionType}.${index}.attributes.${index2}.value`)}
-                                rightSection={explorer('value', index2)}
+                                {...inputProps('value', index2)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">
@@ -122,12 +130,13 @@ function Attributes( { form, index, explore, actionType, sources }: { form: UseF
     );
 }
 
-export default function CreateUser( { form, index, explorer, explore, actionType, sources }: ActionItem){
+export default function CreateUser( { form, index, inputProps, explore, actionType, sources, templates }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
     if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:''});
     const addG = () => form.insertListItem(`${actionType}.${index}.groups`, '');
+    const [ templateProps ] = useTemplate(sources, templates);
     return (
     <Box p="xs" pt={0} >
         <SelectConnector
@@ -142,45 +151,40 @@ export default function CreateUser( { form, index, explorer, explore, actionType
             label="Canonical Name" withAsterisk
             leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}"
-            {...form.getInputProps(`${actionType}.${index}.cn`)}
-            rightSection={explorer('cn')}
+            {...inputProps('cn')}
         />
         <TextInput
             label="User Principal Name" withAsterisk
             leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}@domain.com"
-            {...form.getInputProps(`${actionType}.${index}.upn`)}
-            rightSection={explorer('upn')}
+            {...inputProps('upn')}
         />
         <TextInput
             label="SAM Account Name" withAsterisk
             leftSection={<IconHierarchy size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}"
-            {...form.getInputProps(`${actionType}.${index}.sam`)}
-            rightSection={explorer('sam')}
+            {...inputProps('sam')}
         />
         <TextInput
             label="Organizational Unit" withAsterisk
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="ou={{faculty}},ou=child,ou=parent"
-            {...form.getInputProps(`${actionType}.${index}.ou`)}
-            rightSection={explorer('ou')}
+            {...inputProps('ou')}
         />
         <TextInput
             label="Password"
             leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{word}}{{rand 1 9}}{{cap (word)}}{{special}}"
-            {...form.getInputProps(`${actionType}.${index}.password`)}
-            rightSection={explorer('password')}
+            {...inputProps('password')}
         />
         <Switch label="User Enabled" disabled={actions[index].password===""}
         mt="xs" {...form.getInputProps(`${actionType}.${index}.enable`, { type: 'checkbox' })}
         />
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Attributes form={form} index={index} explore={explore} actionType={actionType} sources={sources} />
+            <Attributes form={form} index={index} explore={explore} actionType={actionType} sources={sources} templateProps={templateProps} />
         </Concealer>
         <Concealer open label='Security Groups' rightSection={<Button onClick={()=>addG()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <SecurityGroups form={form} index={index} explore={explore} actionType={actionType} sources={sources} />
+            <SecurityGroups form={form} index={index} explore={explore} actionType={actionType} sources={sources} templateProps={templateProps} />
         </Concealer>
     </Box>
     )

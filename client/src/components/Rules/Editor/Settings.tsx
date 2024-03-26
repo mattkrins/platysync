@@ -47,9 +47,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
     const { connectors, _connectors } = useContext(SchemaContext);
     const { explorer, explore } = useContext(ExplorerContext);
     const [opened, config] = useState<string|undefined>(undefined);
-
     const [ templateProps ] = useTemplate(sources);
-
     const openConfig = (name: string) => {
         const c = form.values.config;
         if (!(name in c) || c[name]===undefined) form.setFieldValue('config', { ...c, [name]: {} });
@@ -176,7 +174,7 @@ export default function Settings( { form, sources, taken }: {form: UseFormReturn
             leftSection={<IconTable size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="{{username}}"
             mt="xs"
-            {...templateProps(()=>explore(modify, sources), form.getInputProps('display'), sources)}
+            {...templateProps(()=>explore(modify, sources), form.getInputProps('display'))}
         />
         <Switch mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
         <Group grow>

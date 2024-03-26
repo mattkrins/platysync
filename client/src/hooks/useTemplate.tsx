@@ -10,13 +10,13 @@ interface getInputProps {
   value?: string;
 }
 
-export type templateProps = (onClick?: React.MouseEventHandler<HTMLButtonElement>, getInputProps?: getInputProps | undefined, sources?: string[] ) => {
+export type templateProps = (onClick?: React.MouseEventHandler<HTMLButtonElement>, getInputProps?: getInputProps | undefined ) => {
   error: boolean;
   value?: string | undefined;
   rightSection: JSX.Element | undefined;
 }
 
-export default function useTemplate( sources: string[] = [] ): [ templateProps ] {
+export default function useTemplate( sources: string[] = [], templates: string[] = [] ): [ templateProps ] {
   const { headers, schema } = useContext(SchemaContext);
   
   const { data: files } = useAPI({
@@ -26,15 +26,16 @@ export default function useTemplate( sources: string[] = [] ): [ templateProps ]
   });
 
   const template = useMemo(()=>{
-    const head: {[k: string]: {[k: string]: string}} = { $file: {} };
+    const head: {[k: string]: {[k: string]: string}|string } = { $file: {} };
     for (const name of Object.keys(headers)){
       if (!sources.includes(name)) continue;
       head[name] = head[name]||{};
-      for (const key of headers[name]) head[name][key] = key;
+      for (const key of headers[name]) (head[name] as {[k: string]: string})[key] = key;
     }
-    for (const file of files) head.$file[file.name] = file.name;
+    for (const file of files) (head.$file as {[k: string]: string})[file.name] = file.name;
+    for (const t of templates) head[t] = t;
     return head;
-  }, [ headers, sources, files ]);
+  }, [ headers, sources, templates, files ]);
 
 
   const templateProps = useCallback((onClick?: React.MouseEventHandler<HTMLButtonElement>, getInputProps?: getInputProps )=>{

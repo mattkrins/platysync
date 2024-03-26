@@ -4,7 +4,7 @@ import { Box, Grid, Switch, TextInput, Textarea } from "@mantine/core";
 import { IconBraces, IconCheck, IconX } from "@tabler/icons-react";
 import { useEffect } from "react";
 
-export default function SysComparator( { form, index, explorer, actionType }: ActionItem ) {
+export default function SysComparator( { form, index, inputProps, actionType }: ActionItem ) {
     const initialValues = {conditions: form.values[actionType][index].conditions||[]} as unknown as Rule;
     const form2 = useForm({ initialValues, validate: {} });
     const checked = form.values[actionType][index].output||false;
@@ -28,27 +28,24 @@ export default function SysComparator( { form, index, explorer, actionType }: Ac
             label="Template Key" withAsterisk mt="xs"
             description="Template key will contain output string based on conditions evaluating."
             placeholder="result"
-            {...form.getInputProps(`${actionType}.${index}.target`)}
             leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={explorer('target')}
+            {...inputProps('target')}
             />
             <Grid gutter="xs" align="center" mt="xs" >
                 <Grid.Col span="auto">
                     <Textarea
                     placeholder="true"
                     autosize maxRows={4}
-                    {...form.getInputProps(`${actionType}.${index}.true`)}
                     leftSection={<IconCheck size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                    rightSection={explorer('true')}
+                    {...inputProps('true')}
                     />
                 </Grid.Col>
                 <Grid.Col span="auto">
                     <Textarea
                     placeholder="false"
                     autosize maxRows={4}
-                    {...form.getInputProps(`${actionType}.${index}.false`)}
                     leftSection={<IconX size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                    rightSection={explorer('false')}
+                    {...inputProps('false')}
                     />
                 </Grid.Col>
             </Grid>

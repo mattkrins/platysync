@@ -2,7 +2,7 @@ import { Box, Loader, Select, Switch, TextInput } from "@mantine/core";
 import { IconFile, IconPrinter } from "@tabler/icons-react";
 import useAPI from "../../../../hooks/useAPI";
 
-export default function Print( { form, index, explorer, actionType }: ActionItem ) {
+export default function Print( { form, index, inputProps, actionType }: ActionItem ) {
     const { data: printers, loading } = useAPI({
         url: `/printers`,
         fetch: true,
@@ -20,8 +20,7 @@ export default function Print( { form, index, explorer, actionType }: ActionItem
             description="Path of file to print"
             placeholder="D:/templates/ouput/{{username}}.pdf"
             leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            {...form.getInputProps(`${actionType}.${index}.source`)}
-            rightSection={explorer('source')}
+            {...inputProps('source')}
         />
         <Switch label="Validate Source Path"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.validate`, { type: 'checkbox' })}

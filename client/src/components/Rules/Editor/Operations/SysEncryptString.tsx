@@ -2,30 +2,30 @@ import { ActionIcon, Box, NumberInput, PasswordInput, TextInput } from "@mantine
 import { useDisclosure } from "@mantine/hooks";
 import { IconBraces, IconEye, IconEyeOff, IconKey, IconLock, IconPencil } from "@tabler/icons-react";
 
-export default function SysEncryptString( { form, index, explorer, actionType }: ActionItem ) {
+export default function SysEncryptString( { form, index, inputProps, actionType }: ActionItem ) {
     const [visible, { toggle }] = useDisclosure(false);
     const EyeIcon = <ActionIcon onClick={toggle} variant="subtle">{!visible ?
         <IconEye style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} /> :
         <IconEyeOff style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} />}
-    </ActionIcon>
+    </ActionIcon>;
+    const {rightSection, ...password} = inputProps('password');
     return (
     <Box p="xs" pt={0} >
         <TextInput
             label="Secret" withAsterisk
             description="String to be encrypted."
             placeholder="My very important secret"
-            {...form.getInputProps(`${actionType}.${index}.source`)}
             leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={explorer('source')}
+            {...inputProps('source')}
         />
         <PasswordInput
             label="Encryption Key" withAsterisk mt="xs"
             description={<>String to encrypt the secret with. <b>Warning: this is stored in clear text</b></>}
             placeholder="password"
             visible={visible}
-            {...form.getInputProps(`${actionType}.${index}.password`)}
             leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={<ActionIcon.Group>{EyeIcon}{explorer('source')}</ActionIcon.Group>}
+            {...password}
+            rightSection={<ActionIcon.Group>{EyeIcon}{rightSection}</ActionIcon.Group>}
             rightSectionWidth={"calc(var(--psi-icon-size) * 4)"}
         />
         <NumberInput mt="xs" withAsterisk
@@ -41,9 +41,8 @@ export default function SysEncryptString( { form, index, explorer, actionType }:
             label="Template Key" withAsterisk mt="xs"
             description="Encrypted string will be stored in this template key."
             placeholder="encrypted"
-            {...form.getInputProps(`${actionType}.${index}.target`)}
             leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={explorer('target')}
+            {...inputProps('target')}
         />
     </Box>
     )

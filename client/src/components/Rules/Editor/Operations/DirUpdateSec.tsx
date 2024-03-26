@@ -1,19 +1,27 @@
 import { ActionIcon, Box, Button, Center, Grid, Group, Select, Switch, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { IconBinaryTree2, IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
+import { IconBinaryTree2, IconGripVertical, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import useTemplate from "../../../../hooks/useTemplate";
 
-function Groups( { form, index, explore, actionType, sources }: { form: UseFormReturnType<Rule>, index: number, explore: explore, actionType: string, sources: string[] } ) {
+function Groups( { form, index, explore, actionType, sources, templates }: {
+    form: UseFormReturnType<Rule>,
+    index: number, explore: explore,
+    actionType: string,
+    sources: string[],
+    templates: string[],
+} ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].groups || []) as {value:string, [k: string]: unknown;}[];
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
     form.setFieldValue(`${actionType}.${index}.groups.${index2}.${key}`, `${data[index2][key]||''}{{${value}}}`), sources );
-    const explorer = (key: string, index2: number) => <ActionIcon
-    onClick={modifyCondition(key, index2)}
-    variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
-    </ActionIcon>
+
+     const [ templateProps ] = useTemplate(sources, templates);
+    const inputProps = (key: string, index2: number) =>
+    templateProps(modifyCondition(key, index2), form.getInputProps(`${actionType}.${index}.groups.${index2}.${key}`));
+    
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No security groups configured.</Center>}
         <DragDropContext
@@ -41,8 +49,7 @@ function Groups( { form, index, explore, actionType, sources }: { form: UseFormR
                         <Grid.Col span="auto">
                             <TextInput
                                 placeholder="CN={{faculty}},OU={{faculty}},OU=Child,OU=Parent"
-                                {...form.getInputProps(`${actionType}.${index}.groups.${index2}.value`)}
-                                rightSection={explorer('value', index2)}
+                                {...inputProps('value', index2)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">
@@ -65,7 +72,7 @@ function Groups( { form, index, explore, actionType, sources }: { form: UseFormR
     );
 }
 
-export default function DirUpdateSec( { form, index, explore, actionType, sources }: ActionItem){
+export default function DirUpdateSec( { form, index, explore, actionType, sources, templates }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.groups`, {name:'',value:'', type: 'Add'});
@@ -79,7 +86,7 @@ export default function DirUpdateSec( { form, index, explore, actionType, source
             sources={sources}
         />
         <Concealer open label='Security Groups' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Groups form={form} index={index} explore={explore} sources={sources} actionType={actionType} />
+            <Groups form={form} index={index} explore={explore} sources={sources} templates={templates} actionType={actionType} />
         </Concealer>
         <Switch label="Sanitize" description="Remove any existing groups not listed above"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.clean`, { type: 'checkbox' })}

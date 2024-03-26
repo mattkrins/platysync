@@ -1,48 +1,24 @@
 import { ActionIcon, Box, Button, Center, Grid, Group, TextInput, Textarea } from "@mantine/core";
-import { UseFormReturnType } from "@mantine/form";
-import { IconCode, IconGripVertical, IconTrash } from "@tabler/icons-react";
+import { IconGripVertical, IconTrash } from "@tabler/icons-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import useTemplate from "../../../../hooks/useTemplate";
 
-export default function Template( { form, index, explore, actionType }:{
-    form: UseFormReturnType<Rule>,
-    index: number,
-    explore: explore,
-    actionType: string
-},){
+export default function Template( { form, index, explore, actionType, templates }: ActionItem,){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].templates) form.setFieldValue(`${actionType}.${index}.templates`, []);
     const add = () => form.insertListItem(`${actionType}.${index}.templates`, {name:'',value:''});
 
-    const taken = (form.values.secondaries||[]).map(s=>s.primary);
+    const taken = (form.values.secondaries||[]).map((s: {primary: string} )=>s.primary);
     const sources = [form.values.primary, ...taken];
-    const templates: string[] = [];
-    const allActions = 
-    actionType==="before_actions" ? [] : 
-    actionType==="actions" ? form.values.before_actions||[] : 
-    actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[]] : [];
-    for (const action of allActions){
-      switch (action.name) {
-        case "Encrypt String":{ templates.push(action.source as string); break; }
-        case "Comparator":{ templates.push(action.target as string); break; }
-        case "Template": {
-          for (const template of action.templates||[]) {
-            if (!template.name || template.name.trim()==="") continue;
-            templates.push(template.name);
-          }
-        break; }
-        default: break;
-      }
-    }
 
+    const [ templateProps ] = useTemplate(sources, templates);
 
     const data = (actions[index].templates || []);
     const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
     form.setFieldValue(`${actionType}.${index}.templates.${index2}.${key}`, `${actions[index].templates[index2][key]||''}{{${value}}}`),
     actionType === "actions" ? sources : [], templates );
-    const explorer = (key: string, index2: number) => <ActionIcon
-    onClick={modifyCondition(key, index2)}
-    variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} />
-    </ActionIcon>
+
+    const inputProps = (key: string, index2: number) => templateProps(modifyCondition(key, index2), form.getInputProps(`${actionType}.${index}.templates.${index2}.${key}`));
   
     return (
     <Box pt={5} >
@@ -67,16 +43,14 @@ export default function Template( { form, index, explore, actionType }:{
                             <Grid.Col span={"content"}>
                                 <TextInput
                                     placeholder="Name"
-                                    {...form.getInputProps(`${actionType}.${index}.templates.${index2}.name`)}
-                                    rightSection={explorer('name', index2)}
+                                    {...inputProps('name', index2)}
                                 />
                             </Grid.Col>
                             <Grid.Col span="auto">
                                 <Textarea
                                     placeholder="Value"
                                     autosize maxRows={4}
-                                    {...form.getInputProps(`${actionType}.${index}.templates.${index2}.value`)}
-                                    rightSection={explorer('value', index2)}
+                                    {...inputProps('value', index2)}
                                 />
                             </Grid.Col>
                             <Grid.Col span="content">

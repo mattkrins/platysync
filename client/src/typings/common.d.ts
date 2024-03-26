@@ -50,9 +50,14 @@ type explore = (click: (d: string) => void, filter?: string[], templates?: strin
 interface ActionItem {
     form: UseFormReturnType<Rule>;
     index: number;
-    explorer: (key: string) => JSX.Element;
+    inputProps: (key: string) => {
+        error: boolean;
+        value?: string | undefined;
+        rightSection: JSX.Element | undefined;
+    };
     explore: explore;
     actionType: string;
     hasLDAP?: boolean;
     sources: string[];
+    templates: string[];
 }

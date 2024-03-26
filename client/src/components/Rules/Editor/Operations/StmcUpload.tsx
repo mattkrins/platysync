@@ -2,7 +2,7 @@ import { Box, Switch, TextInput } from "@mantine/core";
 import { IconFileUpload, IconSchool } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 
-export default function StmcUpload( { form, index, explorer, actionType, sources }: ActionItem ) {
+export default function StmcUpload( { form, index, inputProps, actionType, sources }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <SelectConnector
@@ -17,9 +17,8 @@ export default function StmcUpload( { form, index, explorer, actionType, sources
             label="Source CSV" withAsterisk
             description="Path of student_bulk_password_reset.csv"
             placeholder="D:/passwords/{{username}}/student_bulk_password_reset.csv"
-            {...form.getInputProps(`${actionType}.${index}.source`)}
             leftSection={<IconFileUpload size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={explorer('source')}
+            {...inputProps('source')}
         />
         <Switch label="Validate Path"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.validate`, { type: 'checkbox' })}

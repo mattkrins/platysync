@@ -5,16 +5,15 @@ import { IconTerminal } from "@tabler/icons-react";
 //LINK - client\src\modules\common.ts:303
 //LINK - server\src\components\operations\SysRunCommand.ts
 
-export default function RunCommand( { form, index, explorer, actionType }: ActionItem ) {
+export default function RunCommand( { inputProps }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <TextInput
             label="Command" withAsterisk
             description="Arbitrary system command. Result of execution will be placed in {{stdout}} template."
             placeholder="/bin/echo {{username}}"
-            {...form.getInputProps(`${actionType}.${index}.value`)}
             leftSection={<IconTerminal size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            rightSection={explorer('value')}
+            {...inputProps('value')}
         />
     </Box>
     )
