@@ -3,6 +3,16 @@ import { _Error, paths } from "../server.js";
 import { Doc } from "../db/models.js";
 import multer from 'fastify-multer';
 import * as fs from 'fs';
+import { template } from "../typings/common.js";
+
+export async function docsToTemplate(schema_name: string) : Promise<template> {
+  const docsTemplate: template = { $file: {} };
+  const docs = await Doc.findAll({where: { schema: schema_name }, raw: true });
+  for (const doc of docs) {
+      const path = `${paths.storage}/${schema_name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
+      (docsTemplate.$file as { [k: string]: string })[doc.name] = path;
+  } return docsTemplate;
+}
 
 export default async function (route: FastifyInstance) {
   const clean = /[^\w\s]/g;

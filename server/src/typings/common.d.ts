@@ -115,3 +115,7 @@ export interface actionProps {
   keys: sKeys;
   data: {[k: string]: string};
 }
+
+export interface template {
+  [connector: string]: {[header: string]: string} | string | object
+}
