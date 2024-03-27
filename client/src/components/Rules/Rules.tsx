@@ -11,7 +11,7 @@ import { modals } from '@mantine/modals';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { availableActions } from '../../modules/common.ts';
 import Editor from './Editor/Editor.tsx';
-import RunModalNew from './Run/Run.tsx';
+import RunModal from './Run/Run.tsx';
 import classes from '../../Theme.module.css';
 
 function RuleIcons({ actions }: { actions: Action[] }) {
@@ -101,10 +101,7 @@ export default function Rules() {
   return (
   opened?<Editor editing={editing} close={()=>{close();setEditing(undefined);}} />:
   <Container label={<Head rightSection={<Button onClick={()=>open()} variant="light" >Add</Button>} >Rules</Head>} >
-      {//<RunModal rule={running} close={()=>setRunning(undefined)} />
-      }
-      {<RunModalNew rule={running} close={()=>setRunning(undefined)} />
-      }
+      <RunModal rule={running} close={()=>setRunning(undefined)} />
       {state.length===0&&<Text c="lighter" size="sm" >No Rules in effect.</Text>}
       <DragDropContext onDragEnd={({ destination, source }) => reorder( source.index, destination?.index || 0 ) } >
           <Droppable droppableId="dnd-list" direction="vertical">

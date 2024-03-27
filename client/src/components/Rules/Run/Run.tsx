@@ -12,7 +12,7 @@ import Status from "./Status";
 interface result {template?: object, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
 interface evaluated { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean, checked?: boolean }
 
-export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>void } ) {
+export default function RunModal( { rule, close, test }: { rule?: Rule, close: ()=>void, test?: boolean } ) {
     const { schema } = useContext(SchemaContext);
     const { toggle: toggleFS, fullscreen } = useFullscreen();
     const [maximized, { toggle: toggleMax }] = useDisclosure(false);
@@ -58,7 +58,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
     return (
         <Modal fullScreen={fullscreen} size={maximized?"100%":"auto"} opened={!!rule} onClose={()=>null} closeOnClickOutside={false} withCloseButton={false} >
             <Group justify="space-between" mb="sm">
-                <Text>Run {rule?.name}</Text>
+                <Text>{test?'Test':'Run'} {rule?.name}</Text>
                 <ActionIcon.Group>
                     <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleMax}>{maximized?<IconViewportNarrow/>:<IconViewportWide />}</ActionIcon>
                     <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleFS}>{fullscreen?<IconMinimize/>:<IconMaximize />}</ActionIcon>
@@ -86,10 +86,11 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                     setEvaluated={setEvaluated}
                     initActions={evaluated.initActions}
                     finalActions={evaluated.finalActions}
+                    executed={test}
                     />)
                     }
                 </Stepper.Step>
-                <Stepper.Step miw={180}
+                {!test&&<Stepper.Step miw={180}
                 label="Execute"
                 description={`Perform ${checkedCount} Actions`}
                 loading={l2}
@@ -108,7 +109,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                     executed
                     />)
                     }
-                </Stepper.Step>
+                </Stepper.Step>}
                 <Stepper.Completed>
                     Completed, click back button to get to previous step
                 </Stepper.Completed>

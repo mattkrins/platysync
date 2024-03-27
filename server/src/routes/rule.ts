@@ -34,9 +34,8 @@ export function rules(route: FastifyInstance) {
       try {
           const schema = getSchema(schema_name, reply);
           const body = request.body as Rule;
-          if (!schema._rules[body.name]) throw reply.code(409).send({ validation: { name: "Rule does not exist." } });
-          const rule = schema._rules[body.name];
-          return await process(schema, {...rule, conditions: body.conditions } );
+          const rule = schema._rules[body.name]||{};
+          return await process(schema, {...rule, ...body } );
       } catch (e) {
         const error = _Error(e);
         reply.code(500).send({ error: error.message });
