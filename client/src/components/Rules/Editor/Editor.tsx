@@ -1,5 +1,5 @@
 import { Anchor, Box, Breadcrumbs, Tabs, Text } from "@mantine/core";
-import { IconSettings, IconFilter, IconRun, IconX, IconTestPipe } from "@tabler/icons-react";
+import { IconSettings, IconFilter, IconRun, IconX, IconTestPipe, IconDeviceFloppy } from "@tabler/icons-react";
 import { useContext, useEffect, useState } from "react";
 import Settings from "./Settings";
 import { useForm } from "@mantine/form";
@@ -83,9 +83,10 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
   <Box>
     <RunModal rule={running} close={()=>setRunning(undefined)} test />
     <Container label={<Head rightSection={
-      <SplitButton loading={loading} variant="light" onClick={editing?save:add} options={[
-        {  onClick:()=>setRunning(form.values), label: 'Test', leftSection: <IconTestPipe size={16}  />, color: 'green', disabled: conditionsAccess },
-        {  onClick:()=>safeClose(), label: 'Close Editor', leftSection: <IconX size={16}  />, color: 'red' },
+      <SplitButton buttonDisabled={conditionsAccess} loading={loading} variant="light" onClick={editing?save:add} options={[
+        {  onClick:()=>editing?save():add(), label: editing?'Save':'Create', leftSection: <IconDeviceFloppy size={16}  />, color: 'green', disabled: conditionsAccess },
+        {  onClick:()=>setRunning(form.values), label: 'Test', leftSection: <IconTestPipe size={16}  />, color: 'blue', disabled: conditionsAccess },
+        {  onClick:()=>safeClose(), label: 'Cancel', leftSection: <IconX size={16}  />, color: 'red' },
       ]} >{editing?'Save':'Create'}</SplitButton>
       
     } ><Breadcrumbs>
