@@ -44,14 +44,13 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
         data: {...rule, conditions: form.values.conditions, evaluated: checked  },
     });
 
-
     const close2 = () => { close(); r1(); setActive(0); if (fullscreen) toggleFS(); };
 
-    useEffect(()=>{
-       if (active==2) execute();
-       if (active==1){ evaluate(); r2(); }
-       if (active==0) r1();
-    }, [ active ]);
+    const onStepClick = (step: number) => {
+        if (active==0 && step==1){ evaluate(); r2(); }
+        if (active==1 && step==2){ execute(); }
+        setActive(step);
+    }
 
     const taken = (form.values.secondaries||[]).map(s=>s.primary);
     const sources = [form.values.primary, ...taken];
@@ -66,7 +65,7 @@ export default function RunModal( { rule, close }: { rule?: Rule, close: ()=>voi
                     <ActionIcon variant="subtle" color="gray" size="sm" onClick={close2}><IconX/></ActionIcon>
                 </ActionIcon.Group>
             </Group>
-            <Stepper active={active} onStepClick={setActive}>
+            <Stepper active={active} onStepClick={onStepClick}>
                 <Stepper.Step label="Conditions" color={form.values.conditions.length===0?"red":undefined} description="Modify Conditions" icon={<IconEqual />} >
                     <Conditions form={form} label="Add single-run modifications here."  sources={sources}  />
                 </Stepper.Step>

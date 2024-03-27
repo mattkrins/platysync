@@ -197,7 +197,7 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
         <ActionExplorer viewing={viewing} view={view} />
         <ActionMap actions={initActions} view={view}  />
         {initErrors&&<Notification icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Evaluation Halted">Initial actions contained an error.</Notification>}
-        {evaluated.length===0&&<Notification icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>}
+        {evaluated.length===0?<Notification icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>:
         <Box pt={initActions.length===0?"xs":undefined} >
             <Head caseSen={caseSen}
             setCase={setCase}
@@ -228,7 +228,7 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
                 <Table.Tbody>{(paginated||[]).map((row) =><Row key={row.id} row={row} check={check} view={view} filters={filters} executed={executed} />)}</Table.Tbody>
             </Table>}
             <ActionMap actions={finalActions} view={view}  />
-        </Box>
+        </Box>}
     </Box>
     )
 }
