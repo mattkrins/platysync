@@ -25,7 +25,7 @@ export default async function connect(schema: Schema, connectorName: string, con
                 keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
                 rows.push(row);
             }
-            connection = { rows: users, provider, keyed }; break;
+            connection = { rows: users, provider, client, keyed }; break;
         }
         case 'csv': {
             const csv = new CSV(undefined, undefined, provider as CSVProvider );
@@ -45,7 +45,7 @@ export default async function connect(schema: Schema, connectorName: string, con
             const client = await ldap.configure();
             const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
             const close = async () => client.close();
-            connection = { rows: users, keyed, provider, close }; break;
+            connection = { rows: users, keyed, provider, client, close }; break;
         }
         default: throw Error("Unknown connector.");
     } connections[connectorName] = connection; return connection;

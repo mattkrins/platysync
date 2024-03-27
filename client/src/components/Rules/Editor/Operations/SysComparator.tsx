@@ -20,18 +20,18 @@ export default function SysComparator( { form, index, inputProps, actionType }: 
         <Conditions form={form2} label="This action can halt futher execution, or build conditional templates." action sources={sources} />
         <Switch label="Output result to template"
         description={checked?undefined:"Execution will currently be halted if conditions do not pass."}
-        mt="xs" {...form.getInputProps(`${actionType}.${index}.output`, { type: 'checkbox' })}
+        mt="xs" mb="xs" {...form.getInputProps(`${actionType}.${index}.output`, { type: 'checkbox' })}
         />
         {checked&&
         <Box>
             <TextInput
-            label="Template Key" withAsterisk mt="xs"
+            label="Template Key" withAsterisk
             description="Template key will contain output string based on conditions evaluating."
             placeholder="result"
             leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             {...inputProps('target')}
             />
-            <Grid gutter="xs" align="center" mt="xs" >
+            <Grid gutter="xs" align="center" mt="xs" mb="xs" >
                 <Grid.Col span="auto">
                     <Textarea
                     placeholder="true"

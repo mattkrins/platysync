@@ -1,17 +1,39 @@
-import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification } from '@mantine/core'
+import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification, List } from '@mantine/core'
 import { action } from './Evaluate'
 import { availableActions } from '../../../modules/common';
 import Concealer from '../../Common/Concealer';
-import Common from '../RunModal/Operations/Common';
 import { IconAlertTriangle, IconHandStop, IconX } from '@tabler/icons-react';
+import classes from '../../../Theme.module.css';
 
-function DataReader({ action, resultant = false }: { action: action, resultant: boolean }){
-    switch (action.name) {
-      //case "Create User": return <CreateUser action={action} resultant={resultant} />
-      //case "Update Attributes": return <UpdateAtts action={action} resultant={resultant} />
-      default: return <Common action={action} resultant={resultant} /> //TODO - improve and cleanup
-    }
+interface data {
+    [k: string]: {[k: string]: unknown }|string|Array<string>;
 }
+
+function ObjectMap( { data }: { data: data }  ){
+    return data.constructor === Array ? (data as Array<string>).map((d, i)=>
+    <List.Item key={i} className={classes.overflow} >
+        <Box style={{whiteSpace:"nowrap"}}>
+            {(typeof d =="object")?<ObjectMap data={d||{}} />:<Code>{JSON.stringify(d)}</Code>}
+        </Box>
+    </List.Item>): Object.keys(data).map((d, i)=>
+    <List.Item key={i} className={classes.overflow} >
+        <Box style={{whiteSpace:"nowrap"}}>{d}:
+            {(typeof data[d] =="object")?<ObjectMap data={data[d] as data} />:<Code>{JSON.stringify(data[d])}</Code>}
+        </Box>
+    </List.Item>);
+}
+
+function DataReadout({ action }:{ action: action }) {
+    if (!action.result.data) return <></>;
+    const data = action.result.data as data;
+    return (
+    <Box>
+        <List size="sm" icon={<>-</>} >
+        <ObjectMap data={data||{}} />
+        </List>
+    </Box>)
+}
+
 
 function Action( { action }: { action: action } ) {
     return (
@@ -22,8 +44,7 @@ function Action( { action }: { action: action } ) {
             {action.result.warn&&<Notification mb="xs" icon={<IconAlertTriangle size={20} />} withCloseButton={false} color="orange">
             {action.result.warn}
             </Notification>}
-
-            <DataReader action={action} resultant={false} />
+            <DataReadout action={action} />
             <Concealer fz="xs" label='Raw Output' >
                 <pre style={{margin:0}} ><Code fz="xs" >{JSON.stringify(action, null, 2)}</Code></pre>
             </Concealer>
