@@ -420,7 +420,6 @@ export class User {
     **/
     addGroup = (dn: string = '', remove = false): Promise<true> => {
         return new Promise((resolve, reject) => {
-            if (remove ? !this.hasGroup(dn) :  this.hasGroup(dn)) return resolve(true);
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
             if (!this.client) return reject("No client found.");
             const change = new ldapjs.Change({
