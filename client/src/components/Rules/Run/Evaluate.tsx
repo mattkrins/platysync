@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Checkbox, Collapse, Divider, Group, Menu, Pagination, Table, TextInput, Text, useMantineTheme, Indicator, Tooltip, Notification } from "@mantine/core";
 import { useDisclosure, usePagination } from "@mantine/hooks";
-import { IconCheckbox, IconEye, IconEyeOff, IconHandStop, IconLetterCase, IconMenu2, IconQuestionMark, IconSearch } from "@tabler/icons-react";
+import { IconHandStop, IconLetterCase, IconMenu2, IconQuestionMark, IconSearch } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 import { availableActions } from "../../../modules/common";
 import ActionExplorer from "./ActionExplorer";
@@ -38,19 +38,20 @@ interface Head {
     sorting: string;
     query: string;
     search: (query: string) => void;
-    display: number;
-    setDisplay: (query: number) => void;
+    filters: {[k: string]: boolean};
+    toggles: {[k: string]: () => void}
     setCase: () => void;
     caseSen: boolean;
     checked: evaluated[];
 }
-function Head( { total, limit, perPage, pagination, count, sort, sorting, query, search, display, setDisplay, caseSen, setCase, checked }: Head ) {
+function Head( { total, limit, perPage, pagination, count, sort, sorting, query, search, filters, toggles, caseSen, setCase, checked }: Head ) {
     const [o1, { toggle: t1 }] = useDisclosure(false);
     const [o2, { toggle: t2 }] = useDisclosure(false);
     const [o3, { toggle: t3 }] = useDisclosure(false);
     const [o4, { toggle: t4 }] = useDisclosure(false);
-    const sorted = (p: string) => ({ onClick: ()=>sort(p), color: sorting===p?"gray":undefined })
-    const page = (p: number) => ({ onClick: ()=>limit(p), color: perPage===p?"gray":undefined })
+    const filtered = (p: string, c?: string) => ({ onClick: ()=>toggles[p](), color: filters[p]?c:"gray" });
+    const sorted = (p: string) => ({ onClick: ()=>sort(p), color: sorting===p?"gray":undefined });
+    const page = (p: number) => ({ onClick: ()=>limit(p), color: perPage===p?"gray":undefined });
     const csv_data = useMemo(()=>checked.map(e=>`${e.id},${e.display||e.id}`).join("\n"), [ checked ]);
     const csv = `id,display\n${csv_data}`;
     return (
@@ -71,8 +72,10 @@ function Head( { total, limit, perPage, pagination, count, sort, sorting, query,
             <Menu.Dropdown>
                 <Menu.Label onClick={t1} style={{cursor:"pointer"}} >Filtering</Menu.Label>
                 <Collapse in={o1}>
-                    <Menu.Item onClick={()=>setDisplay(display===0?1:0)} leftSection={display===0?<IconEye size={16} />:<IconEyeOff size={16} />}>{display===0?'Display':'Hide'} Actionless</Menu.Item>
-                    {display>0&&<Menu.Item onClick={()=>setDisplay(2)} color="red" leftSection={<IconCheckbox size={16} />}>Enable Actionless</Menu.Item>}
+                    <Menu.Item {...filtered('showErrors')} >Show Errors</Menu.Item>
+                    {filters['showErrors']&&<Menu.Item {...filtered('enableErrors', 'red')} >Errors {filters['enableErrors']?'Enabled':'Disabled'}</Menu.Item>}
+                    <Menu.Item {...filtered('showWarns')} >Show Warnings</Menu.Item>
+                    <Menu.Item {...filtered('enableWarns', 'orange')} >Warnings {filters['enableWarns']?'Enabled':'Disabled'}</Menu.Item>
                 </Collapse>
                 <Menu.Label onClick={t2} style={{cursor:"pointer"}} >Sorting</Menu.Label>
                 <Collapse in={o2}>
@@ -116,13 +119,20 @@ function ActionMap({ actions, view }: { actions: action[], view: (id: {name: str
     <Divider label={<Group><IconMap actions={actions} size={22} click={click} /></Group>} />
 }
 
-function Row( { row, check, view, display, executed }: { executed?: boolean, row: evaluated, display: number, check: (id: string) => () => void, view: (id: {name: string, open: string, actions: action[]}) => void } ) {
+interface Row { executed?: boolean, row: evaluated, filters: {[k: string]: boolean}, check: (id: string) => () => void, view: (id: {name: string, open: string, actions: action[]}) => void }
+function Row( { row, check, view, filters, executed }: Row ) {
     const click = (open: string) => () => view({name: row.display||row.id, open, actions: row.actions });
+    const errors = row.actions.filter(t=>t.result.error).length > 0;
+    const warns = row.actions.filter(t=>t.result.warn).length > 0;
+    const disabled = (errors && !filters['enableErrors']) || (warns && !filters['enableWarns']);
+    //filters['showErrors']||filters['showWarns'];
+    const color = errors ? "red" : warns ? "orange" : undefined;
+    const c = disabled ? "dimmed" : undefined;
     return (
     <Table.Tr key={row.id} bg={row.checked ? 'var(--mantine-color-blue-light)' : undefined} >
-        {!executed&&<Table.Td><Checkbox color={row.actionable?undefined:"red"} disabled={display<2&&!row.actionable} onChange={check(row.id)} checked={row.checked} /></Table.Td>}
-        <Table.Td c={row.actionable?undefined:"dimmed"} >{row.id}</Table.Td>
-        <Table.Td c={row.actionable?undefined:"dimmed"} >{row.display||row.id}</Table.Td>
+        {!executed&&<Table.Td><Checkbox color={color} disabled={disabled} onChange={check(row.id)} checked={row.checked} /></Table.Td>}
+        <Table.Td c={c} >{row.id}</Table.Td>
+        <Table.Td c={c} >{row.display||row.id}</Table.Td>
         <Table.Td><IconMap actions={row.actions} click={click} /></Table.Td>
     </Table.Tr>
     )
@@ -136,7 +146,13 @@ interface EvalProps {
     executed?: boolean;
 }
 export default function Evaluate( { evaluated, setEvaluated, initActions = [], finalActions = [], executed }: EvalProps ) {
-    const [display, setDisplay] = useState<number>(1);
+    const [showErrors, { toggle: s1 }] = useDisclosure(false);
+    const [showWarns, { toggle: s2 }] = useDisclosure(true);
+    const [enableErrors, { toggle: e1 }] = useDisclosure(false);
+    const [enableWarns, { toggle: e2 }] = useDisclosure(true);
+    const filters = { showErrors, showWarns, enableErrors, enableWarns };
+    const toggles = { showErrors: s1, showWarns: s2, enableErrors: e1, enableWarns: e2 };
+
     const [caseSen, { toggle: setCase }] = useDisclosure(true);
     const [viewing, view] = useState<{name: string, open: string, actions: action[]}|undefined>();
     const [sorting, setSort] = useState<string>("none");
@@ -151,12 +167,26 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
     const check = (id: string) => () => { setEvaluated((e) => ({...e, evaluated: e.evaluated.map(r=>r.id!==id?r:{...r, checked: !r.checked})}) ); };
     const checked = useMemo(()=>evaluated.filter(r=>r.checked), [ evaluated ]);
     const checkedCount = checked.length;
-    const checkAll = () => { setEvaluated((e) => ({...e, evaluated: e.evaluated.map(r=>({...r,
-        checked: checkedCount===0 ? (display === 0 ? r.actionable : (display === 2 ? true : r.actionable)) : false
-    }))}) ); };
+    const checkAll = () => setEvaluated((e) => ({ ...e,
+        evaluated: e.evaluated.map(r=>{
+            const rc = {...r, checked: checkedCount==0};
+            const errors = r.actions.filter(t=>t.result.error).length > 0;
+            const warns = r.actions.filter(t=>t.result.warn).length > 0;
+            if ((!enableErrors||!showErrors) && errors) rc.checked = false;
+            if ((!enableWarns||!showWarns) && warns) rc.checked = false;
+            if (query!=='') rc.checked = !find(caseSen?query.toLowerCase():query, r, caseSen) ? false : rc.checked;
+            return rc;
+        })
+    }));
+    const cleaned = useMemo(()=> evaluated.filter(r=>{
+        const errors = r.actions.filter(t=>t.result.error).length > 0;
+        const warns = r.actions.filter(t=>t.result.warn).length > 0;
+        if (!showErrors && errors) return false;
+        if (!showWarns && warns) return false;
+        return true;
+    }), [ evaluated, filters ]);
     
     const [perPage, limit] = useState<number>(50);
-    const cleaned = display === 0 ? (evaluated||[]).filter(e=>e.actionable) : evaluated;
     const filtered = query==='' ? cleaned : cleaned.filter((r)=>find(caseSen?query.toLowerCase():query, r, caseSen));
     const total = Math.ceil(filtered.length / Number(perPage));
     const pagination = usePagination({ total, initialPage: 1 });
@@ -166,11 +196,8 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
     <Box>
         <ActionExplorer viewing={viewing} view={view} />
         <ActionMap actions={initActions} view={view}  />
-        {cleaned.length===0?
-        <Box>{initErrors?
-            <Notification icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Evaluation Halted">Initial actions contained an error.</Notification>:
-            <Notification icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>}
-        </Box>:
+        {initErrors&&<Notification icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Evaluation Halted">Initial actions contained an error.</Notification>}
+        {evaluated.length===0&&<Notification icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>}
         <Box pt={initActions.length===0?"xs":undefined} >
             <Head caseSen={caseSen}
             setCase={setCase}
@@ -183,8 +210,8 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
             sorting={sorting}
             query={query}
             search={search}
-            display={display}
-            setDisplay={setDisplay}
+            filters={filters}
+            toggles={toggles}
             checked={checked}
             />
             <Divider mt="xs"/>
@@ -198,10 +225,10 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
                         <Table.Th>Actions</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
-                <Table.Tbody>{(paginated||[]).map((row) =><Row key={row.id} row={row} check={check} view={view} display={display} executed={executed} />)}</Table.Tbody>
+                <Table.Tbody>{(paginated||[]).map((row) =><Row key={row.id} row={row} check={check} view={view} filters={filters} executed={executed} />)}</Table.Tbody>
             </Table>}
             <ActionMap actions={finalActions} view={view}  />
-        </Box>}
+        </Box>
     </Box>
     )
 }

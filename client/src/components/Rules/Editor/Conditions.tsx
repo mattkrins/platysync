@@ -141,7 +141,7 @@ export default function Conditions( { form, label, action, sources = [] }: {form
                         <Grid.Col span="auto">
                           <TextInput placeholder='Key'
                           {...form.getInputProps(`conditions.${index}.key`)}
-                          {...templateProps(modifyCondition('key',index), form.getInputProps(`conditions.${index}.key`), sources)}
+                          {...templateProps(modifyCondition('key',index), form.getInputProps(`conditions.${index}.key`))}
                           />
                         </Grid.Col>:
                         <Grid.Col span="auto">
