@@ -420,7 +420,7 @@ export class User {
     **/
     addGroup = (dn: string = '', remove = false): Promise<true> => {
         return new Promise((resolve, reject) => {
-            if (remove ? !this.hasGroup(dn) :  this.hasGroup(dn)) return true;
+            if (remove ? !this.hasGroup(dn) :  this.hasGroup(dn)) return resolve(true);
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
             if (!this.client) return reject("No client found.");
             const change = new ldapjs.Change({
@@ -432,7 +432,7 @@ export class User {
             });
             this.client.modify(dn, change, (err: Error) => {
                 if (err){
-                    if ((String(err)).includes('OperationsError')) return reject(Error(`Path Not Found: '${dn}' (OperationsError) `));
+                    if ((String(err)).includes('OperationsError')) return reject(`Path Not Found: '${dn}' (OperationsError) `);
                     return reject(err);
                 }
                 if (remove){

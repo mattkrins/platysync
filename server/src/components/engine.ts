@@ -97,9 +97,9 @@ async function ldap_compare(key: string, value: string, operator: string, connec
         case 'enabled': return user && user.enabled();
         case 'disabled': return user && user.disabled();
         case 'member': return user && user.hasGroup(value);
-        case 'notmember': return user && user.hasGroup(value);
+        case 'notmember': return user && !user.hasGroup(value);
         case 'child': return user && user.childOf(value);
-        case 'notchild': return user && user.childOf(value);
+        case 'notchild': return user && !user.childOf(value);
         default: return false;
     }
 }

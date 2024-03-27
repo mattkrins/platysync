@@ -3,7 +3,7 @@ import { useDisclosure, usePagination } from "@mantine/hooks";
 import { IconCheckbox, IconEye, IconEyeOff, IconHandStop, IconLetterCase, IconMenu2, IconQuestionMark, IconSearch } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 import { availableActions } from "../../../modules/common";
-import View from "./View";
+import ActionExplorer from "./ActionExplorer";
 
 export interface action {
     name: string;
@@ -164,7 +164,7 @@ export default function Evaluate( { evaluated, setEvaluated, initActions = [], f
     const initErrors = initActions.filter(a=>a.result.error).length > 0;
     return (
     <Box>
-        <View viewing={viewing} view={view} />
+        <ActionExplorer viewing={viewing} view={view} />
         <ActionMap actions={initActions} view={view}  />
         {cleaned.length===0?
         <Box>{initErrors?

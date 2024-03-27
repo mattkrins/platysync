@@ -55,12 +55,15 @@ export default async function ({ action, template, execute, data, connections, k
         for (const i in changes) {
             const {type, value} = changes[i];
             try {
+                console.log('adding')
                 await user.addGroup(value, type==="Add" );
+                console.log('done')
                 changes[i].success = true;
             } catch (e) {
                 changes[i].error = String(e);
             }
         }
+        console.log('finished')
         data.changes = changes;
         return { success: true, data };
     } catch (e){
