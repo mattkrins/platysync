@@ -1,34 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { _Error } from "../server.js";
+import { ExtError, _Error } from "../server.js";
 import { getSchema, mutateSchema } from './schema.js'
-import { anyProvider } from "../typings/providers.js";
-import { validConnectorName, validators } from "../components/validators.js";
-import { form, validate } from "../components/validators.js";
+import { validConnectorName } from "../components/validators.js";
+import { form } from "../components/validators.js";
 import { encrypt } from "../modules/cryptography.js";
-import { CSV } from "../components/providers.js";
-import { Connector, Schema } from "../typings/common.js";
-
-export const getHeaders: { [provider: string]: (connector: Connector) => Promise<string[]> } = {
-    csv: async function(connector: Connector){
-        const csv = new CSV(connector.path as string);
-        const data = await csv.open() as { data: {[k: string]: string}[], meta: { fields: string[] } };
-        return data.meta.fields || [];
-    },
-    ldap: async function(connector: Connector){
-        return [
-            ...connector.attributes||[],
-            'sAMAccountName', 'userPrincipalName', 'cn', 'distinguishedName'
-        ].filter((b, index, self) => index === self.findIndex((a) => ( a === b )) );
-    },
-    stmc: async function(connector: Connector){
-        const headers = ['_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
-        '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
-        '_login', '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
-        '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer' ];
-        if (String(connector.eduhub).trim()!=="") headers.push('_eduhub');
-        return headers;
-    },
-}
+import { AllProviderOptions, providers } from "../components/providers.js";
+import { Schema } from "../typings/common.js";
 
 export default function connector(route: FastifyInstance) {
     route.post('/', form({
@@ -37,18 +14,19 @@ export default function connector(route: FastifyInstance) {
         const { schema_name } = request.params as { schema_name: string };
         try {
             const schema = getSchema(schema_name, reply);
-            const body = request.body as anyProvider;
+            const body = request.body as AllProviderOptions;
             if (schema._connectors[body.name]) throw reply.code(409).send({ validation: { name: "Connector name taken." } });
-            if (!validators[body.id]) throw Error("Unknown provider.");
+            if (!providers[body.id]) throw Error("Unknown provider.");
             if (body.password) {
-                const hash = await encrypt(body.password);
+                const hash = await encrypt(body.password as string);
                 body.password = hash;
             }
-            const invalid = await validate(body, validators[body.id], reply, request );
-            if (invalid) return;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const provider = new providers[body.id]({...body, schema} as any);
+            try { await provider.validate(); } catch (e) { throw new ExtError(e).sendValidation(reply); }
             schema._connectors[body.name] = body;
             schema.connectors.push(body);
-            if (body.id in getHeaders) schema.headers[body.name] = await getHeaders[body.id](body);
+            schema.headers[body.name] = await provider.getHeaders();
             mutateSchema(schema);
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers };
         } catch (e) {
@@ -85,14 +63,15 @@ export default function connector(route: FastifyInstance) {
         const { schema_name, connector_name } = request.params as { schema_name: string, connector_name: string };
         try {
             const schema = getSchema(schema_name, reply);
-            const body = request.body as anyProvider;
-            if (!validators[body.id]) throw Error("Unknown provider.");
+            const body = request.body as AllProviderOptions;
+            if (!providers[body.id]) throw Error("Unknown provider.");
             if (body.password && typeof body.password === "string") {
                 const hash = await encrypt(body.password);
                 body.password = hash;
             }
-            const invalid = await validate(body, validators[body.id], reply, request );
-            if (invalid) return;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const provider = new providers[body.id]({...body, schema} as any);
+            try { await provider.validate(); } catch (e) { throw new ExtError(e).sendValidation(reply); }
             if (connector_name!==body.name){
                 if (schema._connectors[body.name]) throw reply.code(409).send({ validation: { name: "Connector name taken." } });
                 const dependencies = findDependencies(schema, connector_name);
@@ -106,7 +85,7 @@ export default function connector(route: FastifyInstance) {
                 schema._connectors[connector_name] = body;
                 schema.connectors = schema.connectors.map(c=>c.name!==connector_name?c:body);
             }
-            if (body.id in getHeaders) schema.headers[body.name] = await getHeaders[body.id](body);
+            schema.headers[body.name] = await provider.getHeaders();
             mutateSchema(schema);
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers};
         } catch (e) {
@@ -125,7 +104,9 @@ export default function connector(route: FastifyInstance) {
             const copy = { ...connector, name: newName };
             schema._connectors[newName] = copy;
             schema.connectors.push(copy);
-            if (copy.id in getHeaders) schema.headers[newName] = await getHeaders[copy.id](copy);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const provider = new providers[connector.id]({...connector, schema} as any);
+            schema.headers[connector.name] = await provider.getHeaders();
             mutateSchema(schema);
             return {connectors: schema.connectors, _connectors: schema._connectors, headers: schema.headers};
         } catch (e) {
@@ -139,9 +120,10 @@ export default function connector(route: FastifyInstance) {
             const schema = getSchema(schema_name, reply);
             if (!schema._connectors[connector_name]) throw reply.code(404).send({ validation: { name: "Connector does not exist." } });
             const connector = schema._connectors[connector_name];
-            if (!validators[connector.id]) throw Error("Unknown provider.");
-            request.body = { ...connector };
-            await validate(connector, validators[connector.id], reply, request );
+            if (!providers[connector.id]) throw Error("Unknown provider.");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const provider = new providers[connector.id]({...connector, schema} as any);
+            try { await provider.validate(); } catch (e) { throw new ExtError(e).sendValidation(reply); }
             return connector.name;
         } catch (e) {
           const error = _Error(e);

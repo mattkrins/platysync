@@ -25,7 +25,7 @@ interface Cache {
 
 interface Options {
     school: string;
-    cache?: string;
+    cache?: number;
     inactive?: boolean;
     proxy?: string|URL;
     eduhub?: {[k: string]: string}[];

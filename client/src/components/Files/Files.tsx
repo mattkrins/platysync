@@ -52,7 +52,7 @@ function Item( { provided, item, disabled, loading, remove, update, save }: Item
                 </Group>
             </Grid.Col>
             <Grid.Col span={4} c={disabled?"dimmed":undefined}>
-                {!editing?<Group gap="xs"><Text c={item.error&&"red"} >{item.name}</Text><CopyIcon disabled={disabled} value={item.name} /></Group>:
+                {!editing?<Group gap="xs"><Text c={item.error&&"red"} >{item.name}</Text><CopyIcon disabled={disabled} value={`{{$file.${item.name}}}`} /></Group>:
                 <TextInput style={{height:25}} size="xs"
                 value={item.name} error={item.error}
                 onChange={(event) => update(item.id, event.currentTarget.value)}

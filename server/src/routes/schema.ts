@@ -8,16 +8,18 @@ import { form, validWindowsFilename } from "../components/validators.js";
 import AdmZip from 'adm-zip';
 import multer from 'fastify-multer';
 import YAML from 'yaml'
-import { getHeaders } from "./connector.js";
 import versioner from "../components/versioner.js";
+import { providers } from "../components/providers.js";
 
 export let schemas: Schema[] = [];
 export let _schemas: { [name: string]: Schema } = {};
-async function buildHeaders(connectors: Schema['connectors']) {
+async function buildHeaders(schema: Schema) {
   const headers: { [connector: string]: string[] } = {};
-  for (const connector of connectors) {
-    if (!getHeaders[connector.id]) continue;
-    headers[connector.name] = await getHeaders[connector.id](connector);
+  for (const connector of schema.connectors) {
+    if (!providers[connector.id]) continue;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const provider = new providers[connector.id]({...connector, schema} as any);
+    headers[connector.name] = await provider.getHeaders();
   } return headers;
 }
 
@@ -25,14 +27,12 @@ export async function cacheSchema(name: string) {
   const yaml: Schema = readYAML(`${path}/schemas/${name}.yaml`);
   const _connectors: Schema['_connectors'] = yaml.connectors.reduce((acc: Schema['_connectors'],c)=> (acc[c.name]=c,acc),{});
   const _rules: Schema['_rules'] = yaml.rules.reduce((acc: Schema['_rules'],r)=> (acc[r.name]=r,acc),{});
-  let headers: { [connector: string]: string[]; } = {};
-  const errors: string[] = []; //REVIEW - Janky way of handling errors. Should think of a better way.
+  const schema: Schema = { ...yaml, _connectors, _rules, headers: {}, errors: [] }; //REVIEW - Janky way of handling errors. Should think of a better way.
   try {
-    headers = await buildHeaders(yaml.connectors);
+    schema.headers = await buildHeaders(schema);
   } catch (e) {
-    errors.push(_Error(e).message);
+    schema.errors.push(_Error(e).message);
   }
-  const schema = { ...yaml, _connectors, _rules, headers, errors };
   if (_schemas[yaml.name]) { // already cached
     schemas = schemas.map(s=>s.name!==name?s:schema);
   } else {
