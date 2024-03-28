@@ -15,7 +15,7 @@ export default async function connect(schema: Schema, connectorName: string, con
     let connection: connection = {rows:[], keyed: {}, provider};
     switch (provider.id) {
         case 'stmc': {
-            const stmc = new STMC(schema, provider as STMCProvider, config);
+            const stmc = new STMC(schema, provider as STMCProvider, config); //TODO - move to options, config
             const client = await stmc.configure();
             const users = await client.getUsers();
             const keyed: {[k: string]: object} = {};
@@ -30,18 +30,17 @@ export default async function connect(schema: Schema, connectorName: string, con
         case 'csv': {
             const csv = new CSV(undefined, undefined, provider as CSVProvider );
             const data = await csv.open() as { data: {[k: string]: string}[] };
-            const keyed: {[k: string]: object} = {};
+            const keyed: {[k: string]: object} = {}; //TODO - add config
             const rows = [];
             for (const row of data.data){
-                if (keyed[row[id]]) continue; //REVIEW - skips non-unqiue rows; what should happen here? 
+                if (keyed[row[id]]) continue;
                 keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
                 rows.push(row);
             } data.data = [];
             connection = { rows, provider, keyed }; break;
         }
         case 'ldap': {
-            const prov = provider as LDAPProvider;
-            const ldap = new LDAP(prov, config);
+            const ldap = new LDAP(provider as LDAPProvider, config);
             const client = await ldap.configure();
             const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
             const close = async () => client.close();
@@ -54,9 +53,14 @@ export default async function connect(schema: Schema, connectorName: string, con
 export class CSV {
     private path: string;
     private encoding: BufferEncoding = 'utf8';
-    constructor(path?: string, encoding?: BufferEncoding, connector?: CSVProvider) {
+    constructor(path?: string, encoding?: BufferEncoding, connector?: CSVProvider) { //TODO - move to config
         this.path = connector ? connector.path : (path || '');
         this.encoding = connector ? connector.encoding : (encoding || 'utf8');
+    }
+    async validate() {
+        if (!this.path || !fs.existsSync(this.path)) throw Error("Path does not exist.");
+        if (!(fs.lstatSync(this.path as string).isFile())) throw Error("Path is not a file.");
+        await this.open();
     }
     open(header=true, autoClose=true): Promise<ParseResult<unknown>> {
         return new Promise((resolve, reject) => {
@@ -92,6 +96,10 @@ export class STMC {
         this.connector = connector;
         this.proxy = connector.proxy;
         this.config  = config;
+    }
+    async validate() {
+        //TODO - check inputs
+        await this.configure();
     }
     private async eduhub(name: string): Promise<{ data: {[k: string]: string}[] }> {
         if (!this.schema._connectors[name]) throw Error(`Connector '${name}' does not exist.`);
@@ -133,6 +141,10 @@ export class LDAP {
         this.connector = connector;
         this.config = config;
     }
+    async validate() {
+        //TODO - check inputs
+        await this.configure();
+    }
     public async configure(): Promise<ldap> {
         const client = new ldap();
         if (this.config.filter) client.filter = this.config.filter;
@@ -149,4 +161,11 @@ export class LDAP {
         }
         return client;
     }
+}
+
+export type provider = typeof CSV|typeof STMC|typeof LDAP;
+export const providers: { [id: string]: provider } = {
+    csv: CSV,
+    stmc: STMC,
+    ldap: LDAP,
 }
