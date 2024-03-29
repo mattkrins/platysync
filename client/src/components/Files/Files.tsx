@@ -105,7 +105,10 @@ export default function Files() {
         setData(d=>d.map(a=>[from, to].includes(a.index) ? {...a, loading: true} : {...a}));
         reorderObjects(from, to);
     }
-    const { del }: api = useAPI({ url: `/schema/${schema?.name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders });
+    const { del }: api = useAPI({ url: `/schema/${schema?.name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders,
+    catch: ({ error }) =>{
+        notifications.show({ title: "Error",message: error||"Unknown error", color: 'red', });
+    } });
     const remove = (id: string) => () => {
         setData(d=>d.map(a=>a.id===id ? {...a, loading: true} : {...a}));
         del({data: { id }});

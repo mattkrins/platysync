@@ -8,11 +8,11 @@ import rule, { rules }  from './routes/rule.js';
 import { User } from './db/models.js';
 import { form, isNotEmpty, hasLength } from './components/validators.js';
 import schedule from './routes/schedule.js';
-import storage from './routes/storage.js';
+import storage from './routes/file.js';
 const { getPrinters } = pdfPrinter;
 
 
-export function addRoute(api: FastifyInstance, prefix: string, routesToAdd: (route: FastifyInstance)=>void, auth: boolean = true) {
+function addRoute(api: FastifyInstance, prefix: string, routesToAdd: (route: FastifyInstance)=>void, auth: boolean = true) {
   api.register( (route: FastifyInstance, _opts: unknown, done: () => void)=>{
     if (auth) useAuth(route);
     routesToAdd(route);

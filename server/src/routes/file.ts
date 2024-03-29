@@ -4,6 +4,8 @@ import { Doc } from "../db/models.js";
 import multer from 'fastify-multer';
 import * as fs from 'fs';
 import { template } from "../typings/common.js";
+import { findDependencies } from "../modules/common.js";
+import { getSchema } from "./schema.js";
 
 export async function docsToTemplate(schema_name: string) : Promise<template> {
   const docsTemplate: template = { $file: {} };
@@ -31,6 +33,9 @@ export default async function (route: FastifyInstance) {
     try {
       const doc = await Doc.findOne({where: { id, schema: schema_name }});
       if (!doc) throw reply.code(404).send({ validation: { name: "Doc not found." } });
+      const schema = getSchema(schema_name, reply);
+      const dependencies = findDependencies(schema, doc.name, true, true);
+      if (dependencies) throw reply.code(400).send({ error: `Found references to file '${doc.name}' in '${dependencies}'.` });
       const path = `${paths.storage}/${schema_name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
       if (fs.existsSync(path)) fs.rmSync(path);
       await doc.destroy();

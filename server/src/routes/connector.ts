@@ -6,6 +6,7 @@ import { form } from "../components/validators.js";
 import { encrypt } from "../modules/cryptography.js";
 import { AllProviderOptions, providers } from "../components/providers.js";
 import { Schema } from "../typings/common.js";
+import { findDependencies } from "../modules/common.js";
 
 export default function connector(route: FastifyInstance) {
     route.post('/', form({
@@ -34,29 +35,6 @@ export default function connector(route: FastifyInstance) {
           reply.code(500).send({ error: error.message });
         }
     });
-    function hasHandle(haystack: string|undefined = "", needle: string){ return String(haystack).includes(`${needle}.`) || String(haystack).includes(`${needle}/`); }
-    function findDependencies(schema: Schema, name: string){ //TODO - find deps in other connectors
-        for (const rule of schema.rules) {
-            if (hasHandle(rule.display, name)) return rule.name;
-            for (const condition of rule.conditions||[]) {
-                if (hasHandle(condition.key, name)) return rule.name;
-                if (hasHandle(condition.value, name)) return rule.name;
-            }
-            for (const action of rule.actions||[]) {
-                if (hasHandle(action.value, name)) return rule.name;
-                if (hasHandle(action.source, name)) return rule.name;
-                if (hasHandle(action.target, name)) return rule.name;
-                if (hasHandle(action.upn, name)) return rule.name;
-                if (hasHandle(action.ou, name)) return rule.name;
-                for (const attribute of action.attributes||[]) if (hasHandle(attribute.value, name)) return rule.name;
-                for (const group of action.groups||[]) if (hasHandle(group as string, name)) return rule.name;
-                for (const template of action.templates||[]) {
-                    if (hasHandle(template.name, name)) return rule.name;
-                    if (hasHandle(template.value, name)) return rule.name;
-                }
-            }
-        } return false;
-    }
     route.put('/:connector_name', form({
         name: validConnectorName(),
     }), async (request, reply) => {
@@ -74,8 +52,8 @@ export default function connector(route: FastifyInstance) {
             try { await provider.validate(); } catch (e) { throw new ExtError(e).sendValidation(reply); }
             if (connector_name!==body.name){
                 if (schema._connectors[body.name]) throw reply.code(409).send({ validation: { name: "Connector name taken." } });
-                const dependencies = findDependencies(schema, connector_name);
-                if (dependencies) throw reply.code(400).send({ validation: { name: `Found references to name '${connector_name}' in rule '${dependencies}'.` } });
+                const dependencies = findDependencies(schema, connector_name, false, false);
+                if (dependencies) throw reply.code(400).send({ validation: { name: `Found references to name '${connector_name}' in '${dependencies}'.` } });
                 delete schema._connectors[connector_name];
                 delete schema.headers[connector_name];
                 schema._connectors[body.name] = body;
@@ -135,7 +113,7 @@ export default function connector(route: FastifyInstance) {
         try {
             const schema = getSchema(schema_name, reply);
             if (!schema._connectors[connector_name]) throw reply.code(404).send({ validation: { name: "Connector does not exist." } });
-            const dependencies = findDependencies(schema, connector_name);
+            const dependencies = findDependencies(schema, connector_name, false, false);
             if (dependencies) throw reply.code(400).send({ validation: { name: `Found references to name '${connector_name}' in rule '${dependencies}'.` } });
             delete schema._connectors[connector_name];
             schema.connectors = schema.connectors.filter(c=>c.name!==connector_name);
