@@ -81,6 +81,8 @@ export interface Rule {
   after_actions: Action[];
   actions: Action[];
   config: {[k: string]: {[k: string]: unknown} };
+  log?: string;
+  test?: boolean;
 }
 
 export interface template {

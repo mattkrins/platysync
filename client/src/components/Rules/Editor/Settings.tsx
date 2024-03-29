@@ -13,7 +13,8 @@ const logLevels = [
     { value: '0', label: 'Disabled' },
     { value: '1', label: 'Per-execution timestamp' },
     { value: '2', label: 'Per-execution summary' },
-    { value: '3', label: 'Per-action summary' },
+    { value: '3', label: 'Per-execution summary (verbose)' },
+    { value: '4', label: 'Per-entry summary' },
 ];
 
 interface Secondary {

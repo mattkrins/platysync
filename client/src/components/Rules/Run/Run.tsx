@@ -32,7 +32,7 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
     const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI({
         url: `/schema/${schema?.name}/rules/match`,
         default: { evaluated: [], initActions: [], finalActions: [] },
-        data: {...rule, conditions: form.values.conditions},
+        data: {...rule, conditions: form.values.conditions, test},
     });
     
     const checked = useMemo(()=> (evaluated.evaluated as evaluated[]).filter(r=>r.checked).map(r=>r.id), [ evaluated.evaluated ]);

@@ -20,6 +20,8 @@ export const paths = {
   schemas: `${path}/schemas`,
   cache: `${path}/cache`,
   storage: `${path}/storage`,
+  logs: `${path}/logs`,
+  journal: `${path}/logs/journal`,
 };
 for (const path of Object.values(paths)) if (!fs.existsSync(path)) fs.mkdirSync(path);
 const pkg = fs.readFileSync('package.json', 'utf-8');
@@ -31,9 +33,14 @@ export const log = winston.createLogger({ //TODO - connect this to settings gui
   format: combine(errors({ stack: true }), timestamp(), json()),
   transports: [
     new winston.transports.Console({ level: 'error', format: combine(errors({ stack: true }), timestamp(), winston.format.colorize(), simple()) }),
-    new winston.transports.File({ filename: `${path}/log.txt` }),
+    new winston.transports.File({ filename: `${paths.logs}/general.txt` }),
   ]
 }); // log.level = 'info';
+export const history = winston.createLogger({
+  level: 'info', // silly > debug > verbose > http > info > warn > error
+  format: combine(errors({ stack: true }), timestamp(), json()),
+  transports: new winston.transports.File({ filename: `${paths.logs}/history.txt` }),
+});
 
 
 export const server: FastifyInstance = Fastify({}).withTypeProvider<JsonSchemaToTsProvider>();

@@ -1,6 +1,5 @@
 import { compile } from "../../modules/handlebars.js";
 import { Action, actionProps } from "../../typings/common.js";
-import * as fs from 'fs';
 import { CSV } from '../providers.js';
 import { server } from '../../server.js';
 import { ParseResult } from 'papaparse';
@@ -21,9 +20,9 @@ export default async function ({ action, template, execute, data, connections }:
         let client: eduSTAR|undefined = undefined;
         let source: ParseResult<unknown>|undefined = undefined;
         if (action.validate || execute){
-            if (!fs.existsSync(data.source)) throw Error('Source path does not exist.');
             client = connections[action.target].client as eduSTAR;
-            const csv = new CSV(data.source);
+            const csv = new CSV({path: data.source, id: '', name: ''});
+            await csv.validate();
             source = await csv.open(action.nohead?false:true);
             if (!source.data || source.data.length<=0) throw Error('No rows found.');
             if (source.meta.delimiter !== ",") throw Error('Invalid delimiter.');

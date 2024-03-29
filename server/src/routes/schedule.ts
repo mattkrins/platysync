@@ -32,10 +32,10 @@ async function runSchedule(schedule: Schedule){
         for (const rule of schema.rules) {
             if (!rule.enabled) continue;
             if (!rules.includes(rule.name)) continue;
-            const matches = await process(schema, rule);
+            const matches = await process(schema, rule, undefined, true);
             const actionable = matches.evaluated.filter(a=>a.actionable).map(a=>a.id) as string[];
             if (actionable.length<=0) continue;
-            await processActions(schema, rule, actionable );
+            await processActions(schema, rule, actionable, true );
         }
     } catch (e) {
         console.error(`Schedule ${schedule.id} failed to run: `, e);

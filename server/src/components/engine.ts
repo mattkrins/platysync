@@ -1,7 +1,7 @@
 import { compile } from "../modules/handlebars.js";
 import { Action, Condition, Rule, Schema, connections } from "../typings/common.js";
 import connect from "./providers.js";
-import { paths, server } from "../server.js";
+import { paths, server, history } from "../server.js";
 import { User } from "../modules/ldap.js";
 import FileCopy from "./operations/FileCopy.js";
 import SysComparator from "./operations/SysComparator.js";
@@ -25,11 +25,13 @@ import DirEnableUser from "./operations/DirEnableUser.js";
 import DirCreateUser from "./operations/DirCreateUser.js";
 import StmcUpload from "./operations/StmcUpload.js";
 import { Doc } from "../db/models.js";
+import winston from 'winston';
+const { combine, timestamp, json, errors } = winston.format;
 
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}
 
-interface result {template?: object, success?: boolean, error?: string, warning?: string, data?: { [k:string]: string }}
+interface result {template?: object, success?: boolean, error?: string, warn?: string, data?: { [k:string]: string }}
 
 export function getUser(action: Action & { target: string }, connections: connections, keys: sKeys, data: { [k:string]: string }): User {
     data.directory = action.target;
@@ -158,77 +160,136 @@ function progress(cur: cur, length: number, id: string, start: number = 0) {
 
 const wait = async (t = 100) => new Promise((res)=>setTimeout(res, t));
 export const empty = (value?: string) => !value || value.trim()==='';
-export default async function process(schema: Schema , rule: Rule, idFilter?: string[]) {
-    const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now(), progress: 0 };
-    progress(cur, 0, 'Search engine initialized');
-    server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
+export default async function process(schema: Schema , rule: Rule, idFilter?: string[], scheduled?: boolean) {
     const connections: connections = {};
-    if (!rule.primaryKey) rule.primaryKey = 'id';
-    const caseSen = rule.secondaries.filter(s=>s.case).length > 0;
-    const primary = await connect(schema, rule.primary, connections, rule.primaryKey, (rule.config||{})[rule.primary], caseSen);
-    cur.index = 5;
-    progress(cur, 100, 'secondaries');
-    if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
-    await wait(500);
-    for (const secondary of rule.secondaries||[]){
-        if (empty(secondary.secondaryKey)) secondary.secondaryKey = rule.primaryKey;
-        if (empty(secondary.primaryKey)) secondary.primaryKey = rule.primaryKey;
-        await connect(schema, secondary.primary, connections, secondary.secondaryKey, rule.config[secondary.primary], secondary.case);
+    let action: winston.Logger|undefined;
+    try {
+        history.debug({schema: schema.name, rule: rule.name, message: 'Running Rule.', scheduled});
+        if (idFilter && rule.log && parseInt(rule.log) > 0 ) {
+            if (rule.log==="1") history.info({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled});
+            if (parseInt(rule.log) > 3){
+                action = winston.createLogger({
+                    level: 'info',
+                    format: combine(timestamp(), json()),
+                    transports: new winston.transports.File({ filename: `${paths.journal}/${schema.name}.${rule.name}.${new Date().getTime()}.txt` }),
+                });
+            }
+        } else { history.debug({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled}); }
+        const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now(), progress: 0 };
+        progress(cur, 0, 'Search engine initialized');
+        server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
+        if (!rule.primaryKey) rule.primaryKey = 'id';
+        const caseSen = rule.secondaries.filter(s=>s.case).length > 0;
+        const primary = await connect(schema, rule.primary, connections, rule.primaryKey, (rule.config||{})[rule.primary], caseSen);
+        cur.index = 5;
+        progress(cur, 100, 'secondaries');
+        if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
         await wait(500);
+        for (const secondary of rule.secondaries||[]){
+            if (empty(secondary.secondaryKey)) secondary.secondaryKey = rule.primaryKey;
+            if (empty(secondary.primaryKey)) secondary.primaryKey = rule.primaryKey;
+            await connect(schema, secondary.primary, connections, secondary.secondaryKey, rule.config[secondary.primary], secondary.case);
+            await wait(500);
+        }
+        cur.index = 10;
+        progress(cur, 100, 'init actions');
+        await wait(500);
+        const docsTemplate: template = { $file: {} };
+        const docs = await Doc.findAll({where: { schema: schema.name }, raw: true });
+        for (const doc of docs) {
+            const path = `${paths.storage}/${schema.name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
+            (docsTemplate.$file as { [k: string]: string })[doc.name] = path;
+        }
+        const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, docsTemplate, connections, {}, schema, !!idFilter);
+        if (initActions.filter(r=>r.result.error).length>0){
+            if (idFilter && action && rule.log==="4") action.error( { initAction: initActions.filter(r=>r.result.error)[0].result.error} )
+            await conclude(connections); return {evaluated: [], initActions, finalActions: []};
+        } else {
+            if (idFilter && action && rule.log==="4" && initActions.length > 0) action.info( { initAction: `${initActions.length} initActions completed.` } );
+        }
+        cur.index = 15;
+        progress(cur, 100, 'entries');
+        await wait(50);
+        const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
+        cur.index = 0;
+        for (const row of primary.rows) {
+            cur.index ++;
+            const id = row[rule.primaryKey];
+            progress(cur, primary.rows.length, id, 15);
+            const template: template = { ...initTemplate, [rule.primary]: row, $index: String(cur.index) };
+            let skip = false;
+            const keys: sKeys = { [rule.primary]: caseSen?id:id.toLowerCase() };
+            for (const secondary of rule.secondaries||[]) {
+                if (!(secondary.primary in connections)) continue;
+                const primaryKey = row[secondary.primaryKey];
+                if (secondary.req && !primaryKey){ skip = true; break; }
+                if (!primaryKey) continue;
+                const secondaryJoin = connections[secondary.primary].keyed[secondary.case?primaryKey:primaryKey.toLowerCase()]||{};
+                if (secondary.req && !secondaryJoin){ skip = true; break; }
+                const joins = Object.keys(connections[secondary.primary].keyed).filter(k=>k===(secondary.case?primaryKey:primaryKey.toLowerCase()));
+                if (secondary.req && joins.length <= 0){ skip = true; break; }
+                if (secondary.oto && joins.length > 1){ skip = true; break; }
+                template[secondary.primary] = secondaryJoin;
+                keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
+            } if (skip) continue;
+            if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
+            const output: typeof evaluated[0] = { id, actions: [], actionable: false };
+            if (!empty(rule.display)) output.display = compile(template, rule.display);
+            output.actions = (await actions(rule.actions, template, connections, keys, schema, !!idFilter)).todo;
+            output.actionable = output.actions.filter(t=>t.result.error).length <= 0;
+            evaluated.push(output);
+            if (idFilter && action && rule.log==="4"){
+                const errors = output.actions.filter(t=>t.result.error).map(a=>a.result.error);
+                const warnings = output.actions.filter(t=>t.result.warn).map(a=>a.result.warn);
+                const log = errors.length > 0 ? action.error : (warnings.length > 0 ? action.warn : action.info);
+                const message = errors.length > 0 ? errors[0] : (warnings.length > 0 ? warnings[0] : undefined);
+                log({ id, index: cur.index, display: output.display||id, message });
+            }
+        }
+        server.io.emit("job_status", `Evaluating final actions`);
+        await wait(1000);
+        const {todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
+        if (idFilter && action && rule.log==="4"){
+            if (finalActions.filter(r=>r.result.error).length>0) {
+                action.error( { finalAction: initActions.filter(r=>r.result.error)[0].result.error} )
+            } else if (finalActions.length > 0) {
+                action.info( { finalAction: `${finalActions.length} finalActions completed.` } );
+            }
+        }
+        if (action) action.destroy();
+        if (idFilter && rule.log && parseInt(rule.log) > 0 ) {
+            if (rule.log==="2" || parseInt(rule.log) > 3) history.info({schema: schema.name, rule: rule.name, scheduled, message: 'Execution concluded.',
+            initActions: initActions.length,
+            finalActions: finalActions.length,
+            executionCount: evaluated.length,
+            successCount: evaluated.filter(e=>e.actionable).length,
+            failureCount: evaluated.filter(e=>!e.actionable).length,
+            warningCount: evaluated.filter(e=>e.actions.map(a=>a.result.warn).length>0).length,
+            });
+            if (rule.log==="3") history.info({schema: schema.name, rule: rule.name, scheduled, message: 'Execution concluded.',
+            initActions: initActions.length,
+            finalActions: finalActions.length,
+            executionCount: evaluated.length,
+            successes: evaluated.filter(e=>e.actionable).map(e=>e.id),
+            failures: evaluated.filter(e=>!e.actionable).map(e=>e.id),
+            warnings: evaluated.filter(e=>e.actions.map(a=>a.result.warn).length>0).map(e=>e.id),
+            });
+        } else { history.debug({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled}); }
+        await conclude(connections);
+        return {evaluated, initActions, finalActions};
+    } catch (e) {
+        const error = e as { schema: string, rule: string, scheduled?: boolean };
+        error.schema = schema.name||'unknown';
+        error.rule = rule.name||'unknown';
+        error.scheduled = scheduled;
+        if (!rule.test) history.error(error);
+        conclude(connections);
+        throw error;
     }
-    cur.index = 10;
-    progress(cur, 100, 'init actions');
-    await wait(500);
-
-    const docsTemplate: template = { $file: {} };
-    const docs = await Doc.findAll({where: { schema: schema.name }, raw: true });
-    for (const doc of docs) {
-        const path = `${paths.storage}/${schema.name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
-        (docsTemplate.$file as { [k: string]: string })[doc.name] = path;
-    }
-    const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, docsTemplate, connections, {}, schema, !!idFilter);
-    if (initActions.filter(r=>r.result.error).length>0){ await conclude(connections); return {evaluated: [], initActions, finalActions: []} }
-    cur.index = 15;
-    progress(cur, 100, 'entries');
-    await wait(50);
-    const evaluated: { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }[] = [];
-    cur.index = 0;
-    for (const row of primary.rows) {
-        cur.index ++;
-        const id = row[rule.primaryKey];
-        progress(cur, primary.rows.length, id, 15);
-        const template: template = { ...initTemplate, [rule.primary]: row };
-        let skip = false;
-        const keys: sKeys = { [rule.primary]: caseSen?id:id.toLowerCase() };
-        for (const secondary of rule.secondaries||[]) {
-            if (!(secondary.primary in connections)) continue;
-            const primaryKey = row[secondary.primaryKey];
-            if (secondary.req && !primaryKey){ skip = true; break; }
-            if (!primaryKey) continue;
-            const secondaryJoin = connections[secondary.primary].keyed[secondary.case?primaryKey:primaryKey.toLowerCase()]||{};
-            if (secondary.req && !secondaryJoin){ skip = true; break; }
-            const joins = Object.keys(connections[secondary.primary].keyed).filter(k=>k===(secondary.case?primaryKey:primaryKey.toLowerCase()));
-            if (secondary.req && joins.length <= 0){ skip = true; break; }
-            if (secondary.oto && joins.length > 1){ skip = true; break; }
-            template[secondary.primary] = secondaryJoin;
-            keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
-        } if (skip) continue;
-        //await wait(100);
-        if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
-        const output: typeof evaluated[0] = { id, actions: [], actionable: false };
-        if (!empty(rule.display)) output.display = compile(template, rule.display);
-        output.actions = (await actions(rule.actions, template, connections, keys, schema, !!idFilter)).todo;
-        output.actionable = output.actions.filter(t=>t.result.error).length <= 0;
-        evaluated.push(output);
-    }
-    server.io.emit("job_status", `Evaluating final actions`);
-    await wait(1000);
-    const {todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
-    await conclude(connections);
-    return {evaluated, initActions, finalActions};
 }
 
-export async function processActions(schema: Schema , rule: Rule, limitTo: string[]) {
+export async function processActions(schema: Schema , rule: Rule, limitTo: string[], scheduled?: boolean) {
     if (!limitTo || limitTo.length <= 0) throw (Error("Unreviewed bulk actions not allowed"));
-    return process(schema, rule, limitTo );
+    if (rule.test) throw (Error("Actions not allowed for tests"));
+    return process(schema, rule, limitTo, scheduled );
 }

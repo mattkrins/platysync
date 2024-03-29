@@ -19,6 +19,7 @@ export class ldap {
                 const tlsOptions = { 'rejectUnauthorized': false } // ldap(s) validation
                 const client = ldapjs.createClient({
                     url: [url],
+                    connectTimeout: 4000,
                     tlsOptions
                 });
                 client.on('error', (err) => reject(err));
