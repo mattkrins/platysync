@@ -26,7 +26,7 @@ import DirCreateUser from "./operations/DirCreateUser.js";
 import StmcUpload from "./operations/StmcUpload.js";
 import { Doc } from "../db/models.js";
 import winston from 'winston';
-const { combine, timestamp, json, errors } = winston.format;
+const { combine, timestamp, json } = winston.format;
 
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}

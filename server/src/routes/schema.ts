@@ -2,12 +2,11 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { log, path, version } from '../server.js';
 import * as fs from 'fs';
 import { _Error } from "../server.js";
-import { readYAML, writeYAML } from "../storage.js";
 import { Schema, SchemaYaml } from '../typings/common.js'
 import { form, validWindowsFilename } from "../components/validators.js";
 import AdmZip from 'adm-zip';
 import multer from 'fastify-multer';
-import YAML from 'yaml'
+import YAML, { stringify } from 'yaml'
 import versioner from "../components/versioner.js";
 import { providers } from "../components/providers.js";
 
@@ -207,3 +206,14 @@ export default function schema(route: FastifyInstance) {
       }
   });
 }
+
+export function writeYAML(data: unknown, path: string): void {
+  const yamlString = stringify(data);
+  fs.writeFileSync(path, yamlString);
+}
+
+export function readYAML(path: string) {
+  const file = fs.readFileSync(path, 'utf8');
+  return YAML.parse(file);
+}
+

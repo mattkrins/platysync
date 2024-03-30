@@ -1,7 +1,7 @@
 import { db } from "../db/database.js";
 import { mutateSchema } from "../routes/schema.js";
 import { log, path } from "../server.js";
-import { readYAML } from "../storage.js";
+import { readYAML } from "../routes/schema.js";
 import { Condition, Schema } from "../typings/common.js";
 import * as fs from 'fs';
 
