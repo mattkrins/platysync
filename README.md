@@ -16,7 +16,7 @@
 
 # ❓ PlatySync
 
-PlatySync is an application which takes a data input, such as a CSV file, and provided a set of condtions can execute a number of actions.
+PlatySync is an application which takes a data input, such as a CSV file, and execute actions based on conditions.
 
 ## 💪 Features
 
