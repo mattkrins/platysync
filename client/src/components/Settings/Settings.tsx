@@ -1,12 +1,14 @@
-import { Button, Input, SegmentedControl, useMantineColorScheme } from '@mantine/core'
+import { Button, Input, SegmentedControl, useMantineColorScheme, Text } from '@mantine/core'
 import Container from '../Common/Container';
 import { useContext } from 'react';
 import useAPI from '../../hooks/useAPI';
 import SchemaContext from '../../providers/SchemaContext';
 import { notifications } from '@mantine/notifications';
+import AuthContext from '../../providers/AuthContext';
 
 export default function Settings() {
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();
+    const { version } = useContext(AuthContext);
     const { changeSchema } = useContext(SchemaContext);
     const { get: purge, loading: purging } = useAPI({
         url: `/fix`,
@@ -18,6 +20,7 @@ export default function Settings() {
     });
     return (
     <Container label='Application Settings' >
+        <Text c="dimmed" >Application Version: {version}</Text>
         <Input.Wrapper
         label="Theme"
         description="Change colours of the application"

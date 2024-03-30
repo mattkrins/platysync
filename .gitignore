@@ -131,4 +131,4 @@ dist
 
 # other
 *.ink
-build/
+build/dist

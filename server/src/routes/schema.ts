@@ -7,7 +7,6 @@ import { form, validWindowsFilename } from "../components/validators.js";
 import AdmZip from 'adm-zip';
 import multer from 'fastify-multer';
 import YAML, { stringify } from 'yaml'
-import versioner from "../components/versioner.js";
 import { providers } from "../components/providers.js";
 
 export let schemas: Schema[] = [];
@@ -44,7 +43,6 @@ export async function cacheSchema(name: string) {
 export async function initSchemaCache() {
   schemas = [];
   _schemas = {};
-  await versioner();
   const folderPath = `${path}/schemas/`;
   const all = fs.readdirSync(folderPath);
   const files = all.filter(o => fs.statSync(`${folderPath}/${o}`).isFile() );
@@ -133,7 +131,6 @@ export default function schema(route: FastifyInstance) {
     const yaml = YAML.parse(contents);
     const mutated = {...oldSchema, ...yaml, name };
     writeYAML(mutated, `${path}/schemas/${name}.yaml`);
-    versioner();
     return await cacheSchema(name);
   }
   const storage = multer.memoryStorage();

@@ -7,7 +7,7 @@ export default defineConfig({
   clearScreen: false,
   build: {
     emptyOutDir: true,
-    outDir: '../dist/client',
+    outDir: '../build/dist/client',
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {

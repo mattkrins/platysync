@@ -59,6 +59,7 @@
     "start": "npm-run-all --parallel client server",
     "client": "cd client && npm run start",
     "server": "tsx watch --clear-screen=false --ignore ./client server/src/server.ts",
-    "build": "tsc && cd client && npm run build && cd .. && node build.js"
+    "build": "tsc && cd client && npm run build && cd ../build && node build.js",
+    "upgrade": "tsx server/src/upgrade.ts"
   }
 }

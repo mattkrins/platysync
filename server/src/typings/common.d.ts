@@ -7,7 +7,7 @@ export interface AxiosFix extends AxiosStatic {
 
 export interface Schema {
     name: string;
-    version: number;
+    version: string;
     connectors: Connector[];
     _connectors: { [name: string]: Connector };
     rules: Rule[];

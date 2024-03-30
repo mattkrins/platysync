@@ -38,7 +38,7 @@ Learn how to use PlatySync by following the [documentation](https://github.com/m
 ### 📙 Contributing
 
 Thank you for considering contributing to PlatySync.\
-You can find a contribution guide in the [wiki](https://github.com/mattkrins/platysync/wiki/Developing-for-CDAPP).\
+You can find a contribution guide in the [wiki](https://github.com/mattkrins/platysync/wiki/Developing-for-CDAPP).
 
 ### 🛠️ Building
 

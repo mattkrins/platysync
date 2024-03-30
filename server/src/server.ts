@@ -24,9 +24,7 @@ export const paths = {
   journal: `${path}/logs/journal`,
 };
 for (const path of Object.values(paths)) if (!fs.existsSync(path)) fs.mkdirSync(path);
-const pkg = fs.readFileSync('package.json', 'utf-8');
-const pack = JSON.parse(pkg) as { version: string };
-export const version = parseFloat(pack.version);
+export const version = process.env.npm_package_version;
 
 export const log = winston.createLogger({ //TODO - connect this to settings gui
   level: 'debug', // silly > debug > verbose > http > info > warn > error
@@ -69,11 +67,14 @@ server.register( routes, { prefix: '/api/v1' } );
 
 const start = async () => {
   try {
+    const version = process.env.npm_package_version;
+    if (!version) throw Error("Unable to determin ver.");
     await server.listen({ port: 2327, host: '0.0.0.0' }); //TODO - link to GUI settings
     const address = server.server.address();
     const port = typeof address === 'string' ? address : address?.port;
-    log.info(`Server started on port ${port}.`);
-    console.log(`  ➜  Server:   http://localhost:${port}/  ➜  logs:   ${path}/log.txt`);
+    log.info(`Server started on port ${port} running ver. ${version}.`);
+    console.log(`  ➜  Server:   http://localhost:${port}/`);
+    console.log(`  ➜  log:   ${paths.logs}/general.txt`);
   } catch (err) {
     server.log.error(err);
     log.error(err);
