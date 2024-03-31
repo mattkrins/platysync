@@ -49,7 +49,6 @@ const parseRule: () => Promise<Rule> = () => new Promise((resolve, reject) => {
       }
     }
   }
-  
 });
 
 export default function Editor({ editing, close }: { editing: Rule|undefined, close(): void }) {

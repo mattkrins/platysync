@@ -12,11 +12,10 @@ import storage from './routes/file.js';
 const { getPrinters } = pdfPrinter;
 
 
-function addRoute(api: FastifyInstance, prefix: string, routesToAdd: (route: FastifyInstance)=>void, auth: boolean = true) {
-  api.register( (route: FastifyInstance, _opts: unknown, done: () => void)=>{
+ function addRoute(api: FastifyInstance, prefix: string, routesToAdd: (route: FastifyInstance)=>Promise<void>|void, auth: boolean = true) {
+  api.register( async (route: FastifyInstance)=>{
     if (auth) useAuth(route);
-    routesToAdd(route);
-    done();
+    await routesToAdd(route);
   }, { prefix } );
 }
 

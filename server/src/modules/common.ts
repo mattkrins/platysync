@@ -1,4 +1,54 @@
+import { FastifyReply } from "fastify";
 import { Schema } from "../typings/common.js";
+
+export class xError {
+    message: string;
+    name: string = "Error";
+    stack?: string;
+    field?: string;
+    status?: number;
+    validation?: { validation: { [k: string]: string } };
+    /**
+     * @param {string} message
+     * @param {string} field
+     * @param {number} status
+     ** 400: Client Error
+     ** 401: Unauthorized
+     ** 403: Forbidden
+     ** 404: Not Found
+     ** 405: Method Not Allowed
+     ** 406: Not Acceptable [ Default ]
+     ** 408: Request Timeout
+     ** 409: Conflict
+     ** 500: Server Error
+    **/
+    constructor(message: unknown = "Unknown error.", field?: string, status?: number) {
+      if (message instanceof xError){ this.message = message.message; return message; }
+      if (typeof message === "string"){ this.message = message; } else {
+        this.message = '[Unable to stringify the thrown value]';
+        try {
+          this.message = JSON.stringify(message);
+        } catch { /* empty */ }
+      }
+      this.field = field;
+      this.status = status;
+      if (field) this.validation = { validation: { [field]: this.message } }
+      if (Error.captureStackTrace) Error.captureStackTrace(this, xError);
+    }
+    public send(reply: FastifyReply) {
+      return reply.code(this.status||500).send({ error: this.message });
+    }
+    public sendValidation(reply: FastifyReply) {
+      return reply.code(this.status||406).send(this.validation);
+    }
+}
+
+export function validStr(string: string) {
+    if (!string) return false;
+    if (typeof string !== "string") return false;
+    if (string.trim()==="") return false;
+    return true;
+}
 
 function hasChild(haystack: string|undefined = "", needle: string){
     return String(haystack).includes(`{{`) && (String(haystack).includes(`.${needle}`) || String(haystack).includes(`/${needle}`));
