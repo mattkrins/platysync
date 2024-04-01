@@ -2,6 +2,7 @@ import { createContext } from 'react';
 
 // LINK: ./SchemaProvider.tsx
 const SchemaContext = createContext<{
+    name: string;
     schema?: Schema;
     loading?: string|false;
     connectors: Connector[];
@@ -13,6 +14,7 @@ const SchemaContext = createContext<{
     reload(): void;
     mutate(update: object): void;
 }>({
+    name: 'loading',
     schema: undefined,
     loading: false,
     connectors: [],

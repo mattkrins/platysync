@@ -20,6 +20,7 @@ export default function Connectors() {
   const [ adding, setAdding ] = useState<string|undefined>(undefined);
   const edit = (connector: Connector) => { setAdding(undefined); setEditing(connector); }
   const add = (provider: string) => { close(); setEditing(undefined); setAdding(provider); }
+  console.log(schema)
 
   const { del, request: r1 } = useAPI({
       url: `/schema/${schema?.name}/connector`,

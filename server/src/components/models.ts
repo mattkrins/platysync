@@ -55,10 +55,22 @@ export class Schema {
         this.parent.object[this.name] = this;
         return this;
     }
-    public async destroy() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public mutate(changes: {[k: string]: any}, save: boolean = true): Schema {
+        console.log(changes.name, this.name)
+        if (changes.name && changes.name !== this.name){
+            if ((changes.name in this.parent.object)) throw new xError("Name taken.", "name", 409);
+            this.destroy();
+        }
+        Object.keys(changes).forEach(key => {
+            this[key as keyof Schema] = changes[key]
+        }); if (save) { this.save(); } return this;
+    }
+    public destroy(): true {
         fs.unlinkSync(`${paths.schemas}/${this.name}.yaml`);
         delete this.parent.object[this.name];
         this.parent.array = this.parent.array.filter(schema=>schema.name!=this.name);
+        return true
     }
     public parse(): xSchema {
         const keys = Object.keys(this).filter(key =>!['constructor', 'parent'].includes(key));
@@ -80,8 +92,6 @@ export class Schemas {
             const parsed = YAML.parse(file) as Schema;
             const schema = new Schema(parsed, this);
             schema.save(false);
-            const jsonString = JSON.stringify(schema.parse(), null, 2);
-            fs.writeFileSync(`${paths.schemas}/${schema.name}.json`, jsonString)
         }
     }
     public create(schema: Schema|xSchema): Schema {

@@ -30,13 +30,14 @@ export default function SchemaProvider({ children  }: PropsWithChildren) {
     
     return (
         <SchemaContext.Provider value={{
+            name: name||'',
             schema: data,
             loading,
-            connectors: data?data.connectors:[],
-            _connectors: data?data._connectors:{},
-            rules: data?data.rules:[],
-            _rules: data?data._rules:{},
-            headers: data?data.headers:{},
+            connectors: data?data.connectors||[]:[],
+            _connectors: data?data._connectors||{}:{},
+            rules: data?data.rules||[]:[],
+            _rules: data?data._rules||{}:{},
+            headers: data?data.headers||{}:{},
             changeSchema,
             reload: fetch,
             mutate

@@ -15,7 +15,7 @@ import { modals } from '@mantine/modals';
 import RunModal from "../Run/Run";
 import { useDisclosure } from "@mantine/hooks";
 
-function exportRule(obj: Rule, filename: string) {
+function exportJSON(obj: object, filename: string) {
   const json = JSON.stringify(obj, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -157,7 +157,7 @@ export default function Editor({ editing, close }: { editing: Rule|undefined, cl
       <Tabs.Panel value="conditions"><Conditions form={form} sources={sources} /></Tabs.Panel>
       <Tabs.Panel value="actions"><Actions form={form} /></Tabs.Panel>
       {jsonTab&&<Tabs.Panel value="export" p="xs" >
-        <Group justify="right" ><Button variant="light" size="xs" leftSection={<IconDeviceFloppy size={16}/>} onClick={()=>exportRule(form.values, `${form.values.name}.json`)} >Save</Button></Group>
+        <Group justify="right" ><Button variant="light" size="xs" leftSection={<IconDeviceFloppy size={16}/>} onClick={()=>exportJSON(form.values, `${form.values.name}.json`)} >Save</Button></Group>
         <JsonInput mt="xs" variant="filled" autosize minRows={4} readOnly value={JSON.stringify(form.values, null, 2)} />
       </Tabs.Panel>}
     </Tabs>

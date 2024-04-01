@@ -1,7 +1,6 @@
 import { Alert, Button, FileButton, Group, Modal, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconTag } from '@tabler/icons-react';
-import { validWindowsFilename } from "../../modules/common";
 import useAPI from '../../hooks/useAPI';
 import { useContext, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext';
@@ -21,14 +20,16 @@ function parse(file: File): Promise<Schema> {
     });
 }
 
+const validName = /[\W\s]|^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+const validate = {
+    name: (value: string) => (!validName.test(value) ? null : 'Invalid schema name')
+}
+
 export default function NewSchema({ opened, close, refresh }: { opened: boolean, close(): void, refresh(): void }) {
     const { changeSchema } = useContext(SchemaContext);
     const [imported, setImported] = useState<Schema|string|undefined>(undefined);
     const importing = imported && typeof imported !== "string" ? true : false;
-    const form = useForm({
-        initialValues: { name: '' },
-        validate: { name: (value: string) => (validWindowsFilename(value) ? null : 'Invalid schema name'), }
-    });
+    const form = useForm({ initialValues: { name: '' }, validate });
     const { post: create, loading, error } = useAPI({
         url: "/schema",
         data: form.values,

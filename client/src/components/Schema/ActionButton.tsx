@@ -1,21 +1,50 @@
 import { Text, useMantineTheme } from '@mantine/core';
 import { IconTrash, IconPackageExport, IconPackageImport } from '@tabler/icons-react';
-import useAPI from '../../hooks/useAPI';
 import { modals } from '@mantine/modals';
 import { useContext } from 'react';
 import SchemaContext from '../../providers/SchemaContext';
-import useModal from '../../hooks/useModal';
-import ImportModal from './ImportModal';
 import SplitButton from '../Common/SplitButton';
+import useImporter from '../../hooks/useImporter';
+import { UseFormReturnType } from '@mantine/form';
 
-export default function ActionButton({ save, saving }: { save(): void, saving: boolean }) {
+function exportJSON(obj: object, filename: string) {
+    const json = JSON.stringify(obj, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+const importSchema: (file: File) => Promise<Schema> = ( file ) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsText(file,'UTF-8');
+    reader.onload = readerEvent => {
+      const content = readerEvent.target?.result as string;
+      try {
+        const rule = JSON.parse(content) as Schema;
+        if (!rule.name) return reject("Rule structure malformed.");
+        resolve(rule);
+      }  catch {
+        return reject("Invalid rule.");
+      }
+    }
+});
+
+interface Props {
+    save(): void;
+    saving: boolean;
+    form: UseFormReturnType<Schema, (values: Schema) => Schema>;
+    del: () => void;
+}
+export default function ActionButton({ save, saving, form, del }: Props) {
     const theme = useMantineTheme();
-    const { schema, changeSchema } = useContext(SchemaContext);
-    const { Modal, opened: importerOpen, open: openImporter, close: closeImporter } = useModal("Import Schema");
-    const { del, loading: deleting } = useAPI({
-        url: `/schema/${schema?.name}`,
-        then: () => changeSchema(undefined),
-    });
+    const { schema } = useContext(SchemaContext);
+    const { Modal, open } = useImporter();
     const openDeleteModal = () =>
     modals.openConfirmModal({
         title: 'Delete Schema',
@@ -29,14 +58,17 @@ export default function ActionButton({ save, saving }: { save(): void, saving: b
         confirmProps: { color: 'red' },
         onConfirm: () => del(),
     });
-    const auth: {session: string} = JSON.parse(JSON.parse(localStorage.getItem("auth")||"") || {});
-    const url = new URL(window.location.href);
+    const upload = async (file: File) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {name, ...schema} = await importSchema(file) ;
+        form.setValues({...form.values, ...schema})
+    }
+
     return (<>
-        {importerOpen&&<Modal><ImportModal close={closeImporter} /></Modal>}
-        <SplitButton loading={saving||deleting} variant="light" onClick={save} options={[
-        {  component: "a", href: `http://${url.hostname}:2327/api/v1/schema/${schema?.name}/export/${auth.session}`,
-        label: 'Export', leftSection: <IconPackageExport size={16} color={theme.colors.green[5]}  /> },
-        {  onClick:()=>openImporter(), label: 'Import', leftSection: <IconPackageImport size={16} color={theme.colors.orange[5]}  /> },
+        <Modal onDrop={upload} closeup cleanup />
+        <SplitButton loading={saving} variant="light" onClick={save} options={[
+        {  onClick:()=>exportJSON(schema as object, `${schema?.name}.json`), label: 'Export', leftSection: <IconPackageExport size={16} color={theme.colors.green[5]}  /> },
+        {  onClick:()=>open(), label: 'Import', leftSection: <IconPackageImport size={16} color={theme.colors.orange[5]}  /> },
         {  onClick:()=>openDeleteModal(), label: 'Delete', leftSection: <IconTrash size={16} color={theme.colors.red[5]}  /> },
         ]} >Save</SplitButton>
     </>);
