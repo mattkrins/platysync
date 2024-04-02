@@ -1,6 +1,7 @@
 import { FastifyReply } from "fastify";
 import { Schema } from "../typings/common.js";
 
+type status = 400|401|403|404|405|406|408|409|500;
 export class xError {
     message: string;
     name: string = "Error";
@@ -22,7 +23,7 @@ export class xError {
      ** 409: Conflict
      ** 500: Server Error
     **/
-    constructor(message: unknown = "Unknown error.", field?: string, status?: number) {
+    constructor(message: unknown = "Unknown error.", field?: string, status?: status) {
       if (message instanceof xError){ this.message = message.message; return message; }
       if (typeof message === "string"){ this.message = message; } else {
         this.message = '[Unable to stringify the thrown value]';
@@ -36,10 +37,7 @@ export class xError {
       if (Error.captureStackTrace) Error.captureStackTrace(this, xError);
     }
     public send(reply: FastifyReply) {
-      return reply.code(this.status||500).send({ error: this.message });
-    }
-    public sendValidation(reply: FastifyReply) {
-      return reply.code(this.status||406).send(this.validation);
+      return reply.code(this.status||this.validation?406:500).send(this.validation||{ error: this.message });
     }
 }
 

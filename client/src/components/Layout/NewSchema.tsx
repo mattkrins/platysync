@@ -1,7 +1,7 @@
 import { Alert, Button, FileButton, Group, Modal, TextInput } from '@mantine/core'
-import { useForm } from '@mantine/form';
+import { isNotEmpty, useForm } from '@mantine/form';
 import { IconAlertCircle, IconTag } from '@tabler/icons-react';
-import useAPI from '../../hooks/useAPI';
+import useAPI from '../../hooks/useAPI2';
 import { useContext, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext';
 
@@ -22,7 +22,7 @@ function parse(file: File): Promise<Schema> {
 
 const validName = /[\W\s]|^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
 const validate = {
-    name: (value: string) => (!validName.test(value) ? null : 'Invalid schema name')
+    name:  (value: string) => (!validName.test(value) ? isNotEmpty('Name can not be empty.')(value) : 'Invalid schema name')
 }
 
 export default function NewSchema({ opened, close, refresh }: { opened: boolean, close(): void, refresh(): void }) {
@@ -30,16 +30,12 @@ export default function NewSchema({ opened, close, refresh }: { opened: boolean,
     const [imported, setImported] = useState<Schema|string|undefined>(undefined);
     const importing = imported && typeof imported !== "string" ? true : false;
     const form = useForm({ initialValues: { name: '' }, validate });
-    const { post: create, loading, error } = useAPI({
+    const { post, loading, error } = useAPI({
         url: "/schema",
         data: form.values,
-        modify: (options) => {
-            if (importing) options.data = { ...(imported as Schema), ...options.data};
-            return options;
-        },
-        before: () => form.validate(),
-        check: () => !form.isValid(),
-        catch: ({validation}) => form.setErrors(validation),
+        form,
+        modify: data => importing ? { ...(imported as Schema), ...data} : data,
+        check: () => {form.validate(); return !form.isValid();},
         then: (schema: Schema) => { changeSchema(schema.name); close(); refresh(); },
     });
 
@@ -60,12 +56,12 @@ export default function NewSchema({ opened, close, refresh }: { opened: boolean,
             leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             withAsterisk {...form.getInputProps('name')}
         />
-        {error&&<Alert mt="xs" icon={<IconAlertCircle size={32} />} title="Error" color="red">{error}</Alert>}
+        {error&&<Alert mt="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
         <Group justify='space-between' mt="md">
             <FileButton onChange={importSchema}>
                 {(props) => <Button variant="default" {...props}>{importing ? (imported as Schema).name : 'Import'}</Button>}
             </FileButton>
-            <Button loading={loading} onClick={create} type="submit">{importing?'Import':'Create'}</Button>
+            <Button loading={loading} onClick={()=>post()} type="submit">{importing?'Import':'Create'}</Button>
         </Group>
     </Modal>
     )

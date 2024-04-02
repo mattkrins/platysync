@@ -6,6 +6,7 @@ export class User extends Model {
     declare username: string;
     declare password: string;
     declare iv: string;
+    declare stats: boolean;
     declare createdAt: string;
     declare updatedAt: string;
 }
@@ -41,6 +42,7 @@ export default function models( sequelize: Sequelize ) {
         username: { type: DT.STRING, primaryKey: true, },
         password: { type: DT.STRING, allowNull: false, },
         iv: { type: DT.STRING },
+        stats: { type: DT.BOOLEAN, allowNull: true, },
     }, { sequelize, modelName: 'User', } );
     Session.init( {
         id: { type: DT.STRING, defaultValue: DT.UUIDV1, primaryKey: true },

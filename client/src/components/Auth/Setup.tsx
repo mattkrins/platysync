@@ -1,12 +1,12 @@
-import { TextInput, PasswordInput, Text, Paper, Title, Container, Button, Checkbox, Group } from '@mantine/core';
-import useFetch from '../../hooks/useFetch';
-import { FormErrors, hasLength, isNotEmpty, useForm } from '@mantine/form';
+import { TextInput, PasswordInput, Text, Paper, Title, Container, Button, Checkbox, Group, Avatar, Center } from '@mantine/core';
+import { hasLength, isNotEmpty, useForm } from '@mantine/form';
 import { useContext } from 'react';
-import AuthContext from '../../providers/AuthContext';
+import AppContext, { session } from '../../providers/AppContext';
 import classes from './Login.module.css';
+import useAPI from '../../hooks/useAPI2';
 
 export function Setup({ completeSetup }:{ completeSetup(): void }) {
-    const { login } = useContext(AuthContext);
+    const { login } = useContext(AppContext);
     const form = useForm({
         initialValues: {
             username: '',
@@ -18,11 +18,13 @@ export function Setup({ completeSetup }:{ completeSetup(): void }) {
             password: hasLength({ min: 5 }, 'Password must be at least 5 characters long.')
         },
     });
-    const { post, loading } = useFetch({
-        url: `/setup`,
+    const { post, loading } = useAPI({
+        url: `/auth/setup`,
         data: form.values,
-        then: (user) => { completeSetup(); login(JSON.stringify(user)); },
-        catch: ({validation}:{validation: FormErrors}) => form.setErrors(validation),
+        form,
+        noAuth: true,
+        noError: true,
+        then: (session: session) => { completeSetup(); login(session); },
     });
     const validate = () => {
         form.validate();
@@ -31,7 +33,8 @@ export function Setup({ completeSetup }:{ completeSetup(): void }) {
     const onKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && validate();
     return (
         <Container size={420} my={40}>
-            <Title ta="center" >New Installation</Title>
+            <Center><Avatar src={'/logo192.png'} size="xl" /></Center>
+            <Title ta="center" >New PlatySync Installation</Title>
             <Text c="dimmed" size="sm" ta="center" mt={5}>Please create the initial administrative user.</Text>
             <Paper className={classes.box} withBorder shadow="md" p={30} mt={30} radius="md">
                 <TextInput classNames={{ input: classes.input }} onKeyUp={onKeyUp} {...form.getInputProps('username')} label="Username" placeholder="Your Username" required />

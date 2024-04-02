@@ -1,66 +1,70 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
-import { _Error, version } from "../server.js";
+import { version } from "../server.js";
 import { User, Session } from '../db/models.js';
 import { decrypt } from '../modules/cryptography.js';
-import { form, isNotEmpty } from '../components/validators.js';
+import { validStr, xError } from "../modules/common.js";
 
 export async function useAuth(route: FastifyInstance){
     route.addHook('preHandler', async (request, reply) => {
         const session = await authed(request);
-        if ( !session ) return reply.code(401).send({ error: "Unauthorized." });
+        if ( !session ) throw new xError("Unauthorized.", undefined, 401 ).send(reply);
         if (session.expiresAt){
             const expires = new Date(session.expiresAt);
             const currentDate = new Date();
-            if (currentDate >= expires) return reply.code(401).send({ error: "Session Expired." });
+            if (currentDate >= expires) throw new xError("Session Expired.", undefined, 401 ).send(reply);
         }
     })
 }
 
 async function authed(request: FastifyRequest){
-    const { bearer } = request.params as { bearer?: string };
-    if (bearer) return await Session.findOne({where: { id: bearer }});
-    const Bearer = (request.headers.authorization||"").trim().split("Bearer ");
+    const Bearer = ((request.headers||{}).authorization||"").trim().split("Bearer ");
     if (Bearer && Bearer[1]) return await Session.findOne({where: { id: Bearer[1] }});
-    return false;
+    return null;
 }
 
-export async function login(user: User){
-    const oldSessions = await Session.findAll({ where: {UserUsername: user.username  } });
-    for (const session of oldSessions) session.destroy();
-    const currentDate = new Date();
-    const oneHourFromNow = new Date(currentDate.getTime() + (12 * 60 * 60 * 1000));
-    const session = await Session.create({UserUsername: user.username, expiresAt: oneHourFromNow });
-    return { username: user.username, session: session.id, expires: oneHourFromNow, version };
+async function login(user: User) {
+    const sessions = await Session.findAll({ where: {UserUsername: user.username  } });
+    for (const session of sessions) session.destroy();
+    const expiresAt = new Date((new Date()).getTime() + (12 * 60 * 60 * 1000));
+    const session = await Session.create({UserUsername: user.username, expiresAt });
+    return { username: user.username, id: session.id, expires: expiresAt, version };
 }
 
 export default function auth(route: FastifyInstance) {
-    route.post('/', form({
-            username: isNotEmpty('Username can not be empty.'),
-            password: isNotEmpty('Password can not be empty.'),
-        }), async (request, reply) => {
+    route.get('/setup', async (request, reply) => {
+        try { return (await User.count())>0; }
+        catch (e) { new xError(e).send(reply); }
+    });
+    route.post('/setup', async (request, reply) => {
+        const { username, password, collection } = request.body as { username: string, password: string, collection: boolean };
+        if (!validStr(username)) throw new xError("Username can not be empty.", "username");
+        if (!validStr(password)) throw new xError("Password can not be empty.", "password");
         try {
-            const { username, password } = request.body as { username: string, password: string };
-            const user = await User.findOne({ where: { username } });
-            if (!user) throw reply.code(401).send({ validation: { username: "Username or password incorrect.", password: "Username or password incorrect." } });
-            const decrypted = await decrypt({ encrypted: user.password, iv: user.iv });
-            if (password!==decrypted) throw reply.code(401).send({ validation: { username: "Username or password incorrect.", password: "Username or password incorrect." } });
+            if ((await User.count())>0) throw new xError("Setup has already been completed.", undefined, 403).send(reply);
+            const user =  await User.create({ username, password, stats: collection||false });
             return await login(user);
-        } catch (e) {
-            const error = _Error(e);
-            reply.code(500).send({ error: error.message });
         }
+        catch (e) { new xError(e).send(reply); }
+    });
+    route.post('/', async (request, reply) => {
+        const { username, password } = request.body as { username: string, password: string };
+        if (!validStr(username)) throw new xError("Username can not be empty.", "username");
+        if (!validStr(password)) throw new xError("Password can not be empty.", "password");
+        try {
+            const user = await User.findOne({ where: { username } });
+            if (!user) throw new xError("Username or Password incorrect.", undefined, 401);
+            const decrypted = await decrypt({ encrypted: user.password, iv: user.iv });
+            if (password!==decrypted) throw new xError("Username or Password incorrect.", undefined, 401);
+            return await login(user);
+        }
+        catch (e) { new xError(e).send(reply); }
     });
     route.delete('/', async (request, reply) => {
+        const Bearer = ((request.headers||{}).authorization||"").trim().split("Bearer ");
         try {
-            let result = 0;
-            const { bearer } = request.params as { bearer?: string };
-            if (bearer) result += await Session.destroy({where: { id: bearer }});
-            const Bearer = (request.headers.authorization||"").trim().split("Bearer ");
-            if (Bearer && Bearer[1]) result += await Session.destroy({where: { id: Bearer[1] }});
-            return result > 0;
-        } catch (e) {
-            const error = _Error(e);
-            reply.code(500).send({ error: error.message });
+            if (Bearer && Bearer[1]) await Session.destroy({where: { id: Bearer[1] }});
+            return true;
         }
+        catch (e) { new xError(e).send(reply); }
     });
 }

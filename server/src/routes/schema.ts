@@ -17,7 +17,7 @@ export default async function schema(route: FastifyInstance) {
   // Create Schema
   route.post('/', async (request, reply) => {
     try { return schemas2.create(request.body as Schema).parse(); }
-    catch (e) { new xError(e).sendValidation(reply); }
+    catch (e) { new xError(e).send(reply); }
   });
   // Get Schema
   route.get('/:name', async (request, reply) => {
@@ -29,7 +29,7 @@ export default async function schema(route: FastifyInstance) {
   route.put('/:name', async (request, reply) => {
       const { name } = request.params as { name: string };
       try { return schemas2.get(name).mutate(request.body as Schema).parse(); }
-      catch (e) { new xError(e).sendValidation(reply); }
+      catch (e) { new xError(e).send(reply); }
   });
   // Delete Schema
   route.delete('/:name', async (request, reply) => {

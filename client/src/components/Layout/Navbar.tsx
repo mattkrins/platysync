@@ -5,10 +5,10 @@ import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Header from './Header';
 import { useContext, useEffect, useState } from 'react';
 import CommonContext from '../../providers/CommonContext';
-import useAPI from '../../hooks/useAPI';
-import SchemaContext from '../../providers/SchemaContext';
+import useAPI from '../../hooks/useAPI2';
+import SchemaContext from '../../providers/SchemaContext2';
 import NewSchema from './NewSchema';
-import AuthContext from '../../providers/AuthContext';
+import AppContext from '../../providers/AppContext';
 import useSocket from '../../hooks/useSocket';
 import Status from '../Rules/Run/Status';
 
@@ -39,31 +39,26 @@ function Link( { link, active, onClick }: { link: Link, active?: boolean, onClic
 
 export default function Navbar({ closeNav }: { closeNav(): void }) {
   const { nav, changeNav } = useContext(CommonContext);
-  const { logout: clearAuth, session, version } = useContext(AuthContext);
-  const { schema, changeSchema, loading: loadingSchema } = useContext(SchemaContext);
+  const { logout, username, version } = useContext(AppContext);
+  //const { schema, changeSchema, loading: loadingSchema } = useContext(SchemaContext);
+  const {loadSchema, loading, loaders, ...schema} = useContext(SchemaContext);
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
   const [opened, { open, close }] = useDisclosure(false);
   const [showingStatus, { open: showStatus, close: closeStatus }] = useDisclosure(false);
 
-  const [ name, setName ] = useState<string>('');
-  const { data: schemas = [], loading, fetch: refresh } = useAPI({
+  const { data: schemas = [], loading: creating, fetch: refresh } = useAPI({
       url: "/schema",
       default: [],
       preserve: true,
       fetch: true,
       mutate: (schemas: Schema[]) => schemas.map(s=>({label: s.name})),
   });
-  const { del } = useAPI({ url: `/auth` });
-  const logout = () => {
-    del();
-    clearAuth();
-  }
 
-  useEffect(()=>{
-    if (loading||loadingSchema) return;
-    if (!schema) refresh();
-    if (schema && name!== schema.name){ refresh(); setName(schema.name); }
-  },[ schema ]);
+  //useEffect(()=>{
+  //  if (loading||loadingSchema) return;
+  //  if (!schema) refresh();
+  //  if (schema && name!== schema.name){ refresh(); setName(schema.name); }
+  //},[ schema ]);
 
   const navigate = (link: string) =>{ changeNav(link); if (isMobile) { closeNav(); } }
 
@@ -75,8 +70,11 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
   } );
   useEffect(()=>{ if (!global_status.schema) closeStatus() }, [ global_status.schema ])
 
+  const loadingSchema = 'false';
+
   return (
     <nav className={classes.navbar}>
+      {JSON.stringify(schema)}
       {global_status.schema&&<Modal withCloseButton={false} size="xl" opened={showingStatus} onClose={closeStatus}
       styles={{body:{padding: 0}, content:{backgroundColor: "transparent"}}}
       >
@@ -89,7 +87,7 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
           {commonLinks.map((link) => <Link key={link.label} onClick={()=>navigate(link.label)} active={nav===link.label} link={link} />)}
         </Box>
       </Box>
-      {schema&&<Box pt="xs" className={classes.section}>
+      {schema.valid&&<Box pt="xs" className={classes.section}>
         <Box className={classes.links}>
           {schemaLinks.map((link) => <Link key={link.label} onClick={()=>navigate(link.label)} active={nav===link.label} link={link} />)}
         </Box>
@@ -98,22 +96,22 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
         <Group className={classes.collectionsHeader} justify="space-between">
           <Text size="xs" fw={500} c="dimmed">Schemas</Text>
           <Tooltip label="Create schema" withArrow position="right">
-            <ActionIcon onClick={open} loading={loading} variant="default" size={18}>
+            <ActionIcon onClick={open} loading={creating} variant="default" size={18}>
               <IconPlus style={{ width: rem(12), height: rem(12) }} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
         </Group>
         <Box className={classes.links}>
-          {schemas.map((link: Link) => {
-            const active = (schema&&schema.name)===link.label;
+          {schemas.map((link) => {
+            const active = (schema.name)===link.label;
             return (
             <Button key={link.label} fullWidth variant="subtle" size="xs"
             styles={{ inner: { justifyContent: 'space-between' }, label: { fontWeight: 400 } }}
             classNames={{ root: classes.link }}
-            onClick={()=>active?undefined:changeSchema(link.label)}
-            loading={loadingSchema===link.label}
-            disabled={!!loadingSchema}
-            rightSection={active?<IconX onClick={()=>changeSchema(undefined)} style={{ width: rem(12), height: rem(12), cursor: 'pointer' }} stroke={1.5} />:undefined}
+            onClick={()=>active?undefined:loadSchema(link.label)}
+            loading={loaders[link.label]}
+            disabled={loading}
+            rightSection={active?<IconX onClick={()=>loadSchema(undefined)} style={{ width: rem(12), height: rem(12), cursor: 'pointer' }} stroke={1.5} />:undefined}
             data-active={active?true:undefined}
             >{link.label}</Button>
           )})}
@@ -158,7 +156,7 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
               <Group>
                 <IconUser style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 <div style={{ flex: 1 }}>
-                  <Text size="sm" fw={500}>{session?.username}</Text>
+                  <Text size="sm" fw={500}>{username}</Text>
                   <Text c="dimmed" size="xs">administrator</Text>
                 </div>
                 <IconChevronRight style={{ width: rem(14), height: rem(14) }} stroke={1.5} />

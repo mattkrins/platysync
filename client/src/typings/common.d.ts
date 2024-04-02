@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface Schema {
     name: string;
-    version: number;
-    connectors: Connector[];
-    _connectors: { [name]: Connector };
+    version: string;
+    connnectors: any[]
+    rules: any[]
+    //connectors: Connector[];
+    //_connectors: { [name]: Connector };
 }
 interface Connector {
     id: string;

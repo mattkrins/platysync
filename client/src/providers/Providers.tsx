@@ -3,8 +3,10 @@ import { MantineProvider, TextInput, createTheme } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import CommonProvider from './CommonProvider';
+import AppProvider from './AppProvider';
 import AuthProvider from './AuthProvider';
 import SchemaProvider from './SchemaProvider';
+import SchemaProvider2 from './SchemaProvider2';
 import ExplorerProvider from './ExplorerProvider';
 
 import '@mantine/core/styles.layer.css';
@@ -28,15 +30,19 @@ export default function Providers({ children }: PropsWithChildren) {
         <MantineProvider defaultColorScheme="auto" theme={theme} >
             <Notifications />
             <ModalsProvider>
+                <AppProvider>
                 <CommonProvider>
                     <AuthProvider>
                         <SchemaProvider>
+                        <SchemaProvider2>
                             <ExplorerProvider>
                                 { children }
                             </ExplorerProvider>
+                        </SchemaProvider2>
                         </SchemaProvider>
                     </AuthProvider>
                 </CommonProvider>
+                </AppProvider>
             </ModalsProvider>
         </MantineProvider>
     )
