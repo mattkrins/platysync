@@ -2,11 +2,11 @@ import { useForm } from '@mantine/form';
 import Container from '../Common/Container';
 import Head from '../Common/Head';
 import ActionButton from './ActionButton';
-import { useContext } from 'react';
-import SchemaContext from '../../providers/SchemaContext';
+import { useContext, useEffect } from 'react';
+import SchemaContext2 from '../../providers/SchemaContext2';
 import { TextInput, Text, Tabs, JsonInput } from '@mantine/core';
 import { IconAlignLeft, IconSettings, IconTag } from '@tabler/icons-react';
-import useAPI from '../../hooks/useAPI';
+import useAPI from '../../hooks/useAPI2';
 import { notifications } from '@mantine/notifications';
 
 const validName = /[\W\s]|^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
@@ -15,18 +15,21 @@ const validate = {
 }
 
 export default function Schema() {
-    const { schema, mutate, changeSchema } = useContext(SchemaContext);
-    const form = useForm({ initialValues: schema, validate });
+    const { initialValues, name, version, close, mutate } = useContext(SchemaContext2);
+    const form = useForm({ initialValues, validate });
+    useEffect(()=>{
+      form.setInitialValues(initialValues);
+      form.setValues(initialValues);
+    }, [ initialValues ]);
     const { del, loading: l1 } = useAPI({
-        url: `/schema/${schema?.name}`,
-        then: () => changeSchema(undefined),
+        url: `/schema/${name}`,
+        then: () => close(),
     });
     const { put: save, loading: l2, error } = useAPI({
-        url: `/schema/${schema?.name}`,
+        url: `/schema/${name}`,
         data: form.values,
-        before: () => form.validate(),
-        check: () => !form.isValid(),
-        catch: ({validation}) => form.setErrors(validation),
+        form,
+        check: () => {form.validate(); return !form.isValid();},
         then: () => {
             mutate(form.values);
             notifications.show({ title: "Success",message: 'Changes Saved.', color: 'lime', });
@@ -44,7 +47,7 @@ export default function Schema() {
 
       <Tabs.Panel value="settings" p="xs" >
         {error&&<Text c="red" inline mt={7}>{error}</Text>}
-        <Text size="sm" >Schema Version: <b>{schema?.version}</b></Text>
+        <Text size="sm" >Schema Version: <b>{version}</b></Text>
         <TextInput
         label="Schema Name" placeholder="Schema Name"
         leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}

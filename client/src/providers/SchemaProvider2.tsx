@@ -3,31 +3,31 @@ import SchemaContext from './SchemaContext2';
 import useAPI from '../hooks/useAPI2';
 import AppContext from './AppContext';
 
-const defaults = { name: 'loading...', version: 'loading...', connnectors: [], rules: [], valid: false };
+const defaults = { name: '', version: '', connnectors: [], rules: [], valid: false };
 
 // LINK: ./SchemaContext2.tsx
 export default function SchemaProvider({ children }: PropsWithChildren) {
     const { changeNav } = useContext(AppContext);
-    const [ name, loadSchema ] = useState<string|undefined>(undefined)
-    const { data, loading, fetch: refresh, reset, loaders } = useAPI<Schema>({
+    const [ name, loadSchema ] = useState<string|undefined>(undefined);
+    const { data, loading, fetch, reset, loaders, mutate } = useAPI<Schema>({
         url: `/schema/${name}`,
         key: name,
         default: defaults,
         preserve: true,
-        then: e => console.log(e)
-        //mutate: (schemas: Schema[]) => schemas.map(s=>({label: s.name})),
+        then: () => changeNav('Schema')
     });
-    useEffect(()=>{
-        if (name) { refresh(); } else { reset(); changeNav('Settings') }
-    }, [ name ])
-
+    useEffect(()=>{ if (name&&name!=='') { fetch(); } else { reset(); changeNav('Settings'); } }, [ name ]);
     return (
-        <SchemaContext.Provider value={{ ...(data||defaults),
-            loadSchema,
-            reset,
+        <SchemaContext.Provider value={{
+            ...(data||defaults),
+            initialValues: (data||defaults),
             loading,
             loaders,
-            valid: data ? data.name !== "loading..." : false,
+            valid: data ? data.name !== '' : false,
+            loadSchema,
+            reset,
+            mutate,
+            close: () => loadSchema(undefined),
         }}>{children}</SchemaContext.Provider>
     );
 }

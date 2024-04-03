@@ -1,4 +1,4 @@
-import { Group, Burger, Title, Code, Avatar } from "@mantine/core";
+import { Group, Burger, Title, Code, Avatar, Loader } from "@mantine/core";
 
 export default function Header( { opened, toggle, version }: { opened?: boolean, toggle?(): void, version?: string } ) {
   return (
@@ -7,7 +7,7 @@ export default function Header( { opened, toggle, version }: { opened?: boolean,
       <Group>
         <Avatar src={'/logo192.png'} />
         <Title order={3}>PlatySync</Title>
-        {version&&<Code fw={700}>v{version||0}</Code>}
+        {!version?<Loader size="xs" type="dots" />:<Code fw={700}>v{version||0}</Code>}
       </Group>
     </Group>
   )

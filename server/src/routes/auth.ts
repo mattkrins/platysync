@@ -23,26 +23,18 @@ async function authed(request: FastifyRequest){
 }
 
 async function login(user: User) {
-    const sessions = await Session.findAll({ where: {UserUsername: user.username  } });
-    for (const session of sessions) session.destroy();
+    await Session.destroy({where: {UserUsername: user.username  }});
     const expiresAt = new Date((new Date()).getTime() + (12 * 60 * 60 * 1000));
     const session = await Session.create({UserUsername: user.username, expiresAt });
     return { username: user.username, id: session.id, expires: expiresAt, version };
 }
 
 export default function auth(route: FastifyInstance) {
-    route.get('/setup', async (request, reply) => {
-        try { return (await User.count())>0; }
-        catch (e) { new xError(e).send(reply); }
-    });
-    route.post('/setup', async (request, reply) => {
-        const { username, password, collection } = request.body as { username: string, password: string, collection: boolean };
-        if (!validStr(username)) throw new xError("Username can not be empty.", "username");
-        if (!validStr(password)) throw new xError("Password can not be empty.", "password");
+    route.get('/', async (request, reply) => {
+        const session = await authed(request);
         try {
-            if ((await User.count())>0) throw new xError("Setup has already been completed.", undefined, 403).send(reply);
-            const user =  await User.create({ username, password, stats: collection||false });
-            return await login(user);
+            if (!session) throw new xError("Unauthenticated.", undefined, 401 ).send(reply);
+            return { username: session.UserUsername, id: session.id, expires: session.expiresAt, version };
         }
         catch (e) { new xError(e).send(reply); }
     });
@@ -64,6 +56,21 @@ export default function auth(route: FastifyInstance) {
         try {
             if (Bearer && Bearer[1]) await Session.destroy({where: { id: Bearer[1] }});
             return true;
+        }
+        catch (e) { new xError(e).send(reply); }
+    });
+    route.get('/setup', async (request, reply) => {
+        try { return (await User.count())>0; }
+        catch (e) { new xError(e).send(reply); }
+    });
+    route.post('/setup', async (request, reply) => {
+        const { username, password, collection } = request.body as { username: string, password: string, collection: boolean };
+        if (!validStr(username)) throw new xError("Username can not be empty.", "username");
+        if (!validStr(password)) throw new xError("Password can not be empty.", "password");
+        try {
+            if ((await User.count())>0) throw new xError("Setup has already been completed.", undefined, 403).send(reply);
+            const user =  await User.create({ username, password, stats: collection||false });
+            return await login(user);
         }
         catch (e) { new xError(e).send(reply); }
     });

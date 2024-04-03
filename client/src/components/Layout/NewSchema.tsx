@@ -3,7 +3,7 @@ import { isNotEmpty, useForm } from '@mantine/form';
 import { IconAlertCircle, IconTag } from '@tabler/icons-react';
 import useAPI from '../../hooks/useAPI2';
 import { useContext, useState } from 'react';
-import SchemaContext from '../../providers/SchemaContext';
+import SchemaContext from '../../providers/SchemaContext2';
 
 function parse(file: File): Promise<Schema> {
     return new Promise((resolve, reject)=>{
@@ -26,17 +26,17 @@ const validate = {
 }
 
 export default function NewSchema({ opened, close, refresh }: { opened: boolean, close(): void, refresh(): void }) {
-    const { changeSchema } = useContext(SchemaContext);
+    const { loadSchema } = useContext(SchemaContext);
     const [imported, setImported] = useState<Schema|string|undefined>(undefined);
     const importing = imported && typeof imported !== "string" ? true : false;
     const form = useForm({ initialValues: { name: '' }, validate });
-    const { post, loading, error } = useAPI({
+    const { post, loading, error } = useAPI<unknown,Schema>({
         url: "/schema",
-        data: form.values,
+        data: form.values as Schema,
         form,
-        modify: data => importing ? { ...(imported as Schema), ...data} : data,
+        modify: data => importing ? { ...(imported as Schema), ...(data as Schema)} : data,
         check: () => {form.validate(); return !form.isValid();},
-        then: (schema: Schema) => { changeSchema(schema.name); close(); refresh(); },
+        then: (schema: Schema) => { loadSchema(schema.name); close(); refresh(); },
     });
 
     const importSchema = async (file: File | null) => {

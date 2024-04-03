@@ -1,10 +1,9 @@
-import { Text, Group, ActionIcon, Tooltip, rem, Button, em, Box, Center, Paper, RingProgress, UnstyledButton, Menu, Modal, } from '@mantine/core';
+import { Text, Group, ActionIcon, Tooltip, rem, Button, em, Box, Center, Paper, RingProgress, UnstyledButton, Menu, Modal, Loader, } from '@mantine/core';
 import { IconPlus, IconAdjustmentsHorizontal, TablerIconsProps, IconCheckbox, IconSettings, IconLogout, IconX, IconPlug, IconClock, IconChevronRight, IconUser, IconRun, IconSearch, IconClockPause, IconFiles } from '@tabler/icons-react';
 import classes from './Navbar.module.css';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Header from './Header';
-import { useContext, useEffect, useState } from 'react';
-import CommonContext from '../../providers/CommonContext';
+import { useContext, useEffect } from 'react';
 import useAPI from '../../hooks/useAPI2';
 import SchemaContext from '../../providers/SchemaContext2';
 import NewSchema from './NewSchema';
@@ -38,9 +37,7 @@ function Link( { link, active, onClick }: { link: Link, active?: boolean, onClic
 }
 
 export default function Navbar({ closeNav }: { closeNav(): void }) {
-  const { nav, changeNav } = useContext(CommonContext);
-  const { logout, username, version } = useContext(AppContext);
-  //const { schema, changeSchema, loading: loadingSchema } = useContext(SchemaContext);
+  const { logout, username, version, nav, changeNav } = useContext(AppContext);
   const {loadSchema, loading, loaders, ...schema} = useContext(SchemaContext);
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
   const [opened, { open, close }] = useDisclosure(false);
@@ -51,15 +48,10 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
       default: [],
       preserve: true,
       fetch: true,
-      catch: () => console.log('test1'),
       mutate: (schemas: Schema[]) => schemas.map(s=>({label: s.name})),
   });
 
-  //useEffect(()=>{
-  //  if (loading||loadingSchema) return;
-  //  if (!schema) refresh();
-  //  if (schema && name!== schema.name){ refresh(); setName(schema.name); }
-  //},[ schema ]);
+  useEffect(()=>{ refresh(); },[ schema.name ]);
 
   const navigate = (link: string) =>{ changeNav(link); if (isMobile) { closeNav(); } }
 
@@ -71,11 +63,8 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
   } );
   useEffect(()=>{ if (!global_status.schema) closeStatus() }, [ global_status.schema ])
 
-  const loadingSchema = 'false';
-
   return (
     <nav className={classes.navbar}>
-      {JSON.stringify(schema)}
       {global_status.schema&&<Modal withCloseButton={false} size="xl" opened={showingStatus} onClose={closeStatus}
       styles={{body:{padding: 0}, content:{backgroundColor: "transparent"}}}
       >
@@ -157,7 +146,7 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
               <Group>
                 <IconUser style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 <div style={{ flex: 1 }}>
-                  <Text size="sm" fw={500}>{username}</Text>
+                  {!username?<Loader size="xs" type="dots" />:<Text size="sm" fw={500}>{username}</Text>}
                   <Text c="dimmed" size="xs">administrator</Text>
                 </div>
                 <IconChevronRight style={{ width: rem(14), height: rem(14) }} stroke={1.5} />

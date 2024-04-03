@@ -4,7 +4,6 @@ import Navbar from './components/Layout/Navbar'
 import Header from './components/Layout/Header';
 import { useContext } from 'react';
 import AppContext from './providers/AppContext';
-import CommonContext from './providers/CommonContext';
 import { Login } from './components/Auth/Login';
 import Settings from './components/Settings/Settings';
 import Schema from './components/Schema/Schema';
@@ -14,7 +13,7 @@ import Schedules from './components/Schedules/Schedules';
 import Files from './components/Files/Files';
 
 function Switcher(){
-  const { nav } = useContext(CommonContext);
+  const { nav } = useContext(AppContext);
   switch (nav) { //LINK - client\src\components\Layout\Navbar.tsx:15
     case "Schedules": return <Schedules/>
     case "Files": return <Files/>

@@ -3,10 +3,10 @@ import Head from "../Common/Head";
 import { ActionIcon, Badge, Box, Button, FileButton, Grid, Group, Loader, LoadingOverlay, Paper, TextInput, Text } from '@mantine/core';
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello-pangea/dnd';
 import { IconDeviceFloppy, IconGripVertical, IconPencil, IconTrash } from '@tabler/icons-react';
-import useAPI, { Exports } from "../../hooks/useAPI";
+import useAPI from "../../hooks/useAPI2";
 import CopyIcon from "../Common/CopyIcon";
 import { useContext } from "react";
-import SchemaContext from "../../providers/SchemaContext";
+import SchemaContext from "../../providers/SchemaContext2";
 import { extIcons } from "../../modules/common";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -17,15 +17,9 @@ interface Doc {
     name: string;
     ext: string;
     updatedAt: string;
-    loading?: true
-    error?: true
-}
-interface api extends Exports {
-    data: Doc[];
-    setData: (data: (docs: Doc[])=>void) => void;
-    request: Exports['request'] & {
-        loading?: string[]
-    }
+    loading?: true;
+    error?: true;
+    [k: string]: unknown;
 }
 
 interface ItemProps {
@@ -78,34 +72,46 @@ function Item( { provided, item, disabled, loading, remove, update, save }: Item
 }
 
 export default function Files() {
-    const { schema } = useContext(SchemaContext);
-    const { data, setData, loading, helpers: { reorderObjects } }: api = useAPI({
-        url: `/schema/${schema?.name}/storage`,
+    const { name } = useContext(SchemaContext);
+    const { data, setData, loading } = useAPI<Doc[]>({
+        url: `/schema/${name}/storage`,
         default: [],
         preserve: true,
         fetch: true
     });
+    const reorderObjects = (from: number, to: number, index: string = "index") => {
+        setData((items)=>{
+            const copy = [...items];
+            const f = copy.find(d=>d[index]===from);
+            const t = copy.find(d=>d[index]===to);
+            if (!f || !t) return [];
+            f[index] = to; t[index] = from;
+            return copy;
+        });
+    }
+
     const docs = data.sort((a, b) => a.index - b.index);
     const removeLoaders = () =>  setData(d=>d.map(a=>({...a, loading: undefined})));
-    const { put: changeName }: api = useAPI({ url: `/schema/${schema?.name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders,
-    catch: ({ validation: { id }, error }) =>{
-        if (!id) return;
-        notifications.show({ title: "Error",message: error||"Unknown error", color: 'red', });
-        setData(d=>d.map(a=>a.id===id ? {...a, error: true} : {...a}));
-    } });
+    const { put: changeName } = useAPI<Doc[]>({ url: `/schema/${name}/storage`, cleanup: true, then: d=>setData(d)});
+    //const { put: changeName } = useAPI({ url: `/schema/${name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders,
+    //catch: ({ validation: { id }, error }) =>{
+    //    if (!id) return;
+    //    notifications.show({ title: "Error",message: error||"Unknown error", color: 'red', });
+    //    setData(d=>d.map(a=>a.id===id ? {...a, error: true} : {...a}));
+    //} });
     const update = (id: string, name: string) => setData(d=>d.map(a=>a.id===id ? {...a, name } : {...a}));
     const save = (doc: Doc) => {
         setData(d=>d.map(a=>a.id===doc.id ? {...doc, loading: true} : {...a}));
         changeName({ data: doc });
     }
-    const { put: reorderServer }: api = useAPI({ url: `/schema/${schema?.name}/storage/reorder`, cleanup: true, then: d=>setData(d), finally: removeLoaders });
+    const { put: reorderServer } = useAPI({ url: `/schema/${name}/storage/reorder`, cleanup: true, then: d=>setData(d), finally: removeLoaders });
     const reorder = (from: number, to: number) => {
         if (from===to) return;
         reorderServer({data: {from, to}});
         setData(d=>d.map(a=>[from, to].includes(a.index) ? {...a, loading: true} : {...a}));
         reorderObjects(from, to);
     }
-    const { del }: api = useAPI({ url: `/schema/${schema?.name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders,
+    const { del } = useAPI({ url: `/schema/${name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders,
     catch: ({ error }) =>{
         notifications.show({ title: "Error",message: error||"Unknown error", color: 'red', });
     } });
@@ -114,16 +120,16 @@ export default function Files() {
         del({data: { id }});
     }
     const { post, loading: uploading } = useAPI({
-        url: `/schema/${schema?.name}/storage`, cleanup: true,
+        url: `/schema/${name}/storage`, cleanup: true,
         headers: { 'Content-Type': 'multipart/form-data' },
         then: d=>setData(d), finally: () => setData(d=>d.filter(a=>a.updatedAt))
     });
     const upload = (file: File|null) => {
-        if (!file) return;
-        setData(d=>[...d, { id: String(d.length), index: d.length, name: "uploading...", loading: true }]);
-        const formData = new FormData();
-        formData.append('file', file);
-        post({data: formData});
+        //if (!file) return;
+        //setData(d=>[...d, { id: String(d.length), index: d.length, name: "uploading...", loading: true }]);
+        //const formData = new FormData();
+        //formData.append('file', file);
+        //post({data: formData});
     }
 
 

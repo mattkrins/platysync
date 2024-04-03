@@ -42,7 +42,6 @@ export interface Options<returnType = unknown, sendType = unknown> extends Axios
     finally?(options: Options<returnType, sendType>): void;
     [key: string]: unknown;
 }
-
 export interface Returns<returnType = unknown> {
     fetch: (opt2?: Options<returnType>) => Promise<returnType>;
     post: (opt2?: Options<returnType>) => Promise<returnType>;
@@ -50,12 +49,13 @@ export interface Returns<returnType = unknown> {
     put: (opt2?: Options<returnType>) => Promise<returnType>;
     get: (opt2?: Options<returnType>) => Promise<returnType>;
     del: (opt2?: Options<returnType>) => Promise<returnType>;
-    setData: (data: returnType)=>void;
-    set: (data: returnType)=>void;
+    setData: (data: returnType|React.SetStateAction<returnType>)=>void;
+    set: (data: returnType|React.SetStateAction<returnType>)=>void;
     reset: ()=>void;
+    mutate: (mutation: returnType)=>void;
     request: Options<returnType>;
     response: AxiosResponse<unknown, unknown>|undefined;
-    data?: returnType;
+    data: returnType;
     loading: boolean;
     loaders: { [k: key]: boolean };
     error: string|undefined;
@@ -74,7 +74,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
     const axiosOptions = { baseURL: `http://${url.hostname}:2327/api/v1`, method: 'get' };
     const [request, setRequest] = useState<Options<returnType, sendType>>(opt1);
     const [response, setResponse] = useState<AxiosResponse<unknown, unknown>|undefined>(undefined);
-    const [data, setData] = useState<returnType|undefined>(opt1.default || undefined);
+    const [data, setData] = useState<returnType>(opt1.default as returnType);
     const [loading, setLoading] = useState<boolean>(opt1.fetch || false);
     const [loaders, setLoaders] = useState<{ [k: key]: boolean }>({});
     const [error, setError] = useState<string|undefined>(undefined);
@@ -83,7 +83,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
     const reset = useCallback((options: Options<returnType, sendType> = {}) => {
         setRequest(options);
         setResponse(undefined);
-        setData(options.default || undefined);
+        setData(options.default as returnType);
         setError(undefined);
         setErrors({});
     }, [opt1]);
@@ -121,6 +121,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         return deferred.promise as Promise<returnType>;
     }, [opt1]);
     useEffect(() => { if (opt1.fetch) fetch(); }, []);
+    const mutate = (mutation: returnType) => setData(data=>({...data, ...mutation}));
     return {
         fetch,
         post: (o: Options<returnType> = {}) => fetch({ ...o, method: "post" }),
@@ -131,6 +132,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         setData,
         set: setData,
         reset,
+        mutate,
         request,
         response,
         data,

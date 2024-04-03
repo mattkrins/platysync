@@ -15,6 +15,7 @@ export class Session extends Model {
     declare id: string;
     declare createdAt: string;
     declare expiresAt: string;
+    declare UserUsername: string;
 }
 
 export class Schedule extends Model {
