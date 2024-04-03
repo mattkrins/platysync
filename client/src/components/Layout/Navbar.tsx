@@ -51,6 +51,7 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
       default: [],
       preserve: true,
       fetch: true,
+      catch: () => console.log('test1'),
       mutate: (schemas: Schema[]) => schemas.map(s=>({label: s.name})),
   });
 

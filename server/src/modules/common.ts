@@ -37,7 +37,7 @@ export class xError {
       if (Error.captureStackTrace) Error.captureStackTrace(this, xError);
     }
     public send(reply: FastifyReply) {
-      return reply.code(this.status||this.validation?406:500).send(this.validation||{ error: this.message });
+      return reply.code(this.status||(this.validation?406:500)).send(this.validation||{ error: this.message });
     }
 }
 

@@ -19,7 +19,7 @@ function addRoute(api: FastifyInstance, prefix: string, routesToAdd: (route: Fas
 export default function routes(api: FastifyInstance, _opts: unknown, done: () => void) {
 
   // Arbitrary speed limit; simulate lag.
-  //api.addHook('preHandler', (req: unknown, res: unknown, done: () => void) => setTimeout(done, 1000) );
+  api.addHook('preHandler', (req: unknown, res: unknown, done: () => void) => setTimeout(done, 500) );
 
   addRoute(api, '/auth', auth, false );
   
