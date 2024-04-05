@@ -14,10 +14,14 @@ export interface Options<returnType = unknown, sendType = unknown> extends Axios
     fetch?: boolean;
     /** @type {boolean} true: Preserve options on fetch. */
     preserve?: boolean;
+    /** @type {boolean} true: Preserve error/s on fetch. */
+    preserveErrors?: boolean;
     /** @type {boolean} false: Preserve options after fetch. */
     cleanup?: boolean;
     /** @type {string|number}: Field key for loaders & validation. */
     key?: key;
+    /** @type {string}: Append to URL. */
+    append?: string;
     /** @param {sendType} data Mutate POST data before sending. */
     modify?(data: sendType): sendType;
     /** @param {Options} options Return true to halt fetch. */
@@ -51,8 +55,9 @@ export interface Returns<returnType = unknown> {
     del: (opt2?: Options<returnType>) => Promise<returnType>;
     setData: (data: returnType|React.SetStateAction<returnType>)=>void;
     set: (data: returnType|React.SetStateAction<returnType>)=>void;
+    setLoaders: React.Dispatch<React.SetStateAction<{ [k: key]: boolean }>>
     reset: ()=>void;
-    mutate: (mutation: returnType)=>void;
+    mutate: (mutation: {[k: string]: unknown})=>void;
     request: Options<returnType>;
     response: AxiosResponse<unknown, unknown>|undefined;
     data: returnType;
@@ -84,8 +89,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         setRequest(options);
         setResponse(undefined);
         setData(options.default as returnType);
-        setError(undefined);
-        setErrors({});
+        if (!options.preserveErrors){ setError(undefined); setErrors({}); }
     }, [opt1]);
     const fetch = useCallback(async (opt2: Options<returnType> = {}): Promise<returnType> => {
         let options = { ...opt1, ...opt2 } as Options<returnType, sendType>;
@@ -94,8 +98,10 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         try {
             if (options.before) options = options.before(options, opt2) as Options<returnType, sendType>;
             if (options.modify) options.data = options.modify(options.data as sendType) as sendType;
-            if (!options.preserve) reset(options as Options<returnType, sendType>);
+            if (!options.preserve) reset(opt1 as Options<returnType, sendType>);
+            if (!options.preserveErrors){ setError(undefined); setErrors({}); }
             if (options.key) setLoaders(loaders => ({ ...loaders, [options.key as key]: true }));
+            if (options.append) options.url += options.append;
             setLoading(true);
             const response = await axiosClient(options);
             setResponse(response);
@@ -116,12 +122,12 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
             setLoading(false);
             if (options.key) setLoaders(loaders => { delete loaders[options.key as key]; return loaders; });
             if (options.finally) options.finally(options);
-            if (options.cleanup) reset(options as Options<returnType, sendType>);
+            if (options.cleanup) reset(opt1 as Options<returnType, sendType>);
         }
         return deferred.promise as Promise<returnType>;
     }, [opt1]);
     useEffect(() => { if (opt1.fetch) fetch(); }, []);
-    const mutate = (mutation: returnType) => setData(data=>({...data, ...mutation}));
+    const mutate = (mutation: {[k: string]: unknown}) => setData(data=>({...data, ...mutation}));
     return {
         fetch,
         post: (o: Options<returnType> = {}) => fetch({ ...o, method: "post" }),
@@ -131,6 +137,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         del: (o: Options<returnType> = {}) => fetch({ ...o, method: "delete" }),
         setData,
         set: setData,
+        setLoaders,
         reset,
         mutate,
         request,

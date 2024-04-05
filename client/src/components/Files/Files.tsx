@@ -1,8 +1,8 @@
 import Container from "../Common/Container";
 import Head from "../Common/Head";
-import { ActionIcon, Badge, Box, Button, FileButton, Grid, Group, Loader, LoadingOverlay, Paper, TextInput, Text } from '@mantine/core';
+import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, LoadingOverlay, Paper, TextInput, Text, Tooltip } from '@mantine/core';
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello-pangea/dnd';
-import { IconDeviceFloppy, IconGripVertical, IconPencil, IconTrash } from '@tabler/icons-react';
+import { IconAlertCircle, IconDeviceFloppy, IconGripVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import useAPI from "../../hooks/useAPI2";
 import CopyIcon from "../Common/CopyIcon";
 import { useContext } from "react";
@@ -10,6 +10,7 @@ import SchemaContext from "../../providers/SchemaContext2";
 import { extIcons } from "../../modules/common";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import useImporter from "../../hooks/useImporter";
 
 interface Doc {
     id: string;
@@ -17,8 +18,6 @@ interface Doc {
     name: string;
     ext: string;
     updatedAt: string;
-    loading?: true;
-    error?: true;
     [k: string]: unknown;
 }
 
@@ -26,11 +25,12 @@ interface ItemProps {
     provided: DraggableProvided;
     item: Doc, disabled?: boolean;
     loading?: boolean;
+    error?: string;
     remove: (id: string)=>()=> void;
     update: (id: string, name: string) => void;
     save: (doc: Doc)=> void;
 }
-function Item( { provided, item, disabled, loading, remove, update, save }: ItemProps ) {
+function Item( { provided, item, disabled, loading, error, remove, update, save }: ItemProps ) {
     const Icon = extIcons[item.ext];
     const [editing, { toggle, close }] = useDisclosure(false);
     return (
@@ -41,29 +41,30 @@ function Item( { provided, item, disabled, loading, remove, update, save }: Item
             <Grid.Col span={2} style={{ cursor: loading ? undefined : 'grab' }} {...provided.dragHandleProps} >
                 <Group wrap="nowrap" justify="space-between" >
                     {loading?<Loader size="sm" />:<IconGripVertical stroke={1.5} />}
-                    {item.ext&&<Badge variant="light">{item.ext}</Badge>}
+                    {item.ext&&<Badge color={error?"red":undefined} variant="light">{item.ext}</Badge>}
                     {Icon&&<Icon/>}
                 </Group>
             </Grid.Col>
             <Grid.Col span={4} c={disabled?"dimmed":undefined}>
-                {!editing?<Group gap="xs"><Text c={item.error&&"red"} >{item.name}</Text><CopyIcon disabled={disabled} value={`{{$file.${item.name}}}`} /></Group>:
+                {!editing?<Group gap="xs"><Text c={error?"red":undefined} >{item.name}</Text><CopyIcon disabled={disabled} value={`{{$file.${item.name}}}`} /></Group>:
                 <TextInput style={{height:25}} size="xs"
-                value={item.name} error={item.error}
+                value={item.name} error={!!error}
                 onChange={(event) => update(item.id, event.currentTarget.value)}
                 />}
             </Grid.Col>
             <Grid.Col span={4} c={disabled?"dimmed":undefined}>{!item.updatedAt?<Text>generating...</Text>:<Group gap="xs">{item.id}</Group>}</Grid.Col>
             <Grid.Col span={2}>
                 <Group gap="xs" justify="flex-end">
-                {editing&&<ActionIcon onClick={()=>{ save(item); close(); }} disabled={disabled} variant="subtle" color="green">
-                    <IconDeviceFloppy size={16} stroke={1.5} />
-                </ActionIcon>}
-                <ActionIcon onClick={toggle} disabled={disabled} variant="subtle" color="gray">
-                    <IconPencil size={16} stroke={1.5} />
-                </ActionIcon>
-                <ActionIcon onClick={remove(item.id)} disabled={disabled} variant="subtle" color="red">
-                    <IconTrash size={16} stroke={1.5} />
-                </ActionIcon>
+                    {error&&<Tooltip withArrow label={error} w={420} multiline position="top-end" color="red" ><IconAlertCircle size={16} color="red" /></Tooltip>}
+                    {editing&&<ActionIcon onClick={()=>{ save(item); close(); }} disabled={disabled} variant="subtle" color="green">
+                        <IconDeviceFloppy size={16} stroke={1.5} />
+                    </ActionIcon>}
+                    <ActionIcon onClick={toggle} disabled={disabled} variant="subtle" color="gray">
+                        <IconPencil size={16} stroke={1.5} />
+                    </ActionIcon>
+                    <ActionIcon onClick={remove(item.id)} disabled={disabled} variant="subtle" color="red">
+                        <IconTrash size={16} stroke={1.5} />
+                    </ActionIcon>
                 </Group>
             </Grid.Col>
         </Grid>
@@ -73,11 +74,15 @@ function Item( { provided, item, disabled, loading, remove, update, save }: Item
 
 export default function Files() {
     const { name } = useContext(SchemaContext);
-    const { data, setData, loading } = useAPI<Doc[]>({
+    const { Modal, open } = useImporter();
+    const { data, setData, loading, loaders, del, post, put, setLoaders, errors } = useAPI<Doc[]>({
         url: `/schema/${name}/storage`,
         default: [],
         preserve: true,
-        fetch: true
+        preserveErrors: false,
+        fetch: true,
+        noError: true,
+        catch: (message) => notifications.show({ title: "Error", message, color: 'red', })
     });
     const reorderObjects = (from: number, to: number, index: string = "index") => {
         setData((items)=>{
@@ -89,53 +94,33 @@ export default function Files() {
             return copy;
         });
     }
-
     const docs = data.sort((a, b) => a.index - b.index);
-    const removeLoaders = () =>  setData(d=>d.map(a=>({...a, loading: undefined})));
-    const { put: changeName } = useAPI<Doc[]>({ url: `/schema/${name}/storage`, cleanup: true, then: d=>setData(d)});
-    //const { put: changeName } = useAPI({ url: `/schema/${name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders,
-    //catch: ({ validation: { id }, error }) =>{
-    //    if (!id) return;
-    //    notifications.show({ title: "Error",message: error||"Unknown error", color: 'red', });
-    //    setData(d=>d.map(a=>a.id===id ? {...a, error: true} : {...a}));
-    //} });
     const update = (id: string, name: string) => setData(d=>d.map(a=>a.id===id ? {...a, name } : {...a}));
     const save = (doc: Doc) => {
-        setData(d=>d.map(a=>a.id===doc.id ? {...doc, loading: true} : {...a}));
-        changeName({ data: doc });
+        put({ data: doc, key: doc.id });
     }
-    const { put: reorderServer } = useAPI({ url: `/schema/${name}/storage/reorder`, cleanup: true, then: d=>setData(d), finally: removeLoaders });
     const reorder = (from: number, to: number) => {
         if (from===to) return;
-        reorderServer({data: {from, to}});
-        setData(d=>d.map(a=>[from, to].includes(a.index) ? {...a, loading: true} : {...a}));
         reorderObjects(from, to);
+        put({data: {from, to}, append: `/reorder` }).finally(()=> setLoaders(l=>({...l, [docs[from].id]: false, [docs[to].id]: false })) );
+        setLoaders(l=>({...l, [docs[from].id]: true, [docs[to].id]: true }));
     }
-    const { del } = useAPI({ url: `/schema/${name}/storage`, cleanup: true, then: d=>setData(d), finally: removeLoaders,
-    catch: ({ error }) =>{
-        notifications.show({ title: "Error",message: error||"Unknown error", color: 'red', });
-    } });
     const remove = (id: string) => () => {
-        setData(d=>d.map(a=>a.id===id ? {...a, loading: true} : {...a}));
-        del({data: { id }});
+        del({data: { id }, key: id})
     }
-    const { post, loading: uploading } = useAPI({
-        url: `/schema/${name}/storage`, cleanup: true,
-        headers: { 'Content-Type': 'multipart/form-data' },
-        then: d=>setData(d), finally: () => setData(d=>d.filter(a=>a.updatedAt))
-    });
     const upload = (file: File|null) => {
-        //if (!file) return;
-        //setData(d=>[...d, { id: String(d.length), index: d.length, name: "uploading...", loading: true }]);
-        //const formData = new FormData();
-        //formData.append('file', file);
-        //post({data: formData});
+        if (!file) return;
+        setData(d=>[...d, { id: String(d.length), index: d.length, name: "uploading...", ext: '', updatedAt: '' , loading: true }]);
+        const data = new FormData();
+        data.append('file', file);
+        post({data, key: String(docs.length), headers: { 'Content-Type': 'multipart/form-data' }});
     }
-
 
     return (
-    <Container label={<Head rightSection={<FileButton onChange={upload}>{(props) => <Button loading={uploading} variant="light" {...props}>Add</Button>}</FileButton>} >File Manager</Head>} >
-        {docs.length>0?<Box>
+    <Container label={<Head rightSection={<Button leftSection={<IconPlus size={16} />} loading={loading} onClick={open} variant="light">Add</Button>} >File Manager</Head>} >
+        <Modal onDrop={upload} closeup cleanup />
+        {docs.length>0?
+        <Box>
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
                     <Grid.Col span={2}/>
@@ -151,11 +136,12 @@ export default function Files() {
                 {provided => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
                     {docs.map((item) => {
-                        const disabled = item.loading || false;
+                        const loading = loaders[item.id] || false;
+                        const error = errors[item.id];
                         return (
-                        <Draggable key={item.id} index={item.index} draggableId={item.id} isDragDisabled={item.loading} >
+                        <Draggable key={item.id} index={item.index} draggableId={item.id} isDragDisabled={loading} >
                         {provided => (
-                            <Item provided={provided} item={item} disabled={disabled} loading={item.loading} remove={remove} update={update} save={save} />
+                            <Item provided={provided} item={item} disabled={loading} loading={loading} error={error} remove={remove} update={update} save={save} />
                         )}
                         </Draggable>
                     )})}

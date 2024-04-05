@@ -28,7 +28,10 @@ export class xError {
       if (typeof message === "string"){ this.message = message; } else {
         this.message = '[Unable to stringify the thrown value]';
         try {
-          this.message = JSON.stringify(message);
+            const stringified = JSON.stringify(message);
+            if (stringified!=="{}") { this.message = stringified; } else {
+                if ((message as {stack: string}).stack) this.message = (message as {stack: string}).stack;
+            }
         } catch { /* empty */ }
       }
       this.field = field;

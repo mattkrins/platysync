@@ -1,119 +1,89 @@
-import { useContext, useState } from 'react';
-import SchemaContext from '../../providers/SchemaContext';
-import Container from '../Common/Container';
-import Head from '../Common/Head';
-import { Button, Badge, Table, Group, Text, ActionIcon, rem, useMantineTheme } from '@mantine/core';
-import { IconCopy, IconPencil, IconTestPipe, IconTrash } from '@tabler/icons-react';
-import providers from '../../modules/connectors.ts'
-import { useDisclosure } from '@mantine/hooks';
-import AddConnectors from './AddConnectors.tsx';
-import EditConnector from './EditConnector.tsx';
-import useAPI, { handleError } from '../../hooks/useAPI.ts';
-import { notifications } from '@mantine/notifications';
-import { modals } from '@mantine/modals';
+import { Badge, Box, Button, Grid, Group, Loader, Paper, useMantineTheme } from '@mantine/core'
+import { IconGripVertical, IconPlus } from '@tabler/icons-react'
+import Head from '../Common/Head'
+import Container from '../Common/Container'
+import { useContext } from 'react';
+import SchemaContext from '../../providers/SchemaContext2';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { providers } from '../../modules/connectors';
+
+function Item( { provided, item, disabled, loading, error, remove, update, save } ) {
+    const theme = useMantineTheme();
+    const provider = providers[item.id];
+    return (
+    <Paper mb="xs" p="xs" withBorder ref={provided.innerRef} {...provided.draggableProps}
+    style={{ ...provided.draggableProps.style, cursor: loading ? "not-allowed" : undefined }}
+    >
+        <Grid justify="space-between">
+            <Grid.Col span={2} style={{ cursor: loading ? undefined : 'grab' }} {...provided.dragHandleProps} >
+                <Group wrap="nowrap" justify="space-between" >
+                    {loading?<Loader size="sm" />:<IconGripVertical stroke={1.5} />}
+                    <Badge color={theme.colors[provider.color][6]} variant="light">{provider.id}</Badge>
+                    <provider.icon color={theme.colors[provider.color][6]} size={20} stroke={1.5} />
+                </Group>
+            </Grid.Col>
+            <Grid.Col span={3} c={disabled?"dimmed":undefined}>
+                {item.name}
+            </Grid.Col>
+            <Grid.Col span={4} c={disabled?"dimmed":undefined}><Group gap="xs">{provider.name}</Group></Grid.Col>
+            <Grid.Col span={3}>
+                
+            </Grid.Col>
+        </Grid>
+    </Paper>
+    )
+}
 
 export default function Connectors() {
-  const { schema, connectors, mutate } = useContext(SchemaContext);
-  const theme = useMantineTheme();
-  const [opened, { open, close }] = useDisclosure(false);
-  const [ editing, setEditing ] = useState<Connector|undefined>(undefined);
-  const [ adding, setAdding ] = useState<string|undefined>(undefined);
-  const edit = (connector: Connector) => { setAdding(undefined); setEditing(connector); }
-  const add = (provider: string) => { close(); setEditing(undefined); setAdding(provider); }
-  console.log(schema)
+    const { name, connnectors, mutate } = useContext(SchemaContext);
 
-  const { del, request: r1 } = useAPI({
-      url: `/schema/${schema?.name}/connector`,
-      catch: (e) => handleError(e),
-      cleanup: true,
-      then: ({connectors, _connectors, headers}) => {
-        mutate({connectors, _connectors, headers});
-        notifications.show({ title: "Success",message: 'Connector Removed.', color: 'lime', });
-      },
-  });
+    const reorder = (from: number, to: number) => {
+        const copy = [...connnectors];
+        copy[to] = connnectors[from];
+        copy[from] = connnectors[to];
+        mutate({ connnectors: copy });
+    }
 
-  const { post: copy, request: r2 } = useAPI({
-      url: `/schema/${schema?.name}/connector`,
-      catch: (e) => handleError(e),
-      cleanup: true,
-      then: ({connectors, _connectors, headers}) => {
-        mutate({connectors, _connectors, headers});
-        notifications.show({ title: "Success",message: 'Connector Copied.', color: 'lime', });
-      },
-  });
 
-  const { post: t1, request: r3 } = useAPI({
-    url: `/schema/${schema?.name}/connector`,
-    catch: (e) => handleError(e),
-    cleanup: true,
-    then: (name: string) => {
-      notifications.show({ title: "Success",message: `${name} connected successfully.`, color: 'lime', });
-    },
-  });
-  const test = (name: string) => t1({append_url: `/${name}/test`, loading: name});
-
-  const remove = (name: string) =>
-  modals.openConfirmModal({
-      title: 'Permanently Delete Connector',
-      centered: true,
-      children: (
-      <Text size="sm">
-          Are you sure you want to delete {name}? This action is destructive and cannot be reversed.
-      </Text>
-      ),
-      labels: { confirm: 'Delete connector', cancel: "No don't delete it" },
-      confirmProps: { color: 'red' },
-      onConfirm: () => del({append_url: `/${name}`, loading: name}),
-  });
-  
-  const l1 = (n: string) => r1.loading=== n;
-  const l2 = (n: string) => r2.loading=== n;
-  const l3 = (n: string) => r3.loading=== n;
-
-  if (!schema) return;
-  return (
-  <Container label={<Head rightSection={<Button onClick={()=>open()} variant="light" >Add</Button>} >Connectors</Head>} >
-      <AddConnectors add={add} opened={opened} close={close} />
-      <EditConnector editing={editing} adding={adding} close={()=>{setEditing(undefined);setAdding(undefined);}} />
-      <Table verticalSpacing="sm">
-          <Table.Thead>
-          <Table.Tr>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Provider</Table.Th>
-              <Table.Th />
-          </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{ connectors.map((item) => {
-            const provider = providers[item.id];
-            return (
-            <Table.Tr key={item.name}>
-              <Table.Td>
-                <Group miw={100} gap="sm">
-                  <provider.icon color={theme.colors[provider.color][6]} size={20} stroke={1.5} />
-                  <Text fz="sm">{item.name}</Text>
-                </Group>
-              </Table.Td>
-              <Table.Td><Badge color={theme.colors[provider.color][6]} variant="light">{provider.name}</Badge></Table.Td>
-              <Table.Td miw={80} >
-                <Group gap={0} justify="flex-end">
-                  <ActionIcon onClick={()=>test(item.name)} loading={l3(item.name)} variant="subtle" color="lime" >
-                    <IconTestPipe style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                  </ActionIcon>
-                  <ActionIcon onClick={()=>edit(item)} variant="subtle" color="orange">
-                    <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                  </ActionIcon>
-                  <ActionIcon onClick={()=>copy({append_url: `/${item.name}/copy`, loading: item.name})} loading={l2(item.name)} variant="subtle" color="indigo">
-                    <IconCopy style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                  </ActionIcon>
-                  <ActionIcon onClick={()=>remove(item.name)} loading={l1(item.name)} variant="subtle" color="red">
-                    <IconTrash style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                  </ActionIcon>
-                </Group>
-              </Table.Td>
-            </Table.Tr>
-          )})}
-          </Table.Tbody>
-      </Table>
-  </Container>
-  )
+    return (
+    <Container label={<Head rightSection={<Button leftSection={<IconPlus size={16} />} variant="light">Add</Button>} >Connectors</Head>} >
+        {connnectors.length>0?
+        <Box>
+            <Paper mb="xs" p="xs" >
+                <Grid justify="space-between">
+                    <Grid.Col span={2}/>
+                    <Grid.Col span={3}>Name</Grid.Col>
+                    <Grid.Col span={4}>Provider</Grid.Col>
+                    <Grid.Col span={3}/>
+                </Grid>
+            </Paper>
+            <DragDropContext
+            onDragEnd={({ destination, source }) => reorder(source.index, destination?.index || 0) }
+            >
+            <Droppable droppableId="dnd-list" direction="vertical">
+                {provided => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {connnectors.map((item, index) => {
+                        const loading = false;
+                        //const loading = loaders[item.id] || false;
+                        const error = false;
+                        //const error = errors[item.id];
+                        return (
+                        <Draggable key={item.name} index={index} draggableId={item.name} isDragDisabled={loading} >
+                        {provided => (
+                            <Item provided={provided} item={item} disabled={loading} loading={loading} error={error} />
+                        )}
+                        </Draggable>
+                    )})}
+                    {provided.placeholder}
+                </div>
+                )}
+            </Droppable>
+            </DragDropContext>
+        </Box>:
+        <Paper withBorder p="lg" pos="relative" >
+            No connectors configured.<br/>A connector is required to create a rule.
+        </Paper>}
+    </Container>
+    )
 }

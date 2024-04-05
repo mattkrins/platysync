@@ -10,7 +10,7 @@ export const initSchemaCache: (a?:any) => any = () => {}
 
 const schemas2 = new Schemas();
 
-export default async function schema(route: FastifyInstance) {
+export default async function (route: FastifyInstance) {
   await schemas2.load();
   // Get all Schemas
   route.get('/', async () => schemas2.getAll(true) );
