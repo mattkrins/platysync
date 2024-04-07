@@ -8,7 +8,7 @@ export const getSchema: (a?:any,b?:any) => any = () => {}
 export const mutateSchema: (a?:any) => any = () => {}
 export const initSchemaCache: (a?:any) => any = () => {}
 
-const schemas2 = new Schemas();
+export const schemas2 = new Schemas();
 
 export default async function (route: FastifyInstance) {
   await schemas2.load();

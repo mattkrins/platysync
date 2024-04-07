@@ -55,14 +55,14 @@ export interface Returns<returnType = unknown> {
     del: (opt2?: Options<returnType>) => Promise<returnType>;
     setData: (data: returnType|React.SetStateAction<returnType>)=>void;
     set: (data: returnType|React.SetStateAction<returnType>)=>void;
-    setLoaders: React.Dispatch<React.SetStateAction<{ [k: key]: boolean }>>
+    setLoaders: React.Dispatch<React.SetStateAction<{ [k: key]: boolean|undefined }>>
     reset: ()=>void;
     mutate: (mutation: {[k: string]: unknown})=>void;
     request: Options<returnType>;
     response: AxiosResponse<unknown, unknown>|undefined;
     data: returnType;
     loading: boolean;
-    loaders: { [k: key]: boolean };
+    loaders: { [k: key]: boolean|undefined };
     error: string|undefined;
     errors: validation;
 }
@@ -81,7 +81,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
     const [response, setResponse] = useState<AxiosResponse<unknown, unknown>|undefined>(undefined);
     const [data, setData] = useState<returnType>(opt1.default as returnType);
     const [loading, setLoading] = useState<boolean>(opt1.fetch || false);
-    const [loaders, setLoaders] = useState<{ [k: key]: boolean }>({});
+    const [loaders, setLoaders] = useState<{ [k: key]: boolean|undefined }>({});
     const [error, setError] = useState<string|undefined>(undefined);
     const [errors, setErrors] = useState<validation>({});
     const axiosClient = axios.create(axiosOptions);
@@ -100,7 +100,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
             if (options.modify) options.data = options.modify(options.data as sendType) as sendType;
             if (!options.preserve) reset(opt1 as Options<returnType, sendType>);
             if (!options.preserveErrors){ setError(undefined); setErrors({}); }
-            if (options.key) setLoaders(loaders => ({ ...loaders, [options.key as key]: true }));
+            if (typeof options.key !== "undefined") setLoaders(loaders => ({ ...loaders, [options.key as key]: true }));
             if (options.append) options.url += options.append;
             setLoading(true);
             const response = await axiosClient(options);
@@ -109,18 +109,23 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
             if (options.mutate) data = options.mutate(data) as returnType;
             setData(data);
             if (options.then) options.then(data);
-            if (!options.then) deferred.resolve(data);
+            deferred.resolve(data);
         } catch (e) {
             const err = e as AxiosError;
             const data = (err.response || { data: {} }).data as { error?: string, message?: string, validation?: {validation: validation} };
             const message = data.message || data.error || err.message || "Unknown Error";
-            if (data.validation) setErrors(data.validation.validation||data.validation);
+            if (data.validation){
+                if (typeof options.key !== "undefined"){
+                    setErrors({[options.key]: JSON.stringify(data.validation.validation||data.validation) })} else {
+                    setErrors(data.validation.validation||data.validation);
+                }
+            }
             if (!data.validation) setError(message);
             if (options.catch) options.catch(message, options, err, data.validation?data.validation.validation||data.validation:undefined);
             if (!options.catch) deferred.reject(message);
         } finally {
             setLoading(false);
-            if (options.key) setLoaders(loaders => { delete loaders[options.key as key]; return loaders; });
+            if (typeof options.key !== "undefined") setLoaders(loaders => { delete loaders[options.key as key]; return loaders; });
             if (options.finally) options.finally(options);
             if (options.cleanup) reset(opt1 as Options<returnType, sendType>);
         }

@@ -4,13 +4,14 @@ interface Schema {
     version: string;
     connnectors: any[]
     rules: any[]
+    [k: string]: unknown;
     //connectors: Connector[];
     //_connectors: { [name]: Connector };
 }
 interface Connector {
     id: string;
     name: string;
-    img: string;
+    [k: string]: unknown;
 }
 
 interface Condition {

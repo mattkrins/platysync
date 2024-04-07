@@ -1,7 +1,7 @@
 import { FastifyReply } from "fastify";
 import { Schema } from "../typings/common.js";
 
-type status = 400|401|403|404|405|406|408|409|500;
+type status = 400|401|403|404|405|406|408|409|500|number;
 export class xError {
     message: string;
     name: string = "Error";
@@ -10,9 +10,9 @@ export class xError {
     status?: number;
     validation?: { validation: { [k: string]: string } };
     /**
-     * @param {string} message
-     * @param {string} field
-     * @param {number} status
+     * @param {string} message - Any stringifyable value.
+     * @param {string} field - field name for validation.
+     * @param {number} status - http response code:
      ** 400: Client Error
      ** 401: Unauthorized
      ** 403: Forbidden

@@ -4,13 +4,14 @@ import Papa, { ParseResult } from 'papaparse';
 import eduSTAR from '../modules/eduSTAR.js';
 import { Hash, decrypt } from '../modules/cryptography.js';
 import ldap from '../modules/ldap.js';
-import { ExtError, paths, server } from '../server.js';
+import { paths, server } from '../server.js';
 import { AxiosFix } from "../typings/common.js";
 import axios from 'axios';
 import { HttpProxyAgent } from 'http-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Doc } from '../db/models.js';
 import { compile } from '../modules/handlebars.js';
+import { xError } from '../modules/common.js';
 const Axios = (axios as unknown as AxiosFix);
 
 interface connectorConfig {[k: string]: unknown}
@@ -26,7 +27,7 @@ export default async function connect(schema: Schema, connectorName: string, con
             const users = await client.getUsers();
             const keyed: {[k: string]: object} = {};
             const rows = [];
-            for (const row of users){
+            for (const row of users){ //TODO - move to connect func, put classes into object lookup
                 if (keyed[row[id]]) continue;
                 keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
                 rows.push(row);
@@ -52,7 +53,7 @@ export default async function connect(schema: Schema, connectorName: string, con
             const close = async () => client.close();
             connection = { rows: users, keyed, provider, client, close }; break;
         }
-        default: throw Error("Unknown connector.");
+        default: throw new xError("Unknown connector.");
     } connections[connectorName] = connection; return connection;
 }
 
@@ -84,20 +85,20 @@ export class PROXY extends ProviderBase {
         this.name = options.name;
     }
     async validate(): Promise<true> {
-        if (!this.schema) throw Error('Schema can not be empty.');
-        if (!this.url) throw Error('URL can not be empty.');
+        if (!this.schema) throw new xError('Schema can not be empty.');
+        if (!this.url) throw new xError('URL can not be empty.', 'url');
         await this.configure();
         const response = await Axios.default.get('https://www.example.com/', {
             httpAgent: new HttpProxyAgent(this.url),
             httpsAgent: new HttpsProxyAgent(this.url),
             proxy: false as const
         });
-        if (!response || !response.data) throw Error('No data returned.');
-        if (!response.data.includes("Example Domain")) throw Error('Unexpected malformed data.');
+        if (!response || !response.data) throw new xError('No data returned.');
+        if (!response.data.includes("Example Domain")) throw new xError('Unexpected malformed data.');
         return true;
     }
     public async configure(): Promise<URL> {
-        if (!this.schema._connectors[this.name]) throw Error(`Connector '${this.name}' does not exist.`);
+        if (!this.schema._connectors[this.name]) throw new xError(`Connector '${this.name}' does not exist.`);
         const connector = this.schema._connectors[this.name] as PROXYOptions;
         const url = new URL(connector.url as string);
         if (connector.username) url.username = connector.username;
@@ -129,10 +130,10 @@ export class CSV extends ProviderBase {
         return data.meta.fields || [];
     }
     public async validate(): Promise<true> {
-        if (!this.path) throw new ExtError("Path can not be empty.", "path");
+        if (!this.path) throw new xError("Path can not be empty.", "path");
         await this.configure();
-        if (!this.path || !fs.existsSync(this.path)) throw new ExtError("Path does not exist.", "path");
-        if (!(fs.lstatSync(this.path as string).isFile())) throw new ExtError("Path is not a file.", "path");
+        if (!this.path || !fs.existsSync(this.path)) throw new xError("Path does not exist.", "path");
+        if (!(fs.lstatSync(this.path as string).isFile())) throw new xError("Path is not a file.", "path");
         await this.open();
         return true;
     }
@@ -199,13 +200,13 @@ export class LDAP extends ProviderBase {
         this.base = options.base;
     }
     async validate(): Promise<true> {
-        if (!this.url) throw new ExtError('URL can not be empty.', 'url');
-        if (!this.username) throw new ExtError('Username can not be empty.', 'username');
-        if (!this.password) throw new ExtError('Password can not be empty.', 'password');
-        if (!this.attributes || this.attributes.length <= 0) throw Error('Attributes can not be empty.');
+        if (!this.url) throw new xError('URL can not be empty.', 'url');
+        if (!this.username) throw new xError('Username can not be empty.', 'username');
+        if (!this.password) throw new xError('Password can not be empty.', 'password');
+        if (!this.attributes || this.attributes.length <= 0) throw new xError('Attributes can not be empty.');
         if (typeof this.password === 'object'){
-            if (!(this.password as Hash).encrypted) throw new ExtError('Password malformed.', 'password');
-            if (!(this.password as Hash).iv) throw new ExtError('Password malformed.', 'password');
+            if (!(this.password as Hash).encrypted) throw new xError('Password malformed.', 'password');
+            if (!(this.password as Hash).iv) throw new xError('Password malformed.', 'password');
         }
         await this.configure();
         return true;
@@ -217,7 +218,7 @@ export class LDAP extends ProviderBase {
         const password = await decrypt(this.password as Hash);
         await client.login(this.username, password);
         let base: string = this.dse || await client.getRoot();
-        if (!base || base.trim()==='') throw Error("Root DSE is empty.");
+        if (!base || base.trim()==='') throw new xError("Root DSE is empty.");
         if ((this.base||'')!=='') base = `${this.base},${base}`;
         client.base = base;
         this.getAttributes();
@@ -267,10 +268,10 @@ export class STMC extends ProviderBase {
         this.inactive = options.inactive;
     }
     public async validate(): Promise<true> {
-        if (!this.schema) throw new ExtError('Schema can not be empty.', 'schema');
-        if (!this.school) throw new ExtError('School can not be empty.', 'school');
-        if (!this.username) throw new ExtError('Username can not be empty.', 'username');
-        if (!this.password) throw new ExtError('Password can not be empty.', 'password');
+        if (!this.schema) throw new xError('Schema can not be empty.', 'schema');
+        if (!this.school) throw new xError('School can not be empty.', 'school');
+        if (!this.username) throw new xError('Username can not be empty.', 'username');
+        if (!this.password) throw new xError('Password can not be empty.', 'password');
         await this.configure();
         return true;
     }
@@ -298,7 +299,7 @@ export class STMC extends ProviderBase {
         '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer', '_eduhub' ];
     }
     private async eduhub(name: string): Promise<{ data: {[k: string]: string}[] }> {
-        if (!this.schema._connectors[name]) throw Error(`Connector '${name}' does not exist.`);
+        if (!this.schema._connectors[name]) throw new xError(`Connector '${name}' does not exist.`);
         const connector = this.schema._connectors[name] as CSVOptions;
         const csv = new CSV(connector);
         return await csv.open() as { data: {[k: string]: string}[] };

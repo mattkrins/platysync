@@ -102,8 +102,8 @@ export default function Files() {
     const reorder = (from: number, to: number) => {
         if (from===to) return;
         reorderObjects(from, to);
-        put({data: {from, to}, append: `/reorder` }).finally(()=> setLoaders(l=>({...l, [docs[from].id]: false, [docs[to].id]: false })) );
         setLoaders(l=>({...l, [docs[from].id]: true, [docs[to].id]: true }));
+        put({data: {from, to}, append: `/reorder` }).finally(()=> setLoaders(l=>({...l, [docs[from].id]: undefined, [docs[to].id]: undefined })) );
     }
     const remove = (id: string) => () => {
         del({data: { id }, key: id})

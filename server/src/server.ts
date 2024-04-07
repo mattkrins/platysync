@@ -1,4 +1,4 @@
-import Fastify, { FastifyInstance, FastifyReply } from 'fastify'
+import Fastify, { FastifyInstance } from 'fastify'
 import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts'
 import cors from '@fastify/cors'
 import routes from './routes.js'
@@ -94,27 +94,4 @@ export function _Error(value: unknown): Error {
     stringified = JSON.stringify(value);
   } catch { /* empty */ }
   return new Error(stringified);
-}
-
-export class ExtError {
-  message: string;
-  name: string = "Error";
-  stack?: string;
-  field?: string;
-  validation?: { validation: { [k: string]: string } };
-  constructor(message: unknown = "Unknown error.", field?: string) {
-    if (message instanceof ExtError){ this.message = message.message; return message; }
-    if (typeof message === "string"){ this.message = message; } else {
-      this.message = '[Unable to stringify the thrown value]';
-      try {
-        this.message = JSON.stringify(message);
-      } catch { /* empty */ }
-    }
-    this.field = field;
-    if (field) this.validation = { validation: { [field]: this.message } }
-    if (Error.captureStackTrace) Error.captureStackTrace(this, ExtError);
-  }
-  public sendValidation(reply: FastifyReply) {
-    return reply.code(409).send(this.validation);
-  }
 }

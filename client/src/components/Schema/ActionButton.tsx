@@ -2,7 +2,7 @@ import { Text, useMantineTheme } from '@mantine/core';
 import { IconTrash, IconPackageExport, IconPackageImport } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { useContext } from 'react';
-import SchemaContext from '../../providers/SchemaContext';
+import SchemaContext from '../../providers/SchemaContext2';
 import SplitButton from '../Common/SplitButton';
 import useImporter from '../../hooks/useImporter';
 import { UseFormReturnType } from '@mantine/form';
@@ -43,7 +43,7 @@ interface Props {
 }
 export default function ActionButton({ save, saving, form, del }: Props) {
     const theme = useMantineTheme();
-    const { schema } = useContext(SchemaContext);
+    const { name, initialValues } = useContext(SchemaContext);
     const { Modal, open } = useImporter();
     const openDeleteModal = () =>
     modals.openConfirmModal({
@@ -67,7 +67,7 @@ export default function ActionButton({ save, saving, form, del }: Props) {
     return (<>
         <Modal onDrop={upload} closeup cleanup />
         <SplitButton loading={saving} variant="light" onClick={save} options={[
-        {  onClick:()=>exportJSON(schema as object, `${schema?.name}.json`), label: 'Export', leftSection: <IconPackageExport size={16} color={theme.colors.green[5]}  /> },
+        {  onClick:()=>exportJSON(initialValues, `${name}.json`), label: 'Export', leftSection: <IconPackageExport size={16} color={theme.colors.green[5]}  /> },
         {  onClick:()=>open(), label: 'Import', leftSection: <IconPackageImport size={16} color={theme.colors.orange[5]}  /> },
         {  onClick:()=>openDeleteModal(), label: 'Delete', leftSection: <IconTrash size={16} color={theme.colors.red[5]}  /> },
         ]} >Save</SplitButton>
