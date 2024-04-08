@@ -2,18 +2,18 @@ import { Button, Input, SegmentedControl, useMantineColorScheme, Text } from '@m
 import Container from '../Common/Container';
 import { useContext } from 'react';
 import useAPI from '../../hooks/useAPI';
-import SchemaContext from '../../providers/SchemaContext';
+import SchemaContext from '../../providers/SchemaContext2';
 import { notifications } from '@mantine/notifications';
-import AuthContext from '../../providers/AuthContext';
+import AuthContext from '../../providers/AppContext';
 
 export default function Settings() {
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();
     const { version } = useContext(AuthContext);
-    const { changeSchema } = useContext(SchemaContext);
+    const { loadSchema } = useContext(SchemaContext);
     const { get: purge, loading: purging } = useAPI({
         url: `/fix`,
         then: () => {
-            changeSchema(undefined);
+            loadSchema(undefined);
             notifications.show({ title: "Success",message: 'Cache Purged.', color: 'lime', });
             setTimeout(()=> location.reload(), 1000)
         }

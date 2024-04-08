@@ -2,12 +2,13 @@
 interface Schema {
     name: string;
     version: string;
-    connnectors: any[]
-    rules: any[]
+    connectors: any[];
+    rules: any[];
     [k: string]: unknown;
-    //connectors: Connector[];
-    //_connectors: { [name]: Connector };
 }
+
+interface headers { [connector: string]: string[] }
+
 interface Connector {
     id: string;
     name: string;

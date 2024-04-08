@@ -37,4 +37,10 @@ export default async function (route: FastifyInstance) {
       try { return schemas2.get(name).destroy(); }
       catch (e) { new xError(e).send(reply); }
   });
+  // Get Connector Headers
+  route.get('/:name/headers', async (request, reply) => {
+      const { name } = request.params as { name: string };
+      try { return await schemas2.get(name).headers(); }
+      catch (e) { new xError(e).send(reply); }
+  });
 }

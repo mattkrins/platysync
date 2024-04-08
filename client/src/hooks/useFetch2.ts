@@ -34,7 +34,7 @@ export interface Options<returnType = unknown, sendType = unknown> extends Axios
     /** @param {unknown} data Mutate return data. */
     mutate?(data: unknown): returnType;
     /** @param {returnType} data Executes on success. */
-    then?(data: returnType): returnType|void;
+    then?(data: returnType, options: Options<returnType, sendType>, key?: key): returnType|void;
     /** Executes on failure.
      * @param {string} message Error message.
      * @param {Options} options Request options.
@@ -108,7 +108,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
             let data = (response.data || response) as returnType;
             if (options.mutate) data = options.mutate(data) as returnType;
             setData(data);
-            if (options.then) options.then(data);
+            if (options.then) options.then(data, options, options.key);
             deferred.resolve(data);
         } catch (e) {
             const err = e as AxiosError;

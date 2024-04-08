@@ -12,15 +12,14 @@ import Editor from './Editor';
 
 interface ItemProps {
     provided: DraggableProvided;
-    index: number;
     item: Connector, disabled?: boolean;
     loading?: boolean;
     error?: string;
-    remove: (name: string, index: number)=>()=> void;
-    test: (name: string, index: number)=>()=> void;
+    remove: (name: string)=>()=> void;
+    test: (name: string)=>()=> void;
     edit: React.Dispatch<React.SetStateAction<Connector | undefined>>
 }
-function Item( { provided, item, index, disabled, loading, error, remove, test, edit }: ItemProps ) {
+function Item( { provided, item, disabled, loading, error, remove, test, edit }: ItemProps ) {
     const theme = useMantineTheme();
     const provider = providers[item.id];
     return (
@@ -45,10 +44,10 @@ function Item( { provided, item, index, disabled, loading, error, remove, test, 
                     <ActionIcon onClick={()=>edit(item)} variant="subtle" color="orange">
                         <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                     </ActionIcon>
-                    <ActionIcon onClick={test(item.name, index)} disabled={disabled} variant="subtle" color="lime" >
+                    <ActionIcon onClick={test(item.name)} disabled={disabled} variant="subtle" color="lime" >
                         <IconTestPipe style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                     </ActionIcon>
-                    <ActionIcon onClick={remove(item.name, index)} disabled={disabled} variant="subtle" color="red">
+                    <ActionIcon onClick={remove(item.name)} disabled={disabled} variant="subtle" color="red">
                         <IconTrash size={16} stroke={1.5} />
                     </ActionIcon>
                 </Group>
@@ -59,14 +58,14 @@ function Item( { provided, item, index, disabled, loading, error, remove, test, 
 }
 
 export default function Connectors() {
-    const { name, connnectors, mutate } = useContext(SchemaContext);
+    const { name, connectors, mutate } = useContext(SchemaContext);
     const [ editing, edit ] = useState<Connector|undefined>(undefined);
 
     const { put, del, loaders, errors, setLoaders } = useAPI<Connector[]>({
         url: `/schema/${name}/connector`,
-        default: connnectors,
+        default: connectors,
         preserve: true,
-        then: connnectors => mutate({ connnectors }),
+        then: connectors => mutate({ connectors }),
         preserveErrors: false,
         noError: true,
         catch: (message) => notifications.show({ title: "Error", message, color: 'red', })
@@ -74,30 +73,30 @@ export default function Connectors() {
 
     const reorder = (from: number, to: number) => {
         if (from===to) return;
-        const copy = [...connnectors];
-        copy[to] = connnectors[from];
-        copy[from] = connnectors[to];
-        mutate({ connnectors: copy });
-        setLoaders(l=>({...l, [from]: true, [to]: true }));
-        put({append:'/reorder', data: { from, to } }).finally(()=> setLoaders(l=>({...l, [from]: undefined, [to]: undefined })) );
+        const copy = [...connectors];
+        copy[from] = connectors[to];
+        copy[to] = connectors[from];
+        mutate({ connectors: copy });
+        setLoaders(l=>({...l, [copy[from].name]: true, [copy[to].name]: true }));
+        put({append:'/reorder', data: { from, to } }).finally(()=> setLoaders(l=>({...l, [copy[from].name]: undefined, [copy[to].name]: undefined })) );
     }
 
-    const remove = (name: string, key: number) => () => {
-        mutate({ connnectors: connnectors.filter(c=>c.name!==name) });
-        del({ data: { name }, key });
+    const remove = (name: string) => () => {
+        mutate({ connectors: connectors.filter(c=>c.name!==name) });
+        del({ data: { name }, key: name });
     }
-    const test = (name: string, key: number) => () => {
-        put({append:'/test', data: { name }, key }).then(()=>{
+    const test = (name: string) => () => {
+        put({append:'/test', data: { name }, key: name }).then(()=>{
             notifications.show({ title: "Success",message: `${name} connected successfully.`, color: 'lime', });
         });
     }
 
     return (
     <Container label={<Head rightSection={<Button leftSection={<IconPlus size={16} />} variant="light">Add</Button>} >Connectors</Head>} >
-        <Modal opened={!!editing} onClose={()=>edit(undefined)} title={`Editing ${editing?.name}`}>
-            {editing&&<Editor editing={editing} setEditing={edit} />}
+        <Modal opened={!!editing} onClose={()=>edit(undefined)} title={editing?`Editing ${editing?.id}`:undefined}>
+            {editing&&<Editor editing={editing} setEditing={edit} put={put} />}
         </Modal>
-        {connnectors.length>0?
+        {connectors.length>0?
         <Box>
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
@@ -113,15 +112,14 @@ export default function Connectors() {
             <Droppable droppableId="dnd-list" direction="vertical">
                 {provided => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {connnectors.map((item, index) => {
-                        const loading = loaders[index] || false;
-                        const error = errors[index];
+                    {connectors.map((item, index) => {
+                        const loading = loaders[item.name] || false;
+                        const error = errors[item.name];
                         return (
                         <Draggable key={item.name} index={index} draggableId={item.name} isDragDisabled={loading} >
                         {provided => (
                             <Item
                             provided={provided}
-                            index={index}
                             item={item}
                             disabled={loading}
                             loading={loading}

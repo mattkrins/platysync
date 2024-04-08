@@ -25,22 +25,32 @@ interface xConnnector {
     name: string;
     [k: string]: unknown;
 }
-class Connnector {
+export class Connector {
     public id: string;
     public name: string;
     [k: string]: unknown;
     private parent: Schema;
-    constructor(connnector: Connnector|xConnnector, parent: Schema) {
+    constructor(connnector: Connector|xConnnector, parent: Schema) {
         this.parent = parent;
         this.name = connnector.name;
         this.id = connnector.id;
         for (const key of Object.keys(connnector)) this[key] = connnector[key];
     }
-    public async save() {
-
+    public save(): Connector {
+        this.parent.save();
+        return this;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public mutate(changes: {[k: string]: any}, save: boolean = true): Connector {
+        if (changes.name && changes.name !== this.name){
+            if (this.parent.findConnnector(changes.name)) throw new xError("Name taken.", "name", 409);
+        }
+        Object.keys(changes).forEach(key => {
+            this[key as keyof Connector] = changes[key]
+        }); if (save) { this.save(); } return this;
     }
     public destroy(): true {
-        this.parent.mutate({ connnectors: this.parent.connnectors.filter(c=>c.name!==this.name) });
+        this.parent.mutate({ connectors: this.parent.connectors.filter(c=>c.name!==this.name) });
         return true;
     }
     public async validate(): Promise<true> {
@@ -60,28 +70,28 @@ class Connnector {
 interface xSchema {
     name: string;
     version: string;
-    connnectors: Connnector[];
+    connectors: Connector[];
     rules: Rule[];
     [k: string]: unknown;
 }
 export class Schema {
     public name: string;
     public version: string;
-    public connnectors: Connnector[] = [];
+    public connectors: Connector[] = [];
     public rules: Rule[] = [];
     private parent: Schemas;
     constructor(schema: Schema|xSchema, parent: Schemas) {
         this.parent = parent;
         this.name = schema.name;
         this.version = schema.version;
-        for (const connnector of schema.connnectors||[]) this.connnectors.push(new Connnector(connnector, this) );
+        for (const connnector of schema.connectors||[]) this.connectors.push(new Connector(connnector, this) );
         for (const rule of schema.rules||[]) this.rules.push(rule);
     }
     public save(write: boolean = true): Schema {
         const clean = {
             name: this.name,
             version: this.version,
-            connnectors: this.connnectors.map(c=>c.parse?c.parse():c),
+            connectors: this.connectors.map(c=>c.parse?c.parse():c),
             rules: this.rules,
         };
         if (write) fs.writeFileSync(`${paths.schemas}/${this.name}.yaml`, stringify(clean));
@@ -92,7 +102,6 @@ export class Schema {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public mutate(changes: {[k: string]: any}, save: boolean = true): Schema {
-        console.log(changes.name, this.name)
         if (changes.name && changes.name !== this.name){
             if (this.parent.find(changes.name)) throw new xError("Name taken.", "name", 409);
             this.destroy();
@@ -106,16 +115,29 @@ export class Schema {
         this.parent.array = this.parent.array.filter(schema=>schema.name!=this.name);
         return true;
     }
+    public async headers():  Promise<{ headers: { [connector: string]: string[] }, errors: { [connector: string]: string } }> {
+        const headers: { [connector: string]: string[] } = {};
+        const errors: { [connector: string]: string } = {};
+        for (const connector of this.connectors||[]) {
+            if (!providers[connector.id]) continue;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const provider = new providers[connector.id]({...connector.parse(), schema: this} as any);
+            try { headers[connector.name] = await provider.getHeaders(); } catch (e) { errors[connector.name] = (e as xError).message; }
+        } return {headers, errors};
+    }
     public parse(): xSchema {
         return parse(this, (k, v) => {
             if(k == 'parent') return undefined;
-            if(k == 'connnectors') return parse(v);
+            if(k == 'connectors') return parse(v);
             if(k == 'rules') return parse(v);
             return v;
         });
     }
-    public connnector(name: string): Connnector {
-        const connector = this.connnectors.filter(c=>c.name===name)[0];
+    public findConnnector(name: string): Connector|undefined {
+        return this.connectors.find(s=>s.name===name);
+    }
+    public connnector(name: string): Connector {
+        const connector = this.connectors.filter(c=>c.name===name)[0];
         if (!connector) throw new xError("Connector does not exist.", undefined, 404);
         return connector;
     }
