@@ -11,24 +11,24 @@ import { notifications } from "@mantine/notifications";
 
 interface Props {
     editing: Connector;
-    setEditing: React.Dispatch<React.SetStateAction<Connector | undefined>>;
-    put: (opt2?: Options<Connector[]> | undefined) => Promise<Connector[]>
-
+    close: ()=>void;
+    put: (opt2?: Options<Connector[]> | undefined) => Promise<Connector[]>;
+    creating: boolean;
 }
-export default function Editor( { editing, setEditing }: Props ) {
+export default function Editor( { editing, close, creating }: Props ) {
     const { name, mutate } = useContext(SchemaContext);
     const provider = providers[editing.id]||{};
     const theme = useMantineTheme();
     const form = useForm({ initialValues: editing ? (editing as unknown as Record<string, unknown>) : provider.initialValues||{}, validate: provider.validation||{} });
     
-    const { put, error } = useAPI({
+    const { put, post, error, loading } = useAPI({
         url: `/schema/${name}/connector`,
         form,
         noError: true,
         then: (connectors, options) => {
             const sent = options.data as { force: boolean, save: boolean, name: string }
             if (sent.save) {
-                setEditing(undefined);
+                close();
                 mutate({ connectors });
                 if (sent.force) {
                     notifications.show({ title: "Success",message: 'Unvalidated connector Saved.', color: 'orange', });
@@ -46,13 +46,14 @@ export default function Editor( { editing, setEditing }: Props ) {
     const save = (force: boolean = false, save: boolean = true) => {
         form.validate();
         if (!form.isValid()) return;
-        put({ data: {force, save, name: editing.name, connector: form.values} });
+        const method = creating ? post : put;
+        method({ data: {force, save, name: editing.name, connector: form.values} });
     }
     return (
     <Box>
-        <provider.Options form={form} />
+        <provider.Options form={form} editing={true} />
         {error&&<Alert mt="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
-        <Group justify="right" mt="md"><SplitButton onClick={()=>save()} leftSection={<IconDeviceFloppy size={16}  />} variant="light" options={[
+        <Group justify="right" mt="md"><SplitButton loading={loading} onClick={()=>save()} leftSection={<IconDeviceFloppy size={16}  />} variant="light" options={[
             {  onClick:()=>save(false, false), label: 'Validate', leftSection: <IconTestPipe color={theme.colors['lime'][6]} size={16}  /> },
             {  onClick:()=>save(true), label: 'Force Save', leftSection: <IconDeviceFloppy color={theme.colors['orange'][6]} size={16}  /> },
         ]}>Save</SplitButton></Group>

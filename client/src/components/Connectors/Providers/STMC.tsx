@@ -4,7 +4,7 @@ import { IconTag, IconSchool, IconClock, IconUser, IconKey, IconEdit, IconNetwor
 import Concealer from '../../Common/Concealer';
 import SelectConnector from '../../Common/SelectConnector';
 
-export default function PROXY( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: Connector|undefined  } ) {
+export default function PROXY( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: boolean  } ) {
     //const list = Object.values(connectors);
     //const entries = list.filter(({ id }: {id: string})=>(id==="proxy")).map(({ name }: {name: string})=>({ value: name, label: name }));
     const unlock = () => form.setFieldValue('password', '');

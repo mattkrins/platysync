@@ -12,15 +12,6 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import useImporter from "../../hooks/useImporter";
 
-interface Doc {
-    id: string;
-    index: number;
-    name: string;
-    ext: string;
-    updatedAt: string;
-    [k: string]: unknown;
-}
-
 interface ItemProps {
     provided: DraggableProvided;
     item: Doc, disabled?: boolean;

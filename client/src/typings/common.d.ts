@@ -2,7 +2,7 @@
 interface Schema {
     name: string;
     version: string;
-    connectors: any[];
+    connectors: Connector[];
     rules: any[];
     [k: string]: unknown;
 }
@@ -12,6 +12,15 @@ interface headers { [connector: string]: string[] }
 interface Connector {
     id: string;
     name: string;
+    [k: string]: unknown;
+}
+
+interface Doc {
+    id: string;
+    index: number;
+    name: string;
+    ext: string;
+    updatedAt: string;
     [k: string]: unknown;
 }
 

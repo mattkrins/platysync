@@ -3,6 +3,8 @@ import { paths, version } from '../server.js';
 import YAML, { stringify } from 'yaml'
 import { xError, validStr } from '../modules/common.js';
 import { providers } from './providers.js';
+import { schemas2 } from '../routes/schema.js';
+import { encrypt } from '../modules/cryptography.js';
 
 function parse(object: unknown, func?: (k: string, v: unknown) => unknown ) {
     return JSON.parse(JSON.stringify(object, func ? func : function(k, v) {
@@ -37,13 +39,16 @@ export class Connector {
         for (const key of Object.keys(connnector)) this[key] = connnector[key];
     }
     public save(): Connector {
+        const connnectors = new Connectors(this.parent.name);
+        if (!connnectors.find(this.name)) this.parent.connectors.push(this);
         this.parent.save();
         return this;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public mutate(changes: {[k: string]: any}, save: boolean = true): Connector {
         if (changes.name && changes.name !== this.name){
-            if (this.parent.findConnnector(changes.name)) throw new xError("Name taken.", "name", 409);
+            const connnectors = new Connectors(this.parent.name);
+            if (connnectors.find(changes.name)) throw new xError("Name taken.", "name", 409);
         }
         Object.keys(changes).forEach(key => {
             this[key as keyof Connector] = changes[key]
@@ -64,6 +69,52 @@ export class Connector {
             if(k == 'parent') return undefined;
             return v;
         });
+    }
+}
+
+export class Connectors {
+    schema: Schema;
+    constructor(schema_name: string) {
+        this.schema = schemas2.get(schema_name);
+    }
+    public async create(connector: Connector|xConnnector, force: boolean = false, save: boolean = true, oldName?: string): Promise<Connector> {
+        if (connector.password && typeof connector.password === "string") {
+            const hash = await encrypt(connector.password as string);
+            connector.password = hash;
+        }
+        if (this.find(connector.name)) throw new xError("Name taken.", "name", 409);
+        const temp = new Connector(connector, this.schema);
+        try { await temp.validate(); }
+        catch (e) { if (!force) throw new xError(e);  }
+        if (!save) return temp;
+        if (oldName) {
+            this.get(oldName).mutate(connector);
+        } else {
+            temp.save();
+        }
+        return temp;
+    }
+    public async mutate(connector: Connector|xConnnector, force: boolean = false, save: boolean = true, oldName: string): Promise<Connector> {
+        return this.create(connector, force, save, oldName );
+    }
+    public reorder(from: number, to: number): true {
+        const schema = this.schema;
+        const copy = [...schema.connectors];
+        copy[to] = schema.connectors[from];
+        copy[from] = schema.connectors[to];
+        schema.connectors = copy;
+        return true;
+    }
+    public get(name: string): Connector {
+        const connector = this.schema.connectors.filter(c=>c.name===name)[0];
+        if (!connector) throw new xError("Connector does not exist.", undefined, 404);
+        return connector;
+    }
+    public find(name: string): Connector|undefined {
+        return this.schema.connectors.find(s=>s.name===name);
+    }
+    public parse(): xConnnector[] {
+       return this.schema.parse().connectors;
     }
 }
 
@@ -132,14 +183,6 @@ export class Schema {
             if(k == 'rules') return parse(v);
             return v;
         });
-    }
-    public findConnnector(name: string): Connector|undefined {
-        return this.connectors.find(s=>s.name===name);
-    }
-    public connnector(name: string): Connector {
-        const connector = this.connectors.filter(c=>c.name===name)[0];
-        if (!connector) throw new xError("Connector does not exist.", undefined, 404);
-        return connector;
     }
 }
 export class Schemas {

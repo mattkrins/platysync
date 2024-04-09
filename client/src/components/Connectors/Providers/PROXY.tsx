@@ -2,7 +2,7 @@ import { TextInput, SimpleGrid, PasswordInput, ActionIcon } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
 import { IconTag, IconWorld, IconUser, IconKey, IconEdit } from '@tabler/icons-react'
 
-export default function PROXY( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: Connector|undefined  } ) {
+export default function PROXY( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: boolean  } ) {
     const unlock = () => form.setFieldValue('password', '');
     return (<>
         <TextInput

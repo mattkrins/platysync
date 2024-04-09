@@ -52,7 +52,7 @@ function Attributes( { form }: { form: UseFormReturnType<Record<string, unknown>
     );
 }
 
-export default function LDAP( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: Connector|undefined  } ) {
+export default function LDAP( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: boolean  } ) {
     const unlock = () => form.setFieldValue('password', '');
     const add = () => form.insertListItem('attributes', '');
     return (<>

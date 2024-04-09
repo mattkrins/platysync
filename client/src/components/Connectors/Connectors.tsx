@@ -1,14 +1,38 @@
-import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, Modal, Paper, Tooltip, rem, useMantineTheme } from '@mantine/core'
+import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, Modal, Paper, Tooltip, rem, useMantineTheme, Text, Card, SimpleGrid, UnstyledButton } from '@mantine/core'
 import { IconAlertCircle, IconGripVertical, IconPencil, IconPlus, IconTestPipe, IconTrash } from '@tabler/icons-react'
 import Head from '../Common/Head'
 import Container from '../Common/Container'
 import { useContext, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext2';
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello-pangea/dnd';
-import { providers } from '../../modules/connectors';
 import useAPI from '../../hooks/useAPI2';
 import { notifications } from '@mantine/notifications';
 import Editor from './Editor';
+import classes from './AddConnectors.module.css'
+import providers, { provider } from './providers';
+import { useDisclosure } from '@mantine/hooks';
+
+function NewModal({ opened, close, edit }: { opened: boolean, close(): void, edit(c?: Connector): void }) {
+    const theme = useMantineTheme();
+    const add = (provider: provider)=> edit({...provider.initialValues, id: provider.id, name: provider.id });
+    return (
+    <Modal size="lg" styles={{content:{backgroundColor:'transparent'},body:{padding:0,margin:0} }} opened={opened} onClose={close} withCloseButton={false}>
+        <Card mih={300} withBorder radius="md" className={classes.card}>
+            <Group justify="space-between">
+                <Text className={classes.title}>Select a provider</Text>
+            </Group>
+            <SimpleGrid cols={2} mt="md">
+            {Object.values(providers).map((item) =>
+            <UnstyledButton onClick={()=>add(item)} key={item.id} className={classes.item}>
+                <item.Icon color={theme.colors[item.color][6]} size="2rem" />
+                <Text size="xs" mt={7}>{item.name}</Text>
+            </UnstyledButton>
+            )}
+            </SimpleGrid>
+        </Card>
+    </Modal>
+    )
+}
 
 interface ItemProps {
     provided: DraggableProvided;
@@ -31,7 +55,7 @@ function Item( { provided, item, disabled, loading, error, remove, test, edit }:
                 <Group wrap="nowrap" justify="space-between" >
                     {loading?<Loader size="sm" />:<IconGripVertical stroke={1.5} />}
                     <Badge color={theme.colors[provider.color][6]} variant="light">{provider.id}</Badge>
-                    <provider.icon color={theme.colors[provider.color][6]} size={20} stroke={1.5} />
+                    <provider.Icon color={theme.colors[provider.color][6]} size={20} stroke={1.5} />
                 </Group>
             </Grid.Col>
             <Grid.Col span={3} c={disabled?"dimmed":error?"red":undefined}>
@@ -60,6 +84,7 @@ function Item( { provided, item, disabled, loading, error, remove, test, edit }:
 export default function Connectors() {
     const { name, connectors, mutate } = useContext(SchemaContext);
     const [ editing, edit ] = useState<Connector|undefined>(undefined);
+    const [opened, { open, close }] = useDisclosure(false);
 
     const { put, del, loaders, errors, setLoaders } = useAPI<Connector[]>({
         url: `/schema/${name}/connector`,
@@ -85,6 +110,7 @@ export default function Connectors() {
         mutate({ connectors: connectors.filter(c=>c.name!==name) });
         del({ data: { name }, key: name });
     }
+    
     const test = (name: string) => () => {
         put({append:'/test', data: { name }, key: name }).then(()=>{
             notifications.show({ title: "Success",message: `${name} connected successfully.`, color: 'lime', });
@@ -92,9 +118,10 @@ export default function Connectors() {
     }
 
     return (
-    <Container label={<Head rightSection={<Button leftSection={<IconPlus size={16} />} variant="light">Add</Button>} >Connectors</Head>} >
-        <Modal opened={!!editing} onClose={()=>edit(undefined)} title={editing?`Editing ${editing?.id}`:undefined}>
-            {editing&&<Editor editing={editing} setEditing={edit} put={put} />}
+    <Container label={<Head rightSection={<Button onClick={open} leftSection={<IconPlus size={16} />} variant="light">Add</Button>} >Connectors</Head>} >
+        <NewModal opened={opened} close={close} edit={edit} />
+        <Modal opened={!!editing} onClose={()=>edit(undefined)} title={editing?`${opened?'Adding':'Editing'} ${editing?.id}`:undefined}>
+            {editing&&<Editor editing={editing} creating={opened} close={()=>{edit(undefined); close(); }} put={put} />}
         </Modal>
         {connectors.length>0?
         <Box>
