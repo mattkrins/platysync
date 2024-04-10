@@ -3,7 +3,7 @@ interface Schema {
     name: string;
     version: string;
     connectors: Connector[];
-    rules: any[];
+    rules: Rule[];
     [k: string]: unknown;
 }
 
@@ -25,7 +25,7 @@ interface Doc {
 }
 
 interface Condition {
-    type: 'string' | 'math' | 'group' | 'ou';
+    type: 'string' | 'math' | 'group' | 'ou' | 'file';
     key: string;
     operator: string;
     value: string;
@@ -60,17 +60,21 @@ interface Rule {
 
 type explore = (click: (d: string) => void, filter?: string[], templates?: string[]) => void;
 
+type templateProps = (form: UseFormReturnType<any>, path: string, templates?: string[], buttons?: JSX.Element) => {
+    error: boolean;
+    value?: string;
+    checked?: boolean;
+    onChange(): void;
+    onFocus?(): void;
+    onBlur?(): void;
+    rightSection: JSX.Element;
+}
+
 interface ActionItem {
     form: UseFormReturnType<Rule>;
     index: number;
-    inputProps: (key: string) => {
-        error: boolean;
-        value?: string | undefined;
-        rightSection: JSX.Element | undefined;
-    };
-    explore: explore;
+    templateProps: templateProps;
     actionType: string;
-    hasLDAP?: boolean;
     sources: string[];
     templates: string[];
 }

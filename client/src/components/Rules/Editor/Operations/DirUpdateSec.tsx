@@ -4,24 +4,15 @@ import { IconBinaryTree2, IconGripVertical, IconTrash } from "@tabler/icons-reac
 import SelectConnector from "../../../Common/SelectConnector";
 import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import useTemplate from "../../../../hooks/useTemplate";
 
-function Groups( { form, index, explore, actionType, sources, templates }: {
+function Groups( { form, index, templateProps, actionType, templates }: {
     form: UseFormReturnType<Rule>,
-    index: number, explore: explore,
+    index: number, templateProps: templateProps,
     actionType: string,
-    sources: string[],
     templates: string[],
 } ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].groups || []) as {value:string, [k: string]: unknown;}[];
-    const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`${actionType}.${index}.groups.${index2}.${key}`, `${data[index2][key]||''}{{${value}}}`), sources );
-
-     const [ templateProps ] = useTemplate(sources, templates);
-    const inputProps = (key: string, index2: number) =>
-    templateProps(modifyCondition(key, index2), form.getInputProps(`${actionType}.${index}.groups.${index2}.${key}`));
-    
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No security groups configured.</Center>}
         <DragDropContext
@@ -49,7 +40,7 @@ function Groups( { form, index, explore, actionType, sources, templates }: {
                         <Grid.Col span="auto">
                             <TextInput
                                 placeholder="CN={{faculty}},OU={{faculty}},OU=Child,OU=Parent"
-                                {...inputProps('value', index2)}
+                                {...templateProps(form, `${actionType}.${index}.groups.${index2}.value`, templates)}
                             />
                         </Grid.Col>
                         <Grid.Col span="content">
@@ -72,7 +63,7 @@ function Groups( { form, index, explore, actionType, sources, templates }: {
     );
 }
 
-export default function DirUpdateSec( { form, index, explore, actionType, sources, templates }: ActionItem){
+export default function DirUpdateSec( { form, index, templateProps, actionType, sources, templates }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].groups) form.setFieldValue(`${actionType}.${index}.groups`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.groups`, {name:'',value:'', type: 'Add'});
@@ -86,7 +77,7 @@ export default function DirUpdateSec( { form, index, explore, actionType, source
             sources={sources}
         />
         <Concealer open label='Security Groups' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Groups form={form} index={index} explore={explore} sources={sources} templates={templates} actionType={actionType} />
+            <Groups form={form} index={index} templateProps={templateProps} templates={templates} actionType={actionType} />
         </Concealer>
         <Switch label="Sanitize" description="Remove any existing groups not listed above"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.clean`, { type: 'checkbox' })}

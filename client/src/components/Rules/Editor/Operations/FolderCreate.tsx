@@ -1,7 +1,7 @@
 import { Box, Switch, TextInput } from "@mantine/core";
 import { IconFolderPlus } from "@tabler/icons-react";
 
-export default function FolderCreate( { form, index, inputProps, actionType }: ActionItem ) {
+export default function FolderCreate( { form, index, templateProps, actionType, templates }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <TextInput
@@ -9,7 +9,7 @@ export default function FolderCreate( { form, index, inputProps, actionType }: A
             description="Path of folder to be created."
             placeholder="D:/source/{{username}}/"
             leftSection={<IconFolderPlus size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            {...inputProps('target')}
+            {...templateProps(form, `${actionType}.${index}.target`, templates)}
         />
         <Switch label="Recursive"
             description="All parent folders in the path will be created if they do not already exist."

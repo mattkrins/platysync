@@ -6,25 +6,17 @@ import Concealer from "../../../Common/Concealer";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ldapAttributes } from "../../../../modules/common";
 import { SelectCreatable } from "../../../Common/SelectCreatable";
-import useTemplate from "../../../../hooks/useTemplate";
 
-function Attributes( { form, index, explore, actionType, sources, templates }: {
+function Attributes( { form, index, templateProps, actionType, templates }: {
     form: UseFormReturnType<Rule>,
     index: number,
-    explore: explore,
+    templateProps: templateProps,
     actionType: string,
     sources: string[],
     templates: string[],
 } ) {
     const actions = form.values[actionType] as Action[];
     const data = (actions[index].attributes || []);
-    const modifyCondition = (key: string, index2: number)=> () => explore(() => (value: string) =>
-    form.setFieldValue(`${actionType}.${index}.attributes.${index2}.${key}`, `${actions[index].attributes[index2][key]||''}{{${value}}}`), sources );
-
-    const [ templateProps ] = useTemplate(sources, templates);
-    const inputProps = (key: string, index2: number) =>
-    templateProps(modifyCondition(key, index2), form.getInputProps(`${actionType}.${index}.attributes.${index2}.${key}`));
-  
     return (<>
         {data.length===0&&<Center c="dimmed" fz="xs" >No attributes configured.</Center>}
         <DragDropContext
@@ -59,7 +51,7 @@ function Attributes( { form, index, explore, actionType, sources, templates }: {
                         {(actions[index].attributes[index2].type as string)!=="Delete"&&<Grid.Col span="auto">
                             <TextInput
                                 placeholder="Value"
-                                {...inputProps('value', index2)}
+                                {...templateProps(form, `${actionType}.${index}.attributes.${index2}.value`, templates)}
                             />
                         </Grid.Col>}
                         <Grid.Col span="content">
@@ -82,7 +74,7 @@ function Attributes( { form, index, explore, actionType, sources, templates }: {
     );
 }
 
-export default function UpdateAttributes( { form, index, explore, actionType, sources, templates }: ActionItem){
+export default function UpdateAttributes( { form, index, actionType, sources, templateProps, templates }: ActionItem){
     const actions = form.values[actionType] as Action[];
     if (!actions[index].attributes) form.setFieldValue(`${actionType}.${index}.attributes`, []);
     const addA = () => form.insertListItem(`${actionType}.${index}.attributes`, {name:'',value:'', type: 'Replace'});
@@ -97,7 +89,7 @@ export default function UpdateAttributes( { form, index, explore, actionType, so
             sources={sources}
         />
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
-            <Attributes form={form} index={index} explore={explore} actionType={actionType} sources={sources} templates={templates} />
+            <Attributes form={form} index={index} templateProps={templateProps} actionType={actionType} sources={sources} templates={templates} />
         </Concealer>
     </Box>
     )

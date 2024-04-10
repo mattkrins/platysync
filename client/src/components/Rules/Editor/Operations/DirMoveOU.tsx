@@ -2,7 +2,7 @@ import { Box, TextInput } from "@mantine/core";
 import { IconBinaryTree2, IconFolder } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 
-export default function MoveOU( { form, index, inputProps, actionType, sources }: ActionItem ) {
+export default function MoveOU( { form, index, templateProps, actionType, sources, templates }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <SelectConnector
@@ -17,7 +17,7 @@ export default function MoveOU( { form, index, inputProps, actionType, sources }
             label="Organizational Unit" withAsterisk pt="xs"
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="ou={{faculty}},ou=child,ou=parent"
-            {...inputProps('ou')}
+            {...templateProps(form, `${actionType}.${index}.ou`, templates)}
         />
     </Box>
     )

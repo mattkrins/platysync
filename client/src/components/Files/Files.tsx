@@ -50,7 +50,7 @@ function Item( { provided, item, disabled, loading, error, remove, update, save 
                     {editing&&<ActionIcon onClick={()=>{ save(item); close(); }} disabled={disabled} variant="subtle" color="green">
                         <IconDeviceFloppy size={16} stroke={1.5} />
                     </ActionIcon>}
-                    <ActionIcon onClick={toggle} disabled={disabled} variant="subtle" color="gray">
+                    <ActionIcon onClick={toggle} disabled={disabled} variant="subtle" color="orange">
                         <IconPencil size={16} stroke={1.5} />
                     </ActionIcon>
                     <ActionIcon onClick={remove(item.id)} disabled={disabled} variant="subtle" color="red">

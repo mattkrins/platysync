@@ -26,7 +26,6 @@ export default function SchemaProvider({ children }: PropsWithChildren) {
         key: name,
         default: { headers: {}, errors: {} },
         preserve: true,
-        then: (d) => console.log(d)
     });
     const schema = (data||defaults);
 

@@ -3,6 +3,27 @@ import { xError } from "../modules/common.js";
 import { Connector, Connectors } from "../components/models.js";
 
 export default async function (route: FastifyInstance) {
+    // Create Connector
+    route.post('/', async (request, reply) => {
+        const { schema_name } = request.params as { schema_name: string };
+        const { connector, force, save } = request.body as { force: boolean, save: boolean, connector: Connector };
+        try {
+            const connnectors = new Connectors(schema_name);
+            await connnectors.create(connector, force, save);
+            return connnectors.parse();
+        } catch (e) { throw new xError(e).send(reply); }
+    });
+    // Copy Connector
+    route.post('/copy', async (request, reply) => {
+        const { schema_name } = request.params as { schema_name: string };
+        const { name } = request.body as { name: string };
+        try {
+            const connnectors = new Connectors(schema_name);
+            const connector = connnectors.get(name);
+            await connnectors.create({...connector, name: `${connector.name} (${connnectors.getAll().length})` }, true, true );
+            return connnectors.parse();
+        } catch (e) { throw new xError(e).send(reply); }
+    });
     // Change Connector Order
     route.put('/reorder', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
@@ -20,16 +41,6 @@ export default async function (route: FastifyInstance) {
         try {
             const connnectors = new Connectors(schema_name);
             await connnectors.mutate(connector, force, save, name);
-            return connnectors.parse();
-        } catch (e) { throw new xError(e).send(reply); }
-    });
-    // Create Connector
-    route.post('/', async (request, reply) => {
-        const { schema_name } = request.params as { schema_name: string };
-        const { connector, force, save } = request.body as { force: boolean, save: boolean, connector: Connector };
-        try {
-            const connnectors = new Connectors(schema_name);
-            await connnectors.create(connector, force, save);
             return connnectors.parse();
         } catch (e) { throw new xError(e).send(reply); }
     });

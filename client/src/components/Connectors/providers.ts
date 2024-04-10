@@ -23,7 +23,7 @@ const providers: {
 } = {
     csv: {
         id: 'csv',
-        name: "Comma-Separated Values",
+        name: "Comma-Separated Values (CSV)",
         color: 'teal',
         Icon: IconFileTypeCsv,
         Options: CSV,

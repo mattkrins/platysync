@@ -26,9 +26,9 @@ const importSchema: (file: File) => Promise<Schema> = ( file ) => new Promise((r
     reader.onload = readerEvent => {
       const content = readerEvent.target?.result as string;
       try {
-        const rule = JSON.parse(content) as Schema;
-        if (!rule.name) return reject("Rule structure malformed.");
-        resolve(rule);
+        const schema = JSON.parse(content) as Schema;
+        if (!schema.name) return reject("Schema structure malformed.");
+        resolve(schema);
       }  catch {
         return reject("Invalid rule.");
       }

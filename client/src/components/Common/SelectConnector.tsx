@@ -1,8 +1,8 @@
 import { Combobox, InputBase, Input, CloseButton, useCombobox, InputWrapperProps, Group, useMantineTheme } from '@mantine/core';
 import { ReactElement, useContext, useEffect, useState } from 'react';
-import providers from '../../modules/connectors';
-import SchemaContext from '../../providers/SchemaContext';
+import SchemaContext from '../../providers/SchemaContext2';
 import { IconPlug } from '@tabler/icons-react';
+import providers from '../Connectors/providers';
 
 interface extConnector extends Connector {
     component?: JSX.Element;
@@ -25,7 +25,7 @@ interface Props extends InputWrapperProps {
 }
 
 export default function SelectConnector({onChange, value: v2 = '', placeholder, ...props}: Props) {
-    const { connectors, _connectors } = useContext(SchemaContext);
+    const { connectors } = useContext(SchemaContext);
     const theme = useMantineTheme();
     const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -34,15 +34,17 @@ export default function SelectConnector({onChange, value: v2 = '', placeholder, 
     const [value, setValue] = useState<string | null>(v2||null);
     useEffect(()=>setValue(v2), [v2]);
 
-    const provider = v2 in _connectors && providers[_connectors[v2].id];
-    const icon = provider && <provider.icon color={theme.colors[provider.color][6]} size={20} stroke={1.5} />
-    let data = (connectors||[]);
+    const providerMap = connectors.filter(c=>providers[c.id]).map(c=>({...c, provider: providers[c.id] }))
+
+    const selected = providerMap.find(c=>c.name===v2);
+    const icon = selected && <selected.provider.Icon color={theme.colors[selected.provider.color][6]} size={20} stroke={1.5} />
+    let data = (providerMap||[]);
     if (props.type) data = data.filter(c=>c.id===props.type);
     if (props.sources) props.filter = (d) => d.filter(c=>(props.sources||[]).includes(c.name))
     const filtered = (props.filter?props.filter(data):data).map(c=>{
         const provider = providers[c.id];
         return {
-            component: <Group><provider.icon color={theme.colors[provider.color][6]} size={20} stroke={1.5} /> {c.name}</Group>,
+            component: <Group><provider.Icon color={theme.colors[provider.color][6]} size={20} stroke={1.5} /> {c.name}</Group>,
             value: c.name
     }})
 

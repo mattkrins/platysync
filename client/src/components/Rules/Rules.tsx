@@ -1,73 +1,99 @@
-import { useContext, useEffect, useState } from 'react';
-import SchemaContext from '../../providers/SchemaContext';
-import Container from '../Common/Container';
-import Head from '../Common/Head';
-import { Button, Group, Text, ActionIcon, useMantineTheme, Switch, Grid, Tooltip, Divider } from '@mantine/core';
-import { IconCopy, IconGripVertical, IconInfoCircle, IconPencil, IconPlayerPlay, IconTrash } from '@tabler/icons-react';
-import { useDisclosure, useListState } from '@mantine/hooks';
-import useAPI, { handleError } from '../../hooks/useAPI.ts';
-import { notifications } from '@mantine/notifications';
-import { modals } from '@mantine/modals';
-import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { availableActions } from '../../modules/common.ts';
-import Editor from './Editor/Editor.tsx';
-import RunModal from './Run/Run.tsx';
-import classes from '../../Theme.module.css';
+import { ActionIcon, Box, Button, Grid, Group, Loader, Paper, Switch, rem, Text } from "@mantine/core";
+import { IconCopy, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
+import Container from "../Common/Container";
+import Head from "../Common/Head";
+import { useContext, useState } from "react";
+import SchemaContext from "../../providers/SchemaContext2";
+import { DragDropContext, Droppable, Draggable, DraggableProvided } from "@hello-pangea/dnd";
+import useAPI from "../../hooks/useAPI2";
+import RunModal from "./Run/Run";
+import { modals } from "@mantine/modals";
+import Editor from "./Editor/Editor";
 
-function RuleIcons({ actions }: { actions: Action[] }) {
-  const theme = useMantineTheme();
-  return (actions||[]).map((action, i)=>{
-    const { Icon, color } = availableActions[action.name];
-    return (
-    <Tooltip key={i} fz="xs" withArrow color={color?theme.colors[color][6]:undefined} label={action.name}>
-      <Icon color={color?theme.colors[color][6]:undefined} size={16} stroke={2} />
-    </Tooltip>)
-  })
+interface ItemProps {
+  provided: DraggableProvided;
+  item: Rule, disabled?: boolean;
+  loading?: boolean;
+  //error?: string;
+  remove(): void;
+  run(): void;
+  toggle(): void;
+  copy(): void;
+  edit(): void;
+}
+function Item( { provided, item, disabled, loading, error, remove, toggle, run, copy, edit }: ItemProps ) {
+  return (
+  <Paper mb="xs" p="xs" withBorder ref={provided.innerRef} {...provided.draggableProps}
+  style={{ ...provided.draggableProps.style, cursor: loading ? "not-allowed" : undefined }}
+  >
+      <Grid justify="space-between">
+          <Grid.Col span={1} style={{ cursor: loading ? undefined : 'grab' }} {...provided.dragHandleProps} >
+              <Group wrap="nowrap" justify="space-between" >
+                  {loading?<Loader size="sm" />:<IconGripVertical stroke={1.5} />}
+              </Group>
+          </Grid.Col>
+          <Grid.Col span={3} c={disabled?"dimmed":error?"red":undefined}>
+              {item.name}
+          </Grid.Col>
+          <Grid.Col span={4} c={disabled?"dimmed":undefined}><Group gap="xs">{item.name}</Group></Grid.Col>
+          <Grid.Col span={3}>
+              <Group gap="xs" justify="flex-end">
+                <Switch onClick={()=>toggle()} disabled={loading} checked={item.enabled} color="teal" />
+                <ActionIcon disabled={disabled} onClick={()=>run()} variant="subtle" color="green"><IconPlayerPlay size={16} stroke={1.5} /></ActionIcon>
+                <ActionIcon onClick={()=>copy()} disabled={disabled} variant="subtle" color="indigo">
+                  <IconCopy style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                </ActionIcon>
+                <ActionIcon onClick={()=>edit()} disabled={disabled} variant="subtle" color="orange">
+                  <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                </ActionIcon>
+                <ActionIcon onClick={()=>remove()} disabled={disabled} variant="subtle" color="red">
+                  <IconTrash size={16} stroke={1.5} />
+                </ActionIcon>
+              </Group>
+          </Grid.Col>
+      </Grid>
+  </Paper>
+  )
 }
 
 export default function Rules() {
-  const { schema, rules, mutate } = useContext(SchemaContext);
-  const [opened, { open, close }] = useDisclosure(false);
+  const { name, rules, mutate } = useContext(SchemaContext);
   const [ running, setRunning ] = useState<Rule|undefined>(undefined);
-  const [ editing, setEditing ] = useState<Rule|undefined>(undefined);
-  const edit = (rule: Rule) => { setEditing(rule); open(); }
-  const run = (rule: Rule) => { setRunning(rule); };
-  const { del, request: r1, loading: l1 } = useAPI({
-    cleanup: true,
-    furl: ({name}:{name:string}) => `/schema/${schema?.name}/rule/${name}`,
-    fdata: ({name}:{name:string}) => ({ name }),
-    catch: (e) => handleError(e),
-    then: ({rules, _rules}) => {
-        mutate({rules, _rules});
-        notifications.show({ title: "Success",message: 'Rule Removed.', color: 'lime', });
+  const [ editing, edit ] = useState<Rule|undefined>(undefined);
+
+  const { put: reorder, loaders: l1, setLoaders } = useAPI<Rule[], { from: number, to: number }>({
+    url: `/schema/${name}/rule/reorder`,
+    check: o => {
+      const from = o.data?.from;
+      const to = o.data?.to;
+      if (from===to||!from||!to) return true;
+      const copy = [...rules];
+      copy[from] = rules[to];
+      copy[to] = rules[from];
+      mutate({ rules: copy });
+      setLoaders(l=>({...l, [copy[from].name]: true, [copy[to].name]: true }))
     },
+    then: (rules,o) => {setLoaders(l=>({...l, [rules[o.data?.from||0].name]: undefined, [rules[o.data?.to||0].name]: undefined })); mutate({ rules }); },
   });
-  const { post: copy, request: r2, loading: l2 } = useAPI({
-    cleanup: true,
-    furl: ({name}:{name:string}) => `/schema/${schema?.name}/rule/${name}/copy`,
-    fdata: ({name}:{name:string}) => ({ name }),
-    catch: (e) => handleError(e),
-    then: ({rules, _rules}) => {
-        mutate({rules, _rules});
-        notifications.show({ title: "Success",message: 'Rule Copied.', color: 'lime', });
-    },
+
+  const { post: copy, loaders: l2 } = useAPI<Rule[]>({
+    url: `/schema/${name}/rule/copy`,
+    then: (rules) => { mutate({ rules }); },
   });
-  const { put: tog, loading: l4 } = useAPI({
-    cleanup: true,
-    furl: ({name}:{name:string}) => `/schema/${schema?.name}/rule/${name}/toggle`,
-    fdata: ({name}:{name:string}) => ({ name }),
-    catch: (e) => handleError(e),
-    then: ({rules, _rules}) => {
-        mutate({rules, _rules});
-    },
+
+  const { del, loaders: l3 } = useAPI<Rule[]>({
+    url: `/schema/${name}/rule`,
+    then: (rules) => { mutate({ rules }); },
   });
-  const { put, loading: l3 } = useAPI({
-    cleanup: true,
-    url: `/schema/${schema?.name}/rules/reorder`,
-    then: ({rules}) => {
-        mutate({rules});
-    },
+  
+  const { put: toggle, loaders: l4 } = useAPI<Rule[]>({
+    url: `/schema/${name}/rule/toggle`,
+    check: o => { mutate({ rules: rules.map(r=>r.name===o.key?{...r, enabled: !r.enabled}:r) }); },
+    then: (rules) => { mutate({ rules }); },
   });
+
+  const loaders = { ...l1, ...l2, ...l3, ...l4 };
+
   const remove = (name: string) =>
   modals.openConfirmModal({
       title: 'Permanently Delete Rule',
@@ -77,78 +103,76 @@ export default function Rules() {
           Are you sure you want to delete {name}? This action is destructive and cannot be reversed.
       </Text>
       ),
-      labels: { confirm: 'Delete rule', cancel: "No don't delete it" },
+      labels: { confirm: 'Delete rule', cancel: "No, don't delete it" },
       confirmProps: { color: 'red' },
-      onConfirm: () => del({name}),
+      onConfirm: () => del({data: {name}, key: name }),
   });
-  
-  const loading = l1||l2||l3||l4;
 
-  const [state, handlers] = useListState(rules);
-  useEffect(()=>handlers.setState(rules), [rules]);
-
-  const reorder = (from:number,to:number) => {
-    handlers.reorder({ from, to });
-    put({data: { from, to }});
+  const add = () => {
+    const initialValues = {
+      name: '',
+      primary: undefined,
+      secondaries: [],
+      conditions: [],
+      before_actions: [],
+      actions: [],
+      after_actions: [],
+      config: {},
+    } as unknown as Rule;
+    edit(initialValues);
   }
 
-  const toggle = (item: Rule) => {
-    handlers.setState(rules.map(r=>r.name!==item.name?r:{...r, enabled: !item.enabled }));
-    tog({name: item.name});
-  }
-
-  if (!schema) return;
   return (
-  opened?<Editor editing={editing} close={()=>{close();setEditing(undefined);}} />:
-  <Container label={<Head rightSection={<Button onClick={()=>open()} variant="light" >Add</Button>} >Rules</Head>} >
+    editing?<Editor editing={editing} close={()=>edit(undefined)} />:
+    <Container label={<Head rightSection={<Button onClick={()=>add()} leftSection={<IconPlus size={16} />} variant="light">Add</Button>} >Rules</Head>} >
       <RunModal rule={running} close={()=>setRunning(undefined)} />
-      {state.length===0&&<Text c="lighter" size="sm" >No Rules in effect.</Text>}
-      <DragDropContext onDragEnd={({ destination, source }) => reorder( source.index, destination?.index || 0 ) } >
-          <Droppable droppableId="dnd-list" direction="vertical">
-            {(provided) => (
-            <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-                {state.map((item, index) => (
-                <Draggable key={index} index={index} draggableId={index.toString()}>
-                    {(provided) => (
-                    <Grid align="center" ref={provided.innerRef} mt="xs" {...provided.draggableProps} className={classes.item}
-                    style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }}
-                    >
-                        <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
-                            <Group><IconGripVertical size="1.2rem" /></Group>
-                        </Grid.Col>
-                        <Grid.Col span="auto">
-                          <Group gap={5} >
-                            {item.name}{item.description&&item.description!==""&&
-                            <Tooltip position="right" label={item.description}><IconInfoCircle size={16} /></Tooltip>}
-                          </Group>
-                        </Grid.Col>
-                        <Grid.Col span="auto">
-                            <Group>
-                              <RuleIcons actions={item.before_actions} />
-                              {(item.before_actions||[]).length>0&&<Divider orientation="vertical" />}
-                              <RuleIcons actions={item.actions} />
-                              {(item.after_actions||[]).length>0&&<Divider orientation="vertical" />}
-                              <RuleIcons actions={item.after_actions} />
-                            </Group>
-                        </Grid.Col>
-                        <Grid.Col span="content">
-                            <Group justify="right" gap="xs">
-                                <Switch disabled={loading} onClick={()=>toggle(item)} checked={item.enabled} color="teal" />
-                                <ActionIcon disabled={loading} loading={r1.name===item.name} onClick={()=>remove(item.name)} variant="subtle" color="red"><IconTrash size={16} stroke={1.5} /></ActionIcon>
-                                <ActionIcon disabled={loading} loading={r2.name===item.name} onClick={()=>copy({name: item.name})} variant="subtle" color="indigo"><IconCopy size={16} stroke={1.5} /></ActionIcon>
-                                <ActionIcon disabled={loading} onClick={()=>edit(item)} variant="subtle" color="orange"><IconPencil size={16} stroke={1.5} /></ActionIcon>
-                                <ActionIcon disabled={loading} onClick={()=>run(item)} variant="subtle" color="green"><IconPlayerPlay size={16} stroke={1.5} /></ActionIcon>
-                            </Group>
-                        </Grid.Col>
-                    </Grid>
-                    )}
-                </Draggable>
-                ))}
-                {provided.placeholder}
-            </div>
-            )}
-        </Droppable>
-      </DragDropContext>
-  </Container>
+      {rules.length>0?
+      <Box>
+            <Paper mb="xs" p="xs" >
+                <Grid justify="space-between">
+                    <Grid.Col span={1}/>
+                    <Grid.Col span={3}>Name</Grid.Col>
+                    <Grid.Col span={4}/>
+                    <Grid.Col span={3}/>
+                </Grid>
+            </Paper>
+            <DragDropContext
+            onDragEnd={({ destination, source }) => reorder({ data: { from: source.index, to: destination?.index || 0 } }) }
+            >
+            <Droppable droppableId="dnd-list" direction="vertical">
+                {provided => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {rules.map((item, index) => {
+                        const loading = loaders[item.name] || false;
+                        //const error = errors[item.name];
+                        return (
+                        <Draggable key={item.name} index={index} draggableId={item.name} isDragDisabled={loading} >
+                        {provided => (
+                            <Item
+                            provided={provided}
+                            item={item}
+                            disabled={loading}
+                            loading={loading}
+                            //error={error}
+                            remove={()=>{remove(item.name)}}
+                            copy={()=>{copy({data: {name: item.name}, key: item.name })}}
+                            toggle={()=>{toggle({data: {name: item.name}, key: item.name })}}
+                            run={()=>setRunning(item)}
+                            edit={()=>edit(item)}
+                            />
+                        )}
+                        </Draggable>
+                    )})}
+                    {provided.placeholder}
+                </div>
+                )}
+            </Droppable>
+            </DragDropContext>
+      </Box>:
+      <Paper withBorder p="lg" pos="relative" >
+          No rules configured.
+      </Paper>}
+      
+    </Container>
   )
 }

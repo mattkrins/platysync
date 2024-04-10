@@ -1,5 +1,5 @@
 import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, Modal, Paper, Tooltip, rem, useMantineTheme, Text, Card, SimpleGrid, UnstyledButton } from '@mantine/core'
-import { IconAlertCircle, IconGripVertical, IconPencil, IconPlus, IconTestPipe, IconTrash } from '@tabler/icons-react'
+import { IconAlertCircle, IconCopy, IconGripVertical, IconPencil, IconPlus, IconTestPipe, IconTrash } from '@tabler/icons-react'
 import Head from '../Common/Head'
 import Container from '../Common/Container'
 import { useContext, useState } from 'react';
@@ -8,9 +8,10 @@ import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello
 import useAPI from '../../hooks/useAPI2';
 import { notifications } from '@mantine/notifications';
 import Editor from './Editor';
-import classes from './AddConnectors.module.css'
+import classes from './Connectors.module.css'
 import providers, { provider } from './providers';
 import { useDisclosure } from '@mantine/hooks';
+import { modals } from '@mantine/modals';
 
 function NewModal({ opened, close, edit }: { opened: boolean, close(): void, edit(c?: Connector): void }) {
     const theme = useMantineTheme();
@@ -39,11 +40,12 @@ interface ItemProps {
     item: Connector, disabled?: boolean;
     loading?: boolean;
     error?: string;
-    remove: (name: string)=>()=> void;
+    remove: (name: string)=> void;
     test: (name: string)=>()=> void;
+    copy: (name: string)=>()=> void;
     edit: React.Dispatch<React.SetStateAction<Connector | undefined>>
 }
-function Item( { provided, item, disabled, loading, error, remove, test, edit }: ItemProps ) {
+function Item( { provided, item, disabled, loading, error, remove, test, edit, copy }: ItemProps ) {
     const theme = useMantineTheme();
     const provider = providers[item.id];
     return (
@@ -65,13 +67,16 @@ function Item( { provided, item, disabled, loading, error, remove, test, edit }:
             <Grid.Col span={3}>
                 <Group gap="xs" justify="flex-end">
                     {error&&<Tooltip withArrow label={error} w={420} multiline position="top-end" color="red" ><IconAlertCircle size={16} color="red" /></Tooltip>}
-                    <ActionIcon onClick={()=>edit(item)} variant="subtle" color="orange">
-                        <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                    </ActionIcon>
                     <ActionIcon onClick={test(item.name)} disabled={disabled} variant="subtle" color="lime" >
                         <IconTestPipe style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                     </ActionIcon>
-                    <ActionIcon onClick={remove(item.name)} disabled={disabled} variant="subtle" color="red">
+                    <ActionIcon onClick={copy(item.name)} disabled={disabled} variant="subtle" color="indigo">
+                        <IconCopy style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                    </ActionIcon>
+                    <ActionIcon onClick={()=>edit(item)} disabled={disabled} variant="subtle" color="orange">
+                        <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                    </ActionIcon>
+                    <ActionIcon onClick={()=>remove(item.name)} disabled={disabled} variant="subtle" color="red">
                         <IconTrash size={16} stroke={1.5} />
                     </ActionIcon>
                 </Group>
@@ -86,7 +91,7 @@ export default function Connectors() {
     const [ editing, edit ] = useState<Connector|undefined>(undefined);
     const [opened, { open, close }] = useDisclosure(false);
 
-    const { put, del, loaders, errors, setLoaders } = useAPI<Connector[]>({
+    const { put, post, del, loaders, errors, setLoaders } = useAPI<Connector[]>({
         url: `/schema/${name}/connector`,
         default: connectors,
         preserve: true,
@@ -103,17 +108,36 @@ export default function Connectors() {
         copy[to] = connectors[from];
         mutate({ connectors: copy });
         setLoaders(l=>({...l, [copy[from].name]: true, [copy[to].name]: true }));
-        put({append:'/reorder', data: { from, to } }).finally(()=> setLoaders(l=>({...l, [copy[from].name]: undefined, [copy[to].name]: undefined })) );
+        put({append:'/reorder', data: { from, to } })
+        .finally(()=> setLoaders(l=>({...l, [copy[from].name]: undefined, [copy[to].name]: undefined })) );
     }
 
-    const remove = (name: string) => () => {
-        mutate({ connectors: connectors.filter(c=>c.name!==name) });
-        del({ data: { name }, key: name });
-    }
+    const remove = (name: string) =>
+    modals.openConfirmModal({
+        title: 'Permanently Delete Connector',
+        centered: true,
+        children: (
+        <Text size="sm">
+            Are you sure you want to delete {name}? This action is destructive and cannot be reversed.
+        </Text>
+        ),
+        labels: { confirm: 'Delete connector', cancel: "No don't delete it" },
+        confirmProps: { color: 'red' },
+        onConfirm: () => {
+            mutate({ connectors: connectors.filter(c=>c.name!==name) });
+            del({ data: { name }, key: name });
+        },
+    });
     
     const test = (name: string) => () => {
         put({append:'/test', data: { name }, key: name }).then(()=>{
             notifications.show({ title: "Success",message: `${name} connected successfully.`, color: 'lime', });
+        });
+    }
+    
+    const copy = (name: string) => () => {
+        post({append:'/copy', data: { name }, key: name }).then(()=>{
+            notifications.show({ title: "Success",message: `${name} successfully copied.`, color: 'lime', });
         });
     }
 
@@ -153,6 +177,7 @@ export default function Connectors() {
                             error={error}
                             remove={remove}
                             test={test}
+                            copy={copy}
                             edit={edit}
                             />
                         )}

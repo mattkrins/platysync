@@ -26,6 +26,7 @@ import DirCreateUser from "./operations/DirCreateUser.js";
 import StmcUpload from "./operations/StmcUpload.js";
 import { Doc } from "../db/models.js";
 import winston from 'winston';
+import fs from 'fs-extra';
 const { combine, timestamp, json } = winston.format;
 
 interface sKeys { [k: string]: string }
@@ -121,6 +122,8 @@ async function compare(key: string, value: string, operator: string, connections
         case '<': return Number(key) < Number(value);
         case '>=': return Number(key) >= Number(value);
         case '<=': return Number(key) <= Number(value);
+        case 'file.exists': return fs.existsSync(key);
+        case 'file.notexists': return !fs.existsSync(key);
         default: return false;
     }
 }

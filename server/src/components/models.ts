@@ -13,12 +13,154 @@ function parse(object: unknown, func?: (k: string, v: unknown) => unknown ) {
     }));
 }
 
-class Rule {
-    constructor() {
-        
-    }
-    public async save() {
 
+export interface Condition {
+    type: string;
+    key: string;
+    operator: string;
+    value: string;
+    delimiter: '' | ',' | ';' | '|' | 'tab' | ' ';
+}
+
+export interface Attribute {
+    name: string;
+    value: string;
+}
+
+export interface Action {
+    name: string;
+    value?: string;
+    source?: string;
+    target?: string;
+    cn?: string;
+    sam?: string;
+    password?: string;
+    upn?: string;
+    ou?: string;
+    attributes?: Attribute[];
+    groups?: unknown[];
+    conditions?: Condition[];
+    templates?: { name: string, value: string }[];
+}
+interface secondary {
+    id: string;
+    primary: string;
+    secondaryKey: string;
+    primaryKey: string;
+    case?: boolean;
+    req?: boolean;
+    oto?: boolean;
+}
+interface xRule {
+    name: string;
+    display: string;
+    enabled: boolean;
+    position: number;
+    primary: string;
+    primaryKey: string;
+    [k: string]: unknown;
+}
+class Rule {
+    public name: string;
+    public display: string;
+    public enabled: boolean;
+    public position: number;
+    public primary: string;
+    public primaryKey: string;
+    public secondaries: secondary[] = [];
+    public conditions: Condition[] = [];
+    public before_actions: Action[] = [];
+    public after_actions: Action[] = [];
+    public actions: Action[] = [];
+    public config: {[k: string]: {[k: string]: unknown} } = {};
+    public log?: string;
+    [k: string]: unknown;
+    private parent: Schema;
+    constructor(rule: Rule|xRule, parent: Schema) {
+        this.parent = parent;
+        this.name = rule.name;
+        this.display = rule.display;
+        this.enabled = rule.enabled;
+        this.position = rule.position;
+        this.primary = rule.primary;
+        this.primaryKey = rule.primaryKey;
+        for (const key of Object.keys(rule)) this[key] = rule[key];
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public mutate(changes: {[k: string]: any}, save: boolean = true): Rule {
+        if (changes.name && changes.name !== this.name){
+            const rules = new Rules(this.parent.name);
+            if (rules.find(changes.name)) throw new xError("Name taken.", "name", 409);
+        }
+        Object.keys(changes).forEach(key => {
+            this[key as keyof Connector] = changes[key]
+        }); if (save) { this.save(); } return this;
+    }
+    public save(): Rule {
+        const rules = new Rules(this.parent.name);
+        if (!rules.find(this.name)) this.parent.rules.push(this);
+        this.parent.save();
+        return this;
+    }
+    public toggle(): true {
+        this.mutate({ enabled: !this.enabled });
+        return true;
+    }
+    public destroy(): true {
+        this.parent.mutate({ rules: this.parent.rules.filter(c=>c.name!==this.name) });
+        return true;
+    }
+    public parse(): xRule {
+        return parse(this, (k, v) => {
+            if(k == 'parent') return undefined;
+            return v;
+        });
+    }
+}
+
+export class Rules {
+    schema: Schema;
+    constructor(schema_name: string) {
+        this.schema = schemas2.get(schema_name);
+    }
+    public async create(rule: Rule|xRule, save: boolean = true, oldName?: string): Promise<Rule> {
+        if (!oldName) {
+            if (this.find(rule.name)) throw new xError("Name taken.", "name", 409);
+        }
+        const temp = new Rule(rule, this.schema);
+        if (!save) return temp;
+        if (oldName) {
+            this.get(oldName).mutate(rule);
+        } else {
+            temp.save();
+        }
+        
+        return temp;
+    }
+    public async mutate(rule: Rule|xRule, save: boolean = true, oldName: string): Promise<Rule> {
+        return this.create(rule, save, oldName );
+    }
+    public reorder(from: number, to: number): true {
+        const schema = this.schema;
+        const copy = [...schema.rules];
+        copy[to] = schema.rules[from];
+        copy[from] = schema.rules[to];
+        schema.rules = copy;
+        return true;
+    }
+    public getAll(): Rule[] {
+        return this.schema.rules;
+    }
+    public get(name: string): Rule {
+        const rule = this.schema.rules.filter(c=>c.name===name)[0];
+        if (!rule) throw new xError("Rule does not exist.", undefined, 404);
+        return rule;
+    }
+    public find(name: string): Rule|undefined {
+        return this.schema.rules.find(s=>s.name===name);
+    }
+    public parse(): xRule[] {
+       return this.schema.parse().rules;
     }
 }
 
@@ -82,7 +224,9 @@ export class Connectors {
             const hash = await encrypt(connector.password as string);
             connector.password = hash;
         }
-        if (this.find(connector.name)) throw new xError("Name taken.", "name", 409);
+        if (!oldName) {
+            if (this.find(connector.name)) throw new xError("Name taken.", "name", 409);
+        }
         const temp = new Connector(connector, this.schema);
         try { await temp.validate(); }
         catch (e) { if (!force) throw new xError(e);  }
@@ -104,6 +248,9 @@ export class Connectors {
         copy[from] = schema.connectors[to];
         schema.connectors = copy;
         return true;
+    }
+    public getAll(): Connector[] {
+        return this.schema.connectors;
     }
     public get(name: string): Connector {
         const connector = this.schema.connectors.filter(c=>c.name===name)[0];
@@ -136,14 +283,14 @@ export class Schema {
         this.name = schema.name;
         this.version = schema.version;
         for (const connnector of schema.connectors||[]) this.connectors.push(new Connector(connnector, this) );
-        for (const rule of schema.rules||[]) this.rules.push(rule);
+        for (const rule of schema.rules||[]) this.rules.push(new Rule(rule, this) );
     }
     public save(write: boolean = true): Schema {
         const clean = {
             name: this.name,
             version: this.version,
             connectors: this.connectors.map(c=>c.parse?c.parse():c),
-            rules: this.rules,
+            rules: this.rules.map(c=>c.parse?c.parse():c),
         };
         if (write) fs.writeFileSync(`${paths.schemas}/${this.name}.yaml`, stringify(clean));
         if (this.parent.find(this.name)) {

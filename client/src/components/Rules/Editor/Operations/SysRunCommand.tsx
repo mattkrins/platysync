@@ -5,7 +5,7 @@ import { IconTerminal } from "@tabler/icons-react";
 //LINK - client\src\modules\common.ts:303
 //LINK - server\src\components\operations\SysRunCommand.ts
 
-export default function RunCommand( { inputProps }: ActionItem ) {
+export default function RunCommand( { form, index, actionType, templateProps, templates }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <TextInput
@@ -13,7 +13,7 @@ export default function RunCommand( { inputProps }: ActionItem ) {
             description="Arbitrary system command. Result of execution will be placed in {{stdout}} template."
             placeholder="/bin/echo {{username}}"
             leftSection={<IconTerminal size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            {...inputProps('value')}
+            {...templateProps(form, `${actionType}.${index}.value`, templates)}
         />
     </Box>
     )

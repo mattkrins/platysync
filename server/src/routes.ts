@@ -4,7 +4,7 @@ import schema, { initSchemaCache } from './routes/schema.js'
 import connector from './routes/connector.js'
 import { _Error } from "./server.js";
 import pdfPrinter from "pdf-to-printer";
-import rule, { rules }  from './routes/rule.js';
+import rule from './routes/rule.js';
 import schedule from './routes/schedule.js';
 import storage from './routes/file.js';
 const { getPrinters } = pdfPrinter;
@@ -27,7 +27,6 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
   addRoute(api, '/schema', schema );
   addRoute(api, '/schema/:schema_name/storage', storage );
   addRoute(api, '/schema/:schema_name/connector', connector );
-  addRoute(api, '/schema/:schema_name/rules', rules );
   addRoute(api, '/schema/:schema_name/rule', rule );
 
   api.get('/fix', async (request, reply) => {

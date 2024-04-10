@@ -1,9 +1,9 @@
 import { Box, Loader, Select, Switch, TextInput } from "@mantine/core";
 import { IconFile, IconPrinter } from "@tabler/icons-react";
-import useAPI from "../../../../hooks/useAPI";
+import useAPI from "../../../../hooks/useAPI2";
 
-export default function Print( { form, index, inputProps, actionType }: ActionItem ) {
-    const { data: printers, loading } = useAPI({
+export default function Print( { form, index, templateProps, actionType, templates }: ActionItem ) {
+    const { data: printers, loading } = useAPI<string[]>({
         url: `/printers`,
         fetch: true,
         default: [],
@@ -11,7 +11,7 @@ export default function Print( { form, index, inputProps, actionType }: ActionIt
     });
     const actions = form.values[actionType] as Action[];
     const printer = actions[index].target as string;
-    const printers2 = printer ? [...printers, printer] : printers as string[]
+    const printers2 = printer ? [...printers, printer] : printers
     const deduplicated = printers2.filter((v, i, self) => i === self.findIndex((t) => ( t === v )) );
     return (
     <Box p="xs" pt={0} >
@@ -20,7 +20,7 @@ export default function Print( { form, index, inputProps, actionType }: ActionIt
             description="Path of file to print"
             placeholder="D:/templates/ouput/{{username}}.pdf"
             leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            {...inputProps('source')}
+            {...templateProps(form, `${actionType}.${index}.source`, templates)}
         />
         <Switch label="Validate Source Path"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.validate`, { type: 'checkbox' })}

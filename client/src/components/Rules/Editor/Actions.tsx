@@ -1,53 +1,56 @@
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { useContext, useMemo } from "react";
 import { useMantineTheme, Box, Group, Button, Grid, ActionIcon, Text, NavLink, Popover, Collapse, Divider } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil } from "@tabler/icons-react";
-import { useContext, useMemo } from "react";
-import ExplorerContext from "../../../providers/ExplorerContext";
 import { useDisclosure } from "@mantine/hooks";
+import SchemaContext from "../../../providers/SchemaContext2";
 import { availableActions, availableCatagories } from "../../../modules/common";
 import classes from './Actions.module.css';
-import SchemaContext from "../../../providers/SchemaContext";
-import useTemplate from "../../../hooks/useTemplate";
+import useTemplater from "../../../hooks/useTemplater";
 
-function ActionGroup({add, perRule, label, connectors = []}:{add: (name: string) => void, perRule?: boolean, label: string, connectors: string[]}) {
+function ActionGroup({add, perRule, label, sources = []}:{add: (name: string) => void, perRule?: boolean, label: string, sources: string[]}) {
   const [opened, { close, open }] = useDisclosure(false);
+  const { connectors } = useContext(SchemaContext);
   const theme = useMantineTheme();
-  const operations = Object.values(availableActions);
   const _add = (id: string) => () => { add(id); close(); };
-  const filteredCats = availableCatagories.filter(cat=>(cat.requires||[])
-  .filter(r=>!connectors.includes(r)).length<=0)
-  .filter(c=>perRule?!c.requires?.includes('ldap'):true);
+
+  const sourceIDs = connectors.filter(c=>sources.includes(c.name)).map(c=>c.id);
+
+  const availableActions_ = availableActions
+  .filter(a=>{ return !a.requires || sourceIDs.includes(a.requires) })
+  .filter(c=>perRule?!c.perRule:true);
+
+  const availableCatagories_ = availableCatagories
+  .filter(a=>{ return !a.requires || a.requires.find(r=>sourceIDs.includes(r)) })
+  .filter(c=>perRule?!c.perRule:true);
+
   return (
   <Group justify="right" gap="xs">
-  <Popover width={300} position="left-start" shadow="md" opened={opened}>
-  <Popover.Target>
-      <Button variant="light" onClick={opened?close:open} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>{label}</Button>
-  </Popover.Target>
-  <Popover.Dropdown>
-      {filteredCats.map(cat=>{
-      const filtered = operations.filter(action=>(perRule?action.perRule!==false&&action.catagory===cat.id:action.catagory===cat.id))
-      .filter(action=>(action.requires||[]).filter(r=>!connectors.includes(r)).length<=0);
-      if (filtered.length<=0) return;
-      return (<NavLink key={cat.id} label={cat.label} className={classes.control}
+    <Popover width={300} position="left-start" shadow="md" opened={opened}>
+    <Popover.Target>
+        <Button variant="light" onClick={opened?close:open} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>{label}</Button>
+    </Popover.Target>
+    <Popover.Dropdown>
+      {availableCatagories_.map(cat=>
+      <NavLink key={cat.id} label={cat.label} className={classes.control}
       leftSection={<cat.Icon color={cat.color?theme.colors[cat.color][6]:undefined} size="1rem" stroke={1.5} />}
-      childrenOffset={28}
       >
-        {filtered.map(action=>
-          <NavLink key={action.id} label={action.label||action.id} className={classes.control} onClick={_add(action.id)}
-          leftSection={<action.Icon color={action.color?theme.colors[action.color][6]:undefined} size="1rem" stroke={1.5} />}/>
-        )}
-      </NavLink>)})}
-  </Popover.Dropdown>
-  </Popover>
-</Group>)
+      {availableActions_.filter(a=>a.catagory===cat.id).map(action=>
+        <NavLink key={action.id} label={action.label||action.id} className={classes.control} onClick={_add(action.id)}
+        leftSection={<action.Icon color={action.color?theme.colors[action.color][6]:undefined} size="1rem" stroke={1.5} />}/>
+      )}
+      </NavLink>)}
+    </Popover.Dropdown>
+    </Popover>
+  </Group>)
 }
 
-function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFormReturnType<Rule>, index: number, a: Action, explore: explore, actionType: string, hasLDAP: boolean } ){
-  const [opened, { toggle }] = useDisclosure(false);
-  
+function Action( { form, index, a, actionType, templateProps }: {form: UseFormReturnType<Rule>, index: number, a: Action, actionType: string, templateProps: templateProps } ){
   const theme = useMantineTheme();
-  const { Icon, color, Component } = availableActions[a.name];
+  const [opened, { toggle }] = useDisclosure(false);
+  const x = availableActions.find(action=>action.id===a.name);
+
   const copy = (v: Action) => () => form.insertListItem(actionType, {...v});
   const remove  = (index: number) => () => form.removeListItem(actionType, index);
   const taken = (form.values.secondaries||[]).map(s=>s.primary);
@@ -61,7 +64,7 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
     actionType==="after_actions" ? [...form.values.before_actions||[], ...form.values.actions||[], ...form.values.after_actions||[]] : [];
     for (const action of allActions){
       switch (action.name) {
-        case "Encrypt String":{ t.push(action.source as string); break; }
+        case "Encrypt String":{ t.push(action.target as string); break; }
         case "Comparator":{ t.push(action.target as string); break; }
         case "Template": {
           for (const template of action.templates||[]) {
@@ -73,14 +76,8 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
       }
     } return t;
   }, [ form.values.before_actions, form.values.actions, form.values.after_actions ]);
-  const [ templateProps ] = useTemplate(actionType === "actions" ? sources : [], templates);
-  
-  const actions = form.values[actionType] as Action[];
-  const modifyCondition = (key: string)=> () => explore(() => (value: string) =>
-  form.setFieldValue(`${actionType}.${index}.${key}`,
-  `${actions[index][key]||''}{{${value}}}`), actionType === "actions" ? sources : [], templates );
-  
-  const inputProps = (key: string) => templateProps( modifyCondition(key), form.getInputProps(`${actionType}.${index}.${key}`)  );
+  if (!x) return <></>;
+  const { Icon, color, Component } = x;
 
   return (<>
     <Grid.Col span="auto">{index+1}. <Icon color={color?theme.colors[color][6]:undefined} size={18} stroke={1.5} /> {a.name}</Grid.Col>
@@ -93,19 +90,17 @@ function Action ( { form, index, a, explore, actionType, hasLDAP }: {form: UseFo
     </Grid.Col>
     <Grid.Col span={12} pt={0} pb={0} >
       <Collapse in={opened}>
-        <Component form={form} index={index} inputProps={inputProps} explore={explore} actionType={actionType} hasLDAP={hasLDAP} sources={sources} templates={templates} />
+        <Component form={form} index={index} templateProps={templateProps} actionType={actionType} sources={sources} templates={templates }  />
       </Collapse>
     </Grid.Col>
   </>
   )
 }
 
-function ActionList( { form, actionType, hasLDAP }: {form: UseFormReturnType<Rule>, actionType: string, hasLDAP: boolean} ) {
-  const { explorer, explore } = useContext(ExplorerContext);
+function ActionList( { form, actionType, templateProps }: {form: UseFormReturnType<Rule>, actionType: string, templateProps: templateProps} ) {
   const actions = form.values[actionType] as Action[];
   return (
     <Box>
-        {explorer}
         <DragDropContext
         onDragEnd={({ destination, source }) => form.reorderListItem(actionType, { from: source.index, to: destination? destination.index : 0 }) }
         >
@@ -121,7 +116,7 @@ function ActionList( { form, actionType, hasLDAP }: {form: UseFormReturnType<Rul
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
-                <Action form={form} index={index} a={a} actionType={actionType} explore={explore} hasLDAP={hasLDAP} />
+                <Action form={form} index={index} a={a} actionType={actionType} templateProps={templateProps} />
               </Grid>)}
             </Draggable>
             )}
@@ -135,34 +130,28 @@ function ActionList( { form, actionType, hasLDAP }: {form: UseFormReturnType<Rul
 }
 
 
-export default function Actions( { form }: {form: UseFormReturnType<Rule>} ) {
+export default function Actions( { form, allow, templates }: {form: UseFormReturnType<Rule>, allow: string[], templates: string[]  } ) {
   const add = (name: string) => form.insertListItem('actions', { name });
   const addBeforeRule = (name: string) => form.insertListItem('before_actions', { name });
   const addAfterRule = (name: string) => form.insertListItem('after_actions', { name });
-  const { _connectors } = useContext(SchemaContext);
-  const connectors = [ form.values.primary, ...form.values.secondaries.map(s=>s.primary) ]
-  .filter(c=>c in _connectors)
-  .map(c=>_connectors[c].id);
-
-  const hasLDAP = ( (form.values.primary in _connectors) && _connectors[form.values.primary].id === "ldap" ) ||
-  (form.values.secondaries||[]).filter(s=>(s.primary in _connectors) && _connectors[s.primary].id === "ldap").length>0;
-
+  const { templateProps, explorer } = useTemplater({allow, templates});
+  
   return (
     <Box>
-        <Text c="dimmed" size="sm" mt="md" >Actions on this tab are executed sequentially if all conditions evaluated successfully.</Text>
-        <Divider label={<ActionGroup add={addBeforeRule} label="Initial Action" connectors={connectors} perRule />} labelPosition="right" />
-        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('before_actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} actionType={"before_actions"} hasLDAP={false} />
-        </DragDropContext>
-        <Divider my="xs" label={<ActionGroup add={add} label="Row Action" connectors={connectors} />} labelPosition="right" />
-        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} actionType={"actions"} hasLDAP={hasLDAP} />
-        </DragDropContext>
-        <Divider my="xs" label={<ActionGroup add={addAfterRule} label="Final Action" connectors={connectors} perRule />} labelPosition="right" />
-        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('after_actions', { from: source.index, to: destination? destination.index : 0 }) } >
-          <ActionList form={form} actionType={"after_actions"} hasLDAP={false} />
-        </DragDropContext>
-
+      {explorer}
+      <Text c="dimmed" size="sm" mt="md" >Actions on this tab are executed sequentially if all conditions evaluated successfully.</Text>
+      <Divider label={<ActionGroup add={addBeforeRule} label="Initial Action" sources={allow} perRule />} labelPosition="right" />
+      <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('before_actions', { from: source.index, to: destination? destination.index : 0 }) } >
+        <ActionList form={form} templateProps={templateProps} actionType={"before_actions"} />
+      </DragDropContext>
+      <Divider my="xs" label={<ActionGroup add={add} label="Row Action" sources={allow} />} labelPosition="right" />
+      <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
+        <ActionList form={form} templateProps={templateProps} actionType={"actions"} />
+      </DragDropContext>
+      <Divider my="xs" label={<ActionGroup add={addAfterRule} label="Final Action" sources={allow} perRule />} labelPosition="right" />
+      <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('after_actions', { from: source.index, to: destination? destination.index : 0 }) } >
+        <ActionList form={form} templateProps={templateProps} actionType={"after_actions"} />
+      </DragDropContext>
     </Box>
   )
 }

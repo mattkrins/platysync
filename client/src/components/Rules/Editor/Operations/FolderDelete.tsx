@@ -1,7 +1,7 @@
 import { Box, Switch, TextInput } from "@mantine/core";
 import { IconFileMinus } from "@tabler/icons-react";
 
-export default function DeleteFolder( { form, index, inputProps, actionType }: ActionItem ) {
+export default function DeleteFolder( { form, index, templateProps, actionType, templates }: ActionItem ) {
     return (
     <Box p="xs" pt={0} >
         <TextInput
@@ -9,7 +9,7 @@ export default function DeleteFolder( { form, index, inputProps, actionType }: A
             description="Path of folder to be deleted."
             placeholder="D:/temp/{{username}}/"
             leftSection={<IconFileMinus size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            {...inputProps('target')}
+            {...templateProps(form, `${actionType}.${index}.target`, templates)}
         />
         <Switch label="Validate Path"
         mt="xs" {...form.getInputProps(`${actionType}.${index}.validate`, { type: 'checkbox' })}

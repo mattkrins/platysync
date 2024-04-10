@@ -4,7 +4,7 @@ import { Box, Grid, Switch, TextInput, Textarea } from "@mantine/core";
 import { IconBraces, IconCheck, IconX } from "@tabler/icons-react";
 import { useEffect } from "react";
 
-export default function SysComparator( { form, index, inputProps, actionType }: ActionItem ) {
+export default function SysComparator( { form, index, templateProps, actionType, sources, templates }: ActionItem ) {
     const initialValues = {conditions: form.values[actionType][index].conditions||[]} as unknown as Rule;
     const form2 = useForm({ initialValues, validate: {} });
     const checked = form.values[actionType][index].output||false;
@@ -12,12 +12,9 @@ export default function SysComparator( { form, index, inputProps, actionType }: 
         form.setFieldValue(`${actionType}.${index}.conditions`, form2.values.conditions)
     }, [JSON.stringify(form2.values.conditions)]);
     
-    const taken = (form.values.secondaries||[]).map((s: {primary:string})=>s.primary);
-    const sources = [form.values.primary, ...taken];
-
     return (
     <Box>
-        <Conditions form={form2} label="This action can halt futher execution, or build conditional templates." action sources={sources} />
+        <Conditions form={form2} label="This action can halt futher execution, or build conditional templates." action allow={sources} />
         <Switch label="Output result to template"
         description={checked?undefined:"Execution will currently be halted if conditions do not pass."}
         mt="xs" mb="xs" {...form.getInputProps(`${actionType}.${index}.output`, { type: 'checkbox' })}
@@ -29,7 +26,8 @@ export default function SysComparator( { form, index, inputProps, actionType }: 
             description="Template key will contain output string based on conditions evaluating."
             placeholder="result"
             leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            {...inputProps('target')}
+            {...templateProps(form, `${actionType}.${index}.target`, templates)}
+            
             />
             <Grid gutter="xs" align="center" mt="xs" mb="xs" >
                 <Grid.Col span="auto">
@@ -37,7 +35,7 @@ export default function SysComparator( { form, index, inputProps, actionType }: 
                     placeholder="true"
                     autosize maxRows={4}
                     leftSection={<IconCheck size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                    {...inputProps('true')}
+                    {...templateProps(form, `${actionType}.${index}.true`, templates)}
                     />
                 </Grid.Col>
                 <Grid.Col span="auto">
@@ -45,7 +43,7 @@ export default function SysComparator( { form, index, inputProps, actionType }: 
                     placeholder="false"
                     autosize maxRows={4}
                     leftSection={<IconX size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                    {...inputProps('false')}
+                    {...templateProps(form, `${actionType}.${index}.false`, templates)}
                     />
                 </Grid.Col>
             </Grid>

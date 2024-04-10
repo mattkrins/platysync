@@ -4,7 +4,7 @@ import Conditions from "../Editor/Conditions";
 import { useForm } from "@mantine/form";
 import { IconEqual, IconListSearch, IconMaximize, IconMinimize, IconRun,IconViewportNarrow, IconViewportWide, IconX } from "@tabler/icons-react";
 import useAPI from "../../../hooks/useAPI";
-import SchemaContext from "../../../providers/SchemaContext";
+import SchemaContext from "../../../providers/SchemaContext2";
 import { useDisclosure, useFullscreen } from "@mantine/hooks";
 import Evaluate from "./Evaluate";
 import Status from "./Status";
@@ -13,7 +13,7 @@ interface result {template?: object, success?: boolean, error?: string, warning?
 interface evaluated { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean, checked?: boolean }
 
 export default function RunModal( { rule, close, test }: { rule?: Rule, close: ()=>void, test?: boolean } ) {
-    const { schema } = useContext(SchemaContext);
+    const { name } = useContext(SchemaContext);
     const { toggle: toggleFS, fullscreen } = useFullscreen();
     const [maximized, { toggle: toggleMax }] = useDisclosure(false);
     const [active, setActive] = useState(0);
@@ -30,7 +30,7 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
     }, [ rule ]);
 
     const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI({
-        url: `/schema/${schema?.name}/rules/match`,
+        url: `/schema/${name}/rules/match`,
         default: { evaluated: [], initActions: [], finalActions: [] },
         data: {...rule, conditions: form.values.conditions, test},
     });
@@ -39,7 +39,7 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
     const checkedCount = checked.length;
 
     const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI({
-        url: `/schema/${schema?.name}/rules/run`,
+        url: `/schema/${name}/rules/run`,
         default: { evaluated: [], initActions: [], finalActions: [] },
         data: {...rule, conditions: form.values.conditions, evaluated: checked  },
     });
