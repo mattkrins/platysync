@@ -6,7 +6,7 @@ import { useContext, useEffect } from 'react';
 import SchemaContext2 from '../../providers/SchemaContext2';
 import { TextInput, Text, Tabs, JsonInput } from '@mantine/core';
 import { IconAlignLeft, IconSettings, IconTag } from '@tabler/icons-react';
-import useAPI from '../../hooks/useAPI2';
+import useAPI from '../../hooks/useAPI';
 import { notifications } from '@mantine/notifications';
 
 const validName = /[\W\s]|^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;

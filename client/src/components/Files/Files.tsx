@@ -3,7 +3,7 @@ import Head from "../Common/Head";
 import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, LoadingOverlay, Paper, TextInput, Text, Tooltip, Modal, Alert } from '@mantine/core';
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello-pangea/dnd';
 import { IconAlertCircle, IconGripVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
-import useAPI from "../../hooks/useAPI2";
+import useAPI from "../../hooks/useAPI";
 import CopyIcon from "../Common/CopyIcon";
 import { useContext, useState } from "react";
 import SchemaContext from "../../providers/SchemaContext2";

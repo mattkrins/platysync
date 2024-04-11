@@ -4,7 +4,7 @@ import classes from './Navbar.module.css';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Header from './Header';
 import { useContext, useEffect } from 'react';
-import useAPI from '../../hooks/useAPI2';
+import useAPI from '../../hooks/useAPI';
 import SchemaContext from '../../providers/SchemaContext2';
 import NewSchema from './NewSchema';
 import AppContext from '../../providers/AppContext';

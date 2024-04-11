@@ -6,7 +6,7 @@ import { Setup } from './Setup';
 import { isNotEmpty, useForm } from '@mantine/form';
 import { IconAlertCircle, IconX } from '@tabler/icons-react';
 import classes from './Login.module.css';
-import useAPI from '../../hooks/useAPI2';
+import useAPI from '../../hooks/useAPI';
 
 export function Login() {
     const [setupComplete, _setup, reset] = useLocalStorage({ key: 'setup', defaultValue: 'false' });

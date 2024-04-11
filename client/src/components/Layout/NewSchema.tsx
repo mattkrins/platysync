@@ -1,7 +1,7 @@
 import { Alert, Button, FileButton, Group, Modal, TextInput } from '@mantine/core'
 import { isNotEmpty, useForm } from '@mantine/form';
 import { IconAlertCircle, IconTag } from '@tabler/icons-react';
-import useAPI from '../../hooks/useAPI2';
+import useAPI from '../../hooks/useAPI';
 import { useContext, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext2';
 

@@ -2,7 +2,7 @@ import { useLocalStorage } from '@mantine/hooks';
 import { PropsWithChildren, useEffect, useState } from 'react';
 
 import AppContext, { session } from './AppContext';
-import useAPI from '../hooks/useAPI2';
+import useAPI from '../hooks/useAPI';
 
 // LINK: ./AppContext.tsx
 export default function AppProvider({ children  }: PropsWithChildren) {

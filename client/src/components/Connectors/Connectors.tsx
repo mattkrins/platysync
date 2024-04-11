@@ -5,7 +5,7 @@ import Container from '../Common/Container'
 import { useContext, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext2';
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello-pangea/dnd';
-import useAPI from '../../hooks/useAPI2';
+import useAPI from '../../hooks/useAPI';
 import { notifications } from '@mantine/notifications';
 import Editor from './Editor';
 import classes from './Connectors.module.css'

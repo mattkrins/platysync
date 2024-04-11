@@ -3,7 +3,7 @@ import { hasLength, isNotEmpty, useForm } from '@mantine/form';
 import { useContext } from 'react';
 import AppContext, { session } from '../../providers/AppContext';
 import classes from './Login.module.css';
-import useAPI from '../../hooks/useAPI2';
+import useAPI from '../../hooks/useAPI';
 
 export function Setup({ completeSetup }:{ completeSetup(): void }) {
     const { login } = useContext(AppContext);

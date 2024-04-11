@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import useFetch, { Options, Returns } from "./useFetch2"
+import useFetch, { Options, Returns } from "./useFetch"
 import AppContext from "../providers/AppContext";
 import { notifications } from "@mantine/notifications";
 import { UseFormReturnType } from "@mantine/form";

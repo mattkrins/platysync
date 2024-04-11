@@ -3,7 +3,7 @@ import { IconAlertCircle, IconBraces, IconChevronRight, IconCode, IconFiles, Ico
 import { compile } from "../modules/handlebars";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
-import useAPI from "./useAPI2";
+import useAPI from "./useAPI";
 import SchemaContext from "../providers/SchemaContext2";
 import classes from './useTemplater.module.css';
 import providers from "../components/Connectors/providers";

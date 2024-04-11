@@ -1,7 +1,7 @@
 import { Button, Input, SegmentedControl, useMantineColorScheme, Text } from '@mantine/core'
 import Container from '../Common/Container';
 import { useContext } from 'react';
-import useAPI from '../../hooks/useAPI2';
+import useAPI from '../../hooks/useAPI';
 import SchemaContext from '../../providers/SchemaContext2';
 import { notifications } from '@mantine/notifications';
 import AuthContext from '../../providers/AppContext';

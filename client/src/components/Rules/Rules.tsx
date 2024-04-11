@@ -5,7 +5,7 @@ import Head from "../Common/Head";
 import { useContext, useState } from "react";
 import SchemaContext from "../../providers/SchemaContext2";
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from "@hello-pangea/dnd";
-import useAPI from "../../hooks/useAPI2";
+import useAPI from "../../hooks/useAPI";
 import RunModal from "./Run/Run";
 import { modals } from "@mantine/modals";
 import Editor from "./Editor/Editor";

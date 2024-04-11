@@ -12,7 +12,7 @@ import RunModal from "../Run/Run";
 import { useDisclosure } from "@mantine/hooks";
 import useImporter from "../../../hooks/useImporter";
 import { modals } from "@mantine/modals";
-import useAPI from "../../../hooks/useAPI2";
+import useAPI from "../../../hooks/useAPI";
 import SchemaContext from "../../../providers/SchemaContext2";
 
 function exportJSON(obj: object, filename: string) {

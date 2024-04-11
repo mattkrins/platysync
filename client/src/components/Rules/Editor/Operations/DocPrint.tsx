@@ -1,6 +1,6 @@
 import { Box, Loader, Select, Switch, TextInput } from "@mantine/core";
 import { IconFile, IconPrinter } from "@tabler/icons-react";
-import useAPI from "../../../../hooks/useAPI2";
+import useAPI from "../../../../hooks/useAPI";
 
 export default function Print( { form, index, templateProps, actionType, templates }: ActionItem ) {
     const { data: printers, loading } = useAPI<string[]>({

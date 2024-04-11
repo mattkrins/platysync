@@ -1,6 +1,6 @@
 import { PropsWithChildren, useContext, useEffect, useState } from 'react';
 import SchemaContext from './SchemaContext2';
-import useAPI from '../hooks/useAPI2';
+import useAPI from '../hooks/useAPI';
 import AppContext from './AppContext';
 
 const defaults = { name: '', version: '', connectors: [], rules: [], headers: {}, valid: false };
