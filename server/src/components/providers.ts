@@ -12,13 +12,14 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Doc } from '../db/models.js';
 import { compile } from '../modules/handlebars.js';
 import { xError } from '../modules/common.js';
-import { Schema } from './models.js';
+import { Schema, ConnectorX, Connectors } from './models.js';
 const Axios = (axios as unknown as AxiosFix);
 
 interface connectorConfig {[k: string]: unknown}
 export default async function connect(schema: Schema, connectorName: string, connections: connections, id: string, config: connectorConfig = {}, caseSen = false): Promise<connection> {
     if (connections[connectorName]) return connections[connectorName];
-    const provider = schema._connectors[connectorName] as AllProviderOptions;
+    const connectors = new Connectors(schema.name);
+    const provider = connectors.get(connectorName);
     server.io.emit("job_status", `Connecting to ${connectorName}`);
     let connection: connection = {rows:[], keyed: {}, provider};
     switch (provider.id) {
@@ -99,8 +100,8 @@ export class PROXY extends ProviderBase {
         return true;
     }
     public async configure(): Promise<URL> {
-        if (!this.schema._connectors[this.name]) throw new xError(`Connector '${this.name}' does not exist.`);
-        const connector = this.schema._connectors[this.name] as PROXYOptions;
+        const connectors = new Connectors(this.schema.name);
+        const connector = connectors.get(this.name) as ConnectorX as PROXYOptions;
         const url = new URL(connector.url as string);
         if (connector.username) url.username = connector.username;
         if (connector.password) url.password = await decrypt(connector.password as Hash);
@@ -300,8 +301,8 @@ export class STMC extends ProviderBase {
         '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer', '_eduhub' ];
     }
     private async eduhub(name: string): Promise<{ data: {[k: string]: string}[] }> {
-        if (!this.schema._connectors[name]) throw new xError(`Connector '${name}' does not exist.`);
-        const connector = this.schema._connectors[name] as CSVOptions;
+        const connectors = new Connectors(this.schema.name);
+        const connector = connectors.get(name) as ConnectorX as CSVOptions;
         const csv = new CSV(connector);
         return await csv.open() as { data: {[k: string]: string}[] };
     }

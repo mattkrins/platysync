@@ -214,6 +214,11 @@ export class Connector {
     }
 }
 
+export class ConnectorX extends Connector {
+    declare schema: Schema;
+    declare path: string;
+}
+
 export class Connectors {
     schema: Schema;
     constructor(schema_name: string) {

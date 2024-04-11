@@ -140,7 +140,7 @@ interface EvalProps {
     executed?: boolean;
 }
 export default function Evaluate( { evaluated, setEvaluated, initActions = [], finalActions = [], executed }: EvalProps ) {
-    const [showErrors, { toggle: s1 }] = useDisclosure(false);
+    const [showErrors, { toggle: s1 }] = useDisclosure(executed||false);
     const [showWarns, { toggle: s2 }] = useDisclosure(true);
     const [enableErrors, { toggle: e1 }] = useDisclosure(false);
     const [enableWarns, { toggle: e2 }] = useDisclosure(true);

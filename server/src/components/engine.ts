@@ -312,4 +312,12 @@ export async function engine(route: FastifyInstance) {
             return await process( schema, rule );
         } catch (e) { throw new xError(e).send(reply); }
     });
+    route.post('/execute', async (request, reply) => {
+        const { schema_name } = request.params as { schema_name: string };
+        const {limitTo, ...rule} = request.body as Rule;
+        try {
+            const schema = schemas.get(schema_name);
+            return await processActions( schema, rule as Rule, (limitTo||[]) as string[] );
+        } catch (e) { throw new xError(e).send(reply); }
+    });
 }

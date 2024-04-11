@@ -41,7 +41,7 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
     const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI<response>({
         url: `/schema/${name}/engine/execute`,
         default: { evaluated: [], initActions: [], finalActions: [] },
-        data: {...rule, conditions: form.values.conditions, evaluated: checked  },
+        data: {...rule, conditions: form.values.conditions, limitTo: checked  },
     });
 
     const close2 = () => { close(); r1(); setActive(0); if (fullscreen) toggleFS(); };
