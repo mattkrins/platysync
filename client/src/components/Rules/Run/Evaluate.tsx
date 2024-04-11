@@ -5,13 +5,6 @@ import { useMemo, useState } from "react";
 import { availableActions } from "../../../modules/common";
 import ActionExplorer from "./ActionExplorer";
 
-export interface action {
-    name: string;
-    result: { warn?: string, error?: string, data?: {[k: string]: unknown} };
-}
-
-interface evaluated { checked?: boolean, id: string, display?: string, actions: action[], actionable: boolean }
-
 function find(query: string, r: evaluated, caseSen: boolean){
     if (caseSen?r.id.toLowerCase().includes(query):r.id.includes(query)) return true;
     if (r.display&&(caseSen?r.display.toLowerCase().includes(query):r.display.includes(query))) return true;
@@ -103,12 +96,13 @@ function Head( { total, limit, perPage, pagination, count, sort, sorting, query,
 function IconMap({ actions, size = 16, click }: { actions: action[], size?: number, click?: (open: string)=> () => void }){
     const theme = useMantineTheme();
     return actions.map((action,key)=>{
-        const { Icon, color } = availableActions[action.name];
+        const act = availableActions.find(a=>a.id===action.name);
+        if (!act) return <></>;
         const problem = action.result.error || action.result.warn;
-        const col = !problem ? color?theme.colors[color][6]:undefined : theme.colors.gray[8];
+        const col = !problem ? act.color?theme.colors[act.color][6]:undefined : theme.colors.gray[8];
         return <Tooltip key={key} fz="xs" withArrow label={action.name}>
         <Indicator disabled={!problem} size={size/3} offset={3} color={action.result.warn?'orange':'red'} inline>
-            <Icon onClick={click&&click(key.toString())} style={{cursor:"pointer"}} color={col} size={size} stroke={2} />
+            <act.Icon onClick={click&&click(key.toString())} style={{cursor:"pointer"}} color={col} size={size} stroke={2} />
         </Indicator></Tooltip>
     })
 }
@@ -140,7 +134,7 @@ function Row( { row, check, view, filters, executed }: Row ) {
 
 interface EvalProps {
     evaluated: evaluated[];
-    setEvaluated: (data: (data: {evaluated: evaluated[]}) => void) => void;
+    setEvaluated: (data: React.SetStateAction<response>) => void;
     initActions: action[];
     finalActions: action[];
     executed?: boolean;

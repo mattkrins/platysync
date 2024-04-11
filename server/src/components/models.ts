@@ -3,7 +3,7 @@ import { paths, version } from '../server.js';
 import YAML, { stringify } from 'yaml'
 import { xError, validStr } from '../modules/common.js';
 import { providers } from './providers.js';
-import { schemas2 } from '../routes/schema.js';
+import { schemas } from '../routes/schema.js';
 import { encrypt } from '../modules/cryptography.js';
 
 function parse(object: unknown, func?: (k: string, v: unknown) => unknown ) {
@@ -12,7 +12,6 @@ function parse(object: unknown, func?: (k: string, v: unknown) => unknown ) {
         return v;
     }));
 }
-
 
 export interface Condition {
     type: string;
@@ -74,6 +73,7 @@ export class Rule {
     public actions: Action[] = [];
     public config: {[k: string]: {[k: string]: unknown} } = {};
     public log?: string;
+    public test?: boolean;
     [k: string]: unknown;
     private parent: Schema;
     constructor(rule: Rule|xRule, parent: Schema) {
@@ -121,7 +121,7 @@ export class Rule {
 export class Rules {
     schema: Schema;
     constructor(schema_name: string) {
-        this.schema = schemas2.get(schema_name);
+        this.schema = schemas.get(schema_name);
     }
     public create(rule: Rule|xRule, save: boolean = true, oldName?: string): Rule {
         if (!oldName) {
@@ -217,7 +217,7 @@ export class Connector {
 export class Connectors {
     schema: Schema;
     constructor(schema_name: string) {
-        this.schema = schemas2.get(schema_name);
+        this.schema = schemas.get(schema_name);
     }
     public async create(connector: Connector|xConnnector, force: boolean = false, save: boolean = true, oldName?: string): Promise<Connector> {
         if (connector.password && typeof connector.password === "string") {

@@ -1,9 +1,9 @@
 import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification, List } from '@mantine/core'
 import { action } from './Evaluate'
-import { availableActions } from '../../../modules/common';
 import Concealer from '../../Common/Concealer';
 import { IconAlertTriangle, IconHandStop, IconX } from '@tabler/icons-react';
 import classes from '../../../Theme.module.css';
+import { availableActions } from '../../../modules/common';
 
 interface data {
     [k: string]: {[k: string]: unknown }|string|Array<string>;
@@ -59,13 +59,14 @@ export default function View( { viewing, view }: { viewing?: {name: string, open
     <Drawer size="xl" opened={!!viewing} onClose={()=>view(undefined)} title={`Action Explorer: ${viewing?.name}`}>
         <Accordion multiple defaultValue={[ viewing?.open||'0' ]}>
             {viewing?.actions.map((action, i)=>{
-                const { Icon, color } = availableActions[action.name];
+                const act = availableActions.find(a=>a.id===action.name);
+                if (!act) return <></>;
                 const problem = action.result.error || action.result.warn;
-                const col = !problem ? color?theme.colors[color][6]:undefined : theme.colors.gray[8];
+                const col = !problem ? act.color?theme.colors[act.color][6]:undefined : theme.colors.gray[8];
                 return (
                 <Accordion.Item key={i} value={i.toString()} >
                     <Accordion.Control icon={
-                    <Indicator disabled={!problem} size={12} color={action.result.warn?'orange':'red'} inline><Icon color={col} /></Indicator>
+                    <Indicator disabled={!problem} size={12} color={action.result.warn?'orange':'red'} inline><act.Icon color={col} /></Indicator>
                     }>{action.name}</Accordion.Control>
                     <Accordion.Panel><Action action={action} /></Accordion.Panel>
                 </Accordion.Item>)

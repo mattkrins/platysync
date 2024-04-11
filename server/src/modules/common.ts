@@ -1,5 +1,5 @@
 import { FastifyReply } from "fastify";
-import { Schema } from "../typings/common.js";
+import { Schema } from "../components/models.js";
 
 type status = 400|401|403|404|405|406|408|409|500|number;
 export class xError {
@@ -60,7 +60,7 @@ function hasParent(haystack: string|undefined = "", needle: string){
 export function findDependencies(schema: Schema, name: string, child = false, templatesOnly = true){
     const  hasHandle = child ? hasChild : hasParent;
     for (const connector of schema.connectors) {
-        if (connector.path && hasHandle(connector.path, name)) return connector.name;
+        if (connector.path && hasHandle(connector.path as string, name)) return connector.name;
         if (templatesOnly) continue;
         if (connector.proxy && connector.proxy===name) return connector.name;
     }

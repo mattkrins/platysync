@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Grid, Group, Loader, Switch, Text } from "@mantine/core";
-import useAPI from "../../hooks/useAPI";
+import useAPI from "../../hooks/useAPI2";
 import Container from "../Common/Container";
 import Head from "../Common/Head";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";

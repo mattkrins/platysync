@@ -1,11 +1,12 @@
 import { FastifyInstance } from "fastify";
-import { _Error } from "../server.js";
 import { form, isNotEmpty, validate, isPathValid } from "../components/validators.js";
 import { Schedule } from "../db/models.js";
 import * as fs from 'fs';
 import Cron from "croner";
-import { _schemas } from "./schema.js";
 import process, { processActions } from "../components/engine.js";
+import { xError } from "../modules/common.js";
+
+const _schemas = {}
 
 const scheduled: { [k: string]:  Cron } = {};
 const monitored: { [k: string]:  fs.FSWatcher } = {};
@@ -80,10 +81,7 @@ export default async function schedule(route: FastifyInstance) {
     route.get('/', async (request, reply) => {
         try {
             return await Schedule.findAll();
-        } catch (e) {
-          const error = _Error(e);
-          reply.code(500).send({ error: error.message });
-        }
+        } catch (e) { new xError(e).send(reply); }
     });
     route.put('/reorder', async (request, reply) => {
         const {from, to} = request.body as { from: number, to: number };
@@ -97,10 +95,7 @@ export default async function schedule(route: FastifyInstance) {
             await schedule1.save();
             await schedule2.save();
             return await Schedule.findAll();
-        } catch (e) {
-          const error = _Error(e);
-          reply.code(500).send({ error: error.message });
-        }
+        } catch (e) { new xError(e).send(reply); }
     });
     route.post('/', form({
         schema: isNotEmpty('Schema can not be empty.'),
@@ -119,10 +114,7 @@ export default async function schedule(route: FastifyInstance) {
             const schedule = {...body, rules: rules.length>0 ? JSON.stringify(rules): null  };
             await Schedule.create(schedule);
             return await Schedule.findAll();
-        } catch (e) {
-          const error = _Error(e);
-          reply.code(500).send({ error: error.message });
-        }
+        } catch (e) { new xError(e).send(reply); }
     });
     route.delete('/:id', async (request, reply) => {
         const { id } = request.params as { id: string };
@@ -132,10 +124,7 @@ export default async function schedule(route: FastifyInstance) {
             disableSchedule(schedule);
             await schedule.destroy();
             return await Schedule.findAll();
-        } catch (e) {
-          const error = _Error(e);
-          reply.code(500).send({ error: error.message });
-        }
+        } catch (e) { new xError(e).send(reply); }
     });
     route.put('/:id/toggle', async (request, reply) => {
         const { id } = request.params as { id: string };
@@ -146,10 +135,7 @@ export default async function schedule(route: FastifyInstance) {
             if (schedule.enabled){ enableSchedule(schedule); } else { disableSchedule(schedule); }
             await schedule.save();
             return await Schedule.findAll();
-        } catch (e) {
-          const error = _Error(e);
-          reply.code(500).send({ error: error.message });
-        }
+        } catch (e) { new xError(e).send(reply); }
     });
     route.put('/:id', async (request, reply) => {
         const { id } = request.params as { id: string };
@@ -177,9 +163,6 @@ export default async function schedule(route: FastifyInstance) {
             schedule.enabled = false;
             await schedule.save();
             return await Schedule.findAll();
-        } catch (e) {
-          const error = _Error(e);
-          reply.code(500).send({ error: error.message });
-        }
+        } catch (e) { new xError(e).send(reply); }
     });
 }

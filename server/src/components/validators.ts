@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import * as fs from 'fs';
-import { _Error } from "../server.js";
+import { xError } from "../modules/common.js";
 
 export type value = string|boolean;
 export type formData = { [field: string]: value };
@@ -17,7 +17,7 @@ export async function validate(
             const error = await validators[field](formData[field], body);
             if (error) validation[field] = error;
         } catch (e){
-            validation[field] = _Error(e).message;
+            validation[field] = (new xError(e).message);
         }
     }
     if (Object.keys(validation).length>0){

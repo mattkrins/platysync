@@ -80,17 +80,17 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
     const axiosOptions = { baseURL: `http://${url.hostname}:2327/api/v1`, method: 'get' };
     const [request, setRequest] = useState<Options<returnType, sendType>>(opt1);
     const [response, setResponse] = useState<AxiosResponse<unknown, unknown>|undefined>(undefined);
-    const [data, setData] = useState<returnType>(opt1.default as returnType);
+    const [data, setData] = useState<returnType>((opt1.default||undefined) as returnType);
     const [loading, setLoading] = useState<boolean>(opt1.fetch || false);
     const [loaders, setLoaders] = useState<{ [k: key]: boolean|undefined }>({});
     const [error, setError] = useState<string|undefined>(undefined);
     const [errors, setErrors] = useState<validation>({});
     const axiosClient = axios.create(axiosOptions);
-    const reset = useCallback((options: Options<returnType, sendType> = {}) => {
-        setRequest(options);
+    const reset = useCallback(() => {
+        setRequest(opt1);
         setResponse(undefined);
-        setData(options.default as returnType);
-        if (!options.preserveErrors){ setError(undefined); setErrors({}); }
+        setData((opt1.default||undefined) as returnType);
+        if (!opt1.preserveErrors){ setError(undefined); setErrors({}); }
     }, [opt1]);
     const fetch = useCallback(async (opt2: Options<returnType> = {}): Promise<returnType> => {
         let options = { ...opt1, ...opt2 } as Options<returnType, sendType>;
@@ -99,7 +99,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         try {
             if (options.before) options = options.before(options, opt2) as Options<returnType, sendType>;
             if (options.modify) options.data = options.modify(options.data as sendType) as sendType;
-            if (!options.preserve) reset(opt1 as Options<returnType, sendType>);
+            if (!options.preserve) reset();
             if (!options.preserveErrors){ setError(undefined); setErrors({}); }
             if (typeof options.key !== "undefined") setLoaders(loaders => ({ ...loaders, [options.key as key]: true }));
             if (options.append) options.url += options.append;
@@ -128,7 +128,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
             setLoading(false);
             if (typeof options.key !== "undefined") setLoaders(loaders => { delete loaders[options.key as key]; return loaders; });
             if (options.finally) options.finally(options);
-            if (options.cleanup) reset(opt1 as Options<returnType, sendType>);
+            if (options.cleanup) reset();
         }
         return deferred.promise as Promise<returnType>;
     }, [opt1]);

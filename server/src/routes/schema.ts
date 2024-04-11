@@ -2,45 +2,39 @@ import { FastifyInstance } from "fastify";
 import { Schemas, Schema } from "../components/models.js";
 import { xError } from "../modules/common.js";
 
-export const _schemas = {}
-export const schemas = []
-export const getSchema: (a?:any,b?:any) => any = () => {}
-export const mutateSchema: (a?:any) => any = () => {}
-export const initSchemaCache: (a?:any) => any = () => {}
-
-export const schemas2 = new Schemas();
+export const schemas = new Schemas();
 
 export default async function (route: FastifyInstance) {
-  await schemas2.load();
+  await schemas.load();
   // Get all Schemas
-  route.get('/', async () => schemas2.getAll(true) );
+  route.get('/', async () => schemas.getAll(true) );
   // Create Schema
   route.post('/', async (request, reply) => {
-    try { return schemas2.create(request.body as Schema).parse(); }
+    try { return schemas.create(request.body as Schema).parse(); }
     catch (e) { new xError(e).send(reply); }
   });
   // Get Schema
   route.get('/:name', async (request, reply) => {
       const { name } = request.params as { name: string };
-      try { return schemas2.get(name).parse(); }
+      try { return schemas.get(name).parse(); }
       catch (e) { new xError(e).send(reply); }
   });
   // Change Schema
   route.put('/:name', async (request, reply) => {
       const { name } = request.params as { name: string };
-      try { return schemas2.get(name).mutate(request.body as Schema).parse(); }
+      try { return schemas.get(name).mutate(request.body as Schema).parse(); }
       catch (e) { new xError(e).send(reply); }
   });
   // Delete Schema
   route.delete('/:name', async (request, reply) => {
       const { name } = request.params as { name: string };
-      try { return schemas2.get(name).destroy(); }
+      try { return schemas.get(name).destroy(); }
       catch (e) { new xError(e).send(reply); }
   });
   // Get Connector Headers
   route.get('/:name/headers', async (request, reply) => {
       const { name } = request.params as { name: string };
-      try { return await schemas2.get(name).headers(); }
+      try { return await schemas.get(name).headers(); }
       catch (e) { new xError(e).send(reply); }
   });
 }

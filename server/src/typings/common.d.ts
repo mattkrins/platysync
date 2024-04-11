@@ -1,32 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AxiosStatic } from "axios";
+import { Schema } from '../components/models.js';
 
 export interface AxiosFix extends AxiosStatic {
   default: AxiosStatic;
-}
-
-export interface Schema {
-    name: string;
-    version: string;
-    connectors: Connector[];
-    _connectors: { [name: string]: Connector };
-    rules: Rule[];
-    _rules: { [name: string]: Rule };
-    headers: { [name: string]: string[] };
-    errors: string[];
-}
-
-export interface SchemaYaml extends Schema {
-  _connectors?: { [name: string]: Connector };
-  _rules?: { [name: string]: Rule };
-  headers?: { [name: string]: string[] };
-  errors?: string[];
-}
-
-export interface Connector {
-  id: string;
-  name: string;
-  [k: string]: any;
 }
 
 export interface Condition {
@@ -66,23 +43,6 @@ export interface secondary {
   case?: boolean;
   req?: boolean;
   oto?: boolean;
-}
-
-export interface Rule {
-  name: string;
-  display: string;
-  enabled: boolean;
-  position: number;
-  primary: string;
-  primaryKey: string;
-  secondaries: secondary[];
-  conditions: Condition[];
-  before_actions: Action[];
-  after_actions: Action[];
-  actions: Action[];
-  config: {[k: string]: {[k: string]: unknown} };
-  log?: string;
-  test?: boolean;
 }
 
 export interface template {

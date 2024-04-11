@@ -3,7 +3,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import Conditions from "../Editor/Conditions";
 import { useForm } from "@mantine/form";
 import { IconEqual, IconListSearch, IconMaximize, IconMinimize, IconRun,IconViewportNarrow, IconViewportWide, IconX } from "@tabler/icons-react";
-import useAPI from "../../../hooks/useAPI";
+import useAPI from "../../../hooks/useAPI2";
 import SchemaContext from "../../../providers/SchemaContext2";
 import { useDisclosure, useFullscreen } from "@mantine/hooks";
 import Evaluate from "./Evaluate";
@@ -29,8 +29,8 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
         if (rule) {form.setValues(rule as never)}
     }, [ rule ]);
 
-    const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI({
-        url: `/schema/${name}/rules/match`,
+    const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI<response>({
+        url: `/schema/${name}/engine`,
         default: { evaluated: [], initActions: [], finalActions: [] },
         data: {...rule, conditions: form.values.conditions, test},
     });
@@ -38,8 +38,8 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
     const checked = useMemo(()=> (evaluated.evaluated as evaluated[]).filter(r=>r.checked).map(r=>r.id), [ evaluated.evaluated ]);
     const checkedCount = checked.length;
 
-    const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI({
-        url: `/schema/${name}/rules/run`,
+    const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI<response>({
+        url: `/schema/${name}/engine/execute`,
         default: { evaluated: [], initActions: [], finalActions: [] },
         data: {...rule, conditions: form.values.conditions, evaluated: checked  },
     });
@@ -67,7 +67,7 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
             </Group>
             <Stepper active={active} onStepClick={onStepClick}>
                 <Stepper.Step label="Conditions" color={form.values.conditions.length===0?"red":undefined} description="Modify Conditions" icon={<IconEqual />} >
-                    <Conditions form={form} label="Add single-run modifications here."  sources={sources}  />
+                    <Conditions form={form} label="Add single-run modifications here." allow={sources}  />
                 </Stepper.Step>
                 <Stepper.Step
                 label="Evaluate"
@@ -75,7 +75,7 @@ export default function RunModal( { rule, close, test }: { rule?: Rule, close: (
                 color={e1&&"red"}
                 loading={l1}
                 icon={<IconListSearch color={form.values.conditions.length===0?"gray":undefined} />}
-                allowStepSelect={form.values.conditions.length>0&&!e1}
+                allowStepSelect={form.values.conditions.length>0}
                 styles={form.values.conditions.length===0?{step:{cursor:"not-allowed"}}:undefined}
                 >
                     {e1?<Notification icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error!">

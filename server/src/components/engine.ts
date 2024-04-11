@@ -1,5 +1,5 @@
 import { compile } from "../modules/handlebars.js";
-import { Action, Condition, Rule, Schema, connections } from "../typings/common.js";
+import { Action, Condition, connections } from "../typings/common.js";
 import connect from "./providers.js";
 import { paths, server, history } from "../server.js";
 import { User } from "../modules/ldap.js";
@@ -27,6 +27,10 @@ import StmcUpload from "./operations/StmcUpload.js";
 import { Doc } from "../db/models.js";
 import winston from 'winston';
 import fs from 'fs-extra';
+import { FastifyInstance } from "fastify";
+import { xError } from "../modules/common.js";
+import { Rule, Schema } from "./models.js";
+import { schemas } from "../routes/schema.js";
 const { combine, timestamp, json } = winston.format;
 
 interface sKeys { [k: string]: string }
@@ -106,6 +110,7 @@ async function ldap_compare(key: string, value: string, operator: string, connec
         default: return false;
     }
 }
+
 async function compare(key: string, value: string, operator: string, connections: connections, keys: sKeys): Promise<boolean> {
     if (operator.substring(0, 4)==="ldap") return ldap_compare(key, value, operator.substring(5), connections, keys);
     switch (operator) {
@@ -164,6 +169,7 @@ function progress(cur: cur, length: number, id: string, start: number = 0) {
 const wait = async (t = 100) => new Promise((res)=>setTimeout(res, t));
 export const empty = (value?: string) => !value || value.trim()==='';
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[], scheduled?: boolean) {
+    if (rule.test) idFilter = undefined;
     const connections: connections = {};
     let action: winston.Logger|undefined;
     try {
@@ -186,7 +192,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         const primary = await connect(schema, rule.primary, connections, rule.primaryKey, (rule.config||{})[rule.primary], caseSen);
         cur.index = 5;
         progress(cur, 100, 'secondaries');
-        if (idFilter) primary.rows = primary.rows.filter(p=>idFilter.includes(p[rule.primaryKey]));
+        if (idFilter) primary.rows = primary.rows.filter(p=>(idFilter||[]).includes(p[rule.primaryKey]));
         await wait(500);
         for (const secondary of rule.secondaries||[]){
             if (empty(secondary.secondaryKey)) secondary.secondaryKey = rule.primaryKey;
@@ -251,7 +257,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         }
         server.io.emit("job_status", `Evaluating final actions`);
         await wait(1000);
-        const {todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
+        const { todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
         if (idFilter && action && rule.log==="4"){
             if (finalActions.filter(r=>r.result.error).length>0) {
                 action.error( { finalAction: initActions.filter(r=>r.result.error)[0].result.error} )
@@ -295,4 +301,15 @@ export async function processActions(schema: Schema , rule: Rule, limitTo: strin
     if (!limitTo || limitTo.length <= 0) throw (Error("Unreviewed bulk actions not allowed"));
     if (rule.test) throw (Error("Actions not allowed for tests"));
     return process(schema, rule, limitTo, scheduled );
+}
+
+export async function engine(route: FastifyInstance) {
+    route.post('/', async (request, reply) => {
+        const { schema_name } = request.params as { schema_name: string };
+        const rule = request.body as Rule;
+        try {
+            const schema = schemas.get(schema_name);
+            return await process( schema, rule );
+        } catch (e) { throw new xError(e).send(reply); }
+    });
 }

@@ -81,17 +81,4 @@ const start = async () => {
     process.exit(1);
   }
 }
-start()
-/**
-    Force value to Error Type
-    @param value - Any stringifyable value
-    @returns Value as Error type
-*/
-export function _Error(value: unknown): Error {
-  if (value instanceof Error) return value;
-  let stringified = '[Unable to stringify the thrown value]';
-  try {
-    stringified = JSON.stringify(value);
-  } catch { /* empty */ }
-  return new Error(stringified);
-}
+start();

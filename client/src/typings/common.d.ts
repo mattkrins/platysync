@@ -78,3 +78,16 @@ interface ActionItem {
     sources: string[];
     templates: string[];
 }
+
+interface evaluated { checked?: boolean, id: string, display?: string, actions: action[], actionable: boolean }
+
+interface response {
+    evaluated: evaluated[];
+    finalActions: action[];
+    initActions: action[];
+}
+
+interface action {
+    name: string;
+    result: { warn?: string, error?: string, data?: {[k: string]: unknown} };
+}

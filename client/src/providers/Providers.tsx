@@ -2,12 +2,8 @@ import { PropsWithChildren } from 'react'
 import { MantineProvider, TextInput, createTheme } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
-import CommonProvider from './CommonProvider';
 import AppProvider from './AppProvider';
-import AuthProvider from './AuthProvider';
-import SchemaProvider from './SchemaProvider';
-import SchemaProvider2 from './SchemaProvider2';
-import ExplorerProvider from './ExplorerProvider';
+import SchemaProvider from './SchemaProvider2';
 
 import '@mantine/core/styles.layer.css';
 import '@mantine/notifications/styles.layer.css';
@@ -31,17 +27,9 @@ export default function Providers({ children }: PropsWithChildren) {
             <Notifications />
             <ModalsProvider>
                 <AppProvider>
-                <CommonProvider>
-                    <AuthProvider>
-                        <SchemaProvider>
-                        <SchemaProvider2>
-                            <ExplorerProvider>
-                                { children }
-                            </ExplorerProvider>
-                        </SchemaProvider2>
-                        </SchemaProvider>
-                    </AuthProvider>
-                </CommonProvider>
+                    <SchemaProvider>
+                        { children }
+                    </SchemaProvider>
                 </AppProvider>
             </ModalsProvider>
         </MantineProvider>

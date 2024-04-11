@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Schema, connection, connections, template } from "../typings/common.js";
+import { connection, connections, template } from "../typings/common.js";
 import Papa, { ParseResult } from 'papaparse';
 import eduSTAR from '../modules/eduSTAR.js';
 import { Hash, decrypt } from '../modules/cryptography.js';
@@ -12,6 +12,7 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Doc } from '../db/models.js';
 import { compile } from '../modules/handlebars.js';
 import { xError } from '../modules/common.js';
+import { Schema } from './models.js';
 const Axios = (axios as unknown as AxiosFix);
 
 interface connectorConfig {[k: string]: unknown}

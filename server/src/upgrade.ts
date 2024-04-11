@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { readYAML } from './routes/schema.js';
-import { Schema } from './typings/common.js';
+import YAML from 'yaml'
+import { Schema } from './components/models.js';
 const dataPath = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share");
 
 const versions: {
@@ -27,7 +27,7 @@ await (async function(){
     const files = all.filter(o => fs.statSync(`${schemasPath}/${o}`).isFile() && (o.includes("yaml")||o.includes("yml")) );
     for (const file of files){
         try {
-            const schema: Schema = readYAML(`${schemasPath}/${file}`);
+            const schema = YAML.parse(`${schemasPath}/${file}`) as Schema;
             if (!schema.version) continue;
             if (String(schema.version)!==version) continue;
             await evaluate(schema);
