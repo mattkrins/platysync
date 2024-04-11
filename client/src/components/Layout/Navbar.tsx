@@ -11,9 +11,12 @@ import AppContext from '../../providers/AppContext';
 import useSocket from '../../hooks/useSocket';
 import Status from '../Rules/Run/Status';
 
+//LINK - client\src\App.tsx:15
+
 const commonLinks = [
   { icon: IconAdjustmentsHorizontal, label: 'Settings' },
   { icon: IconClock, label: 'Schedules' },
+  { icon: IconUser, label: 'Users' },
 ];
 
 const schemaLinks = [

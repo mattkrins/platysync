@@ -11,11 +11,13 @@ import Connectors from './components/Connectors/Connectors';
 import Rules from './components/Rules/Rules';
 import Schedules from './components/Schedules/Schedules';
 import Files from './components/Files/Files';
+import Users from './components/Users/Users';
 
 function Switcher(){
   const { nav } = useContext(AppContext);
   switch (nav) { //LINK - client\src\components\Layout\Navbar.tsx:15
     case "Schedules": return <Schedules/>
+    case "Users": return <Users/>
     case "Files": return <Files/>
     case "Schema": return <Schema/>
     case "Connectors": return <Connectors/>

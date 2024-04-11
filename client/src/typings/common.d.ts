@@ -91,3 +91,13 @@ interface action {
     name: string;
     result: { warn?: string, error?: string, data?: {[k: string]: unknown} };
 }
+
+interface schedule {
+    id: string;
+    index: number;
+    schema: string;
+    rules: string[];
+    cron: string;
+    monitor: string;
+    enabled: boolean;
+}
