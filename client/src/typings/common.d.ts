@@ -48,7 +48,7 @@ interface Rule {
     primary: string;
     primaryKey: string;
     display: string;
-    secondaries: {id: string, primary: string, secondaryKey: string, primaryKey: string}[];
+    secondaries: {primary: string, secondaryKey: string, primaryKey: string}[];
     conditions: Condition[];
     actions: Action[];
     before_actions: Action[];

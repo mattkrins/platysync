@@ -1,16 +1,38 @@
 import Container from "../Common/Container";
 import Head from "../Common/Head";
-import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, LoadingOverlay, Paper, TextInput, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, LoadingOverlay, Paper, TextInput, Text, Tooltip, Modal, Alert } from '@mantine/core';
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello-pangea/dnd';
-import { IconAlertCircle, IconDeviceFloppy, IconGripVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconAlertCircle, IconGripVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import useAPI from "../../hooks/useAPI2";
 import CopyIcon from "../Common/CopyIcon";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import SchemaContext from "../../providers/SchemaContext2";
 import { extIcons } from "../../modules/common";
-import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import useImporter from "../../hooks/useImporter";
+import { useForm } from "@mantine/form";
+
+function Edit( { editing, setData }: { editing: Doc, close(): void, setData: (data: React.SetStateAction<Doc[]>) => void} ) {
+    const { name } = useContext(SchemaContext);
+    const form = useForm({ initialValues: editing });
+    const { data: success, put, error, loading } = useAPI<Doc[]>({
+        url: `/schema/${name}/storage`,
+        data: form.values,
+        form,
+        then: docs => setData(docs)
+    });
+    return (
+    <Box>
+        <TextInput
+            label="File Name"
+            placeholder="my_file"
+            withAsterisk {...form.getInputProps('name')}
+        />
+        {error&&<Alert mt="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
+        {success&&<Alert mt="xs" icon={<IconAlertCircle size={32} />} color="lime">Changes saved.</Alert>}
+        <Group mt="xs" justify="flex-end" ><Button onClick={()=>put()} variant="light" loading={loading} >Save</Button></Group>
+    </Box>)
+}
 
 interface ItemProps {
     provided: DraggableProvided;
@@ -20,10 +42,10 @@ interface ItemProps {
     remove: (id: string)=>()=> void;
     update: (id: string, name: string) => void;
     save: (doc: Doc)=> void;
+    edit(): void;
 }
-function Item( { provided, item, disabled, loading, error, remove, update, save }: ItemProps ) {
+function Item( { provided, item, disabled, loading, error, remove, edit }: ItemProps ) {
     const Icon = extIcons[item.ext];
-    const [editing, { toggle, close }] = useDisclosure(false);
     return (
     <Paper mb="xs" p="xs" withBorder ref={provided.innerRef} {...provided.draggableProps}
     style={{ ...provided.draggableProps.style, cursor: loading ? "not-allowed" : undefined }}
@@ -37,20 +59,13 @@ function Item( { provided, item, disabled, loading, error, remove, update, save 
                 </Group>
             </Grid.Col>
             <Grid.Col span={4} c={disabled?"dimmed":undefined}>
-                {!editing?<Group gap="xs"><Text c={error?"red":undefined} >{item.name}</Text><CopyIcon disabled={disabled} value={`{{$file.${item.name}}}`} /></Group>:
-                <TextInput style={{height:25}} size="xs"
-                value={item.name} error={!!error}
-                onChange={(event) => update(item.id, event.currentTarget.value)}
-                />}
+            <Group gap="xs"><Text c={error?"red":undefined} >{item.name}</Text><CopyIcon disabled={disabled} value={`{{$file.${item.name}}}`} /></Group>
             </Grid.Col>
             <Grid.Col span={4} c={disabled?"dimmed":undefined}>{!item.updatedAt?<Text>generating...</Text>:<Group gap="xs">{item.id}</Group>}</Grid.Col>
             <Grid.Col span={2}>
                 <Group gap="xs" justify="flex-end">
                     {error&&<Tooltip withArrow label={error} w={420} multiline position="top-end" color="red" ><IconAlertCircle size={16} color="red" /></Tooltip>}
-                    {editing&&<ActionIcon onClick={()=>{ save(item); close(); }} disabled={disabled} variant="subtle" color="green">
-                        <IconDeviceFloppy size={16} stroke={1.5} />
-                    </ActionIcon>}
-                    <ActionIcon onClick={toggle} disabled={disabled} variant="subtle" color="orange">
+                    <ActionIcon onClick={()=>edit()} disabled={disabled} variant="subtle" color="orange">
                         <IconPencil size={16} stroke={1.5} />
                     </ActionIcon>
                     <ActionIcon onClick={remove(item.id)} disabled={disabled} variant="subtle" color="red">
@@ -65,7 +80,8 @@ function Item( { provided, item, disabled, loading, error, remove, update, save 
 
 export default function Files() {
     const { name } = useContext(SchemaContext);
-    const { Modal, open } = useImporter();
+    const { Modal: ModalP, open } = useImporter();
+    const [ editing, edit ] = useState<Doc|undefined>(undefined);
     const { data, setData, loading, loaders, del, post, put, setLoaders, errors } = useAPI<Doc[]>({
         url: `/schema/${name}/storage`,
         default: [],
@@ -109,7 +125,10 @@ export default function Files() {
 
     return (
     <Container label={<Head rightSection={<Button leftSection={<IconPlus size={16} />} loading={loading} onClick={open} variant="light">Add</Button>} >File Manager</Head>} >
-        <Modal onDrop={upload} closeup cleanup />
+        <ModalP onDrop={upload} closeup cleanup />
+        <Modal opened={!!editing} onClose={()=>edit(undefined)} title="Edit File">
+            {editing&&<Edit editing={editing} close={()=>edit(undefined)} setData={setData} />}
+        </Modal>
         {docs.length>0?
         <Box>
             <Paper mb="xs" p="xs" >
@@ -132,7 +151,16 @@ export default function Files() {
                         return (
                         <Draggable key={item.id} index={item.index} draggableId={item.id} isDragDisabled={loading} >
                         {provided => (
-                            <Item provided={provided} item={item} disabled={loading} loading={loading} error={error} remove={remove} update={update} save={save} />
+                            <Item
+                            provided={provided}
+                            item={item}
+                            disabled={loading}
+                            loading={loading}
+                            error={error}
+                            remove={remove}
+                            update={update}
+                            save={save}
+                            edit={()=>edit(item)} />
                         )}
                         </Draggable>
                     )})}

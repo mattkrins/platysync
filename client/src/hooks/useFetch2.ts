@@ -34,7 +34,8 @@ export interface Options<returnType = unknown, sendType = unknown> extends Axios
     /** @param {unknown} data Mutate return data. */
     mutate?(data: unknown): returnType;
     /** @param {returnType} data Executes on success. */
-    then?(data: returnType, options: Options<returnType, sendType>, key?: key): returnType|void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    then?(data: returnType, options: Options<returnType, sendType>, key?: key): any;
     /** Executes on failure.
      * @param {string} message Error message.
      * @param {Options} options Request options.

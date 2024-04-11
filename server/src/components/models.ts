@@ -60,7 +60,7 @@ interface xRule {
     primaryKey: string;
     [k: string]: unknown;
 }
-class Rule {
+export class Rule {
     public name: string;
     public display: string;
     public enabled: boolean;
@@ -123,7 +123,7 @@ export class Rules {
     constructor(schema_name: string) {
         this.schema = schemas2.get(schema_name);
     }
-    public async create(rule: Rule|xRule, save: boolean = true, oldName?: string): Promise<Rule> {
+    public create(rule: Rule|xRule, save: boolean = true, oldName?: string): Rule {
         if (!oldName) {
             if (this.find(rule.name)) throw new xError("Name taken.", "name", 409);
         }
@@ -137,7 +137,7 @@ export class Rules {
         
         return temp;
     }
-    public async mutate(rule: Rule|xRule, save: boolean = true, oldName: string): Promise<Rule> {
+    public mutate(rule: Rule|xRule, save: boolean = true, oldName: string): Rule {
         return this.create(rule, save, oldName );
     }
     public reorder(from: number, to: number): true {

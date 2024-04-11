@@ -173,7 +173,7 @@ export default function Settings( { form, allow, taken, templates }: {form: UseF
             leftSection={<IconTable size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="{{username}}"
             mt="xs"
-            {...templateProps(form, 'display', undefined, templates)}
+            {...templateProps(form, 'display', templates)}
         />
         <Switch mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
         <Group grow>

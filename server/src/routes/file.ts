@@ -3,8 +3,7 @@ import { paths } from "../server.js";
 import { Doc } from "../db/models.js";
 import multer from 'fastify-multer';
 import * as fs from 'fs';
-import { findDependencies, xError } from "../modules/common.js";
-import { getSchema } from "./schema.js";
+import { xError } from "../modules/common.js";
 
 export default async function (route: FastifyInstance) {
   const clean = /[^\w\s]/g;
@@ -54,11 +53,11 @@ export default async function (route: FastifyInstance) {
     const { schema_name: schema } = request.params as { schema_name: string };
     const change = request.body as Doc;
     try {
-      if (clean.test(change.name)) throw reply.code(406).send({ error: "Invalid name.", validation: { id: change.id } });
+      if (clean.test(change.name)) throw new xError("Invalid name.", 'name', 406 );
       const doc = await Doc.findOne({where: { id: change.id, schema }});
-      if (!doc) throw new xError("Doc not found.", change.id, 404 );
+      if (!doc) throw new xError("Doc not found.", undefined, 404 );
       const existing = await Doc.findOne({where: { name: change.name, schema }});
-      if (existing) throw new xError("Name taken.", change.id, 406 );
+      if (existing) throw new xError("Name taken.", 'name', 406 );
       doc.set(change);
       await doc.save();
       return await Doc.findAll({where: { schema }});

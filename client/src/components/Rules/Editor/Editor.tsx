@@ -1,5 +1,5 @@
-import { Box, Breadcrumbs, Anchor, Tabs, Group, Button, JsonInput, useMantineTheme, Text } from "@mantine/core";
-import { IconDeviceFloppy, IconTestPipe, IconPackageExport, IconPackageImport, IconX, IconSettings, IconFilter, IconRun, IconAlignLeft } from "@tabler/icons-react";
+import { Box, Breadcrumbs, Anchor, Tabs, Group, Button, JsonInput, useMantineTheme, Text, Alert } from "@mantine/core";
+import { IconDeviceFloppy, IconTestPipe, IconPackageExport, IconPackageImport, IconX, IconSettings, IconFilter, IconRun, IconAlignLeft, IconAlertCircle } from "@tabler/icons-react";
 import Container from "../../Common/Container";
 import Head from "../../Common/Head";
 import SplitButton from "../../Common/SplitButton";
@@ -43,7 +43,7 @@ const importRule: (file: File) => Promise<Rule> = ( file ) => new Promise((resol
   }
 });
 
-export default function Editor( { editing, close }: { editing: Rule, close(): void } ) {
+export default function Editor( { editing, close, creating }: { editing: Rule, close(): void, creating: boolean } ) {
   const { name, mutate } = useContext(SchemaContext);
   const theme = useMantineTheme();
   const [activeTab, setActiveTab] = useState<string | null>('settings');
@@ -53,17 +53,14 @@ export default function Editor( { editing, close }: { editing: Rule, close(): vo
 
   const form = useForm({ initialValues: editing, validate: {} });
   
-
-  const { post, loading } = useAPI<Rule[]>({
+  const { post, put, loading, error } = useAPI<Rule[]>({
     url: `/schema/${name}/rule`,
-    data: form.values,
-    then: (rules) => { mutate({ rules }); },
+    data: { rule: form.values, name: editing.name },
+    form: form,
+    then: (rules) => { mutate({ rules }); close(); },
   });
 
-  const save = () => {};
-  const add = () => {};
-
-  const conditionsAccess = !form.values.primary||!form.values.primaryKey;
+  const conditionsAccess = !form.values.primary||!form.values.primaryKey||!form.values.name;
   const actionsAccess = conditionsAccess||(form.values.conditions||[]).length<=0;
 
   const taken = (form.values.secondaries||[]).map(s=>s.primary);
@@ -113,18 +110,18 @@ export default function Editor( { editing, close }: { editing: Rule, close(): vo
   <Box>
     <Modal onDrop={upload} closeup cleanup />
     <RunModal rule={running} close={()=>setRunning(undefined)} test />
-    <Container label={<Head rightSection={
-      <SplitButton buttonDisabled={conditionsAccess} loading={loading} variant="light" onClick={editing?save:add} options={[
-        {  onClick:()=>editing?save():add(), label: editing?'Save':'Create', leftSection: <IconDeviceFloppy size={16} color={theme.colors['blue'][5]} />, disabled: conditionsAccess },
+    <Container label={<Head rightSection={<Group justify="space-between" >{error&&<Alert pt={6} pb={6} mt="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
+      <SplitButton buttonDisabled={conditionsAccess} loading={loading} variant="light" onClick={()=>creating?post():put()} options={[
+        {  onClick:()=>creating?post():put(), label: creating?'Create':'Save', leftSection: <IconDeviceFloppy size={16} color={theme.colors['blue'][5]} />, disabled: conditionsAccess },
         {  onClick:()=>setRunning(form.values), label: 'Test', leftSection: <IconTestPipe size={16} color={theme.colors['grape'][5]} />, disabled: conditionsAccess },
         {  onClick:()=>{toggleJSON(); setActiveTab('export');}, label: 'Export', leftSection: <IconPackageExport size={16} color={theme.colors.green[5]}  />, disabled: !form.values.name },
         {  onClick:()=>open(), label: 'Import', leftSection: <IconPackageImport size={16} color={theme.colors.orange[5]}  /> },
         {  onClick:()=>safeClose(), label: 'Cancel', leftSection: <IconX size={16} color={theme.colors['red'][5]} /> },
-      ]} >{editing?'Save':'Create'}</SplitButton>
+      ]} >{creating?'Create':'Save'}</SplitButton></Group>
       
     } ><Breadcrumbs>
       <Anchor onClick={()=>safeClose()} fz={26} fw="bold" >Rules</Anchor>
-      <Text fz={26} fw="bold" >Rule{editing?' - Edit':' - New'}</Text>
+      <Text fz={26} fw="bold" >Rule{creating?' - New':' - Edit'}</Text>
     </Breadcrumbs></Head>} >
     <Tabs value={activeTab} onChange={setActiveTab}>
       <Tabs.List>

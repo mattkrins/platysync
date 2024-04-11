@@ -1,8 +1,18 @@
 import { FastifyInstance } from "fastify";
 import { xError } from "../modules/common.js";
-import { Rules } from "../components/models.js";
+import { Rules, Rule } from "../components/models.js";
 
 export default async function (route: FastifyInstance) {
+  // Create Rule
+  route.post('/', async (request, reply) => {
+    const { schema_name } = request.params as { schema_name: string };
+    const { rule } = request.body as { rule: Rule };
+    try {
+        const rules = new Rules(schema_name);
+        rules.create(rule, true );
+        return rules.parse();
+    } catch (e) { throw new xError(e).send(reply); }
+  });
   // Copy Rule
   route.post('/copy', async (request, reply) => {
     const { schema_name } = request.params as { schema_name: string };
@@ -10,8 +20,19 @@ export default async function (route: FastifyInstance) {
     try {
         const rules = new Rules(schema_name);
         const rule = rules.get(name);
-        await rules.create({...rule, name: `${rule.name} (${rules.getAll().length})` }, true );
+        rules.create({...rule, name: `${rule.name} (${rules.getAll().length})` }, true );
         return rules.parse();
+    } catch (e) { throw new xError(e).send(reply); }
+  });
+  // Change Rule Order
+  route.put('/', async (request, reply) => {
+    const { schema_name } = request.params as { schema_name: string };
+    const { name, rule: changes } = request.body as { name: string, rule: Rule };
+    try {
+      const rules = new Rules(schema_name);
+      const rule = rules.get(name);
+      rule.mutate( changes );
+      return rules.parse();
     } catch (e) { throw new xError(e).send(reply); }
   });
   // Change Rule Order
@@ -24,7 +45,7 @@ export default async function (route: FastifyInstance) {
       return rules.parse();
     } catch (e) { throw new xError(e).send(reply); }
   });
-  // Change Rule Order
+  // Toogle Rule Status
   route.put('/toggle', async (request, reply) => {
     const { schema_name } = request.params as { schema_name: string };
     const { name } = request.body as { name: string };

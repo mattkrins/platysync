@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Grid, Group, Loader, Paper, Switch, rem, Text } from "@mantine/core";
+import { ActionIcon, Box, Button, Grid, Group, Loader, Paper, Switch, rem, Text, useMantineTheme, Tooltip, Divider } from "@mantine/core";
 import { IconCopy, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
 import Container from "../Common/Container";
 import Head from "../Common/Head";
@@ -9,33 +9,68 @@ import useAPI from "../../hooks/useAPI2";
 import RunModal from "./Run/Run";
 import { modals } from "@mantine/modals";
 import Editor from "./Editor/Editor";
+import { useDisclosure } from "@mantine/hooks";
+import { availableActions } from "../../modules/common";
+import providers from "../Connectors/providers";
+
+
+function RuleIcons({ actions }: { actions: Action[] }) {
+  const theme = useMantineTheme();
+  return (actions||[]).map((a, i)=>{
+    const action = availableActions.find(av=>av.id===a.name);
+    if (!action) return <></>;
+    return (
+    <Tooltip key={i} fz="xs" withArrow color={action.color?theme.colors[action.color][6]:undefined} label={a.name}>
+      <action.Icon color={action.color?theme.colors[action.color][6]:undefined} size={16} stroke={2} />
+    </Tooltip>)
+  })
+}
+
+
+function RuleConnectors({ item }: { item: Rule }) {
+  const theme = useMantineTheme();
+  const { connectors } = useContext(SchemaContext);
+  const providerMap = connectors.filter(c=>providers[c.id]&&([item.primary, ...item.secondaries.map(s=>s.primary)].includes(c.name))).map(c=>({...c, provider: providers[c.id] }))
+  return providerMap.map(c=><Tooltip key={c.name} fz="xs" withArrow color={c.provider.color?theme.colors[c.provider.color][6]:undefined} label={c.name}>
+    <c.provider.Icon color={c.provider.color?theme.colors[c.provider.color][6]:undefined} size={16} stroke={2} />
+  </Tooltip>)
+}
 
 interface ItemProps {
   provided: DraggableProvided;
   item: Rule, disabled?: boolean;
   loading?: boolean;
-  //error?: string;
   remove(): void;
   run(): void;
   toggle(): void;
   copy(): void;
   edit(): void;
 }
-function Item( { provided, item, disabled, loading, error, remove, toggle, run, copy, edit }: ItemProps ) {
+function Item( { provided, item, disabled, loading, remove, toggle, run, copy, edit }: ItemProps ) {
   return (
   <Paper mb="xs" p="xs" withBorder ref={provided.innerRef} {...provided.draggableProps}
   style={{ ...provided.draggableProps.style, cursor: loading ? "not-allowed" : undefined }}
   >
-      <Grid justify="space-between">
+      <Grid justify="space-between" align="center">
           <Grid.Col span={1} style={{ cursor: loading ? undefined : 'grab' }} {...provided.dragHandleProps} >
               <Group wrap="nowrap" justify="space-between" >
                   {loading?<Loader size="sm" />:<IconGripVertical stroke={1.5} />}
               </Group>
           </Grid.Col>
-          <Grid.Col span={3} c={disabled?"dimmed":error?"red":undefined}>
+          <Grid.Col span={3} c={disabled?"dimmed":undefined}>
               {item.name}
           </Grid.Col>
-          <Grid.Col span={4} c={disabled?"dimmed":undefined}><Group gap="xs">{item.name}</Group></Grid.Col>
+          <Grid.Col span={4}>
+            <Group gap={5}>
+              <RuleConnectors item={item} />
+              <Divider orientation="vertical" />
+              <RuleIcons actions={item.before_actions} />
+              {(item.before_actions||[]).length>0&&<Divider orientation="vertical" />}
+              <RuleIcons actions={item.actions} />
+              {(item.after_actions||[]).length>0&&<Divider orientation="vertical" />}
+              <RuleIcons actions={item.after_actions} />
+            </Group>
+          </Grid.Col>
           <Grid.Col span={3}>
               <Group gap="xs" justify="flex-end">
                 <Switch onClick={()=>toggle()} disabled={loading} checked={item.enabled} color="teal" />
@@ -60,6 +95,7 @@ export default function Rules() {
   const { name, rules, mutate } = useContext(SchemaContext);
   const [ running, setRunning ] = useState<Rule|undefined>(undefined);
   const [ editing, edit ] = useState<Rule|undefined>(undefined);
+  const [creating, { open, close }] = useDisclosure(false);
 
   const { put: reorder, loaders: l1, setLoaders } = useAPI<Rule[], { from: number, to: number }>({
     url: `/schema/${name}/rule/reorder`,
@@ -78,18 +114,19 @@ export default function Rules() {
 
   const { post: copy, loaders: l2 } = useAPI<Rule[]>({
     url: `/schema/${name}/rule/copy`,
-    then: (rules) => { mutate({ rules }); },
+    then: rules => { mutate({ rules }); },
   });
 
   const { del, loaders: l3 } = useAPI<Rule[]>({
     url: `/schema/${name}/rule`,
-    then: (rules) => { mutate({ rules }); },
+    check: o => { mutate({ rules: rules.filter(r=>r.name!==o.key) }); },
+    then: rules => { mutate({ rules }); },
   });
   
   const { put: toggle, loaders: l4 } = useAPI<Rule[]>({
     url: `/schema/${name}/rule/toggle`,
     check: o => { mutate({ rules: rules.map(r=>r.name===o.key?{...r, enabled: !r.enabled}:r) }); },
-    then: (rules) => { mutate({ rules }); },
+    then: rules => { mutate({ rules }); },
   });
 
   const loaders = { ...l1, ...l2, ...l3, ...l4 };
@@ -119,11 +156,12 @@ export default function Rules() {
       after_actions: [],
       config: {},
     } as unknown as Rule;
+    open();
     edit(initialValues);
   }
 
   return (
-    editing?<Editor editing={editing} close={()=>edit(undefined)} />:
+    editing?<Editor editing={editing} creating={creating} close={()=>{edit(undefined);close(); }} />:
     <Container label={<Head rightSection={<Button onClick={()=>add()} leftSection={<IconPlus size={16} />} variant="light">Add</Button>} >Rules</Head>} >
       <RunModal rule={running} close={()=>setRunning(undefined)} />
       {rules.length>0?
@@ -132,7 +170,7 @@ export default function Rules() {
                 <Grid justify="space-between">
                     <Grid.Col span={1}/>
                     <Grid.Col span={3}>Name</Grid.Col>
-                    <Grid.Col span={4}/>
+                    <Grid.Col span={4}>Actions</Grid.Col>
                     <Grid.Col span={3}/>
                 </Grid>
             </Paper>
