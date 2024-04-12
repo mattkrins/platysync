@@ -1,5 +1,5 @@
-import { ActionIcon, Badge, Button, Grid, Group, Paper, Switch, Tooltip, Text } from "@mantine/core";
-import { IconAlertCircle, IconCopy, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import { ActionIcon, Badge, Button, Grid, Group, Paper, Switch, Tooltip } from "@mantine/core";
+import { IconAlertCircle, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Container from "../Common/Container";
 import Head from "../Common/Head";
 import useAPI from "../../hooks/useAPI";
