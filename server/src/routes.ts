@@ -8,6 +8,7 @@ import schedule from './routes/schedule.js';
 import file from './routes/file.js';
 import { engine } from './components/engine.js';
 import { xError } from './modules/common.js';
+import user from './routes/user.js';
 const { getPrinters } = pdfPrinter;
 
 function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (route: FastifyInstance)=>Promise<void>|void, auth: boolean = true) {
@@ -23,6 +24,7 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
 
   addRoute(api, '/auth', auth, false );
   
+  addRoute(api, '/user', user );
   addRoute(api, '/schedule', schedule );
   addRoute(api, '/schema', schema );
   addRoute(api, '/schema/:schema_name/storage', file );

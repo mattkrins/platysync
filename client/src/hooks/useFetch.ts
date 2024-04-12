@@ -22,6 +22,8 @@ export interface Options<returnType = unknown, sendType = unknown> extends Axios
     key?: key;
     /** @type {string}: Append to URL. */
     append?: string;
+    /** @type {unknown} Fetch on variable change. */
+    monitor?: unknown;
     /** @param {sendType} data Mutate POST data before sending. */
     modify?(data: sendType): sendType;
     /** @param {Options} options Return true to halt fetch. */
@@ -120,6 +122,8 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
                     setErrors({[options.key]: JSON.stringify(data.validation.validation||data.validation) })} else {
                     setErrors(data.validation.validation||data.validation);
                 }
+            } else if (typeof options.key !== "undefined") {
+                setErrors(errors => ({ ...errors, [options.key as key]: message }));
             }
             if (!data.validation) setError(message);
             if (options.catch) options.catch(message, options, err, data.validation?data.validation.validation||data.validation:undefined);
@@ -133,6 +137,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         return deferred.promise as Promise<returnType>;
     }, [opt1]);
     useEffect(() => { if (opt1.fetch) fetch(); }, []);
+    useEffect(() => { if (typeof opt1.monitor !== "undefined") fetch(); }, [ opt1.monitor ]);
     const mutate = (mutation: {[k: string]: unknown}) => setData(data=>({...data, ...mutation}));
     return {
         fetch,

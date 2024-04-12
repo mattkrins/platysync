@@ -1,9 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AxiosStatic } from "axios";
 import { Schema } from '../components/models.js';
+import { FastifyRequest } from "fastify";
 
 export interface AxiosFix extends AxiosStatic {
   default: AxiosStatic;
+}
+
+export interface userReq extends FastifyRequest {
+  session?: Session;
+  user?: User;
 }
 
 export interface Condition {

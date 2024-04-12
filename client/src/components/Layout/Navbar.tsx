@@ -4,7 +4,6 @@ import classes from './Navbar.module.css';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Header from './Header';
 import { useContext, useEffect } from 'react';
-import useAPI from '../../hooks/useAPI';
 import SchemaContext from '../../providers/SchemaContext2';
 import NewSchema from './NewSchema';
 import AppContext from '../../providers/AppContext';
@@ -40,21 +39,13 @@ function Link( { link, active, onClick }: { link: Link, active?: boolean, onClic
 }
 
 export default function Navbar({ closeNav }: { closeNav(): void }) {
-  const { logout, username, version, nav, changeNav } = useContext(AppContext);
+  const { logout, username, group, version, nav, changeNav, schemas, creatingSchema, refreshSchemas } = useContext(AppContext);
   const {loadSchema, loading, loaders, ...schema} = useContext(SchemaContext);
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
   const [opened, { open, close }] = useDisclosure(false);
   const [showingStatus, { open: showStatus, close: closeStatus }] = useDisclosure(false);
 
-  const { data: schemas = [], loading: creating, fetch: refresh } = useAPI({
-      url: "/schema",
-      default: [],
-      preserve: true,
-      fetch: true,
-      mutate: (schemas: Schema[]) => schemas.map(s=>({label: s.name})),
-  });
-
-  useEffect(()=>{ refresh(); },[ schema.name ]);
+  useEffect(()=>{ if (version) refreshSchemas(); },[ schema.name ]);
 
   const navigate = (link: string) =>{ changeNav(link); if (isMobile) { closeNav(); } }
 
@@ -73,11 +64,11 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
       >
         <Center><Status resultant={false} /></Center>
       </Modal>}
-      {opened&&<NewSchema opened={opened} close={close} refresh={refresh} />}
+      {opened&&<NewSchema opened={opened} close={close} refresh={refreshSchemas} />}
       {!isMobile&&<Box className={`${classes.section} ${classes.header}`} ><Header version={version} /></Box>}
       <Box pt="xs" className={classes.section}>
         <Box className={classes.links}>
-          {commonLinks.map((link) => <Link key={link.label} onClick={()=>navigate(link.label)} active={nav===link.label} link={link} />)}
+          {commonLinks.filter(l=>l.label==="Users"?group==="admin":true).map((link) => <Link key={link.label} onClick={()=>navigate(link.label)} active={nav===link.label} link={link} />)}
         </Box>
       </Box>
       {schema.valid&&<Box pt="xs" className={classes.section}>
@@ -89,24 +80,24 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
         <Group className={classes.collectionsHeader} justify="space-between">
           <Text size="xs" fw={500} c="dimmed">Schemas</Text>
           <Tooltip label="Create schema" withArrow position="right">
-            <ActionIcon onClick={open} loading={creating} variant="default" size={18}>
+            <ActionIcon onClick={open} loading={creatingSchema} variant="default" size={18}>
               <IconPlus style={{ width: rem(12), height: rem(12) }} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
         </Group>
         <Box className={classes.links}>
-          {schemas.map((link) => {
-            const active = (schema.name)===link.label;
+          {schemas.map(name => {
+            const active = (schema.name)===name;
             return (
-            <Button key={link.label} fullWidth variant="subtle" size="xs"
+            <Button key={name} fullWidth variant="subtle" size="xs"
             styles={{ inner: { justifyContent: 'space-between' }, label: { fontWeight: 400 } }}
             classNames={{ root: classes.link }}
-            onClick={()=>active?undefined:loadSchema(link.label)}
-            loading={loaders[link.label]}
+            onClick={()=>active?undefined:loadSchema(name)}
+            loading={loaders[name]}
             disabled={loading}
             rightSection={active?<IconX onClick={()=>loadSchema(undefined)} style={{ width: rem(12), height: rem(12), cursor: 'pointer' }} stroke={1.5} />:undefined}
             data-active={active?true:undefined}
-            >{link.label}</Button>
+            >{name}</Button>
           )})}
         </Box>
       </Box>
@@ -150,7 +141,7 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
                 <IconUser style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 <div style={{ flex: 1 }}>
                   {!username?<Loader size="xs" type="dots" />:<Text size="sm" fw={500}>{username}</Text>}
-                  <Text c="dimmed" size="xs">administrator</Text>
+                  <Text c="dimmed" size="xs">{group}</Text>
                 </div>
                 <IconChevronRight style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
               </Group>

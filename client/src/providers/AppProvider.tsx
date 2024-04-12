@@ -14,6 +14,17 @@ export default function AppProvider({ children  }: PropsWithChildren) {
     const { data, get, reset, loading: loggingIn } = useAPI<session>({ url: `/auth`, noAuth: true });
     useEffect(()=>{ if (session) { get({headers: { Authorization : `Bearer ${session}` }}); } else { reset(); } }, [ session ]);
     const { del, loading: loggingOut } = useAPI({ url: `/auth` });
+    const { data: schemas, loading: creatingSchema, fetch: refreshSchemas } = useAPI<string[]>({
+        url: "/schema",
+        default: [],
+        preserve: true,
+        noAuth: true,
+        before: o => ({...o, headers: { Authorization : `Bearer ${session}` }}),
+        mutate: (schemas: Schema[]) => schemas.map(s=>(s.name)),
+    });
+
+    useEffect(()=>{ if (data) { refreshSchemas(); } }, [ data ]);
+
     const logout = () => {
         del();
         clearSession();
@@ -28,6 +39,9 @@ export default function AppProvider({ children  }: PropsWithChildren) {
             changeNav,
             nav,
             session,
+            schemas,
+            creatingSchema,
+            refreshSchemas
         }}>{children}</AppContext.Provider>
     );
 }

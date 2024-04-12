@@ -97,7 +97,17 @@ interface schedule {
     index: number;
     schema: string;
     rules: string[];
-    cron: string;
-    monitor: string;
+    type: string;
+    value: string;
+    enabled: boolean;
+    error?: boolean;
+}
+
+interface user {
+    username: string;
+    stats: boolean;
+    createdAt: string;
+    updatedAt: string;
+    group: string;
     enabled: boolean;
 }

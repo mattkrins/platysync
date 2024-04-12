@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea, Modal, Divider } from "@mantine/core";
+import { ActionIcon, Box, Grid, Group, Select, TextInput, Text, Switch, Textarea, Modal, Fieldset } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconGripVertical, IconKey, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../Common/SelectConnector";
@@ -36,9 +36,11 @@ function Config( { opened, close, form  }: { opened?: string, close: ()=>void, f
             {...form.getInputProps(`config.${opened}.oto`, { type: 'checkbox' })} />
             <Switch label="Case Sensitive" mb="xs" description={<Text inline size="xs" c="orange">Warning: Setting this on any secondary also effects the primary.</Text>}
             {...form.getInputProps(`config.${opened}.case`, { type: 'checkbox' })} />
-            {connector.provider.Config&&<Divider my="xs" label={`${connector.provider.id} options`} labelPosition="left" />}
             </>}
-            {(opened&&connector.provider.Config)&&<connector.provider.Config form={form} name={opened} />}
+            {(opened&&connector.provider.Config)&&
+            <Fieldset legend={`${connector.provider.id} options`}>
+                <connector.provider.Config form={form} name={opened} />
+            </Fieldset>}
             </>}
         </Modal>
     )

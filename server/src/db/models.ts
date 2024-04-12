@@ -7,6 +7,8 @@ export class User extends Model {
     declare password: string;
     declare iv: string;
     declare stats: boolean;
+    declare enabled: boolean;
+    declare group: string;
     declare createdAt: string;
     declare updatedAt: string;
 }
@@ -23,11 +25,12 @@ export class Schedule extends Model {
     declare index: number;
     declare schema: string;
     declare rules: string;
-    declare cron: string;
-    declare monitor: string;
+    declare type: 'cron'|'monitor';
+    declare value: string;
     declare enabled: boolean;
     declare createdAt: string;
     declare expiresAt: string;
+    declare error?: string;
 }
 
 export class Doc extends Model {
@@ -44,6 +47,8 @@ export default function models( sequelize: Sequelize ) {
         password: { type: DT.STRING, allowNull: false, },
         iv: { type: DT.STRING },
         stats: { type: DT.BOOLEAN, allowNull: true, },
+        enabled: { type: DT.BOOLEAN, allowNull: false, defaultValue: true, },
+        group: { type: DT.STRING, allowNull: false, defaultValue: 'user', },
     }, { sequelize, modelName: 'User', } );
     Session.init( {
         id: { type: DT.STRING, defaultValue: DT.UUIDV1, primaryKey: true },
@@ -54,8 +59,8 @@ export default function models( sequelize: Sequelize ) {
         index: { type: DT.INTEGER, allowNull: false, defaultValue: 0 },
         schema: { type: DT.STRING, allowNull: false },
         rules: { type: DT.STRING, allowNull: true },
-        cron: { type: DT.STRING, allowNull: true },
-        monitor: { type: DT.STRING, allowNull: true },
+        type: { type: DT.STRING, allowNull: false, defaultValue: 'cron', validate: { isIn: [['cron', 'monitor']] } },
+        value: { type: DT.STRING, allowNull: false, defaultValue: '0 * * * MON-FRI' },
         enabled: { type: DT.BOOLEAN, allowNull: false, defaultValue: false },
     }, { sequelize, modelName: 'Schedule', updatedAt: false } );
     Schedule.beforeValidate (async (row) => {

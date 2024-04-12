@@ -2,6 +2,7 @@ import { createContext } from "react";
 
 export interface session {
     username?: string;
+    group?: string;
     id?: string;
     expires?: Date;
     version?: string;
@@ -15,6 +16,9 @@ export interface Props extends session {
     session?: string;
     loggingIn: boolean;
     loggingOut: boolean;
+    schemas: string[];
+    creatingSchema: boolean;
+    refreshSchemas: () => void;
 }
 
 // LINK: ./AppProvider.tsx
@@ -24,5 +28,8 @@ const AppContext = createContext<Props>({
     changeNav: () => void {},
     loggingIn: false,
     loggingOut: false,
+    schemas: [],
+    creatingSchema: false,
+    refreshSchemas: () => void {},
 });
 export default AppContext;
