@@ -9,6 +9,7 @@ import file from './routes/file.js';
 import { engine } from './components/engine.js';
 import { xError } from './modules/common.js';
 import user from './routes/user.js';
+import { Schedule, User, Session } from './db/models.js';
 const { getPrinters } = pdfPrinter;
 
 function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (route: FastifyInstance)=>Promise<void>|void, auth: boolean = true) {
@@ -33,8 +34,16 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
   addRoute(api, '/schema/:schema_name/engine', engine );
 
   addRoute(api, undefined, (route: FastifyInstance) => {
-    route.get('/fix', async (request, reply) => {
+    route.delete('/reset_cache', async (request, reply) => {
       try { return await schemas.load(); }
+      catch (e) { new xError(e).send(reply); }
+    });
+    route.delete('/reset_all', async (request, reply) => {
+      try {
+        await Schedule.truncate();
+        await User.truncate();
+        await Session.truncate();
+      }
       catch (e) { new xError(e).send(reply); }
     });
     route.get('/printers', async (request, reply) => {

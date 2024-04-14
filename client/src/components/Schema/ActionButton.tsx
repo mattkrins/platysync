@@ -54,7 +54,7 @@ export default function ActionButton({ save, saving, form, del }: Props) {
             Are you sure you want to delete this schema? This action is destructive and cannot be reversed.
         </Text>
         ),
-        labels: { confirm: 'Delete schema', cancel: "No don't delete it" },
+        labels: { confirm: 'Delete schema', cancel: "No, don't delete it" },
         confirmProps: { color: 'red' },
         onConfirm: () => del(),
     });

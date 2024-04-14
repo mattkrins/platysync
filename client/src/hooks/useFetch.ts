@@ -108,7 +108,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
             setLoading(true);
             const response = await axiosClient(options);
             setResponse(response);
-            let data = (response.data || response) as returnType;
+            let data = (typeof response.data === "undefined" ? response : response.data) as returnType;
             if (options.mutate) data = options.mutate(data) as returnType;
             setData(data);
             if (options.then) options.then(data, options, options.key);
