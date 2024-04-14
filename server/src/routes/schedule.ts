@@ -21,7 +21,7 @@ function validate( body: { schema: string, type: string, value: string } ): Sche
 const errors: { [k: string]:  string } = {};
 const scheduled: { [k: string]:  Cron } = {};
 const watching: { [k: string]:  fs.FSWatcher } = {};
-async function stop(schedule: Schedule) {
+export async function stop(schedule: Schedule) {
   history.debug({schema: schedule.schema, schedule: schedule.id, message: 'Stopping Schedule.'});
   try {
     const s = await Schedule.findOne({where: { id: schedule.id } });

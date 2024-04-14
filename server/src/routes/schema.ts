@@ -1,6 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { Schemas, Schema } from "../components/models.js";
 import { xError } from "../modules/common.js";
+import { Schedule } from "../db/models.js";
+import { stop } from "./schedule.js";
 
 export const schemas = new Schemas();
 
@@ -28,7 +30,14 @@ export default async function (route: FastifyInstance) {
   // Delete Schema
   route.delete('/:name', async (request, reply) => {
       const { name } = request.params as { name: string };
-      try { return schemas.get(name).destroy(); }
+      try {
+        const schedules = await Schedule.findAll({ where: { schema: name } });
+        for (const schedule of schedules) {
+          if (schedule.enabled) await stop(schedule);
+          await schedule.destroy();
+        }
+        return schemas.get(name).destroy();
+      }
       catch (e) { new xError(e).send(reply); }
   });
   // Get Connector Headers

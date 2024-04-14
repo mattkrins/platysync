@@ -13,6 +13,18 @@ import providers, { provider } from './providers';
 import { useDisclosure } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 
+function findDependencies(schema: Schema, value: string) {
+    for (const rule of (schema.rules||[])) {
+        if (rule.primary === value) return `schema '${schema.name}'`;
+        for (const secondary of (rule.secondaries||[])) {
+            if (secondary.primary === value) return `schema '${schema.name}'`;
+        }
+    }
+    for (const connector of (schema.connectors||[])) {
+        if (connector.proxy === value) return `connector '${connector.name}'`;
+    }
+}
+
 function NewModal({ opened, close, edit }: { opened: boolean, close(): void, edit(c?: Connector): void }) {
     const theme = useMantineTheme();
     const add = (provider: provider)=> edit({...provider.initialValues, id: provider.id, name: provider.id });
@@ -87,7 +99,7 @@ function Item( { provided, item, disabled, loading, error, remove, test, edit, c
 }
 
 export default function Connectors() {
-    const { name, connectors, mutate } = useContext(SchemaContext);
+    const { name, connectors, mutate, initialValues } = useContext(SchemaContext);
     const [ editing, edit ] = useState<Connector|undefined>(undefined);
     const [opened, { open, close }] = useDisclosure(false);
 
@@ -112,22 +124,26 @@ export default function Connectors() {
         .finally(()=> setLoaders(l=>({...l, [copy[from].name]: undefined, [copy[to].name]: undefined })) );
     }
 
-    const remove = (name: string) =>
-    modals.openConfirmModal({
-        title: 'Permanently Delete Connector',
-        centered: true,
-        children: (
-        <Text size="sm">
-            Are you sure you want to delete {name}? This action is destructive and cannot be reversed.
-        </Text>
-        ),
-        labels: { confirm: 'Delete connector', cancel: "No don't delete it" },
-        confirmProps: { color: 'red' },
-        onConfirm: () => {
-            mutate({ connectors: connectors.filter(c=>c.name!==name) });
-            del({ data: { name }, key: name });
-        },
-    });
+    const remove = (name: string) => {
+        const location = findDependencies(initialValues, name);
+        modals.openConfirmModal({
+            title: location?'Delete In-Use Connector':'Delete Connector',
+            centered: true,
+            children: (<Box>
+            {location&&<Text fw="bold" c="red" size="sm" mb="xs" >Warning: Usage detected in {location}.</Text>}
+            <Text size="sm">
+                Are you sure you want to delete this connector? This action is destructive and cannot be reversed.
+            </Text>
+            </Box>
+            ),
+            labels: { confirm: 'Delete connector', cancel: "No don't delete it" },
+            confirmProps: { color: 'red' },
+            onConfirm: () => {
+                mutate({ connectors: connectors.filter(c=>c.name!==name) });
+                del({ data: { name }, key: name });
+            },
+        });
+    }
     
     const test = (name: string) => () => {
         put({append:'/test', data: { name }, key: name }).then(()=>{

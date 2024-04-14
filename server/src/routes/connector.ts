@@ -20,7 +20,7 @@ export default async function (route: FastifyInstance) {
         try {
             const connnectors = new Connectors(schema_name);
             const connector = connnectors.get(name);
-            await connnectors.create({...connector, name: `${connector.name} (${connnectors.getAll().length})` }, true, true );
+            await connnectors.create({...connector, name: `${connector.name}_${connnectors.getAll().length}` }, true, true );
             return connnectors.parse();
         } catch (e) { throw new xError(e).send(reply); }
     });

@@ -11,6 +11,48 @@ import { extIcons } from "../../modules/common";
 import { notifications } from "@mantine/notifications";
 import useImporter from "../../hooks/useImporter";
 import { useForm } from "@mantine/form";
+import { modals } from "@mantine/modals";
+
+function hasHandle(haystack: string = "", needle: string){ return haystack.includes(`$file.${needle}`) || haystack.includes(`$file/${needle}`); }
+
+function findDependencies(schema: Schema, value: string) {
+    for (const connector of (schema.connectors||[])) {
+        if (connector.id!=="csv") continue;
+        if (hasHandle(connector.path as string, value)) return `connector '${connector.name}' (path)`;
+    }
+    for (const rule of (schema.rules||[])) {
+        if (hasHandle(rule.display, value)) return `rule ${rule.name}, display name`;
+        for (const condition of (rule.conditions||[])) {
+            if (hasHandle(condition.key, value)) return `rule ${rule.name}, condition key`;
+            if (hasHandle(condition.value, value)) return `rule ${rule.name}, condition value`;
+        }
+        const searchActions = (actions: Action[] = []) => {
+            for (const action of actions) {
+                for (const key of Object.keys(action)) {
+                    if (!action[key]) continue;
+                    if (typeof action[key] === "string") {
+                        if (hasHandle(action[key] as string, value)) return `rule ${rule.name}, action, ${key}`;
+                    } else if ( typeof action[key] === "object" && (action[key] as object).constructor.name == "Array") {
+                        const array = action[key] as Record<string, unknown>;
+                        for (const k of Object.keys(array)) {
+                            const v = array[k];
+                            if (typeof v === "string" && hasHandle(v as string, value)) return `rule ${rule.name}, action, ${key}, ${k}`;
+                            if ( typeof v === "object"){
+                                for (const kk of Object.keys(v as object)) {
+                                    const vv = (v as {[k: string]: unknown})[kk];
+                                    if (typeof vv === "string" && hasHandle(vv as string, value)) return `rule ${rule.name}, action, ${key}, ${k}, ${kk}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        const found = searchActions(rule.before_actions) || searchActions(rule.actions) || searchActions(rule.after_actions);
+        if (found) return found;
+    }
+
+}
 
 function Edit( { editing, setData }: { editing: Doc, close(): void, setData: (data: React.SetStateAction<Doc[]>) => void} ) {
     const { name } = useContext(SchemaContext);
@@ -39,7 +81,7 @@ interface ItemProps {
     item: Doc, disabled?: boolean;
     loading?: boolean;
     error?: string;
-    remove: (id: string)=>()=> void;
+    remove(): void;
     update: (id: string, name: string) => void;
     save: (doc: Doc)=> void;
     edit(): void;
@@ -68,7 +110,7 @@ function Item( { provided, item, disabled, loading, error, remove, edit }: ItemP
                     <ActionIcon onClick={()=>edit()} disabled={disabled} variant="subtle" color="orange">
                         <IconPencil size={16} stroke={1.5} />
                     </ActionIcon>
-                    <ActionIcon onClick={remove(item.id)} disabled={disabled} variant="subtle" color="red">
+                    <ActionIcon onClick={()=>remove()} disabled={disabled} variant="subtle" color="red">
                         <IconTrash size={16} stroke={1.5} />
                     </ActionIcon>
                 </Group>
@@ -79,7 +121,7 @@ function Item( { provided, item, disabled, loading, error, remove, edit }: ItemP
 }
 
 export default function Files() {
-    const { name } = useContext(SchemaContext);
+    const { name, initialValues } = useContext(SchemaContext);
     const { Modal: ModalP, open } = useImporter();
     const [ editing, edit ] = useState<Doc|undefined>(undefined);
     const { data, setData, loading, loaders, del, post, put, setLoaders, errors } = useAPI<Doc[]>({
@@ -112,8 +154,25 @@ export default function Files() {
         setLoaders(l=>({...l, [docs[from].id]: true, [docs[to].id]: true }));
         put({data: {from, to}, append: `/reorder` }).finally(()=> setLoaders(l=>({...l, [docs[from].id]: undefined, [docs[to].id]: undefined })) );
     }
-    const remove = (id: string) => () => {
-        del({data: { id }, key: id})
+    const remove = (doc: Doc) => {
+        const location = findDependencies(initialValues, doc.name);
+        location ?
+        modals.openConfirmModal({
+            title: 'Delete In-Use File',
+            centered: true,
+            children: (<Box>
+            {location&&<Text fw="bold" c="red" size="sm" mb="xs" >Warning: Usage detected in {location}.</Text>}
+            <Text size="sm">
+                Are you sure you want to delete this file?
+            </Text>
+            </Box>
+            ),
+            labels: { confirm: 'Delete file', cancel: "No don't delete it" },
+            confirmProps: { color: 'red' },
+            onConfirm: () => {
+                del({data: { id: doc.id }, key: doc.id});
+            },
+        }) : del({data: { id: doc.id }, key: doc.id});
     }
     const upload = (file: File|null) => {
         if (!file) return;
@@ -157,7 +216,7 @@ export default function Files() {
                             disabled={loading}
                             loading={loading}
                             error={error}
-                            remove={remove}
+                            remove={()=>remove(item)}
                             update={update}
                             save={save}
                             edit={()=>edit(item)} />
