@@ -109,5 +109,6 @@ interface user {
     createdAt: string;
     updatedAt: string;
     group: string;
+    password?: string;
     enabled: boolean;
 }

@@ -21,6 +21,7 @@ export default function AppProvider({ children  }: PropsWithChildren) {
         noAuth: true,
         before: o => ({...o, headers: { Authorization : `Bearer ${session}` }}),
         mutate: (schemas: Schema[]) => schemas.map(s=>(s.name)),
+        catch: (_1, _2, error) => { if (((error.response||{}).status||400) === 401) logout(); },
     });
 
     useEffect(()=>{ if (data) { refreshSchemas(); } }, [ data ]);

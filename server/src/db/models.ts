@@ -46,7 +46,7 @@ export default function models( sequelize: Sequelize ) {
         username: { type: DT.STRING, primaryKey: true, },
         password: { type: DT.STRING, allowNull: false, },
         iv: { type: DT.STRING },
-        stats: { type: DT.BOOLEAN, allowNull: true, },
+        stats: { type: DT.BOOLEAN, allowNull: false, defaultValue: false, },
         enabled: { type: DT.BOOLEAN, allowNull: false, defaultValue: true, },
         group: { type: DT.STRING, allowNull: false, defaultValue: 'user', },
     }, { sequelize, modelName: 'User', } );
@@ -82,6 +82,14 @@ export default function models( sequelize: Sequelize ) {
         const { encrypted, iv } = await encrypt(user.password);
         user.password = encrypted;
         user.iv = iv;
+    });
+    User.beforeUpdate (async (user) => {
+        if (user.changed('password')) {
+            if (user.password == null) return;
+            const { encrypted, iv } = await encrypt(user.password);
+            user.password = encrypted;
+            user.iv = iv;
+        }
     });
     Doc.init( {
         id: { type: DT.STRING, defaultValue: DT.UUIDV1, primaryKey: true },
