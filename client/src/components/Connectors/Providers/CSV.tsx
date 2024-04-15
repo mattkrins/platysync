@@ -1,5 +1,5 @@
 import { TextInput } from "@mantine/core";
-import { IconTag, IconFolder } from "@tabler/icons-react";
+import { IconTag, IconFile } from "@tabler/icons-react";
 import { UseFormReturnType } from '@mantine/form';
 import useTemplater from "../../../hooks/useTemplater";
 
@@ -16,7 +16,7 @@ export default function CSV( { form }: { form: UseFormReturnType<Record<string, 
         />
         <TextInput
             label="File Path" mt="md"
-            leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+            leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="C:/folder/input.csv"
             withAsterisk
             {...templateProps(form, 'path')}
