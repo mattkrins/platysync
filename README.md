@@ -33,6 +33,14 @@ Some of the features PlatySync provides are:
 You can download the most recent version of PlatySync from [GitHub releases](https://github.com/mattkrins/platysync/releases).  
 Learn how to use PlatySync by following the [documentation](https://github.com/mattkrins/platysync/wiki).
 
+## 🚀 Install and run
+
+1. Ensure you are running [Node.js](https://nodejs.org/en/download) v18.18.0 or higher.
+2. Download the most recent version of PlatySync from the [releases](https://github.com/mattkrins/platysync/releases) page.
+3. Extract and install dependencies with ``npm install``
+4. Start the software with with ``npm start``\
+For additional instructions, refer to the [documentation](https://github.com/mattkrins/platysync/wiki).
+
 ## 📚 Everything else
 
 ### 📙 Contributing
@@ -43,6 +51,16 @@ You can find a contribution guide in the [wiki](https://github.com/mattkrins/pla
 ### 🛠️ Building
 
 To build PlatySync, you can follow the [documentation](https://github.com/mattkrins/platysync/wiki/Developing-for-CDAPP).
+
+### 📦 npm scripts
+
+* ``npm install`` Installs dependencies.
+* ``npm start`` Starts PlatySync.
+* ``npm run service-install`` Install as a windows service.
+* ``npm run service-start`` Start windows service.
+* ``npm run service-stop`` Stop windows service.
+* ``npm run service-uninstall`` Uninstall windows service.
+* ``npm run upgrade`` Run after after updating version.
 
 ### 📄 Documentation
 

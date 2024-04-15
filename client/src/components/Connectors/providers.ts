@@ -1,11 +1,12 @@
 import { UseFormReturnType, hasLength, isNotEmpty } from "@mantine/form";
-import { TablerIconsProps, IconFileTypeCsv, IconBinaryTree2, IconSchool, IconNetwork } from "@tabler/icons-react";
+import { TablerIconsProps, IconFileTypeCsv, IconBinaryTree2, IconSchool, IconNetwork, IconFolder } from "@tabler/icons-react";
 import CSV from "./Providers/CSV";
 import LDAP from "./Providers/LDAP";
 import STMC from "./Providers/STMC";
 import PROXY from "./Providers/PROXY";
 import LDAPConfig from "../Rules/Editor/Providers/LDAP";
 import STMCConfig from "../Rules/Editor/Providers/STMC";
+import FOLDER from "./Providers/FOLDER";
 
 export interface provider {
     id: string;
@@ -77,6 +78,21 @@ const providers: {
             username: isNotEmpty('Username can not be empty.'),
             password: isNotEmpty('Password can not be empty.'),
             school: isNotEmpty('School ID can not be empty.'),
+        },
+    },
+    folder: {
+        id: 'folder',
+        name: "System Folder",
+        color: 'lime',
+        Icon: IconFolder,
+        Options: FOLDER,
+        initialValues: {
+            name: '',
+            path: '',
+        },
+        validation: {
+            name: isNotEmpty('Name can not be empty.'),
+            path: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
         },
     },
     proxy: {

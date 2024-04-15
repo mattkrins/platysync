@@ -1,5 +1,4 @@
 import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification, List } from '@mantine/core'
-import { action } from './Evaluate'
 import Concealer from '../../Common/Concealer';
 import { IconAlertTriangle, IconHandStop, IconX } from '@tabler/icons-react';
 import classes from '../../../Theme.module.css';
