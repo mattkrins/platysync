@@ -32,7 +32,7 @@ export default async function ({ action, template, execute, data }: props) {
             const key = fieldNameParts[0]; // id,name,etc.
             let type = "text";
             if (fieldNameParts.length > 0) type = fieldNameParts[1]; // text,qr,etc.
-            const value = Handlebars.compile(key)(template);
+            const value = compile(template, key);
             switch(type) {
                 case "qr":{
                   const button = form.getButton(fieldName);

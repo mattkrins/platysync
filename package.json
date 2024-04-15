@@ -25,6 +25,7 @@
     "jsdom": "^23.2.0",
     "keytar": "^7.9.0",
     "ldapjs": "^3.0.7",
+    "mime": "^4.0.1",
     "move-file": "^3.1.0",
     "node-html-parser": "^6.1.12",
     "papaparse": "^5.4.1",

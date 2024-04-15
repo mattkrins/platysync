@@ -76,15 +76,17 @@ export interface PROXYOptions extends Provider {
     name: string;
     username?: string;
     password?: string|Hash;
+    url?: URL|string;
 }
 export class PROXY extends ProviderBase {
     private schema: Schema;
     public name: string;
-    public url?: URL;
+    public url?: URL|string;
     constructor(options: PROXYOptions) {
         super(options);
         this.schema = options.schema;
         this.name = options.name;
+        this.url = options.url;
     }
     async validate(): Promise<true> {
         if (!this.schema) throw new xError('Schema can not be empty.');

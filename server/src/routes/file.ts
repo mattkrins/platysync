@@ -4,6 +4,7 @@ import { Doc } from "../db/models.js";
 import multer from 'fastify-multer';
 import * as fs from 'fs';
 import { xError } from "../modules/common.js";
+import mime from 'mime';
 
 export default async function (route: FastifyInstance) {
   const clean = /[^\w\s]/g;
@@ -11,6 +12,20 @@ export default async function (route: FastifyInstance) {
   route.get('/', async (request, reply) => {
     const { schema_name } = request.params as { schema_name: string };
     try { return await Doc.findAll({where: { schema: schema_name }}); }
+    catch (e) { new xError(e).send(reply); }
+  });
+  // Download File
+  route.get('/:id/:bearer', async (request, reply) => {
+    const { schema_name, id } = request.params as { schema_name: string, id: string };
+    try {
+      const doc = await Doc.findOne({where: { id, schema: schema_name }});
+      if (!doc) throw new xError("Doc not found.", id, 404 );
+      const path = `${paths.storage}/${schema_name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
+      if (!fs.existsSync(path)) throw new xError("Doc not found on system.", id, 404 );
+      const mime_type = mime.getType(path)
+      const bufferIndexHtml = fs.readFileSync(path);
+      reply.type(mime_type||'text/txt').send(bufferIndexHtml);
+    }
     catch (e) { new xError(e).send(reply); }
   });
   const storage = multer.memoryStorage();
@@ -38,9 +53,6 @@ export default async function (route: FastifyInstance) {
     try {
       const doc = await Doc.findOne({where: { id, schema: schema_name }});
       if (!doc) throw new xError("Doc not found.", id, 404 );
-      //const schema = getSchema(schema_name, reply); //FIXME
-      //const dependencies = findDependencies(schema, doc.name, true, true);
-      //if (dependencies) throw new xError(`Found references to file '${doc.name}' in '${dependencies}'.`, id, 400 );
       const path = `${paths.storage}/${schema_name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
       if (fs.existsSync(path)) fs.rmSync(path);
       await doc.destroy();

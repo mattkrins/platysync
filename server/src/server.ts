@@ -41,7 +41,9 @@ export const history = winston.createLogger({
 });
 
 
-export const server: FastifyInstance = Fastify({}).withTypeProvider<JsonSchemaToTsProvider>();
+export const server: FastifyInstance = Fastify({
+  maxParamLength: 1000,
+}).withTypeProvider<JsonSchemaToTsProvider>();
 await database(path);
 await server.register(cors, {
   origin: "*"

@@ -1,5 +1,5 @@
 import { Box, Breadcrumbs, Anchor, Tabs, Group, Button, JsonInput, useMantineTheme, Text, Alert } from "@mantine/core";
-import { IconDeviceFloppy, IconTestPipe, IconPackageExport, IconPackageImport, IconX, IconSettings, IconFilter, IconRun, IconAlignLeft, IconAlertCircle } from "@tabler/icons-react";
+import { IconDeviceFloppy, IconTestPipe, IconPackageExport, IconPackageImport, IconX, IconSettings, IconFilter, IconRun, IconAlignLeft, IconAlertCircle, IconDownload } from "@tabler/icons-react";
 import Container from "../../Common/Container";
 import Head from "../../Common/Head";
 import SplitButton from "../../Common/SplitButton";
@@ -135,7 +135,7 @@ export default function Editor( { editing, close, creating }: { editing: Rule, c
       <Tabs.Panel value="conditions"><Conditions form={form} allow={sources} /></Tabs.Panel>
       <Tabs.Panel value="actions"><Actions form={form} allow={sources} templates={templates} /></Tabs.Panel>
       {showJSON&&<Tabs.Panel value="export" p="xs" >
-        <Group justify="right" ><Button variant="light" size="xs" leftSection={<IconDeviceFloppy size={16}/>} onClick={()=>exportJSON(form.values, `${form.values.name}.json`)} >Save</Button></Group>
+        <Group justify="right" ><Button variant="light" size="xs" leftSection={<IconDownload size={16}/>} onClick={()=>exportJSON(form.values, `${form.values.name}.json`)} >Download</Button></Group>
         <JsonInput mt="xs" variant="filled" autosize minRows={4} readOnly value={JSON.stringify(form.values, null, 2)} />
       </Tabs.Panel>}
     </Tabs>

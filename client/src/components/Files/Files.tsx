@@ -2,7 +2,7 @@ import Container from "../Common/Container";
 import Head from "../Common/Head";
 import { ActionIcon, Badge, Box, Button, Grid, Group, Loader, LoadingOverlay, Paper, TextInput, Text, Tooltip, Modal, Alert } from '@mantine/core';
 import { DragDropContext, Droppable, Draggable, DraggableProvided } from '@hello-pangea/dnd';
-import { IconAlertCircle, IconGripVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconAlertCircle, IconDownload, IconGripVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import useAPI from "../../hooks/useAPI";
 import CopyIcon from "../Common/CopyIcon";
 import { useContext, useState } from "react";
@@ -12,6 +12,7 @@ import { notifications } from "@mantine/notifications";
 import useImporter from "../../hooks/useImporter";
 import { useForm } from "@mantine/form";
 import { modals } from "@mantine/modals";
+import AppContext from "../../providers/AppContext";
 
 function hasHandle(haystack: string = "", needle: string){ return haystack.includes(`$file.${needle}`) || haystack.includes(`$file/${needle}`); }
 
@@ -85,8 +86,9 @@ interface ItemProps {
     update: (id: string, name: string) => void;
     save: (doc: Doc)=> void;
     edit(): void;
+    download(): void;
 }
-function Item( { provided, item, disabled, loading, error, remove, edit }: ItemProps ) {
+function Item( { provided, item, disabled, loading, error, remove, edit, download }: ItemProps ) {
     const Icon = extIcons[item.ext];
     return (
     <Paper mb="xs" p="xs" withBorder ref={provided.innerRef} {...provided.draggableProps}
@@ -107,6 +109,9 @@ function Item( { provided, item, disabled, loading, error, remove, edit }: ItemP
             <Grid.Col span={2}>
                 <Group gap="xs" justify="flex-end">
                     {error&&<Tooltip withArrow label={error} w={420} multiline position="top-end" color="red" ><IconAlertCircle size={16} color="red" /></Tooltip>}
+                    <ActionIcon onClick={()=>download()} disabled={disabled} variant="subtle" color="green">
+                        <IconDownload size={16} stroke={1.5} />
+                    </ActionIcon>
                     <ActionIcon onClick={()=>edit()} disabled={disabled} variant="subtle" color="orange">
                         <IconPencil size={16} stroke={1.5} />
                     </ActionIcon>
@@ -122,6 +127,7 @@ function Item( { provided, item, disabled, loading, error, remove, edit }: ItemP
 
 export default function Files() {
     const { name, initialValues } = useContext(SchemaContext);
+    const { session } = useContext(AppContext);
     const { Modal: ModalP, open } = useImporter();
     const [ editing, edit ] = useState<Doc|undefined>(undefined);
     const { data, setData, loading, loaders, del, post, put, setLoaders, errors } = useAPI<Doc[]>({
@@ -182,6 +188,12 @@ export default function Files() {
         post({data, key: String(docs.length), headers: { 'Content-Type': 'multipart/form-data' }});
     }
 
+    const download = (doc: Doc) => {
+        const url = new URL(window.location.href);
+        //window.open(`http://${url.hostname}:2327/api/v1/schema/${name}/storage/${session}`, "_blank");
+        window.open(`http://${url.hostname}:2327/api/v1/schema/${name}/storage/${doc.id}/${session}`, "_blank");
+    }
+
     return (
     <Container label={<Head rightSection={<Button leftSection={<IconPlus size={16} />} loading={loading} onClick={open} variant="light">Add</Button>} >File Manager</Head>} >
         <ModalP onDrop={upload} closeup cleanup />
@@ -219,7 +231,9 @@ export default function Files() {
                             remove={()=>remove(item)}
                             update={update}
                             save={save}
-                            edit={()=>edit(item)} />
+                            edit={()=>edit(item)}
+                            download={()=>download(item)}
+                            />
                         )}
                         </Draggable>
                     )})}

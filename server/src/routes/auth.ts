@@ -23,7 +23,10 @@ export async function useAuth(route: FastifyInstance){
 
 async function authed(request: FastifyRequest){
     const Bearer = ((request.headers||{}).authorization||"").trim().split("Bearer ");
-    if (Bearer && Bearer[1]) return await Session.findOne({where: { id: Bearer[1] }});
+    const { bearer: bearer1 } = (request.query||{}) as { bearer?: string };
+    const { bearer: bearer2 } = (request.params||{}) as { bearer?: string };
+    const id = (Bearer && Bearer[1]) || bearer1 || bearer2;
+    if (id) return await Session.findOne({where: { id }});
     return null;
 }
 

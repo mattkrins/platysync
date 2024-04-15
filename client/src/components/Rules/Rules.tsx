@@ -1,5 +1,5 @@
 import { ActionIcon, Box, Button, Grid, Group, Loader, Paper, Switch, rem, Text, useMantineTheme, Tooltip, Divider } from "@mantine/core";
-import { IconCopy, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconCopy, IconGripVertical, IconInfoCircle, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
 import Container from "../Common/Container";
 import Head from "../Common/Head";
 import { useContext, useState } from "react";
@@ -51,16 +51,21 @@ function Item( { provided, item, disabled, loading, remove, toggle, run, copy, e
   <Paper mb="xs" p="xs" withBorder ref={provided.innerRef} {...provided.draggableProps}
   style={{ ...provided.draggableProps.style, cursor: loading ? "not-allowed" : undefined }}
   >
-      <Grid justify="space-between" align="center">
+      <Grid columns={20} justify="space-between" align="center">
           <Grid.Col span={1} style={{ cursor: loading ? undefined : 'grab' }} {...provided.dragHandleProps} >
               <Group wrap="nowrap" justify="space-between" >
-                  {loading?<Loader size="sm" />:<IconGripVertical stroke={1.5} />}
+                {loading?<Loader size="sm" />:<IconGripVertical stroke={1.5} />}
               </Group>
           </Grid.Col>
-          <Grid.Col span={3} c={disabled?"dimmed":undefined}>
-              {item.name}
+          <Grid.Col span={4} c={disabled?"dimmed":undefined}>
+              <Group wrap="nowrap"><Text truncate size="sm" >{item.name}</Text>
+              {item.description&&
+              <Tooltip position="top-start" fz="xs" withArrow label={item.description}>
+                  <IconInfoCircle style={{ width: rem(16), height: rem(16) }} />
+              </Tooltip>}
+              </Group>
           </Grid.Col>
-          <Grid.Col span={4}>
+          <Grid.Col span={9}>
             <Group gap={5}>
               <RuleConnectors item={item} />
               <Divider orientation="vertical" />
@@ -71,7 +76,7 @@ function Item( { provided, item, disabled, loading, remove, toggle, run, copy, e
               <RuleIcons actions={item.after_actions} />
             </Group>
           </Grid.Col>
-          <Grid.Col span={3}>
+          <Grid.Col span={5}>
               <Group gap="xs" justify="flex-end">
                 <Switch onClick={()=>toggle()} disabled={loading} checked={item.enabled} color="teal" />
                 <ActionIcon disabled={disabled} onClick={()=>run()} variant="subtle" color="green"><IconPlayerPlay size={16} stroke={1.5} /></ActionIcon>
@@ -102,12 +107,13 @@ export default function Rules() {
     check: o => {
       const from = o.data?.from;
       const to = o.data?.to;
-      if (from===to||!from||!to) return true;
+      if (from===to||from==undefined||to==undefined) return true;
       const copy = [...rules];
       copy[from] = rules[to];
       copy[to] = rules[from];
       mutate({ rules: copy });
-      setLoaders(l=>({...l, [copy[from].name]: true, [copy[to].name]: true }))
+      setLoaders(l=>({...l, [copy[from].name]: true, [copy[to].name]: true }));
+      
     },
     then: (rules,o) => {setLoaders(l=>({...l, [rules[o.data?.from||0].name]: undefined, [rules[o.data?.to||0].name]: undefined })); mutate({ rules }); },
   });
@@ -167,10 +173,10 @@ export default function Rules() {
       {rules.length>0?
       <Box>
             <Paper mb="xs" p="xs" >
-                <Grid justify="space-between">
+                <Grid columns={14} justify="space-between">
                     <Grid.Col span={1}/>
                     <Grid.Col span={3}>Name</Grid.Col>
-                    <Grid.Col span={4}>Actions</Grid.Col>
+                    <Grid.Col span={6}>Actions</Grid.Col>
                     <Grid.Col span={3}/>
                 </Grid>
             </Paper>
