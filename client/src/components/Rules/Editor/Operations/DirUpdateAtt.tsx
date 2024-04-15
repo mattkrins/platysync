@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Center, Grid, Group, Select, TextInput } from "@mantine/core";
+import { ActionIcon, Box, Button, Center, Grid, Group, Select, TextInput, Text } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconBinaryTree2, IconGripVertical, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
@@ -88,6 +88,7 @@ export default function UpdateAttributes( { form, index, actionType, sources, te
             type="ldap"
             sources={sources}
         />
+        <Text c="dimmed" mt="xs" >Note: Attributes names must be specified in the connector settings.</Text>
         <Concealer open label='Attributes' rightSection={<Button onClick={()=>addA()} maw={50} variant="light" size='compact-xs' mt={10}>Add</Button>} >
             <Attributes form={form} index={index} templateProps={templateProps} actionType={actionType} sources={sources} templates={templates} />
         </Concealer>

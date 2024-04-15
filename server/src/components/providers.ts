@@ -55,8 +55,26 @@ export default async function connect(schema: Schema, connectorName: string, con
             const close = async () => client.close();
             connection = { rows: users, keyed, provider, client, close }; break;
         }
+        case 'folder': {
+            const folder = new FOLDER({...provider, ...config} as FOLDEROptions);
+            const keyed: {[k: string]: object} = {};
+            const rows = folder.contents;
+            for (const row of rows){
+                if (keyed[row[id]]) continue;
+                keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
+                rows.push(row);
+            }
+            connection = { rows, keyed, provider }; break;
+        }
         default: throw new xError("Unknown connector.");
     } connections[connectorName] = connection; return connection;
+}
+
+export interface Provider {
+    id: string;
+    name: string;
+    password?: string|Hash;
+    [name: string]: unknown;
 }
 
 export class ProviderBase {
@@ -310,15 +328,51 @@ export class STMC extends ProviderBase {
     }
 }
 
-export interface Provider {
-    id: string;
+export interface FOLDEROptions extends Provider {
     name: string;
-    password?: string|Hash;
-    [name: string]: unknown;
+    path: string;
 }
-export type AllProviderOptions = PROXYOptions|CSVOptions|LDAPOptions|STMCOptions;
-export interface ProviderOptions { proxy: PROXYOptions, csv: CSVOptions, ldap: LDAPOptions, stmc: STMCOptions }
-export type AllProviders = PROXY|CSV|LDAP|STMC;
-export type AllProviderTypes = typeof PROXY|typeof CSV|typeof LDAP|typeof STMC;
-export interface Providers { csv: CSV, stmc: STMC, ldap: LDAP, proxy: PROXY }
-export const providers: { [id: string]: AllProviderTypes } = { csv: CSV, stmc: STMC, ldap: LDAP, proxy: PROXY };
+export class FOLDER extends ProviderBase {
+    public name: string;
+    private path: string;
+    public contents: {
+        name: string,
+        type: string,
+        size: string,
+        created: string,
+        modified: string,
+        accessed: string,
+        [k: string]: string,
+    }[] = [];
+    constructor(options: FOLDEROptions) {
+        super(options);
+        this.name = options.name;
+        this.path = options.path;
+        this.contents = (fs.readdirSync(this.path)||[]).map(name=> {
+            const stats = fs.statSync(`${this.path}/${name}`);
+            const type = stats.isFile() ? 'file' : stats.isDirectory() ? 'directory' : 'unknown';
+            return {
+                name,
+                type,
+                size: String(stats.blksize),
+                created: String(stats.ctime),
+                modified: String(stats.mtime),
+                accessed: String(stats.atime),
+            }
+        });
+    }
+    async validate(): Promise<true> {
+        if (!this.path || !fs.existsSync(this.path)) throw new xError("Path does not exist.", "path");
+        return true;
+    }
+    public async getHeaders(): Promise<string[]> {
+        return ['name', 'type', 'size', 'created', 'modified', 'accessed',];
+    }
+}
+
+export type AllProviderOptions = PROXYOptions|CSVOptions|LDAPOptions|STMCOptions|FOLDEROptions;
+export interface ProviderOptions { proxy: PROXYOptions, csv: CSVOptions, ldap: LDAPOptions, stmc: STMCOptions, folder: FOLDEROptions }
+export type AllProviders = PROXY|CSV|LDAP|STMC|FOLDER;
+export type AllProviderTypes = typeof PROXY|typeof CSV|typeof STMC|typeof LDAP|typeof FOLDER;
+export interface Providers { csv: CSV, stmc: STMC, ldap: LDAP, proxy: PROXY, folder: FOLDER }
+export const providers: { [id: string]: AllProviderTypes } = { csv: CSV, stmc: STMC, ldap: LDAP, proxy: PROXY, folder: FOLDER };
