@@ -15,13 +15,13 @@ import { modals } from '@mantine/modals';
 
 function findDependencies(schema: Schema, value: string) {
     for (const rule of (schema.rules||[])) {
-        if (rule.primary === value) return `schema '${schema.name}'`;
+        if (rule.primary === value) return `schema ${schema.name}, primary`;
         for (const secondary of (rule.secondaries||[])) {
-            if (secondary.primary === value) return `schema '${schema.name}'`;
+            if (secondary.primary === value) return `schema ${schema.name}, secondary `;
         }
     }
     for (const connector of (schema.connectors||[])) {
-        if (connector.proxy === value) return `connector '${connector.name}'`;
+        if (connector.proxy === value) return `connector ${connector.name}, proxy`;
     }
 }
 

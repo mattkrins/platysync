@@ -3,7 +3,7 @@ import { ActionIcon, Box, Button, Grid, Group, Menu, Select, Text, TextInput, To
 import { UseFormReturnType } from "@mantine/form";
 import { IconChevronDown, IconGripVertical, IconTrash, IconCodeAsterix, IconDots, IconCopy } from "@tabler/icons-react";
 import { useContext } from "react";
-import { availableConditions, mathOperators, stringOperators } from "../../../modules/common";
+import { availableConditions, mathOperators, stringOperators, dateOperators } from "../../../modules/common";
 import SelectConnector from "../../Common/SelectConnector";
 import SchemaContext from "../../../providers/SchemaContext2";
 import useTemplater from "../../../hooks/useTemplater";
@@ -138,7 +138,7 @@ export default function Conditions( { form, label, action, allow = [] }: {form: 
                       <Grid.Col c="dimmed" span="content">
                         {condition.label}
                       </Grid.Col>}
-                        {(c.type==='string'||c.type==='math'||c.type==='file')?
+                        {(c.type==='string'||c.type==='math'||c.type==='file'||c.type==='date')?
                       <Grid.Col span="auto">
                         <TextInput placeholder='Key'
                         {...templateProps(form, `conditions.${index}.key`)}
@@ -158,6 +158,7 @@ export default function Conditions( { form, label, action, allow = [] }: {form: 
                           checkIconPosition="right"
                           data={ {
                             string: stringOperators,
+                            date: dateOperators,
                             math: mathOperators,
                             group: groupOperators,
                             ou: ouOperators,

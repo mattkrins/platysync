@@ -28,6 +28,7 @@ import { Doc } from "../db/models.js";
 import winston from 'winston';
 import fs from 'fs-extra';
 import { FastifyInstance } from "fastify";
+import dayjs from "dayjs";
 import { xError } from "../modules/common.js";
 import { Rule, Schema } from "./models.js";
 import { schemas } from "../routes/schema.js";
@@ -129,6 +130,10 @@ async function compare(key: string, value: string, operator: string, connections
         case '<=': return Number(key) <= Number(value);
         case 'file.exists': return fs.existsSync(key);
         case 'file.notexists': return !fs.existsSync(key);
+        case 'date.==': return (dayjs(key).isSame(dayjs(value)));
+        case 'date.!=': return !(dayjs(key).isSame(dayjs(value)));
+        case 'date.>': return (dayjs(key).isAfter(dayjs(value)));
+        case 'date.<': return (dayjs(key).isBefore(dayjs(value)));
         default: return false;
     }
 }

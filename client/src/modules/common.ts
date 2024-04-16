@@ -1,4 +1,4 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFileText, IconFileTypeCsv, IconFileTypeDocx, IconFileTypeXls, IconFileZip, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPhoto, IconPlus, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCalendar, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFileText, IconFileTypeCsv, IconFileTypeDocx, IconFileTypeXls, IconFileZip, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPhoto, IconPlus, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
 import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
 import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
@@ -60,6 +60,13 @@ export const mathOperators = [
     { label: '<= Lesser Than, Or Equal To', value: '<=' },
 ]
 
+export const dateOperators = [
+    { label: '== Equal To', value: 'date.==' },
+    { label: '!= Not Equal To', value: 'date.!=' },
+    { label: 'After', value: 'date.>' },
+    { label: 'Before', value: 'date.<' },
+]
+
 export const availableConditions: {
     label: string,
     id: string,
@@ -84,6 +91,12 @@ export const availableConditions: {
         id: 'file',
         Icon: IconFile,
         color: "lime",
+    },
+    {
+        label: "Date Constraint",
+        id: 'date',
+        Icon: IconCalendar,
+        color: "red",
     },
     {
         label: "Status",

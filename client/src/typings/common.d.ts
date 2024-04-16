@@ -25,7 +25,7 @@ interface Doc {
 }
 
 interface Condition {
-    type: 'string' | 'math' | 'group' | 'ou' | 'file';
+    type: string;
     key: string;
     operator: string;
     value: string;

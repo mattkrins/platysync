@@ -62,7 +62,6 @@ export default async function connect(schema: Schema, connectorName: string, con
             for (const row of rows){
                 if (keyed[row[id]]) continue;
                 keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
-                rows.push(row);
             }
             connection = { rows, keyed, provider }; break;
         }
@@ -328,6 +327,16 @@ export class STMC extends ProviderBase {
     }
 }
 
+
+interface folder {
+    name: string,
+    type: string,
+    size: string,
+    created: string,
+    modified: string,
+    accessed: string,
+    [k: string]: string,
+}
 export interface FOLDEROptions extends Provider {
     name: string;
     path: string;
@@ -335,31 +344,23 @@ export interface FOLDEROptions extends Provider {
 export class FOLDER extends ProviderBase {
     public name: string;
     private path: string;
-    public contents: {
-        name: string,
-        type: string,
-        size: string,
-        created: string,
-        modified: string,
-        accessed: string,
-        [k: string]: string,
-    }[] = [];
+    public contents: folder[] = [];
     constructor(options: FOLDEROptions) {
         super(options);
         this.name = options.name;
         this.path = options.path;
-        this.contents = (fs.readdirSync(this.path)||[]).map(name=> {
+        for (const name of fs.readdirSync(this.path)){
             const stats = fs.statSync(`${this.path}/${name}`);
             const type = stats.isFile() ? 'file' : stats.isDirectory() ? 'directory' : 'unknown';
-            return {
+            this.contents.push({
                 name,
                 type,
                 size: String(stats.blksize),
                 created: String(stats.ctime),
                 modified: String(stats.mtime),
                 accessed: String(stats.atime),
-            }
-        });
+            })
+        }
     }
     async validate(): Promise<true> {
         if (!this.path || !fs.existsSync(this.path)) throw new xError("Path does not exist.", "path");
