@@ -26,12 +26,12 @@ export async function encryptString(secret: string, key: string, strength = 1000
 
 export let key: string;
 async function regenerate(force: boolean = false): Promise<string> {
-  const saved = await keyring.getPassword("cdapp", "key")
+  const saved = await keyring.getPassword("platysync", "key")
   if (saved && !force) {
     key = saved;
   } else {
     const random = crypto.randomBytes(16).toString('hex');
-    await keyring.setPassword("cdapp", "key", random);
+    await keyring.setPassword("platysync", "key", random);
     key = random;
   }
   return key;

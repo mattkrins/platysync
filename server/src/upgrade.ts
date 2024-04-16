@@ -22,7 +22,7 @@ await (async function(){
     const version = process.env.npm_package_version;
     if (!version){ console.error("Unable to determin ver. Exiting..."); return process.exit(1); }
     console.log(`Detected ver ${version}`);
-    const schemasPath = `${dataPath}/cdapp/schemas/`;
+    const schemasPath = `${dataPath}/platysync/schemas/`;
     const all = fs.readdirSync(schemasPath);
     const files = all.filter(o => fs.statSync(`${schemasPath}/${o}`).isFile() && (o.includes("yaml")||o.includes("yml")) );
     for (const file of files){

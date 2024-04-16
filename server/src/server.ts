@@ -14,7 +14,7 @@ const { combine, timestamp, json, simple, errors } = winston.format;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataPath = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share");
-export const path = `${dataPath}/cdapp`;
+export const path = `${dataPath}/platysync`;
 export const paths = {
   path,
   schemas: `${path}/schemas`,

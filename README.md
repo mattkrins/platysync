@@ -46,11 +46,11 @@ For additional instructions, refer to the [documentation](https://github.com/mat
 ### 📙 Contributing
 
 Thank you for considering contributing to PlatySync.\
-You can find a contribution guide in the [wiki](https://github.com/mattkrins/platysync/wiki/Developing-for-CDAPP).
+You can find a contribution guide in the [wiki](https://github.com/mattkrins/platysync/wiki/Contributing).
 
 ### 🛠️ Building
 
-To build PlatySync, you can follow the [documentation](https://github.com/mattkrins/platysync/wiki/Developing-for-CDAPP).
+To build PlatySync, you can follow the [documentation](https://github.com/mattkrins/platysync/wiki/Contributing).
 
 ### 📦 npm scripts
 

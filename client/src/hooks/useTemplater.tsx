@@ -34,7 +34,7 @@ const helpers = [
     { key: "$special", description: "Generates a random special character from '!?$%&*)>'.", example: "{{$special}} > %" },
     { key: "$word", description: "Retrieves a random word from the dictionary.", example: "{{$word}} > bread" },
     { key: "$grad", description: "Converts a numeric value to a graduation year.", example: "{{$grad '7'}} > 2029 (if run in 2024)" },
-    { key: "$dir", description: "Prints working directory of cdapp.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\cdapp" },
+    { key: "$dir", description: "Prints working directory of platysync.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync" },
 ];
 
 //NOTE - Component will not Fast Refresh. Unknown why.
