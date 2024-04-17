@@ -1,4 +1,4 @@
-import { Box, Center, Loader, MultiSelect, SegmentedControl, Select, TextInput, Text, Button, Group, Alert, useMantineTheme } from "@mantine/core";
+import { Box, Center, Loader, MultiSelect, SegmentedControl, Select, TextInput, Text, Button, Group, Alert, useMantineTheme, Anchor } from "@mantine/core";
 import { useContext, useEffect } from "react";
 import AppContext from "../../providers/AppContext";
 import { useForm } from "@mantine/form";
@@ -75,8 +75,8 @@ export default function Editor( { editing, adding, close, refresh }: { editing: 
       label="CRON Expression"
       placeholder={'0 * * * MON-FRI'} required
       description={noValue?
-      <>Enter a <a href="https://croner.56k.guru/usage/pattern/" target="_blank">CRON</a> expression to run the schedule.</>: invalidCron ?
-      <>Invalid <a href="https://croner.56k.guru/usage/pattern/" target="_blank">CRON</a> syntax.</> : cron}
+      <>Enter a <Anchor size="xs" href="https://croner.56k.guru/usage/pattern/" target="_blank" >CRON</Anchor> expression to run the schedule.</>: invalidCron ?
+      <>Invalid <Anchor size="xs" href="https://croner.56k.guru/usage/pattern/" target="_blank" >CRON</Anchor> syntax.</> : cron}
       {...form.getInputProps('value')}
       error={noValue?false:(invalidCron && cron)}
       />:
