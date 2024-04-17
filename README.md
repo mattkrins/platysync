@@ -35,7 +35,7 @@ Learn how to use PlatySync by following the [documentation](https://github.com/m
 
 ## 🚀 Install and run
 
-1. Ensure you are running [Node.js](https://nodejs.org/en/download) v18.18.0 or higher.
+1. Ensure you are running [Node.js](https://nodejs.org/en/download) `v18.18.0` or higher.
 2. Download the most recent version of PlatySync from the [releases](https://github.com/mattkrins/platysync/releases) page.
 3. Extract and install dependencies with ``npm install``
 4. Start the software with with ``npm start``\
