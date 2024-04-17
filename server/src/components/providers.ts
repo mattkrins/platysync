@@ -166,8 +166,8 @@ export class CSV extends ProviderBase {
                 const path = `${paths.storage}/${this.schema.name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
                 (docsTemplate.$file as { [k: string]: string })[doc.name] = path;
             }
+            this.path = compile(docsTemplate, this.path);
         }
-        this.path = compile(docsTemplate, this.path);
     }
     public async open(header=true, autoClose=true): Promise<ParseResult<unknown>> {
         await this.configure();

@@ -27,7 +27,7 @@ for (const path of Object.values(paths)) if (!fs.existsSync(path)) fs.mkdirSync(
 export const version = process.env.npm_package_version;
 
 export const log = winston.createLogger({ //TODO - connect this to settings gui
-  level: 'debug', // silly > debug > verbose > http > info > warn > error
+  level: 'info', // silly > debug > verbose > http > info > warn > error
   format: combine(errors({ stack: true }), timestamp(), json()),
   transports: [
     new winston.transports.Console({ level: 'error', format: combine(errors({ stack: true }), timestamp(), winston.format.colorize(), simple()) }),
