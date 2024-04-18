@@ -23,7 +23,7 @@ PlatySync is an application which takes data input, such as a CSV file, and exec
 Some of the features PlatySync provides are:
 
 - 💉 **CSV to LDAP**: Automate the management of your user directory based on a CSV source-of-truth
-- 🤗 **Onboarding**: Automate onboarding of new users by generating (and printing) PDF docs form a template
+- 🤗 **Onboarding**: Automate onboarding of new users by generating (and printing) PDF docs from a template
 - 📂 **Bulk Actions**: Perform bulk operations, such as renaming all files in a folder using a naming convention
 - 🛠️ **Template System**: Build automation rules uses a powerful string template system with a scope explorer
 - ⏰ **Schedules**: Execute automation rules on a CRON schedule or by monitoring a specific file
