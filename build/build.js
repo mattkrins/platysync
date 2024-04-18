@@ -33,7 +33,7 @@ if (fs.existsSync('WinSW-x64.exe')){
         <sizeThreshold>10240</sizeThreshold>
         <keepFiles>8</keepFiles>
     </log>
-    <onfailure action="restart" delay="10 sec"/>
+    <onfailure action="none" delay="10 sec"/>
 </service>`;
     fs.writeFileSync('dist/service.xml', xml, 'utf8');
     fs.copyFileSync('WinSW-x64.exe', 'dist/WinSW-x64.exe');
