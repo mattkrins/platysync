@@ -1,3 +1,4 @@
+import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
 import { Action, actionProps } from "../../typings/common.js";
 import { empty } from "../engine.js";
@@ -12,12 +13,12 @@ export default async function ({ action, template, data }: props) {
     try {
         for (const t of action.templates) {
             data.name = compile(template, t.name||"");
-            if (empty(data.name)) throw Error("Key not provided.");
+            if (empty(data.name)) throw new xError("Key not provided.");
             data.value = compile(template, t.value||"");
             template[data.name] = data.value;
         }
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

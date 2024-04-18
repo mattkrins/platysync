@@ -2,6 +2,7 @@ import { Action, actionProps } from "../../typings/common.js";
 import ldap from "../../modules/ldap.js";
 import { compile } from "../../modules/handlebars.js";
 import { getUser } from "../engine.js";
+import { xError } from "../../modules/common.js";
 
 export interface props extends actionProps {
     action: Action & {
@@ -20,6 +21,6 @@ export default async function ({ action, template, execute, data, connections, k
         await user.move(data.ou);
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

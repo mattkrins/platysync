@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { PDFDocument } from 'pdf-lib'
 import QRCode from 'qrcode'
 import path from 'path';
+import { xError } from "../../modules/common.js";
 
 
 interface props extends actionProps {
@@ -17,10 +18,10 @@ interface props extends actionProps {
 export default async function ({ action, template, execute, data }: props) {
     try {
         data.source = compile(template, action.source);
-        if (empty(data.source)) throw Error("No source provided.");
+        if (empty(data.source)) throw new xError("No source provided.");
         data.target = compile(template, action.target);
-        if (empty(data.target)) throw Error("No target provided.");
-        if (!fs.existsSync(data.source)) throw Error(`Path '${data.source}' does not exist`);
+        if (empty(data.target)) throw new xError("No target provided.");
+        if (!fs.existsSync(data.source)) throw new xError(`Path '${data.source}' does not exist`);
         if (!execute) return { data };
         const sourceFile = fs.readFileSync(data.source);
         const pdfDoc = await PDFDocument.load(sourceFile);
@@ -51,6 +52,6 @@ export default async function ({ action, template, execute, data }: props) {
         fs.writeFileSync(data.target, pdfBytes);
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

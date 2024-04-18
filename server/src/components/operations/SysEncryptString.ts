@@ -1,6 +1,7 @@
 import { compile } from "../../modules/handlebars.js";
 import { Action, actionProps } from "../../typings/common.js";
 import { encryptString as encrypt } from "../../modules/cryptography.js"
+import { xError } from "../../modules/common.js";
 
 interface props extends actionProps {
     action: Action & {
@@ -27,6 +28,6 @@ export default async function ({ action, template, data }: props) {
         template[data.target] = JSON.stringify(encrypted);
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

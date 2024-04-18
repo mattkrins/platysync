@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import pdfPrinter from "pdf-to-printer";
 const { print } = pdfPrinter;
 import { server } from "../../server.js";
+import { xError } from "../../modules/common.js";
 
 interface props extends actionProps {
     action: Action & {
@@ -17,9 +18,9 @@ interface props extends actionProps {
 export default async function ({ action, template, execute, data }: props) {
     try {
         data.source = compile(template, action.source);
-        if (empty(data.source)) throw Error("No source provided.");
+        if (empty(data.source)) throw new xError("No source provided.");
         data.target = action.target;
-        if (empty(data.target)) throw Error("No target provided.");
+        if (empty(data.target)) throw new xError("No target provided.");
         if (action.validate) if (!fs.existsSync(data.source)) return {warning: `Souce path does not exist.`, data};
         if (!execute) return { data };
         let options = {};
@@ -28,6 +29,6 @@ export default async function ({ action, template, execute, data }: props) {
         await print(data.source, options);
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

@@ -37,7 +37,7 @@ const { combine, timestamp, json } = winston.format;
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}
 
-interface result {template?: object, success?: boolean, error?: string, warn?: string, data?: { [k:string]: string }}
+interface result {template?: object, success?: boolean, error?: xError|string, warn?: string, data?: { [k:string]: string }}
 
 export function getUser(action: Action & { target: string }, connections: connections, keys: sKeys, data: { [k:string]: string }): User {
     data.directory = action.target;
@@ -91,7 +91,10 @@ async function actions(actions: Action[], template: template, connections: conne
         const result = await availableActions[action.name]({ action, template, connections, execute, schema, keys, data: {} });
         if (!result) continue;
         todo.push({name: action.name, result });
-        if (result.error) break;
+        if (result.error){
+            if ((result.error as xError).message) result.error = (result.error as xError).message;
+            break;
+        }
     } return {todo, template};
 }
 

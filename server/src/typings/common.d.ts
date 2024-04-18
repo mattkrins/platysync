@@ -41,30 +41,6 @@ export interface Action {
   templates?: { name: string, value: string }[];
 }
 
-export interface secondary {
-  id: string;
-  primary: string;
-  secondaryKey: string;
-  primaryKey: string;
-  case?: boolean;
-  req?: boolean;
-  oto?: boolean;
-}
-
-export interface template {
-  [connector: string]: {
-    [header: string]: string
-  } | string;
-}
-
-export interface result {
-  error?: string;
-  warning?: string;
-  success?: true;
-  template?: true;
-  data?: {[k: string]: unknown};
-}
-
 export interface connection {
   rows: {[k: string]: string}[];
   keyed: {[k: string]: object};

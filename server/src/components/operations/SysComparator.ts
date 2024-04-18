@@ -1,6 +1,7 @@
 import { Action, actionProps, Condition } from "../../typings/common.js";
 import { evaluateAll } from "../engine.js";
 import { compile } from "../../modules/handlebars.js";
+import { xError } from "../../modules/common.js";
 
 interface props extends actionProps {
     action: Action & {
@@ -28,11 +29,11 @@ export default async function ({ action, template, data, connections, keys }: pr
             if (!action.output) return { success: true, data };
             template[key] = tru;
         } else {
-            if (!action.output) return { error: 'Did not meet conditions.', data };
+            if (!action.output) return { error: new xError('Did not meet conditions.'), data };
             template[key] = fals;
         }
         return { success: true, data };
     } catch (e){
-        return { error: String(e) };
+        return { error: new xError(e) };
     }
 }

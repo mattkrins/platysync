@@ -2,6 +2,7 @@ import { Action, actionProps } from "../../typings/common.js";
 import ldap, { User } from "../../modules/ldap.js";
 import { compile } from "../../modules/handlebars.js";
 import { getUser } from "../engine.js";
+import { xError } from "../../modules/common.js";
 
 export interface props extends actionProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,7 +29,7 @@ export default async function ({ action, template, execute, data, connections, k
             const user = getUser(action, connections, keys, data);
             if (user) return { warn: `User already exists.`, data };
         } catch (e){ /**/ }
-        if (!(action.target in connections)) throw Error(`Connector ${action.target} not found.`);
+        if (!(action.target in connections)) throw new xError(`Connector ${action.target} not found.`);
         const attributes = (action.attributes||[]).map(a=>({...a, value: compile(template, a.value||"")}));
         data.attributes = attributes;
         const groups = (action.groups||[]).map((a: string)=>compile(template, a||""));
@@ -41,7 +42,7 @@ export default async function ({ action, template, execute, data, connections, k
         data.dn = `cn=${data.cn}${data.ou!==""?`,${data.ou}`:''}`;
         data.enable = String(action.enable);
         const client = connections[action.target].client as ldap;
-        if (!client) throw Error('LDAP client not found.');
+        if (!client) throw new xError('LDAP client not found.');
         if (!execute) return { data };
         const reduced = attributes.reduce((object: {[k:string]:string|string[]} ,entry)=> (object[entry.name]=entry.value,object),{});
         const _attributes: {[k:string]:string|string[]} = {
@@ -58,6 +59,6 @@ export default async function ({ action, template, execute, data, connections, k
         for (const group of groups) await user.addGroup(group);
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

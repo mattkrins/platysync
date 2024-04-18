@@ -1,3 +1,4 @@
+import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
 import { Action, actionProps } from "../../typings/common.js";
 import { exec } from 'child_process';
@@ -27,6 +28,6 @@ export default async function ({ action, template, execute, data }: props) {
         data.stdout = await execution;
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

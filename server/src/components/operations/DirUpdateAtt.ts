@@ -2,6 +2,7 @@ import { Action, actionProps } from "../../typings/common.js";
 import { default as ldapjs } from "ldapjs";
 import { getUser } from "../engine.js";
 import { compile } from "../../modules/handlebars.js";
+import { xError } from "../../modules/common.js";
 
 interface Attribute {
     type: 'Add'|'Replace'|'Delete';
@@ -93,6 +94,6 @@ export default async function ({ action, template, execute, data, connections, k
         data.changes = changes;
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

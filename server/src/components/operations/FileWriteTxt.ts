@@ -1,3 +1,4 @@
+import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
 import { Action, actionProps } from "../../typings/common.js";
 import { empty } from "../engine.js";
@@ -30,9 +31,9 @@ function closeStream(stream: fs.WriteStream): Promise<void> {
 export default async function ({ action, template, execute, data, connections }: props) {
     try {
         data.target = compile(template, action.target);
-        if (empty(data.target)) throw Error("No target provided.");
+        if (empty(data.target)) throw new xError("No target provided.");
         data.data = compile(template, action.data||"");
-        if (action.validate) if (!fs.existsSync(data.target)) throw Error("Target path does not exist.");
+        if (action.validate) if (!fs.existsSync(data.target)) throw new xError("Target path does not exist.");
         if (!execute) return { data };
         if (!connections[action.target]) {
             const client = await openStream(data.target);
@@ -47,6 +48,6 @@ export default async function ({ action, template, execute, data, connections }:
         (connections[action.target].client as fs.WriteStream).write(data.data+(action.newline?"\r\n":''));
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }

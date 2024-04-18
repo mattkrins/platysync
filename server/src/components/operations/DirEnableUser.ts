@@ -1,3 +1,4 @@
+import { xError } from "../../modules/common.js";
 import { Action, actionProps } from "../../typings/common.js";
 import { getUser } from "../engine.js";
 
@@ -17,6 +18,6 @@ export default async function ({ action, execute, data, connections, keys }: pro
         if (disable) await user.disable();
         return { success: true, data };
     } catch (e){
-        return { error: String(e), data };
+        return { error: new xError(e), data };
     }
 }
