@@ -1,4 +1,4 @@
-import { Button, Input, SegmentedControl, useMantineColorScheme, Text } from '@mantine/core'
+import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor } from '@mantine/core'
 import Container from '../Common/Container';
 import { useContext } from 'react';
 import useAPI from '../../hooks/useAPI';
@@ -69,15 +69,14 @@ export default function Settings() {
         </Input.Wrapper>
         <Input.Wrapper mt="xs"
         label="Clear Cache"
-        description="Purges the server cache to fix schema inconsistencies, etc."
-        >
-        <Button loading={!!purging} onClick={()=>purge()} mt={5} >Clear</Button>
+        description={<>Purges the server cache and <Anchor href='https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization' size="xs" target='_blank' >syncs</Anchor> database 
+        to fix schema inconsistencies, etc.</>}
+        ><Button loading={!!purging} onClick={()=>purge()} mt={5} >Clear</Button>
         </Input.Wrapper>
         <Input.Wrapper mt="xs"
         label="Factory Reset"
         description="Delete all users, schedules and settings."
-        >
-        <Button color='red' loading={!!resetting} onClick={()=>openResetModal()} mt={5} >Reset</Button>
+        ><Button color='red' loading={!!resetting} onClick={()=>openResetModal()} mt={5} >Reset</Button>
         </Input.Wrapper>
     </Container>
     )

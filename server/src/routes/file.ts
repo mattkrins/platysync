@@ -5,8 +5,23 @@ import multer from 'fastify-multer';
 import * as fs from 'fs';
 import { xError } from "../modules/common.js";
 import mime from 'mime';
+import { schemas } from "./schema.js";
+
+async function init() {
+  for (const { name: schema } of schemas.getAll(true)){
+    const files = fs.readdirSync(`${paths.storage}/${schema}`);
+    for (const name of files){
+      const parts = name.split('.');
+      const id = parts[0];
+      const ext = parts[1];
+      const doc = await Doc.findOne({where: { id, schema }});
+      if (!doc) await Doc.create({ name: id, schema, ext });
+    }
+  }
+}
 
 export default async function (route: FastifyInstance) {
+  await init();
   const clean = /[^\w\s]/g;
   // Get all Files
   route.get('/', async (request, reply) => {

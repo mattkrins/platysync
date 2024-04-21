@@ -10,6 +10,7 @@ import { engine } from './components/engine.js';
 import { xError } from './modules/common.js';
 import user from './routes/user.js';
 import { Schedule, User, Session } from './db/models.js';
+import { db } from './db/database.js';
 const { getPrinters } = pdfPrinter;
 
 function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (route: FastifyInstance)=>Promise<void>|void, auth: boolean = true) {
@@ -20,8 +21,7 @@ function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (
 }
 
 export default function routes(api: FastifyInstance, _opts: unknown, done: () => void) {
-  // Arbitrary speed limit; simulate lag.
-  //api.addHook('preHandler', (req: unknown, res: unknown, done: () => void) => setTimeout(done, 500) );
+  //api.addHook('preHandler', (req: unknown, res: unknown, done: () => void) => setTimeout(done, 500) ); // Arbitrary speed limit; simulate lag.
 
   addRoute(api, '/auth', auth, false );
   
@@ -40,6 +40,7 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
     });
     route.delete('/reset_all', async (request, reply) => {
       try {
+        await db.sync({ alter: true });
         await Schedule.truncate();
         await User.truncate();
         await Session.truncate();
@@ -51,5 +52,6 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
       catch (e) { new xError(e).send(reply); }
     });
   });
+  
   done();
 }
