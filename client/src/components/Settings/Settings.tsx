@@ -1,19 +1,33 @@
-import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor } from '@mantine/core'
+import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor, Select } from '@mantine/core'
 import Container from '../Common/Container';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import useAPI from '../../hooks/useAPI';
 import SchemaContext from '../../providers/SchemaContext2';
 import { notifications } from '@mantine/notifications';
-import AuthContext from '../../providers/AppContext';
+import AuthContext, { settings } from '../../providers/AppContext';
 import { modals } from '@mantine/modals';
 import { useLocalStorage } from '@mantine/hooks';
+import { useForm } from '@mantine/form';
+import Head from '../Common/Head';
+import { IconDeviceFloppy } from '@tabler/icons-react';
 
 export default function Settings() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_1, _2, clear] = useLocalStorage({ key: 'setup', defaultValue: 'false' });
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();
-    const { version, logout } = useContext(AuthContext);
+    const { version, logout, settings, setSettings } = useContext(AuthContext);
     const { close } = useContext(SchemaContext);
+    const form = useForm({ initialValues: settings, validate: {} });
+    useEffect(()=>{ form.setValues(settings) }, [ settings ] )
+    const { put: save, loading } = useAPI<settings>({
+        url: `/settings`,
+        form,
+        data: form.values,
+        then: data => {
+            setSettings(data);
+            notifications.show({ title: "Setting Saved",message: 'Cache Purged.', color: 'lime', });
+        }
+    });
     const { del: purge, loading: purging } = useAPI({
         url: `/reset_cache`,
         then: () => {
@@ -52,13 +66,13 @@ export default function Settings() {
     });
 
     return (
-    <Container label='Application Settings' >
+    <Container label={<Head rightSection={<Button onClick={()=>save()} leftSection={<IconDeviceFloppy size={16} />} loading={loading} variant="light">Save</Button>} >Application Settings</Head>} >
         <Text c="dimmed" >Application Version: {version}</Text>
         <Input.Wrapper mt="xs"
         label="Theme"
         description="Change colours of the application"
         >
-        <SegmentedControl mt="xs" fullWidth maw={300}
+        <SegmentedControl mt="xs" fullWidth
         onChange={(value: string)=>value==="auto"?clearColorScheme():setColorScheme(value as ("auto" | "light" | "dark")) }
         data={[
             { label: 'Light', value: 'light' },
@@ -67,9 +81,16 @@ export default function Settings() {
         ]}
         />
         </Input.Wrapper>
+        <Select mt="xs"
+        label="Log Level" description=""
+        placeholder="Pick a log level"
+        defaultValue="info"
+        data={['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']}
+        {...form.getInputProps('logLevel')}
+        />
         <Input.Wrapper mt="xs"
         label="Clear Cache"
-        description={<>Purges the server cache and <Anchor href='https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization' size="xs" target='_blank' >syncs</Anchor> database 
+        description={<>Purges the server cache and <Anchor href='https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization' size="xs" target='_blank' >sync's</Anchor> database 
         to fix schema inconsistencies, etc.</>}
         ><Button loading={!!purging} onClick={()=>purge()} mt={5} >Clear</Button>
         </Input.Wrapper>
@@ -78,6 +99,7 @@ export default function Settings() {
         description="Delete all users, schedules and settings."
         ><Button color='red' loading={!!resetting} onClick={()=>openResetModal()} mt={5} >Reset</Button>
         </Input.Wrapper>
+        
     </Container>
     )
 }

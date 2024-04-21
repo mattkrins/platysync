@@ -75,7 +75,8 @@ export default function models( sequelize: Sequelize ) {
             await s.save();
         }
     });
-    User.hasOne(Session);
+    User.hasMany(Session);
+    Session.belongsTo(User, { foreignKey: 'UserUsername', targetKey: 'username' });
     User.beforeCreate (async (user) => {
         if (!user.changed('password')) return;
         if (user.password == null) return;

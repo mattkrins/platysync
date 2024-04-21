@@ -15,7 +15,7 @@ async function init() {
       const id = parts[0];
       const ext = parts[1];
       const doc = await Doc.findOne({where: { id, schema }});
-      if (!doc) await Doc.create({ name: id, schema, ext });
+      if (!doc) await Doc.create({ id, name: id, schema, ext });
     }
   }
 }

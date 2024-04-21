@@ -43,7 +43,7 @@ export default function auth(route: FastifyInstance) {
         try {
             if (!session) throw new xError("Unauthenticated.", undefined, 401 ).send(reply);
             const user = await User.findOne({ where: { username: session.UserUsername } });
-            if (!user) throw new xError("Unknown user.", undefined, 404 ).send(reply);
+            if (!user) throw new xError("Unknown user.", undefined, 401 ).send(reply);
             return { username: user.username, group: user.group, id: session.id, expires: session.expiresAt, version };
         }
         catch (e) { new xError(e).send(reply); }
