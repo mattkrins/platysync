@@ -200,11 +200,11 @@ export class Connector {
         this.parent.mutate({ connectors: this.parent.connectors.filter(c=>c.name!==this.name) });
         return true;
     }
-    public async validate(): Promise<true> {
+    public async validate(temp = false): Promise<true> {
         if (!providers[this.id]) throw new xError("Unknown provider.", undefined, 404);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const provider = new providers[this.id]({...this.parse(), schema: this.parent} as any);
-        return await provider.validate();
+        return await provider.validate(temp);
     }
     public parse(): xConnnector {
         return parse(this, (k, v) => {
@@ -233,7 +233,7 @@ export class Connectors {
             if (this.find(connector.name)) throw new xError("Name taken.", "name", 409);
         }
         const temp = new Connector(connector, this.schema);
-        try { await temp.validate(); }
+        try { await temp.validate(true); }
         catch (e) { if (!force) throw new xError(e);  }
         if (!save) return temp;
         if (oldName) {

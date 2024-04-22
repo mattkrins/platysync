@@ -105,10 +105,10 @@ export class PROXY extends ProviderBase {
         this.name = options.name;
         this.url = options.url;
     }
-    async validate(): Promise<true> {
+    async validate(temp = false): Promise<true> {
         if (!this.schema) throw new xError('Schema can not be empty.');
         if (!this.url) throw new xError('URL can not be empty.', 'url');
-        await this.configure();
+        if (!temp) await this.configure();
         const response = await Axios.default.get('https://www.example.com/', {
             httpAgent: new HttpProxyAgent(this.url),
             httpsAgent: new HttpsProxyAgent(this.url),
