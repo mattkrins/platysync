@@ -33,6 +33,8 @@ async function init(settingsPath: string) {
         }
     }
     if (!validStr(settings.version)) settings.version = version as string;
+    if (settings.logLevel) log.level = settings.logLevel;
+    if (settings.schemasPath && fs.existsSync(settings.schemasPath as string)) paths.schemas = settings.schemasPath as string;
 }
 
 export default async function (route: FastifyInstance) {
@@ -46,6 +48,8 @@ export default async function (route: FastifyInstance) {
         const {version, ...changes} = request.body as settings;
         try {
             settings = {...settings, ...changes };
+            if (settings.logLevel !== changes.logLevel) log.warn(`Logging level changed from ${settings.logLevel} to ${changes.logLevel} `);
+            if (settings.logLevel) log.level = settings.logLevel;
             if (!validStr(settings.schemasPath||"")){
                 delete settings.schemasPath;
                 paths.schemas = `${path}/schemas`;
