@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { paths, version } from '../server.js';
+import { log, paths, version } from '../server.js';
 import YAML, { stringify } from 'yaml'
 import { xError, validStr } from '../modules/common.js';
 import { providers } from './providers.js';
@@ -341,11 +341,17 @@ export class Schemas {
     public array: Schema[] = [];
     public headers: { [connector: string]: string[] } = {};
     public async load(spec?: string) {
+        this.array = [];
+        this.headers = {};
         const files = fs.readdirSync(`${paths.schemas}/`).filter(name=>name.includes('.yaml')||name.includes('.yml'));
         for (const name of files){
             if (spec && name.split('.')[0] !== spec ) continue;
             const file = fs.readFileSync(`${paths.schemas}/${name}`, 'utf8');
             const parsed = YAML.parse(file) as Schema;
+            if (!parsed.name){
+                log.error({schema: name, message:"Failed to load: Parsed name not found.", path: `${paths.schemas}/${name}`});
+                continue;
+            }
             const schema = new Schema(parsed, this);
             schema.save(false);
         }

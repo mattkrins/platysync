@@ -3,6 +3,7 @@ import { createContext } from "react";
 export interface settings {
     version: string;
     logLevel: string;
+    schemasPath?: string;
 }
 
 export interface session {

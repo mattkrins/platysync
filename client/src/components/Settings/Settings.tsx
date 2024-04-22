@@ -1,4 +1,4 @@
-import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor, Select } from '@mantine/core'
+import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor, Select, TextInput } from '@mantine/core'
 import Container from '../Common/Container';
 import { useContext, useEffect } from 'react';
 import useAPI from '../../hooks/useAPI';
@@ -15,7 +15,7 @@ export default function Settings() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_1, _2, clear] = useLocalStorage({ key: 'setup', defaultValue: 'false' });
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();
-    const { version, logout, settings, setSettings } = useContext(AuthContext);
+    const { version, logout, settings, setSettings, refreshSchemas } = useContext(AuthContext);
     const { close } = useContext(SchemaContext);
     const form = useForm({ initialValues: settings, validate: {} });
     useEffect(()=>{ form.setValues(settings) }, [ settings ] )
@@ -26,6 +26,7 @@ export default function Settings() {
         then: data => {
             setSettings(data);
             notifications.show({ title: "Setting Saved",message: 'Cache Purged.', color: 'lime', });
+            refreshSchemas();
         }
     });
     const { del: purge, loading: purging } = useAPI({
@@ -82,11 +83,17 @@ export default function Settings() {
         />
         </Input.Wrapper>
         <Select mt="xs"
-        label="Log Level" description=""
+        label="Log Level" description="Log level for debugging purposes. Default: info"
         placeholder="Pick a log level"
         defaultValue="info"
         data={['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']}
         {...form.getInputProps('logLevel')}
+        />
+        <TextInput mt="xs"
+            label="Schema Location"
+            description="Directory containing schema files. Default: ./platysync/schemas"
+            placeholder="D:/schemas"
+            {...form.getInputProps('schemasPath')}
         />
         <Input.Wrapper mt="xs"
         label="Clear Cache"

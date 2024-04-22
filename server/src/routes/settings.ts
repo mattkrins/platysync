@@ -1,13 +1,15 @@
 import { FastifyInstance } from "fastify";
 import { validStr, xError } from "../modules/common.js";
 import * as fs from 'fs';
-import { log, path, version } from "../server.js";
+import { log, path, paths, version } from "../server.js";
 import YAML, { stringify } from 'yaml'
 import { db } from "../db/database.js";
+import { schemas } from "./schema.js";
 
 interface settings {
     version: string;
     logLevel: string;
+    schemasPath?: string;
 }
 let settings: settings = {
     version: '',
@@ -44,6 +46,14 @@ export default async function (route: FastifyInstance) {
         const {version, ...changes} = request.body as settings;
         try {
             settings = {...settings, ...changes };
+            if (!validStr(settings.schemasPath||"")){
+                delete settings.schemasPath;
+                paths.schemas = `${path}/schemas`;
+            } else {
+                if (!fs.existsSync(settings.schemasPath as string)) throw new xError("Path does not exist.", "schemasPath", 404);
+                paths.schemas = settings.schemasPath as string;
+            }
+            await schemas.load();
             fs.writeFileSync(settingsPath, stringify(settings));
             return settings;
         }
