@@ -6,6 +6,19 @@ import YAML, { stringify } from 'yaml'
 import { db } from "../db/database.js";
 import { schemas } from "./schema.js";
 
+function validLogLevel(level: string) {
+    switch (level) {
+        case 'silly': return true;
+        case 'debug': return true;
+        case 'verbose': return true;
+        case 'http': return true;
+        case 'info': return true;
+        case 'warn': return true;
+        case 'error': return true;
+        default: return false;
+    }
+}
+
 interface settings {
     version: string;
     logLevel: string;
@@ -33,7 +46,7 @@ async function init(settingsPath: string) {
         }
     }
     if (!validStr(settings.version)) settings.version = version as string;
-    if (settings.logLevel) log.level = settings.logLevel;
+    if (settings.logLevel && validLogLevel(settings.logLevel)) log.level = settings.logLevel;
     if (settings.schemasPath && fs.existsSync(settings.schemasPath as string)) paths.schemas = settings.schemasPath as string;
 }
 
@@ -47,8 +60,9 @@ export default async function (route: FastifyInstance) {
     route.put('/', async (request, reply) => {
         const {version, ...changes} = request.body as settings;
         try {
+            if (!validLogLevel(changes.logLevel)) throw new xError("Log level invalid.", "logLevel");
             settings = {...settings, ...changes };
-            if (settings.logLevel !== changes.logLevel) log.warn(`Logging level changed from ${settings.logLevel} to ${changes.logLevel} `);
+            if (settings.logLevel !== changes.logLevel) log.info(`Logging level changed from ${settings.logLevel} to ${changes.logLevel} `);
             if (settings.logLevel) log.level = settings.logLevel;
             if (!validStr(settings.schemasPath||"")){
                 delete settings.schemasPath;
