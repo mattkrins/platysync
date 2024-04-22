@@ -173,16 +173,14 @@ export default function Rules() {
       {rules.length>0?
       <Box>
             <Paper mb="xs" p="xs" >
-                <Grid columns={14} justify="space-between">
+                <Grid columns={20} justify="space-between">
                     <Grid.Col span={1}/>
-                    <Grid.Col span={3}>Name</Grid.Col>
-                    <Grid.Col span={6}>Actions</Grid.Col>
-                    <Grid.Col span={3}/>
+                    <Grid.Col span={4}>Name</Grid.Col>
+                    <Grid.Col span={9}>Actions</Grid.Col>
+                    <Grid.Col span={5}/>  
                 </Grid>
             </Paper>
-            <DragDropContext
-            onDragEnd={({ destination, source }) => reorder({ data: { from: source.index, to: destination?.index || 0 } }) }
-            >
+            <DragDropContext onDragEnd={({ destination, source }) => reorder({ data: { from: source.index, to: destination?.index || 0 } }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
                 {provided => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
