@@ -37,7 +37,7 @@ export default async function connect(schema: Schema, connectorName: string, con
             connection = { rows: users, provider, client, keyed }; break;
         }
         case 'csv': {
-            const csv = new CSV({...provider, ...config} as CSVOptions );
+            const csv = new CSV({...provider, schema, ...config} as CSVOptions );
             const data = await csv.open() as { data: {[k: string]: string}[] };
             const keyed: {[k: string]: object} = {};
             const rows = [];
