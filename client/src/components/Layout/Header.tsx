@@ -11,12 +11,11 @@ export default function Header( { opened, toggle }: { opened?: boolean, toggle?(
   const check = () => {
       const axiosClient = axios.create({headers: {'X-GitHub-Api-Version': '2022-11-28'}});
       axiosClient.get("https://api.github.com/repos/mattkrins/platysync/releases")
-      .catch(error=>{ console.error(error); })
+      .catch(error=>{ console.error('Failed to get latest version', error); })
       .then((( response )=>{
           if (!response) return;
           const { data: releases } = response as { data: {name: string}[] };
           const { name: latest } = releases[0];
-          setAvailable(latest);
           if (latest !== version) setAvailable(latest);
       }));
   }

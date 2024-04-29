@@ -73,7 +73,7 @@ export default function Settings() {
         setChecking(true);
         const axiosClient = axios.create({headers: {'X-GitHub-Api-Version': '2022-11-28'}});
         axiosClient.get("https://api.github.com/repos/mattkrins/platysync/releases")
-        .catch(error=>{ console.error(error); form.setFieldError('version', error.message); })
+        .catch(error=>{ console.error('Failed to get latest version', error); form.setFieldError('version', error.message); })
         .finally(()=>setChecking(false))
         .then((( response )=>{
             if (!response) return;
