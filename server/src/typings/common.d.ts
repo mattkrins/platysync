@@ -44,6 +44,7 @@ export interface Action {
 export interface connection {
   rows: {[k: string]: string}[];
   keyed: {[k: string]: object};
+  objects: {[k: string]: object};
   provider?: anyProvider;
   client?: unknown;
   close?: () => Promise<unknown>;

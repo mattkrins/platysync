@@ -1,4 +1,5 @@
 import { FastifyReply } from "fastify";
+import { log } from "../server.js";
 
 type status = 400|401|403|404|405|406|408|409|500|number;
 export class xError {
@@ -33,10 +34,19 @@ export class xError {
             }
         } catch { /* empty */ }
       }
+      log.silly(this.message);
       this.field = field;
       this.status = status;
       if (field) this.validation = { validation: { [field]: this.message } }
       if (Error.captureStackTrace) Error.captureStackTrace(this, xError);
+    }
+    public attach(error: xError|unknown = {}) {
+      const e = (error as xError) || {};
+      this.message = e.message;
+      this.validation = e.validation;
+      this.field = e.field;
+      this.status = e.status;
+      return this;
     }
     public send(reply: FastifyReply) {
       return reply.code(this.status||(this.validation?406:500)).send(this.validation||{ error: this.message });

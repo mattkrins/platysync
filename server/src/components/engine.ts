@@ -43,8 +43,8 @@ export function getUser(action: Action & { target: string }, connections: connec
     data.directory = action.target;
     if (!(action.target in connections)) throw Error(`Connector ${action.target} not found.`);
     const id = keys[action.target];
-    if (!(id in connections[action.target].keyed)) throw Error(`User ${id} not found in ${action.target}.`);
-    return connections[action.target].keyed[id] as User;
+    if (!(id in connections[action.target].objects)) throw Error(`User ${id} not found in ${action.target}.`);
+    return connections[action.target].objects[id] as User;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,7 +101,7 @@ async function actions(actions: Action[], template: template, connections: conne
 async function ldap_compare(key: string, value: string, operator: string, connections: connections, keys: sKeys ) {
     if (!(key in connections)) return false;
     const id = keys[key];
-    const user: User|undefined = connections[key].keyed[id] as User||undefined;
+    const user: User|undefined = connections[key].objects[id] as User||undefined;
     switch (operator) {
         case 'exists': return !!user;
         case 'notexists': return !user;
@@ -196,7 +196,10 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         progress(cur, 0, 'Search engine initialized');
         server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
         if (!rule.primaryKey) rule.primaryKey = 'id';
-        const caseSen = rule.secondaries.filter(s=>s.case).length > 0;
+        let caseSen = false;
+        for (const key of Object.keys(rule.config||{})){
+            if (rule.config[key].case){ caseSen = true; break; }
+        }
         const primary = await connect(schema, rule.primary, connections, rule.primaryKey, (rule.config||{})[rule.primary], caseSen);
         cur.index = 5;
         progress(cur, 100, 'secondaries');
@@ -237,17 +240,18 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             let skip = false;
             const keys: sKeys = { [rule.primary]: caseSen?id:id.toLowerCase() };
             for (const secondary of rule.secondaries||[]) {
+                const config = rule.config[secondary.primary]||{};
                 if (!(secondary.primary in connections)) continue;
                 const primaryKey = row[secondary.primaryKey];
-                if (secondary.req && !primaryKey){ skip = true; break; }
+                if (config.req && !primaryKey){ skip = true; break; }
                 if (!primaryKey) continue;
-                const secondaryJoin = connections[secondary.primary].keyed[secondary.case?primaryKey:primaryKey.toLowerCase()]||{};
-                if (secondary.req && !secondaryJoin){ skip = true; break; }
-                const joins = Object.keys(connections[secondary.primary].keyed).filter(k=>k===(secondary.case?primaryKey:primaryKey.toLowerCase()));
-                if (secondary.req && joins.length <= 0){ skip = true; break; }
-                if (secondary.oto && joins.length > 1){ skip = true; break; }
+                const secondaryJoin = connections[secondary.primary].keyed[config.case?primaryKey:primaryKey.toLowerCase()]||{};
+                if (config.req && (!secondaryJoin || Object.keys(secondaryJoin).length<=0) ){ skip = true; break; }
+                const joins = Object.keys(connections[secondary.primary].keyed).filter(k=>k===(config.case?primaryKey:primaryKey.toLowerCase()));
+                if (config.req && joins.length <= 0){ skip = true; break; }
+                if (config.oto && joins.length > 1){ skip = true; break; }
                 template[secondary.primary] = secondaryJoin;
-                keys[secondary.primary] = secondary.case?primaryKey:primaryKey.toLowerCase();
+                keys[secondary.primary] = config.case?primaryKey:primaryKey.toLowerCase();
             } if (skip) continue;
             if (!(await evaluateAll(rule.conditions, template, connections, keys))) continue;
             const output: typeof evaluated[0] = { id, actions: [], actionable: false };
@@ -306,8 +310,8 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
 }
 
 export async function processActions(schema: Schema , rule: Rule, limitTo: string[], scheduled?: boolean) {
-    if (!limitTo || limitTo.length <= 0) throw (Error("Unreviewed bulk actions not allowed"));
-    if (rule.test) throw (Error("Actions not allowed for tests"));
+    if (!limitTo || limitTo.length <= 0) throw (new xError("Unreviewed bulk actions not allowed"));
+    if (rule.test) throw (new xError("Actions not allowed for tests"));
     return process(schema, rule, limitTo, scheduled );
 }
 
@@ -318,7 +322,7 @@ export async function engine(route: FastifyInstance) {
         try {
             const schema = schemas.get(schema_name);
             return await process( schema, rule );
-        } catch (e) { throw new xError(e).send(reply); }
+        } catch (e) {  throw new xError(e).attach(e).send(reply); }
     });
     route.post('/execute', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
@@ -326,6 +330,6 @@ export async function engine(route: FastifyInstance) {
         try {
             const schema = schemas.get(schema_name);
             return await processActions( schema, rule as Rule, (limitTo||[]) as string[] );
-        } catch (e) { throw new xError(e).send(reply); }
+        } catch (e) { throw new xError(e).attach(e).send(reply); }
     });
 }

@@ -30,14 +30,14 @@ const transports = {
   console: new winston.transports.Console({ level: 'error', format: combine(errors({ stack: true }), timestamp(), winston.format.colorize(), simple()) }),
   file: new winston.transports.File({ filename: `${paths.logs}/general.txt` }),
 };
-export const log = winston.createLogger({ //TODO - connect this to settings gui
+export const log = winston.createLogger({
   level: 'info', // silly > debug > verbose > http > info > warn > error
   format: combine(errors({ stack: true }), timestamp(), json()),
   transports: [
     transports.console,
     transports.file
   ],
-}); // log.level = 'info';
+});
 export const history = winston.createLogger({
   level: 'info', // silly > debug > verbose > http > info > warn > error
   format: combine(errors({ stack: true }), timestamp(), json()),

@@ -152,11 +152,12 @@ export class ldap {
      * @param {boolean} caseSen should object keys be lowercased (optional)
      * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
-    public search(attributes?: string[], id?: string, caseSen = false): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: User}}> { //TODO - remove this
+    public search(attributes?: string[], id?: string, caseSen = false): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: {[k: string]: string}}, keyedUsers: {[k: string]: User}}> {
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             const users: {[k: string]: string}[] = [];
-            const keyed: {[k: string]: User} = {};
+            const keyedUsers: {[k: string]: User} = {};
+            const keyed: {[k: string]: {[k: string]: string}} = {};
             const opts: ldapjs.SearchOptions = {
                 filter: this.filter,
                 scope: 'sub',
@@ -179,7 +180,10 @@ export class ldap {
                         user[attribute.type] = ((attribute.values||[]) as string[]).join();
                         if (id&&attribute.type===id){
                             IDfound = true;
-                            keyed[caseSen?user[attribute.type]:(user[attribute.type]).toLowerCase()] = new User(entry, this.client );
+                            const usr = new User(entry, this.client );
+                            const key = caseSen?user[attribute.type]:(user[attribute.type]).toLowerCase();
+                            keyed[key] = usr.plain_attributes;
+                            keyedUsers[key] = usr;
                         }
                     }
                     if (id && IDfound) users.push(user);
@@ -188,7 +192,7 @@ export class ldap {
                 res.on('error', (err) => reject(err));
                 res.on('end', (result) => {
                     if (!result || result.status !== 0) return reject(Error("Nothing found."));
-                    resolve({users, keyed})
+                    resolve({users, keyed, keyedUsers})
                 });
             });
         });

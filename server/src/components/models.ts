@@ -59,6 +59,12 @@ interface xRule {
     primaryKey: string;
     [k: string]: unknown;
 }
+interface config {
+    case?: boolean;
+    req?: boolean;
+    oto?: boolean;
+    [k: string]: unknown;
+}
 export class Rule {
     public name: string;
     public display: string;
@@ -71,7 +77,7 @@ export class Rule {
     public before_actions: Action[] = [];
     public after_actions: Action[] = [];
     public actions: Action[] = [];
-    public config: {[k: string]: {[k: string]: unknown} } = {};
+    public config: {[k: string]: config } = {};
     public log?: string;
     public test?: boolean;
     [k: string]: unknown;

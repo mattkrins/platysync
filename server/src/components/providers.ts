@@ -21,7 +21,7 @@ export default async function connect(schema: Schema, connectorName: string, con
     const connectors = new Connectors(schema.name);
     const provider = connectors.get(connectorName);
     server.io.emit("job_status", `Connecting to ${connectorName}`);
-    let connection: connection = {rows:[], keyed: {}, provider};
+    let connection: connection = {rows:[], keyed: {}, objects: {}, provider};
     switch (provider.id) {
         case 'stmc': {
             const stmc = new STMC({...provider, schema, ...config} as STMCOptions);
@@ -34,7 +34,7 @@ export default async function connect(schema: Schema, connectorName: string, con
                 keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
                 rows.push(row);
             }
-            connection = { rows: users, provider, client, keyed }; break;
+            connection = { ...connection, rows: users, provider, client, keyed }; break;
         }
         case 'csv': {
             const csv = new CSV({...provider, schema, ...config} as CSVOptions );
@@ -46,14 +46,14 @@ export default async function connect(schema: Schema, connectorName: string, con
                 keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
                 rows.push(row);
             } data.data = [];
-            connection = { rows, provider, keyed }; break;
+            connection = { ...connection, rows, provider, keyed }; break;
         }
         case 'ldap': {
             const ldap = new LDAP({...provider, ...config} as LDAPOptions);
             const client = await ldap.configure();
-            const { users, keyed } = await client.search(ldap.attributes, id, caseSen);
+            const { users, keyed, keyedUsers } = await client.search(ldap.attributes, id, caseSen);
             const close = async () => client.close();
-            connection = { rows: users, keyed, provider, client, close }; break;
+            connection = { ...connection, rows: users, objects: keyedUsers, keyed, provider, client, close }; break;
         }
         case 'folder': {
             const folder = new FOLDER({...provider, ...config} as FOLDEROptions);
@@ -63,7 +63,7 @@ export default async function connect(schema: Schema, connectorName: string, con
                 if (keyed[row[id]]) continue;
                 keyed[caseSen?row[id]:row[id].toLowerCase()] = row;
             }
-            connection = { rows, keyed, provider }; break;
+            connection = { ...connection, rows, keyed, provider }; break;
         }
         default: throw new xError("Unknown connector.");
     } connections[connectorName] = connection; return connection;
