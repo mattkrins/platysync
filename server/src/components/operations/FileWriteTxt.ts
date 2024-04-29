@@ -38,7 +38,7 @@ export default async function ({ action, template, execute, data, connections }:
         if (!connections[action.target]) {
             const client = await openStream(data.target);
             connections[action.target] = {
-                rows: [], keyed: {}, client, close: async () => {
+                rows: [], keyed: {}, objects: {}, client, close: async () => {
                     await closeStream(client);
                     delete connections[action.target];
                     return true;

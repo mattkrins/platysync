@@ -29,14 +29,14 @@ function Switcher(){
 export default function App() {
   const [opened, { toggle, close }] = useDisclosure();
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
-  const { session, version } = useContext(AppContext);
+  const { session } = useContext(AppContext);
   return ( !session ? <Login/> :
     <AppShell
       header={{ height: 64, collapsed: !isMobile }}
       navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
     >
-      <AppShell.Header><Header opened={opened} toggle={toggle} version={version} /></AppShell.Header>
+      <AppShell.Header><Header opened={opened} toggle={toggle} /></AppShell.Header>
       <AppShell.Navbar><Navbar closeNav={close} /></AppShell.Navbar>
       <AppShell.Main><Switcher/></AppShell.Main>
     </AppShell>
