@@ -1,6 +1,6 @@
 import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor, Select, TextInput } from '@mantine/core'
 import Container from '../Common/Container';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import useAPI from '../../hooks/useAPI';
 import SchemaContext from '../../providers/SchemaContext2';
 import { notifications } from '@mantine/notifications';
@@ -10,12 +10,15 @@ import { useLocalStorage } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import Head from '../Common/Head';
 import { IconDeviceFloppy } from '@tabler/icons-react';
+import axios from 'axios';
 
 export default function Settings() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_1, _2, clear] = useLocalStorage({ key: 'setup', defaultValue: 'false' });
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();
     const { version, logout, settings, setSettings, refreshSchemas } = useContext(AuthContext);
+    const [checking, setChecking] = useState<boolean>(false);
+    const [upgradeAvailable, setAvailable] = useState<string|undefined>(undefined);
     const { close } = useContext(SchemaContext);
     const form = useForm({ initialValues: settings, validate: {} });
     useEffect(()=>{ form.setValues(settings) }, [ settings ] )
@@ -66,9 +69,25 @@ export default function Settings() {
         onConfirm: () => reset(),
     });
 
+    const check = () => {
+        setChecking(true);
+        const axiosClient = axios.create({headers: {'X-GitHub-Api-Version': '2022-11-28'}});
+        axiosClient.get("https://api.github.com/repos/mattkrins/platysync/releases")
+        .catch(error=>{ console.error(error); form.setFieldError('version', error.message); })
+        .finally(()=>setChecking(false))
+        .then((( response )=>{
+            if (!response) return;
+            const { data: releases } = response as { data: {name: string}[] };
+            const { name: latest } = releases[0];
+            if (latest !== version) setAvailable(latest);
+            if (latest === version) return form.setFieldError('version', `Running latest release: v${version}.`);
+            notifications.show({ title: `Version ${latest} available`,message: `New version ${latest} available.`, color: 'orange', });
+        }));
+    }
+    useEffect(()=>{ if (version) check(); }, [ version ]);
+    
     return (
     <Container label={<Head rightSection={<Button onClick={()=>save()} leftSection={<IconDeviceFloppy size={16} />} loading={loading} variant="light">Save</Button>} >Application Settings</Head>} >
-        <Text c="dimmed" >Application Version: {version}</Text>
         <Input.Wrapper mt="xs"
         label="Theme"
         description="Change colours of the application"
@@ -95,6 +114,13 @@ export default function Settings() {
             placeholder="D:/schemas"
             {...form.getInputProps('schemasPath')}
         />
+        <Input.Wrapper mt="xs" error={form.getInputProps('version').error}
+        label={`Application Version: ${version}`}
+        description={upgradeAvailable?<><Text component='span' c="orange" size='xs'>New release v{upgradeAvailable} available!</Text><br/>
+        Download the latest version from the github <Anchor href='https://github.com/mattkrins/platysync/releases' size="xs" target='_blank' >releases</Anchor> page.
+        </>:'Check for new releases.'}
+        ><Button color='green' loading={checking} onClick={()=>check()} mt={5} >Check</Button>
+        </Input.Wrapper>
         <Input.Wrapper mt="xs"
         label="Clear Cache"
         description={<>Purges the server cache and <Anchor href='https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization' size="xs" target='_blank' >sync's</Anchor> database 
