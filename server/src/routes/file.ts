@@ -9,6 +9,7 @@ import { schemas } from "./schema.js";
 
 async function init() {
   for (const { name: schema } of schemas.getAll(true)){
+    if (!fs.existsSync(`${paths.storage}/${schema}`)) continue;
     const files = fs.readdirSync(`${paths.storage}/${schema}`);
     for (const name of files){
       const parts = name.split('.');
