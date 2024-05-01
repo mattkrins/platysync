@@ -1,7 +1,8 @@
-import Fastify, { FastifyInstance } from 'fastify'
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts'
-import cors from '@fastify/cors'
-import routes from './routes.js'
+import esMain from 'es-main';
+import Fastify, { FastifyInstance } from 'fastify';
+import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import cors from '@fastify/cors';
+import routes from './routes.js';
 import * as fs from 'node:fs';
 import { database } from './db/database.js';
 import { Server } from "socket.io";
@@ -31,7 +32,7 @@ const transports = {
   file: new winston.transports.File({ filename: `${paths.logs}/general.txt` }),
 };
 export const log = winston.createLogger({
-  level: 'info', // silly > debug > verbose > http > info > warn > error
+  level: 'info',
   format: combine(errors({ stack: true }), timestamp(), json()),
   transports: [
     transports.console,
@@ -39,7 +40,7 @@ export const log = winston.createLogger({
   ],
 });
 export const history = winston.createLogger({
-  level: 'info', // silly > debug > verbose > http > info > warn > error
+  level: 'info',
   format: combine(errors({ stack: true }), timestamp(), json()),
   transports: new winston.transports.File({ filename: `${paths.logs}/history.txt` }),
 });
@@ -71,7 +72,7 @@ server.register(fastifyStatic, { root: pa.join(__dirname, 'client'), });
 
 server.register( routes, { prefix: '/api/v1' } );
 
-const start = async () => {
+export const start = async () => {
   try {
     if (!version){
       const json = fs.readFileSync('package.json', 'utf-8')||"";
@@ -85,10 +86,12 @@ const start = async () => {
     log.info(`Server started on port ${port} running ver. ${version}.`);
     console.log(`  ➜  Server:   http://localhost:${port}/`);
     console.log(`  ➜  log:   ${paths.logs}/general.txt`);
+    return server;
   } catch (err) {
     server.log.error(err);
     log.error(err);
     throw err;
   }
 }
-start();
+
+if (esMain(import.meta)) start();

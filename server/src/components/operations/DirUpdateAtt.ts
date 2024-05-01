@@ -3,6 +3,7 @@ import { default as ldapjs } from "ldapjs";
 import { getUser } from "../engine.js";
 import { compile } from "../../modules/handlebars.js";
 import { xError } from "../../modules/common.js";
+import ldap from "../../modules/ldap.js";
 
 interface Attribute {
     type: 'Add'|'Replace'|'Delete';
@@ -38,6 +39,11 @@ export default async function ({ action, template, execute, data, connections, k
                 }
                 case 'Replace': {
                     const value = compile(template, a.value||"");
+                    if (a.name==="password"){
+                        const unicodePwd = ldap.encodePassword(value);
+                        changes.push({...a, name: 'unicodePwd', value: unicodePwd, currentValue: '' });
+                        break;
+                    }
                     const currentValue = String(user.attributes[a.name]||'');
                     if (currentValue===value) break;
                     changes.push({...a, value, currentValue });
