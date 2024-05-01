@@ -139,7 +139,7 @@ export interface CSVOptions extends Provider, CSVConfig {
 export class CSV extends ProviderBase {
     private path: string;
     private schema?: Schema;
-    private encoding: BufferEncoding = 'utf8'; //TODO - add config to GUI
+    private encoding: BufferEncoding = 'utf8';
     constructor(options: CSVOptions) {
         super(options);
         this.path = options.path;
