@@ -1,7 +1,7 @@
 import { compile } from "../modules/handlebars.js";
 import { Action, Condition, connections } from "../typings/common.js";
 import connect from "./providers.js";
-import { paths, server, history } from "../server.js";
+import { paths, server, history, testing } from "../server.js";
 import { User } from "../modules/ldap.js";
 import FileCopy from "./operations/FileCopy.js";
 import SysComparator from "./operations/SysComparator.js";
@@ -76,7 +76,8 @@ const availableActions: { [k: string]: operation } = {
     //'Run Command': SysRunCommand,
 }
 
-async function conclude(connections: connections) {
+async function conclude(connections: connections, logger?: winston.Logger) {
+    if (logger) logger.destroy();
     for (const connection of Object.values(connections)) {
         if (connection.close) await connection.close();
     }
@@ -188,7 +189,8 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
                 action = winston.createLogger({
                     level: 'info',
                     format: combine(timestamp(), json()),
-                    transports: new winston.transports.File({ filename: `${paths.journal}/${schema.name}.${rule.name}.${new Date().getTime()}.txt` }),
+                    transports: testing ? [ new winston.transports.Console({ silent: true })] :
+                    new winston.transports.File({ filename: `${paths.journal}/${schema.name}.${rule.name}.${new Date().getTime()}.txt` }),
                 });
             }
         } else { history.debug({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled}); }
@@ -296,7 +298,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             warnings: evaluated.filter(e=>e.actions.map(a=>a.result.warn).length>0).map(e=>e.id),
             });
         } else { history.debug({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled}); }
-        await conclude(connections);
+        await conclude(connections, action);
         return {evaluated, initActions, finalActions};
     } catch (e) {
         const error = e as { schema: string, rule: string, scheduled?: boolean };
@@ -304,7 +306,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         error.rule = rule.name||'unknown';
         error.scheduled = scheduled;
         if (!rule.test) history.error(error);
-        conclude(connections);
+        conclude(connections, action);
         throw error;
     }
 }

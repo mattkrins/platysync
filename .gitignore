@@ -132,4 +132,5 @@ dist
 # other
 *.ink
 build/dist
+build/test
 build/*.zip

@@ -15,7 +15,9 @@ const { combine, timestamp, json, simple, errors } = winston.format;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataPath = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share");
-export const path = `${dataPath}/platysync`;
+
+export const testing = !esMain(import.meta);
+export const path = !testing ? `${dataPath}/platysync` : './build/test';
 export const paths = {
   path,
   schemas: `${path}/schemas`,
@@ -27,22 +29,19 @@ export const paths = {
 for (const path of Object.values(paths)) if (!fs.existsSync(path)) fs.mkdirSync(path);
 export let version = process.env.npm_package_version;
 
-const transports = {
-  console: new winston.transports.Console({ level: 'error', format: combine(errors({ stack: true }), timestamp(), winston.format.colorize(), simple()) }),
-  file: new winston.transports.File({ filename: `${paths.logs}/general.txt` }),
-};
 export const log = winston.createLogger({
   level: 'info',
   format: combine(errors({ stack: true }), timestamp(), json()),
-  transports: [
-    transports.console,
-    transports.file
+  transports: testing ? [ new winston.transports.Console({ silent: true }) ] : [
+    new winston.transports.Console({ level: 'error', format: combine(errors({ stack: true }), timestamp(), winston.format.colorize(), simple()) }),
+    new winston.transports.File({ filename: `${paths.logs}/general.txt` }),
   ],
 });
+
 export const history = winston.createLogger({
   level: 'info',
   format: combine(errors({ stack: true }), timestamp(), json()),
-  transports: new winston.transports.File({ filename: `${paths.logs}/history.txt` }),
+  transports: testing ? [ new winston.transports.Console({ silent: true }) ] : [ new winston.transports.File({ filename: `${paths.logs}/history.txt` }) ],
 });
 
 
@@ -72,7 +71,7 @@ server.register(fastifyStatic, { root: pa.join(__dirname, 'client'), });
 
 server.register( routes, { prefix: '/api/v1' } );
 
-export const start = async () => {
+export const start = async (port = 2327) => {
   try {
     if (!version){
       const json = fs.readFileSync('package.json', 'utf-8')||"";
@@ -80,10 +79,9 @@ export const start = async () => {
       version = pack.version;
       if (!version) throw Error("Unable to determin ver.");
     }
-    await server.listen({ port: 2327, host: '0.0.0.0' }); //TODO - link to GUI settings
-    const address = server.server.address();
-    const port = typeof address === 'string' ? address : address?.port;
+    await server.listen({ port, host: '0.0.0.0' }); //TODO - link to GUI settings
     log.info(`Server started on port ${port} running ver. ${version}.`);
+    if (testing) return server;
     console.log(`  ➜  Server:   http://localhost:${port}/`);
     console.log(`  ➜  log:   ${paths.logs}/general.txt`);
     return server;
@@ -94,4 +92,4 @@ export const start = async () => {
   }
 }
 
-if (esMain(import.meta)) start();
+if (!testing) start();
