@@ -79,9 +79,9 @@ export const start = async (port = 2327) => {
       version = pack.version;
       if (!version) throw Error("Unable to determin ver.");
     }
+    if (testing) return server;
     await server.listen({ port, host: '0.0.0.0' }); //TODO - link to GUI settings
     log.info(`Server started on port ${port} running ver. ${version}.`);
-    if (testing) return server;
     console.log(`  ➜  Server:   http://localhost:${port}/`);
     console.log(`  ➜  log:   ${paths.logs}/general.txt`);
     return server;

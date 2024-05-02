@@ -1,4 +1,4 @@
-import { start, server, path as pa, testing } from '../src/server.ts';
+import { server, path as pa, testing } from '../src/server.ts';
 import path from 'path';
 import fs from 'fs-extra';
 import { db } from '../src/db/database.ts';
@@ -21,8 +21,7 @@ function rimraf(dir_path: string) {
 
 export async function setup() {
     if (pa!=='./build/test' || !testing) throw Error("Not running in test environment.");
-    console.log("Building test enviornment...")
-    await start(2329);
+    console.log(`Built test enviornment @ ${pa}`)
 }
 
 export async function teardown() {

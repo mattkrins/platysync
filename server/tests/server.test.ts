@@ -16,9 +16,15 @@ suite('Server Suite', () => {
   });
 
   test('Setup', async () => {
-    const res = await server.inject({ method: "get", url: "/api/v1/auth/setup" });
-    const data = res.json();
-    expect(data).toBe(false);
+    const isSetup: boolean = (await server.inject({ method: "get", url: "/api/v1/auth/setup" })).json();
+    expect(isSetup).toBeTypeOf('boolean');
+    if (isSetup) return console.log("Setup is already complete.");
+    const setup = (await server.inject({ method: "post", url: "/api/v1/auth/setup", body: {
+      username: 'admin',
+      password: 'admin',
+    }})).json();
+    expect(setup).toBeTruthy();
+
   });
 
 });
