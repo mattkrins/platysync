@@ -30,7 +30,7 @@ let settings: settings = {
 };
 
 async function init(settingsPath: string) {
-    if (!fs.existsSync(settingsPath)) fs.writeFileSync(settingsPath, stringify(settings));
+    if (!fs.existsSync(settingsPath)) fs.writeFileSync(settingsPath, stringify({...settings, version }));
     const file = fs.readFileSync(settingsPath, 'utf8');
     const parsed = YAML.parse(file) as settings;
     settings = parsed;

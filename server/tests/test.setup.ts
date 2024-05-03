@@ -31,6 +31,7 @@ export async function teardown() {
     //NOTE - rmSync {recursive: true} would always fail here.
     // running rimraf by itself is successful, but throws a false positive error.
     // waiting a short time and then running the command again will confirm the removal was successful
+    await wait();
     if (fs.existsSync(pa)) try { rimraf(pa); } catch { /* empty */ }
     await wait();
     if (fs.existsSync(pa)) try { fs.rmSync(pa, { recursive: true, force: true }); } catch { /* empty */ }
