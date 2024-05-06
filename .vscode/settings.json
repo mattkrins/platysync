@@ -11,4 +11,5 @@
     "files.watcherExclude": {
         "**/build/test/**": true,
     },
+    "npm.exclude": "**/build/**"
 }
