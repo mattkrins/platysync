@@ -16,7 +16,7 @@ export default function Header( { opened, toggle }: { opened?: boolean, toggle?(
           if (!response) return;
           const { data: releases } = response as { data: {name: string}[] };
           const { name: latest } = releases[0];
-          if (latest !== version) setAvailable(latest);
+          if ( version && (parseFloat(latest) > parseFloat(version))) setAvailable(latest);
       }));
   }
   useEffect(()=>{ if (version) check(); }, [ version ]);

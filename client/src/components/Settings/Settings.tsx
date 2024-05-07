@@ -79,8 +79,7 @@ export default function Settings() {
             if (!response) return;
             const { data: releases } = response as { data: {name: string}[] };
             const { name: latest } = releases[0];
-            if (latest !== version) setAvailable(latest);
-            if (latest === version) return form.setFieldError('version', `Running latest release: v${version}.`);
+            if ( version && (parseFloat(latest) > parseFloat(version))){ setAvailable(latest); } else { return form.setFieldError('version', `Running latest release: v${version}.`); }
             notifications.show({ title: `Version ${latest} available`,message: `New version ${latest} available.`, color: 'orange', });
         }));
     }
