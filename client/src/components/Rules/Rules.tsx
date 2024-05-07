@@ -20,7 +20,7 @@ function RuleIcons({ actions }: { actions: Action[] }) {
     const action = availableActions.find(av=>av.id===a.name);
     if (!action) return <></>;
     return (
-    <Tooltip key={i} fz="xs" withArrow color={action.color?theme.colors[action.color][6]:undefined} label={a.name}>
+    <Tooltip key={i} fz="xs" withArrow color={action.color?theme.colors[action.color][6]:undefined} label={a.displayName||a.name}>
       <action.Icon color={action.color?theme.colors[action.color][6]:undefined} size={16} stroke={2} />
     </Tooltip>)
   })

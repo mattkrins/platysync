@@ -27,6 +27,7 @@ export interface Attribute {
 
 export interface Action {
   name: string;
+  displayName?: string;
   value?: string;
   source?: string;
   target?: string;

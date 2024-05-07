@@ -1,4 +1,4 @@
-import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification, List } from '@mantine/core'
+import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification, List, Text } from '@mantine/core'
 import Concealer from '../../Common/Concealer';
 import { IconAlertTriangle, IconHandStop, IconX } from '@tabler/icons-react';
 import classes from '../../../Theme.module.css';
@@ -66,7 +66,7 @@ export default function View( { viewing, view }: { viewing?: {name: string, open
                 <Accordion.Item key={i} value={i.toString()} >
                     <Accordion.Control icon={
                     <Indicator disabled={!problem} size={12} color={action.result.warn?'orange':'red'} inline><act.Icon color={col} /></Indicator>
-                    }>{action.name}</Accordion.Control>
+                    }>{action.displayName||action.name} {action.displayName!==action.name&&<Text component='span' c="dimmed" >({action.name})</Text>}</Accordion.Control>
                     <Accordion.Panel><Action action={action} /></Accordion.Panel>
                 </Accordion.Item>)
             })}

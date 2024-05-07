@@ -86,12 +86,13 @@ async function conclude(connections: connections, logger?: winston.Logger) {
 }
 
 async function actions(actions: Action[], template: template, connections: connections, keys: sKeys, schema: Schema, execute = false) {
-    const todo: {name: string, result: result }[] = [];
+    const todo: {name: string, displayName?: string, result: result }[] = [];
     for (const action of (actions||[])) {
         if (!(action.name in availableActions)) throw Error(`Unknown action '${action.name}'.`);
         const result = await availableActions[action.name]({ action, template, connections, execute, schema, keys, data: {} });
         if (!result) continue;
-        todo.push({name: action.name, result });
+        const name = action.displayName!==action.name ? { displayName: action.displayName||action.name } : {}
+        todo.push({name: action.name, result, ...name });
         if (result.error){
             if ((result.error as xError).message) result.error = (result.error as xError).message;
             break;

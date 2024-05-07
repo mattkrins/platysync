@@ -100,7 +100,7 @@ function IconMap({ actions, size = 16, click }: { actions: action[], size?: numb
         if (!act) return <></>;
         const problem = action.result.error || action.result.warn;
         const col = !problem ? act.color?theme.colors[act.color][6]:undefined : theme.colors.gray[8];
-        return <Tooltip key={key} fz="xs" withArrow label={action.name}>
+        return <Tooltip key={key} fz="xs" withArrow label={action.displayName||action.name}>
         <Indicator disabled={!problem} size={size/3} offset={3} color={action.result.warn?'orange':'red'} inline>
             <act.Icon onClick={click&&click(key.toString())} style={{cursor:"pointer"}} color={col} size={size} stroke={2} />
         </Indicator></Tooltip>

@@ -1,5 +1,5 @@
 import { useContext, useMemo } from "react";
-import { useMantineTheme, Box, Group, Button, Grid, ActionIcon, Text, NavLink, Popover, Collapse, Divider } from "@mantine/core";
+import { useMantineTheme, Box, Group, Button, Grid, ActionIcon, Text, NavLink, Popover, Collapse, Divider, Input } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil } from "@tabler/icons-react";
@@ -49,6 +49,7 @@ function ActionGroup({add, perRule, label, sources = []}:{add: (name: string) =>
 function Action( { form, index, a, actionType, templateProps }: {form: UseFormReturnType<Rule>, index: number, a: Action, actionType: string, templateProps: templateProps } ){
   const theme = useMantineTheme();
   const [opened, { toggle }] = useDisclosure(false);
+  const [editingName, { open, close }] = useDisclosure(false);
   const x = availableActions.find(action=>action.id===a.name);
 
   const copy = (v: Action) => () => form.insertListItem(actionType, {...v});
@@ -78,9 +79,24 @@ function Action( { form, index, a, actionType, templateProps }: {form: UseFormRe
   }, [ form.values.before_actions, form.values.actions, form.values.after_actions ]);
   if (!x) return <></>;
   const { Icon, color, Component } = x;
-
   return (<>
-    <Grid.Col span="auto">{index+1}. <Icon color={color?theme.colors[color][6]:undefined} size={18} stroke={1.5} /> {a.name}</Grid.Col>
+    <Grid.Col span="auto">
+      <Group>
+        {index+1}. <Icon color={color?theme.colors[color][6]:undefined} size={18} stroke={1.5} />
+        <Input variant="unstyled" size="md" radius={0}
+        styles={editingName?{input:{borderBottom:"1px solid var(--mantine-color-default-border)"}}:undefined}
+        {...form.getInputProps(`${actionType}.${index}.displayName`)}
+        onFocus={open}
+        value={((form.values[actionType] as Action[])[index].displayName as string)||a.name}
+        onBlur={(e)=>{
+          close();
+          if (e.target.value==="") form.setFieldValue(`${actionType}.${index}.displayName`, a.name)
+        }}
+        />
+          
+        
+      </Group>
+      </Grid.Col>
     <Grid.Col span="content">
         <Group justify="right" gap="xs">
             <ActionIcon onClick={()=>toggle()} variant={opened?"filled":"default"} size="lg"><IconPencil size={15}/></ActionIcon>
@@ -110,7 +126,7 @@ function ActionList( { form, actionType, templateProps }: {form: UseFormReturnTy
             {actions.map((a, index)=>
             <Draggable key={index} index={index} draggableId={index.toString()}>
               {(provided) => (
-              <Grid align="center" ref={provided.innerRef} mt="xs" {...provided.draggableProps} gutter="xs"
+              <Grid align="center" ref={provided.innerRef} {...provided.draggableProps} gutter="xs"
               style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }}
               >
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
@@ -131,9 +147,9 @@ function ActionList( { form, actionType, templateProps }: {form: UseFormReturnTy
 
 
 export default function Actions( { form, allow, templates }: {form: UseFormReturnType<Rule>, allow: string[], templates: string[]  } ) {
-  const add = (name: string) => form.insertListItem('actions', { name });
-  const addBeforeRule = (name: string) => form.insertListItem('before_actions', { name });
-  const addAfterRule = (name: string) => form.insertListItem('after_actions', { name });
+  const add = (name: string) => form.insertListItem('actions', { name, displayName: name });
+  const addBeforeRule = (name: string) => form.insertListItem('before_actions', { name, displayName: name });
+  const addAfterRule = (name: string) => form.insertListItem('after_actions', { name, displayName: name });
   const { templateProps, explorer } = useTemplater({allow, templates});
   
   return (

@@ -35,6 +35,7 @@ interface Condition {
 
 interface Action {
     name: string;
+    displayName?: string;
     groups: unknown[];
     attributes: {name:string,value:string, [k: string]: unknown;}[];
     templates: {name:string,value:string, [k: string]: unknown;}[];
@@ -89,6 +90,7 @@ interface response {
 
 interface action {
     name: string;
+    displayName?: string;
     result: { warn?: string, error?: string, data?: {[k: string]: unknown} };
 }
 
