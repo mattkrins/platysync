@@ -1,4 +1,4 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCalendar, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFileText, IconFileTypeCsv, IconFileTypeDocx, IconFileTypeXls, IconFileZip, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPhoto, IconPlus, IconSchool, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCalendar, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFileText, IconFileTypeCsv, IconFileTypeDocx, IconFileTypeXls, IconFileZip, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPhoto, IconPlus, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
 import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
 import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
@@ -19,6 +19,7 @@ import EncryptString from '../components/Rules/Editor/Operations/SysEncryptStrin
 import FolderCreate from '../components/Rules/Editor/Operations/FolderCreate';
 import DirUpdateSec from '../components/Rules/Editor/Operations/DirUpdateSec';
 import SysComparator from '../components/Rules/Editor/Operations/SysComparator';
+import DirAccountControl from '../components/Rules/Editor/Operations/DirAccountControl';
 
 export const ldapAttributes = [
     "name",
@@ -227,6 +228,14 @@ export const availableActions: {
         color: 'yellow',
         Component: DirUpdateSec,
     },
+    //{
+    //    id: "Update Account Controls",
+    //    catagory: 'directory',
+    //    requires: 'ldap',
+    //    Icon: IconShieldCog,
+    //    color: 'orange',
+    //    Component: DirAccountControl,
+    //},
     {
         id: "Move Organisational Unit",
         catagory: 'directory',

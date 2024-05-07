@@ -259,7 +259,7 @@ export class ldap {
     static validSam(sAM: string) { return sAM !== "" && (!/[/\\[\]:;"|=,+*?<>]/.test(sAM)) && sAM.length <= 20 }
 }
 
-export const FLAGS = {
+export const FLAGS: { [control: string]: number } = {
     ACCOUNTDISABLE: 2,
     NORMAL_ACCOUNT: 512,
     DONT_EXPIRE_PASSWORD: 65536,
@@ -323,6 +323,28 @@ export class User {
             const userAccountControl = disable ?
             (this.attributes.userAccountControl | (FLAGS.ACCOUNTDISABLE)) : // Bitwise OR (add flag)
             (this.attributes.userAccountControl &= ~(FLAGS.ACCOUNTDISABLE)); // Bitwise NOT (remove flag)
+            const change = new ldapjs.Change({
+                operation: 'replace',
+                modification: new ldapjs.Attribute({
+                    type: 'userAccountControl',
+                    values: String(userAccountControl)
+                })
+            });
+            this.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
+                if (err) return reject(err);
+                this.attributes.userAccountControl = userAccountControl;
+                resolve(true);
+            } );
+        });
+    }
+    setAccountControl(controls: {[control: string]: boolean} = {}): Promise<true> {
+        return new Promise((resolve, reject) => {
+            if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
+            if (!this.client) return reject("No client found.");
+            let userAccountControl = FLAGS.NORMAL_ACCOUNT;
+            for (const control of Object.keys(controls)){
+                if (controls[control] && FLAGS[control]) userAccountControl = userAccountControl | (FLAGS[control]);
+            }
             const change = new ldapjs.Change({
                 operation: 'replace',
                 modification: new ldapjs.Attribute({
