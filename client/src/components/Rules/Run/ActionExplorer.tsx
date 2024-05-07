@@ -12,12 +12,12 @@ function ObjectMap( { data }: { data: data }  ){
     return data.constructor === Array ? (data as Array<string>).map((d, i)=>
     <List.Item key={i} className={classes.overflow} >
         <Box style={{whiteSpace:"nowrap"}}>
-            {(typeof d =="object")?<ObjectMap data={d||{}} />:<Code>{JSON.stringify(d)}</Code>}
+            {(typeof d =="object")?<ObjectMap data={d||{}} />:<Code>{String(d)}</Code>}
         </Box>
     </List.Item>): Object.keys(data).map((d, i)=>
     <List.Item key={i} className={classes.overflow} >
         <Box style={{whiteSpace:"nowrap"}}>{d}:
-            {(typeof data[d] =="object")?<ObjectMap data={data[d] as data} />:<Code>{JSON.stringify(data[d])}</Code>}
+            {(typeof data[d] =="object")?<ObjectMap data={data[d] as data} />:<Code>{String(data[d])}</Code>}
         </Box>
     </List.Item>);
 }

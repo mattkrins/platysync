@@ -36,9 +36,4 @@ suite('Auth Suite', () => {
     expect(authed.id).toBeDefined();
   });
 
-  test('Other', async () => {
-    const id = await session();
-    console.log(id)
-  });
-
 });
