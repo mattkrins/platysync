@@ -228,14 +228,14 @@ export const availableActions: {
         color: 'yellow',
         Component: DirUpdateSec,
     },
-    //{
-    //    id: "Update Account Controls",
-    //    catagory: 'directory',
-    //    requires: 'ldap',
-    //    Icon: IconShieldCog,
-    //    color: 'orange',
-    //    Component: DirAccountControl,
-    //},
+    {
+        id: "Update Account Controls",
+        catagory: 'directory',
+        requires: 'ldap',
+        Icon: IconShieldCog,
+        color: 'orange',
+        Component: DirAccountControl,
+    },
     {
         id: "Move Organisational Unit",
         catagory: 'directory',

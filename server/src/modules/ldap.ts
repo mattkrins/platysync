@@ -261,8 +261,16 @@ export class ldap {
 
 export const FLAGS: { [control: string]: number } = {
     ACCOUNTDISABLE: 2,
+    HOMEDIR_REQUIRED: 8,
+    LOCKOUT: 16,
+    PASSWD_NOTREQD: 32,
     NORMAL_ACCOUNT: 512,
     DONT_EXPIRE_PASSWORD: 65536,
+    SMARTCARD_REQUIRED: 262144,
+    TRUSTED_FOR_DELEGATION: 524288,
+    DONT_REQ_PREAUTH: 4194304,
+    PASSWORD_EXPIRED: 8388608,
+    TRUSTED_TO_AUTH_FOR_DELEGATION: 16777216,
 };
 
 /**
@@ -312,7 +320,7 @@ export class User {
     disable = () => this.enable(true);
     /**
     * Enables the user. Requires client.
-    * @param {boolean} disable Disable instead of enable
+    * @param {boolean} disable Disable instead of enable.
     **/
     enable(disable: boolean = false): Promise<true> {
         return new Promise((resolve, reject) => {
@@ -337,14 +345,19 @@ export class User {
             } );
         });
     }
-    setAccountControl(controls: {[control: string]: boolean} = {}): Promise<true> {
+    /**
+    * Sets the userAccountControl flag. Requires client.
+    * @param {{[control: string]: boolean}} controls Flag names to set.
+    **/
+    setAccountControl(controls: {[control: string]: boolean} = {}, calculateOnly = false): Promise<number> {
         return new Promise((resolve, reject) => {
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
-            if (!this.client) return reject("No client found.");
             let userAccountControl = FLAGS.NORMAL_ACCOUNT;
             for (const control of Object.keys(controls)){
                 if (controls[control] && FLAGS[control]) userAccountControl = userAccountControl | (FLAGS[control]);
             }
+            if (calculateOnly) return resolve(userAccountControl);
+            if (!this.client) return reject("No client found.");
             const change = new ldapjs.Change({
                 operation: 'replace',
                 modification: new ldapjs.Attribute({
@@ -355,7 +368,7 @@ export class User {
             this.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
                 if (err) return reject(err);
                 this.attributes.userAccountControl = userAccountControl;
-                resolve(true);
+                resolve(userAccountControl);
             } );
         });
     }

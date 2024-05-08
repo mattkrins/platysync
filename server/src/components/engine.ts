@@ -32,6 +32,7 @@ import dayjs from "dayjs";
 import { xError } from "../modules/common.js";
 import { Rule, Schema } from "./models.js";
 import { schemas } from "../routes/schema.js";
+import DirAccountControl from "./operations/DirAccountControl.js";
 const { combine, timestamp, json } = winston.format;
 
 interface sKeys { [k: string]: string }
@@ -50,6 +51,7 @@ export function getUser(action: Action & { target: string }, connections: connec
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type operation = (props: any) => Promise<result>;
 const availableActions: { [k: string]: operation } = {
+    'Update Account Controls': DirAccountControl,
     'Create User': DirCreateUser,
     'Delete User': DirDeleteUser,
     'Disable User': DirDisableUser,
