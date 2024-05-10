@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     globalSetup: "./server/tests/test.setup.ts",
     watchExclude: ["**/node_modules/**", "**/client/**", "**/build/**"],
-    include: ["./server/tests/*.test.ts"],
+    include: ["./server/tests/*.test.ts","./server/tests/providers/*.test.ts"],
     fileParallelism: false
   },
 })

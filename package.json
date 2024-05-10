@@ -65,6 +65,6 @@
     "server": "tsx watch --clear-screen=false --ignore ./client server/src/server.ts",
     "build": "tsc && cd client && npm run build && cd ../build && node build.js",
     "build-server-only": "tsc",
-    "test": "vitest"
+    "test": "vitest run"
   }
 }

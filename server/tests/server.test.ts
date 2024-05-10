@@ -1,7 +1,8 @@
-import { suite, expect, test, expectTypeOf } from 'vitest';
-import { server, path, testing } from '../src/server.ts';
+import { describe, expect, test, expectTypeOf, beforeAll, afterAll } from 'vitest';
+import { server, path, testing, init } from '../src/server.ts';
 import { FastifyInstance } from 'fastify';
 import fs from 'fs-extra';
+import { clear } from './test.setup.ts';
 
 let setupComplete: boolean|undefined;
 export function setup(timeout = 4000): Promise<boolean> {
@@ -18,7 +19,10 @@ export function setup(timeout = 4000): Promise<boolean> {
     } );
 }
 
-suite('Server Suite', () => {
+describe.sequential('Server Suite', () => {
+  beforeAll(async () => {
+      await init("./build/test");
+  });
 
   test('Self-Test', async () => {
     expect(testing).toBe(true);
@@ -36,18 +40,18 @@ suite('Server Suite', () => {
   test('Setup', async () => {
     const isSetup1 = (await server.inject({ method: "get", url: "/api/v1/auth/setup" })).json();
     expect(isSetup1).toBeTypeOf('boolean');
-    if (isSetup1){ // Test enviornment is already set up.
-      setupComplete = true;
-    } else {
-      const setup = (await server.inject({ method: "post", url: "/api/v1/auth/setup", body: { username: 'admin', password: 'admin', }})).json();
-      expect(setup).toBeTruthy();
-      expect(setup.username).toBe('admin');
-      expect(setup.id).toBeDefined();
-      const isSetup: boolean = (await server.inject({ method: "get", url: "/api/v1/auth/setup" })).json();
-      expect(isSetup).toBe(true);
-      setupComplete = isSetup;
-    }
+    const setup = (await server.inject({ method: "post", url: "/api/v1/auth/setup", body: { username: 'admin', password: 'admin', }})).json();
+    expect(setup).toBeTruthy();
+    expect(setup.username).toBe('admin');
+    expect(setup.id).toBeDefined();
+    const isSetup: boolean = (await server.inject({ method: "get", url: "/api/v1/auth/setup" })).json();
+    expect(isSetup).toBe(true);
+    setupComplete = isSetup;
 
+  });
+
+  afterAll(async () => {
+      await clear();
   });
 
 });

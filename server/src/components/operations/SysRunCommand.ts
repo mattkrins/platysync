@@ -10,16 +10,16 @@ import { exec } from 'child_process';
 
 interface props extends actionProps {
     action: Action & {
-        cmd: string;
+        value: string;
     }
 }
 
 export default async function ({ action, template, execute, data }: props) {
     try {
-        data.command = compile(template, action.cmd||"");
+        data.command = compile(template, action.value||"");
         if ( !execute ) return {data};
         const execution: Promise<string> = new Promise((resolve, reject)=>{
-            exec(data.cmd, (error, stdout, stderr) => {
+            exec(data.command, (error, stdout, stderr) => {
                 if (error) reject(error.message);
                 if (stderr) reject(stderr);
                 resolve(stdout);
