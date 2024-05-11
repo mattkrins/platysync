@@ -8,7 +8,7 @@ import useAPI from '../hooks/useAPI';
 export default function AppProvider({ children  }: PropsWithChildren) {
     const [stored, setSession, clearSession] = useLocalStorage({ key: 'session', defaultValue: '' });
     const session = (stored||"")==="" ? undefined : stored;
-    const [nav, setNav] = useState<string>('Settings');
+    const [nav, setNav] = useState<string>("Settings");
     const changeNav = (nav: string) => setNav(nav);
     const login = (session: session) => { if (!session.id) return; setSession(session.id); }
     const { data, get, reset, loading: loggingIn } = useAPI<session>({ url: `/auth`, noAuth: true, before: o => ({...o, headers: { Authorization : `Bearer ${session}` } }), });

@@ -1,5 +1,5 @@
 import { Text, Group, ActionIcon, Tooltip, rem, Button, em, Box, Center, Paper, RingProgress, UnstyledButton, Menu, Modal, Loader, } from '@mantine/core';
-import { IconPlus, IconAdjustmentsHorizontal, TablerIconsProps, IconCheckbox, IconSettings, IconLogout, IconX, IconPlug, IconClock, IconChevronRight, IconUser, IconRun, IconSearch, IconClockPause, IconFiles } from '@tabler/icons-react';
+import { IconPlus, IconAdjustmentsHorizontal, TablerIconsProps, IconCheckbox, IconSettings, IconLogout, IconX, IconPlug, IconClock, IconChevronRight, IconUser, IconRun, IconSearch, IconClockPause, IconFiles, IconDashboard } from '@tabler/icons-react';
 import classes from './Navbar.module.css';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Header from './Header';
@@ -13,9 +13,11 @@ import Status from '../Rules/Run/Status';
 //LINK - client\src\App.tsx:15
 
 const commonLinks = [
+  { icon: IconDashboard, label: 'Dashboard' },
   { icon: IconAdjustmentsHorizontal, label: 'Settings' },
   { icon: IconClock, label: 'Schedules' },
   { icon: IconUser, label: 'Users' },
+  //{ icon: IconHistory, label: 'Logs' },
 ];
 
 const schemaLinks = [

@@ -1,5 +1,6 @@
 import { FastifyReply } from "fastify";
 import { log } from "../server.js";
+import winston from "winston";
 
 type status = 400|401|403|404|405|406|408|409|500|number;
 export class xError {
@@ -58,4 +59,25 @@ export function validStr(string: string) {
     if (typeof string !== "string") return false;
     if (string.trim()==="") return false;
     return true;
+}
+
+interface logOptions {
+  rows?: number;
+  limit?: number;
+  start?: number;
+  from?: Date;
+  until?: Date;
+  order?: string;
+  fields: unknown;
+}
+
+export function getLogs(log: winston.Logger, options: logOptions) {
+  return new Promise((resolve, reject)=>{
+      try {
+          log.query(options as winston.QueryOptions, function (e, { file }) {
+              if (e) return reject(e);
+              resolve(file);
+          });
+      } catch (e) { reject(e); }
+  })
 }

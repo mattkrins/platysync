@@ -185,7 +185,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     const connections: connections = {};
     let action: winston.Logger|undefined;
     try {
-        history.debug({schema: schema.name, rule: rule.name, message: 'Running Rule.', scheduled});
+        history.info({schema: schema.name, rule: rule.name, message: `${idFilter?'Executing':'Evaluating'} Rule.`, scheduled, actioning: idFilter?.length });
         if (idFilter && rule.log && parseInt(rule.log) > 0 ) {
             if (rule.log==="1") history.info({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled});
             if (parseInt(rule.log) > 3){

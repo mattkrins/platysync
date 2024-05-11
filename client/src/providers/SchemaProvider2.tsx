@@ -31,7 +31,7 @@ export default function SchemaProvider({ children }: PropsWithChildren) {
 
     useEffect(()=>{ if (name&&name!=='') { getHeaders(); } else { clearHeaders(); } }, [ schema.connectors ]);
 
-    useEffect(()=>{ if (name&&name!=='') { fetch(); } else { reset(); changeNav('Settings'); } }, [ name ]);
+    useEffect(()=>{ if (name&&name!=='') { fetch(); } else { reset(); changeNav("Dashboard"); } }, [ name ]);
     return (
         <SchemaContext.Provider value={{
             ...schema,
