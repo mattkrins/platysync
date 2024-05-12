@@ -9,7 +9,7 @@ import file from './routes/file.js';
 import { engine } from './components/engine.js';
 import { xError } from './modules/common.js';
 import user from './routes/user.js';
-import settings from './routes/settings.js';
+import settings, { init } from './routes/settings.js';
 import dashboard from './routes/dashboard.js';
 import { Schedule, User, Session } from './db/models.js';
 import { db } from './db/database.js';
@@ -48,6 +48,7 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
         await Schedule.truncate();
         await User.truncate();
         await Session.truncate();
+        await init();
       }
       catch (e) { new xError(e).send(reply); }
     });

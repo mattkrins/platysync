@@ -1,4 +1,4 @@
-import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor, Select, TextInput } from '@mantine/core'
+import { Button, Input, SegmentedControl, useMantineColorScheme, Text, Anchor, Select, TextInput, Grid, Switch, Code } from '@mantine/core'
 import Container from '../Common/Container';
 import { useContext, useEffect, useState } from 'react';
 import useAPI from '../../hooks/useAPI';
@@ -109,28 +109,34 @@ export default function Settings() {
         />
         <TextInput mt="xs"
             label="Schema Location"
-            description="Directory containing schema files. Default: ./platysync/schemas"
+            description="Directory containing schema files. Default: %appdata%/platysync/schemas"
             placeholder="D:/schemas"
             {...form.getInputProps('schemasPath')}
         />
-        <Input.Wrapper mt="xs" error={form.getInputProps('version').error}
-        label={`Application Version: ${version}`}
-        description={upgradeAvailable?<><Text component='span' c="orange" size='xs'>New release v{upgradeAvailable} available!</Text><br/>
-        Download the latest version from the github <Anchor href='https://github.com/mattkrins/platysync/releases' size="xs" target='_blank' >releases</Anchor> page.
-        </>:'Check for new releases.'}
-        ><Button color='green' loading={checking} onClick={()=>check()} mt={5} >Check</Button>
-        </Input.Wrapper>
-        <Input.Wrapper mt="xs"
-        label="Clear Cache"
-        description={<>Purges the server cache and <Anchor href='https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization' size="xs" target='_blank' >sync's</Anchor> database 
-        to fix schema inconsistencies, etc.</>}
-        ><Button loading={!!purging} onClick={()=>purge()} mt={5} >Clear</Button>
-        </Input.Wrapper>
-        <Input.Wrapper mt="xs"
-        label="Factory Reset"
-        description="Delete all users, schedules and settings."
-        ><Button color='red' loading={!!resetting} onClick={()=>openResetModal()} mt={5} >Reset</Button>
-        </Input.Wrapper>
+        <Grid mt="xs">
+            <Grid.Col span={4} mih={120}><Input.Wrapper error={form.getInputProps('version').error}
+            label={`Application Version: ${version}`}
+            description={upgradeAvailable?<><Text component='span' c="orange" size='xs'>New release v{upgradeAvailable} available!</Text><br/>
+            Download the latest version from the github <Anchor href='https://github.com/mattkrins/platysync/releases' size="xs" target='_blank' >releases</Anchor> page.
+            </>:'Check for new releases.'}
+            ><Button color='green' loading={checking} onClick={()=>check()} mt={5} mb={5} >Check</Button>
+            </Input.Wrapper></Grid.Col>
+            <Grid.Col span={4}><Input.Wrapper
+            label="Clear Cache"
+            description={<>Purges the server cache and <Anchor href='https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization' size="xs" target='_blank' >sync's</Anchor> the database.</>}
+            ><Button loading={!!purging} onClick={()=>purge()} mt={5} mb={5} >Clear</Button>
+            </Input.Wrapper></Grid.Col>
+            <Grid.Col span={4}><Input.Wrapper
+            label="Factory Reset"
+            description="Delete all users, schedules and settings."
+            ><Button color='red' loading={!!resetting} onClick={()=>openResetModal()} mt={5} mb={5} >Reset</Button>
+            </Input.Wrapper></Grid.Col>
+        </Grid>
+        <Switch mt="xs" disabled checked={form.values.enableRun}
+        label="Enable Run/Command Action"
+        description={<>Enables action which can execute arbitrary system processes/commands.<br/>
+        Must be set manually via the <Anchor href='https://github.com/mattkrins/platysync/wiki/Settings#enable-runcommand-action' size="xs" target='_blank' >settings</Anchor> file by adding <Code>enableRun: true</Code></>}
+        />
         
     </Container>
     )

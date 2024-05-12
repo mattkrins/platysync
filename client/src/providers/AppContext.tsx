@@ -4,6 +4,7 @@ export interface settings {
     version: string;
     logLevel: string;
     schemasPath?: string;
+    enableRun?: boolean;
 }
 
 export interface session {

@@ -23,13 +23,15 @@ interface settings {
     version: string;
     logLevel: string;
     schemasPath?: string;
+    enableRun?: boolean;
 }
-let settings: settings = {
+export let settings: settings = {
     version: '',
     logLevel: 'info',
 };
 
-async function init(settingsPath: string) {
+export async function init() {
+    const settingsPath = `${path}/settings.yaml`;
     if (!fs.existsSync(settingsPath)) fs.writeFileSync(settingsPath, stringify({...settings, version }));
     const file = fs.readFileSync(settingsPath, 'utf8');
     const parsed = YAML.parse(file) as settings;
@@ -52,13 +54,13 @@ async function init(settingsPath: string) {
 
 export default async function (route: FastifyInstance) {
     const settingsPath = `${path}/settings.yaml`;
-    await init(settingsPath);
+    await init();
     route.get('/', async (request, reply) => {
         try { return settings; }
         catch (e) { new xError(e).send(reply); }
     });
     route.put('/', async (request, reply) => {
-        const {version, ...changes} = request.body as settings;
+        const {version, enableRun, ...changes} = request.body as settings;
         try {
             if (!validLogLevel(changes.logLevel)) throw new xError("Log level invalid.", "logLevel");
             settings = {...settings, ...changes };

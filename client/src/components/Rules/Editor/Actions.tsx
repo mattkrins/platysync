@@ -8,10 +8,12 @@ import SchemaContext from "../../../providers/SchemaContext2";
 import { availableActions, availableCatagories } from "../../../modules/common";
 import classes from './Actions.module.css';
 import useTemplater from "../../../hooks/useTemplater";
+import AuthContext from '../../../providers/AppContext';
 
 function ActionGroup({add, perRule, label, sources = []}:{add: (name: string) => void, perRule?: boolean, label: string, sources: string[]}) {
   const [opened, { close, open }] = useDisclosure(false);
   const { connectors } = useContext(SchemaContext);
+  const { settings } = useContext(AuthContext);
   const theme = useMantineTheme();
   const _add = (id: string) => () => { add(id); close(); };
 
@@ -19,7 +21,8 @@ function ActionGroup({add, perRule, label, sources = []}:{add: (name: string) =>
 
   const availableActions_ = availableActions
   .filter(a=>{ return !a.requires || sourceIDs.includes(a.requires) })
-  .filter(c=>perRule?!c.perRule:true);
+  .filter(c=>perRule?!c.perRule:true)
+  .filter(c=>c.id!=="Run Command"?true:settings.enableRun);
 
   const availableCatagories_ = availableCatagories
   .filter(a=>{ return !a.requires || a.requires.find(r=>sourceIDs.includes(r)) })

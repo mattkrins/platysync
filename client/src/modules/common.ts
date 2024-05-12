@@ -20,6 +20,7 @@ import FolderCreate from '../components/Rules/Editor/Operations/FolderCreate';
 import DirUpdateSec from '../components/Rules/Editor/Operations/DirUpdateSec';
 import SysComparator from '../components/Rules/Editor/Operations/SysComparator';
 import DirAccountControl from '../components/Rules/Editor/Operations/DirAccountControl';
+import RunCommand from '../components/Rules/Editor/Operations/SysRunCommand';
 
 export const ldapAttributes = [
     "name",
@@ -333,14 +334,12 @@ export const availableActions: {
         Icon: IconEqualNot,
         Component: SysComparator,
     },
-    //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
-    //LINK - client\src\components\Rules\Editor\Operations\SysRunCommand.tsx
-    //{
-    //    id: "Run Command",
-    //    catagory: 'system',
-    //    Icon: IconTerminal,
-    //    Component: RunCommand,
-    //},
+    {
+        id: "Run Command",
+        catagory: 'system',
+        Icon: IconTerminal,
+        Component: RunCommand,
+    },
     {
         id: "Upload Student Passwords",
         catagory: 'edustar',
@@ -348,7 +347,6 @@ export const availableActions: {
         color: 'yellow',
         Component: StmcUpload
     },
-    //TODO - update groups
     //TODO - emailing
     //{
     //    id: "Send Email",

@@ -24,6 +24,7 @@ import DirDisableUser from "./operations/DirDisableUser.js";
 import DirEnableUser from "./operations/DirEnableUser.js";
 import DirCreateUser from "./operations/DirCreateUser.js";
 import StmcUpload from "./operations/StmcUpload.js";
+import SysRunCommand from "./operations/SysRunCommand.js";
 import { Doc } from "../db/models.js";
 import winston from 'winston';
 import fs from 'fs-extra';
@@ -73,9 +74,7 @@ const availableActions: { [k: string]: operation } = {
     'Encrypt String': SysEncryptString,
     'Template': SysTemplate,
     'Upload Student Passwords': StmcUpload,
-    //NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
-    //LINK - server\src\components\operations\SysRunCommand.ts
-    //'Run Command': SysRunCommand,
+    'Run Command': SysRunCommand,
 }
 
 async function conclude(connections: connections, logger?: winston.Logger) {

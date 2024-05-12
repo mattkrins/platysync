@@ -1,12 +1,8 @@
 import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
+import { settings } from "../../routes/settings.js";
 import { Action, actionProps } from "../../typings/common.js";
 import { exec } from 'child_process';
-
-//NOTE - Should work in theory, but not currently implemented due to arbitrary code execution vulnerability concerns:
-//NOTE - You should consider submitting a feature request instead of using this. Enable via engine & client:
-//LINK - server\src\components\engine.ts:72
-//LINK - client\src\components\Rules\Editor\Operations\SysRunCommand.tsx
 
 interface props extends actionProps {
     action: Action & {
@@ -16,6 +12,7 @@ interface props extends actionProps {
 
 export default async function ({ action, template, execute, data }: props) {
     try {
+        if (!settings.enableRun) throw new xError("SysRunCommand action is not enabled.");
         data.command = compile(template, action.value||"");
         if ( !execute ) return {data};
         const execution: Promise<string> = new Promise((resolve, reject)=>{
