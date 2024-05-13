@@ -83,7 +83,7 @@ function start(schedule: Schedule) {
       case "monitor": {
         watching[schedule.id] = fs.watch(schedule.value, async (e, f)=> {
           if (!f||!e) throw new xError("Failed to init watcher.");
-          try { await run(schedule); } catch (e) { stop(schedule); throw new xError(e); }
+          try { await run(schedule); } catch (e) { stop(schedule); handle(e as xError, schedule); }
         })
         watching[schedule.id].on('error', (e: xError) => {
           handle(e as xError, schedule);
@@ -94,7 +94,7 @@ function start(schedule: Schedule) {
         scheduled[schedule.id] = Cron(schedule.value, {timezone: "Australia/Victoria", catch: (e) =>{
           handle(e as xError, schedule);
         }}, async () => {
-          try { await run(schedule); } catch (e) { stop(schedule); throw new xError(e); }
+          try { await run(schedule); } catch (e) { stop(schedule); handle(e as xError, schedule); }
         });
         break;
       }
