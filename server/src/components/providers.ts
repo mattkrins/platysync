@@ -340,18 +340,22 @@ interface folder {
 export interface FOLDEROptions extends Provider {
     name: string;
     path: string;
+    type: string;
 }
 export class FOLDER extends ProviderBase {
     public name: string;
     private path: string;
+    private type: string;
     public contents: folder[] = [];
     constructor(options: FOLDEROptions) {
         super(options);
         this.name = options.name;
         this.path = options.path;
+        this.type = options.type;
         for (const name of fs.readdirSync(this.path)){
             const stats = fs.statSync(`${this.path}/${name}`);
             const type = stats.isFile() ? 'file' : stats.isDirectory() ? 'directory' : 'unknown';
+            if (this.type!=="both" && this.type!==type) continue;
             this.contents.push({
                 name,
                 type,
