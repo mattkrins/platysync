@@ -13,6 +13,9 @@ import { Doc } from '../db/models.js';
 import { compile } from '../modules/handlebars.js';
 import { xError } from '../modules/common.js';
 import { Schema, ConnectorX, Connectors } from './models.js';
+import { base_provider } from './providers/base.js';
+import FOLDER from './providers/folder.js';
+import EMAIL from './providers/email.js';
 const Axios = (axios as unknown as AxiosFix);
 
 interface connectorConfig {[k: string]: unknown}
@@ -56,7 +59,8 @@ export default async function connect(schema: Schema, connectorName: string, con
             connection = { ...connection, rows: users, objects: keyedUsers, keyed, provider, client, close }; break;
         }
         case 'folder': {
-            const folder = new FOLDER({...provider, ...config} as FOLDEROptions);
+            const folder = new providers[provider.id]({...provider, ...config}) as FOLDER;
+            await folder.configure();
             const keyed: {[k: string]: object} = {};
             const rows = folder.contents;
             for (const row of rows){
@@ -158,7 +162,7 @@ export class CSV extends ProviderBase {
         await this.open();
         return true;
     }
-    private async configure() {
+    public async configure() {
         const docsTemplate: template = { $file: {} };
         if (this.schema){
             const docs = await Doc.findAll({where: { schema: this.schema.name }, raw: true });
@@ -327,57 +331,9 @@ export class STMC extends ProviderBase {
     }
 }
 
+export type AllProviderOptions = PROXYOptions|CSVOptions|LDAPOptions|STMCOptions;
 
-interface folder {
-    name: string,
-    type: string,
-    size: string,
-    created: string,
-    modified: string,
-    accessed: string,
-    [k: string]: string,
-}
-export interface FOLDEROptions extends Provider {
-    name: string;
-    path: string;
-    type: string;
-}
-export class FOLDER extends ProviderBase {
-    public name: string;
-    private path: string;
-    private type: string;
-    public contents: folder[] = [];
-    constructor(options: FOLDEROptions) {
-        super(options);
-        this.name = options.name;
-        this.path = options.path;
-        this.type = options.type;
-        for (const name of fs.readdirSync(this.path)){
-            const stats = fs.statSync(`${this.path}/${name}`);
-            const type = stats.isFile() ? 'file' : stats.isDirectory() ? 'directory' : 'unknown';
-            if (this.type!=="both" && this.type!==type) continue;
-            this.contents.push({
-                name,
-                type,
-                size: String(stats.blksize),
-                created: String(stats.ctime),
-                modified: String(stats.mtime),
-                accessed: String(stats.atime),
-            })
-        }
-    }
-    async validate(): Promise<true> {
-        if (!this.path || !fs.existsSync(this.path)) throw new xError("Path does not exist.", "path");
-        return true;
-    }
-    public async getHeaders(): Promise<string[]> {
-        return ['name', 'type', 'size', 'created', 'modified', 'accessed',];
-    }
-}
+export const providers: { [id: string]: typeof base_provider } = { csv: CSV, stmc: STMC, ldap: LDAP, proxy: PROXY };
 
-export type AllProviderOptions = PROXYOptions|CSVOptions|LDAPOptions|STMCOptions|FOLDEROptions;
-export interface ProviderOptions { proxy: PROXYOptions, csv: CSVOptions, ldap: LDAPOptions, stmc: STMCOptions, folder: FOLDEROptions }
-export type AllProviders = PROXY|CSV|LDAP|STMC|FOLDER;
-export type AllProviderTypes = typeof PROXY|typeof CSV|typeof STMC|typeof LDAP|typeof FOLDER;
-export interface Providers { csv: CSV, stmc: STMC, ldap: LDAP, proxy: PROXY, folder: FOLDER }
-export const providers: { [id: string]: AllProviderTypes } = { csv: CSV, stmc: STMC, ldap: LDAP, proxy: PROXY, folder: FOLDER };
+providers.folder = FOLDER;
+providers.email = EMAIL;

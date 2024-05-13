@@ -112,6 +112,23 @@ const providers: {
             url: hasLength({ min: 3 }, 'URL must be at least 3 characters long.')
         },
     },
+    //email: {
+    //    id: 'email',
+    //    name: "Email Sender",
+    //    color: 'grape',
+    //    Icon: IconMail,
+    //    Options: EMAIL,
+    //    initialValues: {
+    //        name: 'EmailServer',
+    //        host: '',
+    //        username: '',
+    //        password: '',
+    //    },
+    //    validation: {
+    //        name: isNotEmpty('Name can not be empty.'),
+    //        host: hasLength({ min: 3 }, 'URL must be at least 3 characters long.')
+    //    },
+    //},
 }
 
 export default providers;

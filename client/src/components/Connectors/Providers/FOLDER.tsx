@@ -21,7 +21,7 @@ export default function FOLDER( { form }: { form: UseFormReturnType<Record<strin
         <Input.Wrapper mt="xs" withAsterisk
         label="Iterate Over"
         >
-        <SegmentedControl mt="xs" fullWidth 
+        <SegmentedControl fullWidth 
         {...form.getInputProps('type')}
         defaultValue="both"
         data={[
