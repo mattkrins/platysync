@@ -3,7 +3,7 @@ import { xError } from "../modules/common.js";
 import { Schedule } from "../db/models.js";
 import { Rule, Schema } from "../components/models.js";
 import { schemas } from "./schema.js";
-import { history } from "../server.js";
+import { history, testing } from "../server.js";
 import Cron from "croner";
 import fs from 'fs-extra';
 import process, { processActions } from "../components/engine.js";
@@ -109,7 +109,7 @@ async function init() {
 }
 
 export default async function (route: FastifyInstance) {
-  setTimeout(init, 5000);
+  if (!testing) setTimeout(init, 5000);
   // Get all Schedules
   route.get('/', async (_, reply) => {
     try { return (await Schedule.findAll({ raw: true })).map(s=>errors[s.id]?({...s, error: errors[s.id]}):s); }

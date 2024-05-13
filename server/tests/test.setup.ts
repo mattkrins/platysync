@@ -28,7 +28,6 @@ export const del = (o: options) => useAPI({...o, method: "delete"});
 export async function setup() {
     process.stdout.write('\x1Bc');
     if (path!=='./build/test' || !testing) throw Error("Not running in test environment.");
-    console.log(`Built test environment @ ${path}`)
 }
 
 export async function remove(time = 1000, tries = 0) {

@@ -1,7 +1,7 @@
 import { describe, expect, test, beforeAll, afterAll } from 'vitest';
 import { clear, del, post, put } from '../test.setup.ts';
 import { init, path } from '../../src/server.ts';
-import { Connector } from '../../src/components/models.ts';
+import { Connector, Rule, Rules } from '../../src/components/models.ts';
 
 describe.sequential('Provider Suite: Folder', () => {
 
@@ -47,10 +47,35 @@ describe.sequential('Provider Suite: Folder', () => {
     });
 
     test('Delete Connector', async () => {
-        const connectors: Connector[] = await del({url: "/schema/Test/connector", session, data: { name: "folder" } });
+        const connectors: Connector[] = await del({url: "/schema/Test/connector", session, data: { name: "folder_1" } });
         expect(connectors).toBeTruthy();
-        const connector = connectors.find(c=>c.name==="folder");
+        const connector = connectors.find(c=>c.name==="folder_1");
         expect(connector).toBeUndefined();
+    });
+
+    test('Create Rule', async () => {
+        const data = { rule: {
+            name: 'folder',
+            primary: 'folder',
+            primaryKey: 'name',
+            test: true,
+            conditions: [
+                { type: 'string', key: '1', operator: '==', value: '1', }
+            ],
+        }}
+        const rules: Rule[] = await post({url: "/schema/Test/rule", session, data });
+        expect(rules).toBeTruthy();
+        const rule = rules.find(c=>c.name==="folder");
+        expect(rule).toBeTruthy();
+        expect(rule?.name).toBe("folder");
+    });
+
+    test('Evaluate Rule', async () => {
+        const rules = new Rules("Test");
+        const data = rules.get("folder").parse();
+        const results = await post({url: "/schema/Test/engine", session, data });
+        expect(results).toHaveProperty("evaluated");
+        expect(results.evaluated).toContainEqual({ id: 'settings.yaml', actions: [], actionable: true });
     });
   
     afterAll(async () => {
