@@ -86,7 +86,7 @@ export default function Settings( { form, allow, taken, templates }: {form: UseF
                 clearable
                 {...form.getInputProps('primary')}
                 disabled={(form.values.secondaries||[]).length>0}
-                filter={data=>data.filter(c=>c.id!=="proxy")  }
+                inputsOnly
                 rightSection={<ActionIcon disabled={!form.values.primary} onClick={()=>openConfig(form.values.primary)} variant="subtle" color="grey" ><IconSettings size={15}/></ActionIcon>}
                 />
             </Grid.Col>
@@ -129,7 +129,8 @@ export default function Settings( { form, allow, taken, templates }: {form: UseF
                         <Grid.Col span="auto">
                             <SelectConnector clearable disabled={!form.values.primary}
                             {...form.getInputProps(`secondaries.${index}.primary`)}
-                            filter={data=>data.filter(c=>c.id!=="proxy"&&c.name!==form.values.primary&&!taken.includes(c.name))}
+                            inputsOnly
+                            filter={data=>data.filter(c=>c.name!==form.values.primary&&!taken.includes(c.name))}
                             />
                         </Grid.Col>
                         <Grid.Col span="auto">

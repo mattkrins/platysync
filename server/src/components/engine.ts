@@ -34,6 +34,7 @@ import { xError } from "../modules/common.js";
 import { Rule, Schema } from "./models.js";
 import { schemas } from "../routes/schema.js";
 import DirAccountControl from "./operations/DirAccountControl.js";
+import EmailSend from "./operations/EmailSend.js";
 const { combine, timestamp, json } = winston.format;
 
 interface sKeys { [k: string]: string }
@@ -75,6 +76,7 @@ const availableActions: { [k: string]: operation } = {
     'Template': SysTemplate,
     'Upload Student Passwords': StmcUpload,
     'Run Command': SysRunCommand,
+    'Send Email': EmailSend,
 }
 
 async function conclude(connections: connections, logger?: winston.Logger) {

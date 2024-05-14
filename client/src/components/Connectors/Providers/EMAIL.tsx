@@ -25,7 +25,7 @@ export default function EMAIL( { form, editing }: { form: UseFormReturnType<Reco
         <TextInput
             label="Host"
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            placeholder="http://proxy.server:8080"
+            placeholder="smtp-mail.domain.com"
             withAsterisk {...form.getInputProps('host')}
             mt="xs"
         />

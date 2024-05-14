@@ -1,10 +1,10 @@
 import { compile } from "../../modules/handlebars.js";
 import { Action, actionProps } from "../../typings/common.js";
-import { CSV } from '../providers.js';
 import { server } from '../../server.js';
 import { ParseResult } from 'papaparse';
 import eduSTAR, { passwordPayload } from '../../modules/eduSTAR.js';
 import { xError } from "../../modules/common.js";
+import CSV from "../providers/csv.js";
 
 interface props extends actionProps {
     action: Action & {

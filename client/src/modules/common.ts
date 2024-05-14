@@ -1,4 +1,4 @@
-import { IconArrowBarToRight, IconBinaryTree2, IconCalendar, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFileText, IconFileTypeCsv, IconFileTypeDocx, IconFileTypeXls, IconFileZip, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMathFunction, IconPencil, IconPhoto, IconPlus, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
+import { IconArrowBarToRight, IconBinaryTree2, IconCalendar, IconCirclesRelation, IconCloudUpload, IconCopy, IconEqualNot, IconFile, IconFileText, IconFileTypeCsv, IconFileTypeDocx, IconFileTypeXls, IconFileZip, IconFolder, IconFolderShare, IconKey, IconLock, IconLockOpen, IconMail, IconMathFunction, IconPencil, IconPhoto, IconPlus, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserQuestion, IconUsersGroup, TablerIconsProps } from '@tabler/icons-react';
 import { IconUserPlus, IconFileTypePdf, IconPrinter } from '@tabler/icons-react';
 import EnableUser from '../components/Rules/Editor/Operations/DirEnableUser';
 import CreateUser from '../components/Rules/Editor/Operations/DirCreateUser';
@@ -21,6 +21,8 @@ import DirUpdateSec from '../components/Rules/Editor/Operations/DirUpdateSec';
 import SysComparator from '../components/Rules/Editor/Operations/SysComparator';
 import DirAccountControl from '../components/Rules/Editor/Operations/DirAccountControl';
 import RunCommand from '../components/Rules/Editor/Operations/SysRunCommand';
+import EmailSend from '../components/Rules/Editor/Operations/EmailSend';
+import { IconMailForward } from '@tabler/icons-react';
 
 export const ldapAttributes = [
     "name",
@@ -168,6 +170,12 @@ export const availableCatagories: {
         label: "System Operations",
         id: 'system',
         Icon: IconTerminal,
+    },
+    {
+        label: "Email Operations",
+        id: 'email',
+        color: 'grape',
+        Icon: IconMail,
     },
 ]
 
@@ -347,12 +355,13 @@ export const availableActions: {
         color: 'yellow',
         Component: StmcUpload
     },
-    //TODO - emailing
-    //{
-    //    id: "Send Email",
-    //    catagory: 'system',
-    //    Icon: IconMail,
-    //},
+    {
+        id: "Send Email",
+        catagory: 'email',
+        Icon: IconMailForward,
+        color: 'grape',
+        Component: EmailSend
+    },
 ]
 
 export const extIcons: { [k: string]: (props: TablerIconsProps) => JSX.Element } = {

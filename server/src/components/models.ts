@@ -208,8 +208,7 @@ export class Connector {
     }
     public async validate(temp = false): Promise<true> {
         if (!providers[this.id]) throw new xError("Unknown provider.", undefined, 404);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const provider = new providers[this.id]({...this.parse(), schema: this.parent} as any);
+        const provider = new providers[this.id]({...this.parse(), schema: this.parent});
         return await provider.validate(temp);
     }
     public parse(): xConnnector {

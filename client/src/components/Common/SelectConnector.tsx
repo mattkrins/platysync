@@ -16,6 +16,7 @@ interface Props extends InputWrapperProps {
     data?: string[]|{ component: JSX.Element, value: string }[];
     value?: string;
     disabled?: boolean;
+    inputsOnly?: boolean;
     withinPortal?: boolean;
     type?: string;
     sources?: string[];
@@ -40,6 +41,7 @@ export default function SelectConnector({onChange, value: v2 = '', placeholder, 
     const icon = selected && <selected.provider.Icon color={theme.colors[selected.provider.color][6]} size={20} stroke={1.5} />
     let data = (providerMap||[]);
     if (props.type) data = data.filter(c=>c.id===props.type);
+    if (props.inputsOnly) data = data.filter(c=>c.provider.input);
     if (props.sources) props.filter = (d) => d.filter(c=>(props.sources||[]).includes(c.name))
     const filtered = (props.filter?props.filter(data):data).map(c=>{
         const provider = providers[c.id];
