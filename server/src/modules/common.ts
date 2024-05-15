@@ -54,7 +54,7 @@ export class xError {
     }
 }
 
-export function validStr(string: string) {
+export function validStr(string?: unknown) {
     if (!string) return false;
     if (typeof string !== "string") return false;
     if (string.trim()==="") return false;

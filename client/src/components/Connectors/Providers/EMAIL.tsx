@@ -1,7 +1,8 @@
-import { TextInput, SimpleGrid, PasswordInput, ActionIcon, SegmentedControl, Input, Checkbox } from '@mantine/core'
+import { TextInput, SimpleGrid, PasswordInput, ActionIcon, SegmentedControl, Input } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
-import { IconTag, IconWorld, IconUser, IconKey, IconEdit } from '@tabler/icons-react'
+import { IconTag, IconWorld, IconUser, IconKey, IconEdit, IconNetwork } from '@tabler/icons-react'
 import Concealer from '../../Common/Concealer';
+import SelectConnector from '../../Common/SelectConnector';
 
 export default function EMAIL( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: boolean  } ) {
     const unlock = () => form.setFieldValue('password', '');
@@ -53,15 +54,20 @@ export default function EMAIL( { form, editing }: { form: UseFormReturnType<Reco
         />}
         </SimpleGrid>
         <Concealer>
-            <Checkbox mt="xs" label="HTML message content"
-            onChange={(event) => form.setFieldValue('html', event.currentTarget.checked?'':undefined)}
-            checked={!!form.values.html||form.values.html===''}
-            />
             <TextInput mt="xs"
                 label="Port"
                 leftSection={<>:</>}
                 placeholder="25"
                 {...form.getInputProps('port')}
+            />
+            <SelectConnector
+            label="Proxy Connector"
+            placeholder="Corporate Proxy Server"
+            clearable
+            {...form.getInputProps('proxy')}
+            filter={data=>data.filter(c=>c.id==="proxy")}
+            leftSection={<IconNetwork size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+            mt="md"
             />
         </Concealer>
     </>)
