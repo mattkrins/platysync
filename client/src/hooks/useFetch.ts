@@ -79,7 +79,7 @@ class Deferred {
 
 export default function useFetch<returnType = unknown, sendType = unknown>(opt1: Options<returnType, sendType> = {}): Returns<returnType> {
     const url = new URL(window.location.href);
-    const axiosOptions = { baseURL: `http://${url.hostname}:2327/api/v1`, method: 'get' };
+    const axiosOptions = { baseURL: `${url.protocol}//${url.hostname}:2327/api/v1`, method: 'get' };
     const [request, setRequest] = useState<Options<returnType, sendType>>(opt1);
     const [response, setResponse] = useState<AxiosResponse<unknown, unknown>|undefined>(undefined);
     const [data, setData] = useState<returnType>((opt1.default||undefined) as returnType);
@@ -87,7 +87,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
     const [loaders, setLoaders] = useState<{ [k: key]: boolean|undefined }>({});
     const [error, setError] = useState<string|undefined>(undefined);
     const [errors, setErrors] = useState<validation>({});
-    const axiosClient = axios.create(axiosOptions);
+    const axiosClient = axios.create(axiosOptions); 
     const reset = useCallback(() => {
         setRequest(opt1);
         setResponse(undefined);

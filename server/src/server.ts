@@ -31,10 +31,15 @@ export let version = process.env.npm_package_version as string;
 export let log: winston.Logger;
 export let history: winston.Logger;
 
-
-export const server: FastifyInstance = Fastify({
+const options = {
   maxParamLength: 1000,
-}).withTypeProvider<JsonSchemaToTsProvider>();
+  https: (fs.existsSync(`${path}/https.crt`) && fs.existsSync(`${path}/https.key`)) ? {
+    cert: fs.readFileSync(`${path}/https.crt`),
+    key: fs.readFileSync(`${path}/https.key`),
+  } : undefined,
+};
+
+export const server: FastifyInstance = Fastify(options).withTypeProvider<JsonSchemaToTsProvider>();
 
 await server.register(cors, {
   origin: "*"
