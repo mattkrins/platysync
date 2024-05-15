@@ -13,7 +13,7 @@ import Schedules from './components/Schedules/Schedules';
 import Files from './components/Files/Files';
 import Users from './components/Users/Users';
 import Dashboard from './components/Dashboard/Dashboard';
-import Logs from './components/Logs/Logs';
+//import Logs from './components/Logs/Logs';
 
 function Switcher(){
   const { nav } = useContext(AppContext);
@@ -25,7 +25,7 @@ function Switcher(){
     case "Schema": return <Schema/>
     case "Connectors": return <Connectors/>
     case "Rules": return <Rules/>
-    case "Logs": return <Logs/>
+    //case "Logs": return <Logs/>
     default: return <Dashboard/>
   }
 }
