@@ -21,7 +21,7 @@ export function setup(timeout = 4000): Promise<boolean> {
 
 describe.sequential('Server Suite', () => {
   beforeAll(async () => {
-      await init("./build/test");
+      await init();
   });
 
   test('Self-Test', async () => {

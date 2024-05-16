@@ -10,7 +10,7 @@ describe.sequential('Provider Suite: CSV', () => {
     const csv2_path = `${path}/cache/test2.csv`;
     let session: string;
     beforeAll(async () => {
-        await init("./build/test");
+        await init();
         const { id } = await post({url: "/auth/setup", data: { username: 'admin', password: 'admin' } });
         session = id;
         await post({url: "/schema", session, data: { name: "Test" } });

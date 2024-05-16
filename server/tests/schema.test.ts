@@ -7,7 +7,7 @@ describe.sequential('Schema Suite', () => {
 
   let session: string;
   beforeAll(async () => {
-      await init("./build/test");
+      await init();
       const { id } = await post({url: "/auth/setup", data: { username: 'admin', password: 'admin' } });
       session = id;
   });

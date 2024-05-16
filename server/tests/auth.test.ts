@@ -7,7 +7,7 @@ describe.sequential('Auth Suite', () => {
 
   let session: string;
   beforeAll(async () => {
-      await init("./build/test");
+      await init();
   });
 
   test('Setup', async () => {

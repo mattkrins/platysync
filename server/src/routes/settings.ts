@@ -24,10 +24,18 @@ interface settings {
     logLevel: string;
     schemasPath?: string;
     enableRun?: boolean;
+    server: {
+        host: string;
+        port: number;
+    };
 }
 export let settings: settings = {
     version: '',
     logLevel: 'info',
+    server: {
+        host: '0.0.0.0',
+        port: 2327,
+    },
 };
 
 export async function init() {
@@ -35,7 +43,7 @@ export async function init() {
     if (!fs.existsSync(settingsPath)) fs.writeFileSync(settingsPath, stringify({...settings, version }));
     const file = fs.readFileSync(settingsPath, 'utf8');
     const parsed = YAML.parse(file) as settings;
-    settings = parsed;
+    settings = { ...settings, ...parsed };
     if (settings.version != version) {
         try {
             log.info(`Upgrading version from ${settings.version} to ${version}`);
@@ -48,7 +56,7 @@ export async function init() {
         }
     }
     if (!validStr(settings.version)) settings.version = version as string;
-    if (settings.logLevel && validLogLevel(settings.logLevel)) log.level = settings.logLevel;
+    if (log && settings.logLevel && validLogLevel(settings.logLevel)) log.level = settings.logLevel;
     if (settings.schemasPath && fs.existsSync(settings.schemasPath as string)) paths.schemas = settings.schemasPath as string;
 }
 
