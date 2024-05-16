@@ -11,6 +11,7 @@ import { xError } from './modules/common.js';
 import user from './routes/user.js';
 import settings, { init } from './routes/settings.js';
 import dashboard from './routes/dashboard.js';
+import log from './routes/log.js';
 import { Schedule, User, Session } from './db/models.js';
 import { db } from './db/database.js';
 const { getPrinters } = pdfPrinter;
@@ -28,6 +29,7 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
   addRoute(api, '/auth', auth, false );
   
   addRoute(api, '/dashboard', dashboard );
+  addRoute(api, '/log', log );
   addRoute(api, '/settings', settings );
   addRoute(api, '/user', user );
   addRoute(api, '/schedule', schedule );
