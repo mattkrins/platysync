@@ -12,6 +12,7 @@ import pa, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import winston from 'winston';
 import { settings } from './routes/settings.js';
+import { schemas } from './routes/schema.js';
 const { combine, timestamp, json, simple, errors } = winston.format;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -88,6 +89,7 @@ export const init = async () => {
     version = pack.version;
     if (!version) throw Error("Unable to determin ver.");
   }
+  await schemas.load();
 }
 
 export const startServer = async () => {

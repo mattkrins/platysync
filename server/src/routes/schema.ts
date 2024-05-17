@@ -7,7 +7,6 @@ import { stop } from "./schedule.js";
 export const schemas = new Schemas();
 
 export default async function (route: FastifyInstance) {
-  await schemas.load();
   // Get all Schemas
   route.get('/', async () => schemas.getAll(true) );
   // Create Schema
