@@ -39,7 +39,6 @@ export default class LDAP extends base_provider {
         if (!this.url) throw new xError('URL can not be empty.', 'url');
         if (!this.username) throw new xError('Username can not be empty.', 'username');
         if (!this.password) throw new xError('Password can not be empty.', 'password');
-        if (!this.attributes || this.attributes.length <= 0) throw new xError('Attributes can not be empty.');
         if (typeof this.password === 'object'){
             if (!(this.password as Hash).encrypted) throw new xError('Password malformed.', 'password');
             if (!(this.password as Hash).iv) throw new xError('Password malformed.', 'password');

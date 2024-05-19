@@ -14,13 +14,13 @@ describe.sequential('Provider Suite: Folder', () => {
     });
   
     test('Validate Connector', async () => {
-        const data = { connector: { name: "folder", id: "folder", path, }, force: false, save: false };
+        const data = { connector: { name: "folder", id: "folder", path: `${path}/schemas`, type: "file" }, force: false, save: false };
         const connectors: Connector[] = await post({url: "/schema/Test/connector", session, data });
         expect(connectors).toBeTruthy();
     });
   
     test('Add Connector', async () => {
-        const data = { connector: { name: "folder", id: "folder", path, }, force: false, save: true };
+        const data = { connector: { name: "folder", id: "folder", path: `${path}/schemas`, type: "file" }, force: false, save: true };
         const connectors: Connector[] = await post({url: "/schema/Test/connector", session, data });
         expect(connectors).toBeTruthy();
         expect(connectors.length).toBeGreaterThan(0);
@@ -34,7 +34,7 @@ describe.sequential('Provider Suite: Folder', () => {
     });
 
     test('Update Connector', async () => {
-        const data = { name: "folder", connector: { name: "folder", id: "folder", path: `${path}/schemas`, }, force: false, save: false };
+        const data = { name: "folder", connector: { name: "folder", id: "folder", path: `${path}/logs`, }, force: false, save: false };
         const connectors = await put({url: "/schema/Test/connector", session, data });
         expect(connectors).toBeTruthy();
     });
@@ -76,7 +76,7 @@ describe.sequential('Provider Suite: Folder', () => {
         const data = rules.get("folder").parse();
         const results = await post({url: "/schema/Test/engine", session, data });
         expect(results).toHaveProperty("evaluated");
-        expect(results.evaluated).toContainEqual({ id: 'settings.yaml', actions: [], display: 'file', actionable: true });
+        expect(results.evaluated).toContainEqual({ id: 'Test.yaml', actions: [], display: 'file', actionable: true });
     });
   
     afterAll(async () => {

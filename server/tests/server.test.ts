@@ -47,7 +47,6 @@ describe.sequential('Server Suite', () => {
     const isSetup: boolean = (await server.inject({ method: "get", url: "/api/v1/auth/setup" })).json();
     expect(isSetup).toBe(true);
     setupComplete = isSetup;
-
   });
 
   afterAll(async () => {

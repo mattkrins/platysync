@@ -1,6 +1,5 @@
 import { server, path, testing } from '../src/server.ts';
 import fs from 'fs-extra';
-import { db } from '../src/db/database.ts';
 import { InjectOptions } from 'fastify';
 
 const wait = (time = 1000) => new Promise((r)=> setTimeout(r, time) );
@@ -30,18 +29,15 @@ export async function setup() {
     if (path!=='./build/test' || !testing) throw Error("Not running in test environment.");
 }
 
-export async function remove(time = 1000, tries = 0) {
+export async function remove(time = 1000, maxTries = 3, tries = 0) {
     tries ++;
-    await wait();
     try { fs.rmSync(path, { recursive: true, force: true, maxRetries: 2 }); } catch (e) {
-        if (tries > 3){ console.error(`Failed to remove test environment @ ${path}`); throw e; }
+        if (tries > maxTries){ console.error(`Failed to remove test environment @ ${path}`); throw e; }
+        await wait(time);
         await remove(time, tries);
     }
 }
 
 export async function clear() {
-    await wait();
-    await db.close();
-    await wait();
     await remove();
 }

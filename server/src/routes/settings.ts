@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { validStr, xError } from "../modules/common.js";
 import * as fs from 'fs';
-import { log, path, paths, version } from "../server.js";
+import { log, path, paths, testing, version } from "../server.js";
 import YAML, { stringify } from 'yaml'
 import { db } from "../db/database.js";
 import { schemas } from "./schema.js";
@@ -62,7 +62,7 @@ export async function init() {
 
 export default async function (route: FastifyInstance) {
     const settingsPath = `${path}/settings.yaml`;
-    await init();
+    if (!testing) await init();
     route.get('/', async (request, reply) => {
         try { return settings; }
         catch (e) { new xError(e).send(reply); }
