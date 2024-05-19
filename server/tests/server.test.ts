@@ -4,21 +4,6 @@ import { FastifyInstance } from 'fastify';
 import fs from 'fs-extra';
 import { clear } from './test.setup.ts';
 
-let setupComplete: boolean|undefined;
-export function setup(timeout = 4000): Promise<boolean> {
-    return new Promise((resolve, reject)=> {
-      let counter = 0;
-      const intervalId = setInterval(() => {
-          counter += 100;
-          if (setupComplete) { clearInterval(intervalId); resolve(setupComplete); }
-          if (counter >= timeout) {
-              clearInterval(intervalId);
-              return reject("Setup was not complete.");
-          }
-      }, 100);
-    } );
-}
-
 describe.sequential('Server Suite', () => {
   beforeAll(async () => {
       await init();
@@ -46,7 +31,6 @@ describe.sequential('Server Suite', () => {
     expect(setup.id).toBeDefined();
     const isSetup: boolean = (await server.inject({ method: "get", url: "/api/v1/auth/setup" })).json();
     expect(isSetup).toBe(true);
-    setupComplete = isSetup;
   });
 
   afterAll(async () => {

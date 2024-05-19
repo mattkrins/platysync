@@ -51,6 +51,7 @@ export default function routes(api: FastifyInstance, _opts: unknown, done: () =>
         await User.truncate();
         await Session.truncate();
         await init();
+        return true;
       }
       catch (e) { new xError(e).send(reply); }
     });

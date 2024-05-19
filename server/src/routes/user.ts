@@ -19,6 +19,7 @@ export default async function (route: FastifyInstance) {
         const { form } = request.body as { form: { username: string, password: string, group: string, stats: boolean, enabled: boolean } };
         try {
             if (!validStr(form.username)) throw new xError("Username can not be empty.", "name");
+            if (!validStr(form.password)) throw new xError("Password can not be empty.", "password");
             const user = await User.findOne( { where: { username: form.username } } );
             if (user) throw new xError("Username taken.", 'username', 409 );
             return await User.create(form);
@@ -57,7 +58,6 @@ export default async function (route: FastifyInstance) {
     route.put('/toggle', async (request: userReq, reply) => {
         const { username } = request.body as User;
         try {
-            console.log(username)
             const user = await protectAdmin(username);
             user.enabled = !user.enabled;
             if (!user.enabled) await Session.destroy({where: { UserUsername: user.username }});

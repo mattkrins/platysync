@@ -359,7 +359,7 @@ export class Schemas {
             }
             const schema = new Schema(parsed, this);
             schema.save(false);
-        }
+        } return this.getAll(true);
     }
     public create(schema: Schema|xSchema): Schema {
         if (!validStr(schema.name)) throw new xError("Name can not be empty.", "name");

@@ -2,7 +2,7 @@ import { server, path, testing } from '../src/server.ts';
 import fs from 'fs-extra';
 import { InjectOptions } from 'fastify';
 
-const wait = (time = 1000) => new Promise((r)=> setTimeout(r, time) );
+export const wait = (time = 1000) => new Promise((r)=> setTimeout(r, time) );
 
 interface options extends InjectOptions {
     base_url?: string;
