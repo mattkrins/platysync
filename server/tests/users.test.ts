@@ -69,6 +69,10 @@ describe.sequential('Schedule Users', () => {
         expect(users.length).toBe(1);
     });
 
+    test('Protect Admin', async () => {
+        await del({url: "/user", session, data: { username: "admin" }, expectStatus: 406 });
+    });
+
     afterAll(async () => {
         await clear();
     });
