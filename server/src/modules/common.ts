@@ -35,7 +35,7 @@ export class xError {
             }
         } catch { /* empty */ }
       }
-      log.silly(this.message);
+      if (log && log.silly) log.silly(this.message);
       this.field = field;
       this.status = status;
       if (field) this.validation = { validation: { [field]: this.message } }

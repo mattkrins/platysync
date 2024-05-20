@@ -64,10 +64,6 @@ await server.register(socketioServer as any, {
   }
 });
 
-await server.register(fastifyStatic, { root: pa.join(__dirname, 'client'), });
-await database(path);
-await server.register( routes, { prefix: '/api/v1' } );
-
 export const init = async () => {
   for (const path of Object.values(paths)) if (!fs.existsSync(path)) fs.mkdirSync(path);
   log = winston.createLogger({
@@ -92,10 +88,13 @@ export const init = async () => {
   await schemas.load();
 }
 
+await server.register(fastifyStatic, { root: pa.join(__dirname, 'client'), });
+if (!testing) await init();
+await database(path);
+await server.register( routes, { prefix: '/api/v1' } );
+
 export const startServer = async () => {
   try {
-    await init();
-    if (testing) return server;
     const port = settings.server.port||2327;
     await server.listen({ port, host: settings.server.host||'0.0.0.0' });
     log.info(`Server started on port ${port} ${https?'(https)':''} running ver. ${version}.`);
