@@ -4,6 +4,7 @@ import { IconAlertCircle, IconTag } from '@tabler/icons-react';
 import useAPI from '../../hooks/useAPI';
 import { useContext, useState } from 'react';
 import SchemaContext from '../../providers/SchemaContext2';
+import AppContext from '../../providers/AppContext';
 
 function parse(file: File): Promise<Schema> {
     return new Promise((resolve, reject)=>{
@@ -25,8 +26,9 @@ const validate = {
     name:  (value: string) => (!validName.test(value) ? isNotEmpty('Name can not be empty.')(value) : 'Invalid schema name')
 }
 
-export default function NewSchema({ opened, close, refresh }: { opened: boolean, close(): void, refresh(): void }) {
+export default function NewSchema({ opened, close }: { opened: boolean, close(): void }) {
     const { loadSchema } = useContext(SchemaContext);
+    const { refreshSchemas } = useContext(AppContext);
     const [imported, setImported] = useState<Schema|string|undefined>(undefined);
     const importing = imported && typeof imported !== "string" ? true : false;
     const form = useForm({ initialValues: { name: '' }, validate });
@@ -36,7 +38,7 @@ export default function NewSchema({ opened, close, refresh }: { opened: boolean,
         form,
         modify: data => importing ? { ...(imported as Schema), ...(data as Schema)} : data,
         check: () => {form.validate(); return !form.isValid();},
-        then: (schema: Schema) => { loadSchema(schema.name); close(); refresh(); },
+        then: (schema: Schema) => { loadSchema(schema.name); close(); refreshSchemas(); },
     });
 
     const importSchema = async (file: File | null) => {

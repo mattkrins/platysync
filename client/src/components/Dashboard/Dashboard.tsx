@@ -2,9 +2,10 @@ import { Center, Grid, Paper, Title, Text, Box, BackgroundImage, Group, CloseBut
 import { IconListSearch, IconRun } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
 import cronstrue from "cronstrue";
-import { useLocalStorage } from "@mantine/hooks";
+import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import { useContext } from "react";
 import AppContext from "../../providers/AppContext";
+import NewSchema from "../Layout/NewSchema";
 
 function Welcome() {
     const [welcome, setWelcome] = useLocalStorage({ key: 'welcome', defaultValue: 'true' });
@@ -54,6 +55,7 @@ interface dashboardResponse {
 
 export default function Dashboard() {
     const { changeNav } = useContext(AppContext);
+    const [opened, { open, close }] = useDisclosure(false);
     const { data, loading } = useAPI<dashboardResponse>({
         url: "/dashboard",
         fetch: true,
@@ -69,6 +71,7 @@ export default function Dashboard() {
     });
     return (
     <Box>
+        {opened&&<NewSchema opened={opened} close={close} />}
         <Welcome/>
         <Container fluid mt="lg" >
         <Grid grow columns={20} >
@@ -81,7 +84,7 @@ export default function Dashboard() {
         <Grid p="md" grow >
             <Grid.Col span={4}><Paper withBorder>
                 <Group m="xs" justify="space-between">
-                    <Title size="h4" >Schemas</Title>
+                    <Title renderRoot={(props) => <Anchor onClick={()=>open()} {...props} />} size="h4" >Schemas</Title>
                     {loading?<Loader size="sm" type="dots" />:<Text c="dimmed">{data.schemas.length}</Text>}
                 </Group>
                 {data.schemas.length>0&&<Table>

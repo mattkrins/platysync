@@ -66,7 +66,7 @@ export default function Navbar({ closeNav }: { closeNav(): void }) {
       >
         <Center><Status resultant={false} /></Center>
       </Modal>}
-      {opened&&<NewSchema opened={opened} close={close} refresh={refreshSchemas} />}
+      {opened&&<NewSchema opened={opened} close={close} />}
       {!isMobile&&<Box className={`${classes.section} ${classes.header}`} ><Header/></Box>}
       <Box pt="xs" className={classes.section}>
         <Box className={classes.links}>
