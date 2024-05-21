@@ -11,8 +11,8 @@ interface Log {
 }
 const loggers: { [k: string]: { logger: winston.Logger, fields: string[] } } = {};
 function init() {
-    loggers.general = { logger: log, fields: ['message', 'level', 'timestamp'] };
-    loggers.history = { logger: history, fields: ['message', 'level', 'timestamp', 'rule', 'schema'] };
+    loggers.general = { logger: log, fields: ['message', 'level', 'timestamp', 'stack'] };
+    loggers.history = { logger: history, fields: ['message', 'level', 'timestamp', 'rule', 'schema', 'stack', 'evaluated'] };
 }
 
 export default async function (route: FastifyInstance) {

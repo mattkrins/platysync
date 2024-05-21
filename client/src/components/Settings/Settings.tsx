@@ -86,7 +86,7 @@ export default function Settings() {
     useEffect(()=>{ if (version) check(); }, [ version ]);
     
     return (
-    <Container label={<Head rightSection={<Button onClick={()=>save()} leftSection={<IconDeviceFloppy size={16} />} loading={loading} variant="light">Save</Button>} >Application Settings</Head>} >
+    <Container label={<Head rightSection={<Button onClick={()=>save()} leftSection={<IconDeviceFloppy size={16} />} loading={loading}>Save</Button>} >Application Settings</Head>} >
         <Input.Wrapper mt="xs"
         label="Theme"
         description="Change colours of the application"
