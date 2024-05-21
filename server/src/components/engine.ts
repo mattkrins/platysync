@@ -1,7 +1,7 @@
 import { compile } from "../modules/handlebars.js";
 import { Action, Condition, connections } from "../typings/common.js";
 import connect from "./providers.js";
-import { paths, server, history, testing } from "../server.js";
+import { paths, server, history } from "../server.js";
 import { User } from "../modules/ldap.js";
 import FileCopy from "./operations/FileCopy.js";
 import SysComparator from "./operations/SysComparator.js";
@@ -26,17 +26,15 @@ import DirCreateUser from "./operations/DirCreateUser.js";
 import StmcUpload from "./operations/StmcUpload.js";
 import SysRunCommand from "./operations/SysRunCommand.js";
 import { Doc } from "../db/models.js";
-import winston from 'winston';
 import fs from 'fs-extra';
 import { FastifyInstance } from "fastify";
 import dayjs from "dayjs";
-import { xError } from "../modules/common.js";
+import { wait, xError } from "../modules/common.js";
 import { Rule, Schema } from "./models.js";
 import { schemas } from "../routes/schema.js";
 import DirAccountControl from "./operations/DirAccountControl.js";
 import EmailSend from "./operations/EmailSend.js";
 import SysWait from "./operations/SysWait.js";
-const { combine, timestamp, json } = winston.format;
 
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}
@@ -81,8 +79,7 @@ const availableActions: { [k: string]: operation } = {
     'Send Email': EmailSend,
 }
 
-async function conclude(connections: connections, logger?: winston.Logger) {
-    if (logger) logger.destroy();
+async function conclude(connections: connections) {
     for (const connection of Object.values(connections)) {
         if (connection.close) await connection.close();
     }
@@ -92,6 +89,7 @@ async function conclude(connections: connections, logger?: winston.Logger) {
 
 async function actions(actions: Action[], template: template, connections: connections, keys: sKeys, schema: Schema, execute = false) {
     const todo: {name: string, displayName?: string, result: result }[] = [];
+    let error: undefined|xError;
     for (const action of (actions||[])) {
         if (!(action.name in availableActions)) throw Error(`Unknown action '${action.name}'.`);
         const result = await availableActions[action.name]({ action, template, connections, execute, schema, keys, data: {} });
@@ -100,9 +98,10 @@ async function actions(actions: Action[], template: template, connections: conne
         todo.push({name: action.name, result, ...name });
         if (result.error){
             if ((result.error as xError).message) result.error = (result.error as xError).message;
+            error = new xError(result.error, action.name);
             break;
         }
-    } return {todo, template};
+    } return {todo, template, error};
 }
 
 async function ldap_compare(key: string, value: string, operator: string, connections: connections, keys: sKeys ) {
@@ -181,25 +180,12 @@ function progress(cur: cur, length: number, id: string, start: number = 0) {
     cur.startTime = performance.now();
 }
 
-const wait = async (t = 100) => new Promise((res)=>setTimeout(res, t));
 export const empty = (value?: string) => !value || value.trim()==='';
 export default async function process(schema: Schema , rule: Rule, idFilter?: string[], scheduled?: boolean) {
     if (rule.test) idFilter = undefined;
     const connections: connections = {};
-    let action: winston.Logger|undefined;
     try {
-        history.info({schema: schema.name, rule: rule.name, message: `${idFilter?'Executing':'Evaluating'} Rule.`, scheduled, actioning: idFilter?.length });
-        if (idFilter && rule.log && parseInt(rule.log) > 0 ) {
-            if (rule.log==="1") history.info({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled});
-            if (parseInt(rule.log) > 3){
-                action = winston.createLogger({
-                    level: 'info',
-                    format: combine(timestamp(), json()),
-                    transports: testing ? [ new winston.transports.Console({ silent: true })] :
-                    new winston.transports.File({ filename: `${paths.journal}/${schema.name}.${rule.name}.${new Date().getTime()}.txt` }),
-                });
-            }
-        } else { history.debug({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled}); }
+        history.info({schema: schema.name, rule: rule.name, message: `${idFilter?'Executing':'Evaluating'} rule: ${rule.name}`, scheduled, actioning: idFilter?.length });
         const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now(), progress: 0 };
         progress(cur, 0, 'Search engine initialized');
         server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });
@@ -209,6 +195,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             if (rule.config[key].case){ caseSen = true; break; }
         }
         const primary = await connect(schema, rule.primary, connections, rule.primaryKey, (rule.config||{})[rule.primary], caseSen);
+        history.debug({schema: schema.name, rule: rule.name, message: `Primary: ${rule.primary} connected.` });
         cur.index = 5;
         progress(cur, 100, 'secondaries');
         if (idFilter) primary.rows = primary.rows.filter(p=>(idFilter||[]).includes(p[rule.primaryKey]));
@@ -217,6 +204,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             if (empty(secondary.secondaryKey)) secondary.secondaryKey = rule.primaryKey;
             if (empty(secondary.primaryKey)) secondary.primaryKey = rule.primaryKey;
             await connect(schema, secondary.primary, connections, secondary.secondaryKey, rule.config[secondary.primary], secondary.case);
+            history.debug({schema: schema.name, rule: rule.name, message: `Secondary: ${secondary.primary} connected.` });
             await wait(500);
         }
         cur.index = 10;
@@ -228,13 +216,12 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             const path = `${paths.storage}/${schema.name}/${doc.id}${doc.ext?`.${doc.ext}`:''}`;
             (docsTemplate.$file as { [k: string]: string })[doc.name] = path;
         }
-        const {todo: initActions, template: initTemplate } = await actions(rule.before_actions, docsTemplate, connections, {}, schema, !!idFilter);
-        if (initActions.filter(r=>r.result.error).length>0){
-            if (idFilter && action && rule.log==="4") action.error( { initAction: initActions.filter(r=>r.result.error)[0].result.error} )
+        const {todo: initActions, template: initTemplate, error: initError } = await actions(rule.before_actions, docsTemplate, connections, {}, schema, !!idFilter);
+        if (initError){
+            history.error({schema: schema.name, rule: rule.name, message: initError.message, scheduled, action: initError.field });
             await conclude(connections); return {evaluated: [], initActions, finalActions: []};
-        } else {
-            if (idFilter && action && rule.log==="4" && initActions.length > 0) action.info( { initAction: `${initActions.length} initActions completed.` } );
         }
+        history.debug({schema: schema.name, rule: rule.name, message: `${initActions.length} initActions completed.` });
         cur.index = 15;
         progress(cur, 100, 'entries');
         await wait(50);
@@ -267,44 +254,15 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
             output.actions = (await actions(rule.actions, template, connections, keys, schema, !!idFilter)).todo;
             output.actionable = output.actions.filter(t=>t.result.error).length <= 0;
             evaluated.push(output);
-            if (idFilter && action && rule.log==="4"){
-                const errors = output.actions.filter(t=>t.result.error).map(a=>a.result.error);
-                const warnings = output.actions.filter(t=>t.result.warn).map(a=>a.result.warn);
-                const log = errors.length > 0 ? action.error : (warnings.length > 0 ? action.warn : action.info);
-                const message = errors.length > 0 ? errors[0] : (warnings.length > 0 ? warnings[0] : undefined);
-                log({ id, index: cur.index, display: output.display||id, message });
-            }
         }
         server.io.emit("job_status", `Evaluating final actions`);
         await wait(1000);
-        const { todo: finalActions } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
-        if (idFilter && action && rule.log==="4"){
-            if (finalActions.filter(r=>r.result.error).length>0) {
-                action.error( { finalAction: initActions.filter(r=>r.result.error)[0].result.error} )
-            } else if (finalActions.length > 0) {
-                action.info( { finalAction: `${finalActions.length} finalActions completed.` } );
-            }
-        }
-        if (action) action.destroy();
-        if (idFilter && rule.log && parseInt(rule.log) > 0 ) {
-            if (rule.log==="2" || parseInt(rule.log) > 3) history.info({schema: schema.name, rule: rule.name, scheduled, message: 'Execution concluded.',
-            initActions: initActions.length,
-            finalActions: finalActions.length,
-            executionCount: evaluated.length,
-            successCount: evaluated.filter(e=>e.actionable).length,
-            failureCount: evaluated.filter(e=>!e.actionable).length,
-            warningCount: evaluated.filter(e=>e.actions.map(a=>a.result.warn).length>0).length,
-            });
-            if (rule.log==="3") history.info({schema: schema.name, rule: rule.name, scheduled, message: 'Execution concluded.',
-            initActions: initActions.length,
-            finalActions: finalActions.length,
-            executionCount: evaluated.length,
-            successes: evaluated.filter(e=>e.actionable).map(e=>e.id),
-            failures: evaluated.filter(e=>!e.actionable).map(e=>e.id),
-            warnings: evaluated.filter(e=>e.actions.map(a=>a.result.warn).length>0).map(e=>e.id),
-            });
-        } else { history.debug({schema: schema.name, rule: rule.name, message: 'Executing Rule.', scheduled}); }
-        await conclude(connections, action);
+        const { todo: finalActions, error: finalError } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
+        if (finalError) { history.error({schema: schema.name, rule: rule.name, message: finalError.message, scheduled, action: finalError.field });
+        } else { history.debug({schema: schema.name, rule: rule.name, message: `${finalActions.length} finalActions completed.` }); }
+        if (rule.log && idFilter){ history.info({schema: schema.name, rule: rule.name, message: `Concluded rule: ${rule.name}`, evaluated, initActions, finalActions }); }
+        else { history.debug({schema: schema.name, rule: rule.name, message: `Concluded ${idFilter?'executing':'evaluating'} rule: ${rule.name}`, evaluated, initActions, finalActions }); }
+        await conclude(connections);
         return {evaluated, initActions, finalActions};
     } catch (e) {
         const error = e as { schema: string, rule: string, scheduled?: boolean };
@@ -312,7 +270,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         error.rule = rule.name||'unknown';
         error.scheduled = scheduled;
         if (!rule.test) history.error(error);
-        conclude(connections, action);
+        conclude(connections);
         throw error;
     }
 }

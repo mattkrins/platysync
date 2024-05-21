@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { validStr, xError } from "../modules/common.js";
 import * as fs from 'fs';
-import { log, path, paths, testing, version } from "../server.js";
+import { log, history, path, paths, testing, version } from "../server.js";
 import YAML, { stringify } from 'yaml'
 import { db } from "../db/database.js";
 import { schemas } from "./schema.js";
@@ -56,7 +56,10 @@ export async function init() {
         }
     }
     if (!validStr(settings.version)) settings.version = version as string;
-    if (log && settings.logLevel && validLogLevel(settings.logLevel)) log.level = settings.logLevel;
+    if (log && settings.logLevel && validLogLevel(settings.logLevel)){
+        log.level = settings.logLevel;
+        history.level = settings.logLevel;
+    }
     if (settings.schemasPath && fs.existsSync(settings.schemasPath as string)) paths.schemas = settings.schemasPath as string;
 }
 
@@ -73,7 +76,10 @@ export default async function (route: FastifyInstance) {
             if (!validLogLevel(changes.logLevel)) throw new xError("Log level invalid.", "logLevel");
             settings = {...settings, ...changes };
             if (settings.logLevel !== changes.logLevel) log.info(`Logging level changed from ${settings.logLevel} to ${changes.logLevel} `);
-            if (settings.logLevel) log.level = settings.logLevel;
+            if (settings.logLevel){
+                log.level = settings.logLevel;
+                history.level = settings.logLevel;
+            }
             if (!validStr(settings.schemasPath||"")){
                 delete settings.schemasPath;
                 paths.schemas = `${path}/schemas`;

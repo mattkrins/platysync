@@ -26,7 +26,6 @@ export const paths = {
   cache: `${path}/cache`,
   storage: `${path}/storage`,
   logs: `${path}/logs`,
-  journal: `${path}/logs/journal`,
 };
 export let version = process.env.npm_package_version as string;
 

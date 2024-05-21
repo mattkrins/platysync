@@ -54,6 +54,8 @@ export class xError {
     }
 }
 
+export const wait = async (t = 1000) => new Promise((res)=>setTimeout(res, t));
+
 export function validStr(string?: unknown) {
     if (!string) return false;
     if (typeof string !== "string") return false;

@@ -8,14 +8,6 @@ import SchemaContext from "../../../providers/SchemaContext2";
 import providers from "../../Connectors/providers";
 import useTemplater from "../../../hooks/useTemplater";
 
-const logLevels = [
-    { value: '0', label: 'Disabled' },
-    { value: '1', label: 'Per-execution timestamp' },
-    { value: '2', label: 'Per-execution summary' },
-    { value: '3', label: 'Per-execution summary (verbose)' },
-    { value: '4', label: 'Per-entry summary' },
-];
-
 interface Secondary {
     primary: string;
     secondaryKey: string;
@@ -66,7 +58,6 @@ export default function Settings( { form, allow, taken, templates }: {form: UseF
     const usable = connectors.filter(c=>c.id!=="proxy").length -1 ;
     const add = () => form.insertListItem('secondaries', { primary: '', secondaryKey: '', primaryKey: '' } as Secondary);
     const remove  = (index: number) => form.removeListItem('secondaries', index);
-    const log = form.values.log==="0"?false:!!form.values.log;
     return (
     <Box>
         {explorer}
@@ -178,20 +169,8 @@ export default function Settings( { form, allow, taken, templates }: {form: UseF
             mt="xs"
             {...templateProps(form, 'display', templates)}
         />
-        <Switch mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
-        <Group grow>
-            <Switch mt="xs" label="Logging Enabled"
-            checked={log}
-            onChange={e=>e.currentTarget.checked?
-                form.setFieldValue(`log`, '1'):form.setFieldValue(`log`, undefined)
-            }
-            />
-            {log&&<Select
-            placeholder="Log level"
-            data={logLevels}
-            {...form.getInputProps('log')}
-            />}
-        </Group>
+        <Switch description="Enables execution through scheduling" mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} label="Rule Enabled"/>
+        <Switch mt="xs" label="Logging Enabled" {...form.getInputProps('log', { type: 'checkbox' })} />
         <Textarea
             label="Rule Description"
             placeholder="Describe what this rule does. Displayed on the rules overview page."

@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { xError } from "../modules/common.js";
+import { wait, xError } from "../modules/common.js";
 import { Schedule } from "../db/models.js";
 import { Rule, Schema } from "../components/models.js";
 import { schemas } from "./schema.js";
@@ -53,20 +53,20 @@ async function run(schedule: Schedule) {
   delete errors[schedule.id];
   const info = schedule.type==="cron" ? {nextRun: scheduled[schedule.id].nextRun()} : { changeDetected: true };
   const rules: string[] = JSON.parse(schedule.rules||"[]")||[];
-  history.info({schema: schedule.schema, rules, schedule: schedule.id, message: 'Running Schedule.', ...info});
+  history.info({schema: schedule.schema, rule: rules.length === 0 ? 'all' : rules.join(','), schedule: schedule.id, message: 'Running Schedule.', ...info});
   const schema = validate(schedule);
   for (const rule of schema.rules||[]){
     if ( rules.length > 0 && !rules.includes(rule.name) ) continue;
+    if (!rule.enabled) continue;
     const processed = await process( schema, rule );
     const limitTo =  processed.evaluated.filter(e=>e.actionable).map(e=>e.id)||[];
     if (limitTo.length<=0){
-      history.info({schema: schedule.schema, rule: rule.name, schedule: schedule.id, message: 'No actions to process.'});
+      history.info({schema: schedule.schema, rule: rule.name, schedule: schedule.id, message: `No actions to process in rule: ${rule.name}.`});
     } else {
-      history.info({schema: schedule.schema, rule: rule.name, schedule: schedule.id, message: `${limitTo.length} actions to process.`});
+      history.info({schema: schedule.schema, rule: rule.name, schedule: schedule.id, message: `${limitTo.length} actions to process in rule: ${rule.name}.`});
       return await processActions( schema, rule, limitTo );
     }
   }
-
 }
 function handle(e: xError, schedule: Schedule){
   const message = (new xError(e)).message;
@@ -83,7 +83,10 @@ function start(schedule: Schedule) {
       case "monitor": {
         watching[schedule.id] = fs.watch(schedule.value, async (e, f)=> {
           if (!f||!e) throw new xError("Failed to init watcher.");
-          try { await run(schedule); } catch (e) { stop(schedule); handle(e as xError, schedule); }
+          try {
+            await wait(2000); // Wait a few seconds for file writing to complete.
+            await run(schedule);
+          } catch (e) { handle(e as xError, schedule); }
         })
         watching[schedule.id].on('error', (e: xError) => {
           handle(e as xError, schedule);
@@ -94,7 +97,7 @@ function start(schedule: Schedule) {
         scheduled[schedule.id] = Cron(schedule.value, {timezone: "Australia/Victoria", catch: (e) =>{
           handle(e as xError, schedule);
         }}, async () => {
-          try { await run(schedule); } catch (e) { stop(schedule); handle(e as xError, schedule); }
+          try { await run(schedule); } catch (e) { handle(e as xError, schedule); }
         });
         break;
       }
