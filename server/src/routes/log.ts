@@ -42,8 +42,8 @@ export default async function (route: FastifyInstance) {
             const log = loggers[name];
             if (!log) throw new xError("No such log.", undefined, 404);
             log.logger.clear();
-            fs.truncateSync(`${paths.logs}/general.txt`);
-            log.logger.add(new transports.File({ filename: `${paths.logs}/general.txt` }))
+            fs.truncateSync(`${paths.logs}/${name}.txt`);
+            log.logger.add(new transports.File({ filename: `${paths.logs}/${name}.txt` }))
             log.logger.info("Log cleared.");
             return [{message: "Log cleared", level: "info", timestamp: new Date()}];
         }
