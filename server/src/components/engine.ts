@@ -35,11 +35,13 @@ import { schemas } from "../routes/schema.js";
 import DirAccountControl from "./operations/DirAccountControl.js";
 import EmailSend from "./operations/EmailSend.js";
 import SysWait from "./operations/SysWait.js";
+import { settings } from "../routes/settings.js";
 
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}
 
-interface result {template?: object, success?: boolean, error?: xError|string, warn?: string, data?: { [k:string]: string }}
+interface result {template?: object, success?: boolean, error?: xError|string, warn?: string, data?: { [k:string]: unknown }}
+interface eval { id: string, display?: string, actions: { name: string, result: result }[], actionable: boolean }
 
 export function getUser(action: Action & { target: string }, connections: connections, keys: sKeys, data: { [k:string]: string }): User {
     data.directory = action.target;
@@ -79,12 +81,38 @@ const availableActions: { [k: string]: operation } = {
     'Send Email': EmailSend,
 }
 
-async function conclude(connections: connections) {
+async function conclude(connections: connections): Promise<void> {
     for (const connection of Object.values(connections)) {
         if (connection.close) await connection.close();
     }
     server.io.emit("job_status", "Idle");
     server.io.emit("global_status", {});
+}
+
+function santitizeData(evaluated:eval[]): eval[] {
+    const evaluatedCopy = JSON.parse(JSON.stringify(evaluated)) as eval[];
+    return evaluatedCopy.map(e=>({...e, actions: e.actions.map(a=>{
+        const result = {...a.result||{}};
+        if (!result.data) return a;
+        const redacted = (settings.redact||[]).map(r=>r.toLowerCase());
+        switch (a.name) {
+            case "Encrypt String":
+               result.data.source = "-REDACTED-"; result.data.target = "-REDACTED-"; result.data.password = "-REDACTED-"; break;
+            case "Template":
+                if (redacted.includes(result.data.name as string)) result.data.value = "-REDACTED-"; break;
+            case "Update Attributes":
+                if (result.data.changes) {
+                    const changes = result.data.changes as {name: string, value: string}[];
+                    for (const change of (changes||[])) {
+                        if (redacted.includes(change.name.toLowerCase())) change.value = "-REDACTED-";
+                    } result.data = {...result.data, changes };
+                } break;
+            default:
+                for (const key of (Object.keys(result.data))) {
+                    if (redacted.includes(key.toLowerCase())) result.data[key] = "-REDACTED-";
+                } break;
+        } return {...a, result};
+    })}))
 }
 
 async function actions(actions: Action[], template: template, connections: connections, keys: sKeys, schema: Schema, execute = false) {
@@ -260,8 +288,8 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
         const { todo: finalActions, error: finalError } = await actions(rule.after_actions, initTemplate, connections, {}, schema, !!idFilter);
         if (finalError) { history.error({schema: schema.name, rule: rule.name, message: finalError.message, scheduled, action: finalError.field });
         } else { history.debug({schema: schema.name, rule: rule.name, message: `${finalActions.length} finalActions completed.` }); }
-        if (rule.log && idFilter){ history.info({schema: schema.name, rule: rule.name, message: `Concluded rule: ${rule.name}`, evaluated, initActions, finalActions }); }
-        else { history.debug({schema: schema.name, rule: rule.name, message: `Concluded ${idFilter?'executing':'evaluating'} rule: ${rule.name}`, evaluated, initActions, finalActions }); }
+        if (rule.log && idFilter){ history.info({schema: schema.name, rule: rule.name, message: `Concluded rule: ${rule.name}`, evaluated: santitizeData(evaluated), initActions, finalActions }); }
+        else { history.debug({schema: schema.name, rule: rule.name, message: `Concluded ${idFilter?'executing':'evaluating'} rule: ${rule.name}`, evaluated: santitizeData(evaluated), initActions, finalActions }); }
         await conclude(connections);
         return {evaluated, initActions, finalActions};
     } catch (e) {

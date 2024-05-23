@@ -22,6 +22,7 @@ function validLogLevel(level: string) {
 interface settings {
     version: string;
     logLevel: string;
+    redact: string[];
     schemasPath?: string;
     enableRun?: boolean;
     server: {
@@ -29,9 +30,11 @@ interface settings {
         port: number;
     };
 }
+
 export let settings: settings = {
     version: '',
     logLevel: 'info',
+    redact: ['password', 'secret', 'key','token','code', 'unicodePwd'],
     server: {
         host: '0.0.0.0',
         port: 2327,

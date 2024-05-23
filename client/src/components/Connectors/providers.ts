@@ -101,24 +101,25 @@ const providers: {
             path: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
         },
     },
-    proxy: {
-        id: 'proxy',
-        name: "Corporate Proxy Server",
-        color: 'orange',
-        Icon: IconNetwork,
-        Options: PROXY,
-        input: false,
-        initialValues: {
-            name: 'ProxyServer',
-            url: '',
-            username: '',
-            password: '',
-        },
-        validation: {
-            name: isNotEmpty('Name can not be empty.'),
-            url: hasLength({ min: 3 }, 'URL must be at least 3 characters long.')
-        },
-    },
+    //api: {
+    //    id: 'api',
+    //    name: "Web API",
+    //    color: 'red',
+    //    Icon: IconCloudComputing,
+    //    Options: API,
+    //    input: true,
+    //    initialValues: {
+    //        name: '',
+    //        endpoint: '',
+    //        append: '',
+    //        bearer: '',
+    //        basic: '',
+    //    },
+    //    validation: {
+    //        name: isNotEmpty('Name can not be empty.'),
+    //        path: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
+    //    },
+    //},
     email: {
         id: 'email',
         name: "Email Sender",
@@ -136,6 +137,24 @@ const providers: {
         validation: {
             name: isNotEmpty('Name can not be empty.'),
             host: hasLength({ min: 3 }, 'URL must be at least 3 characters long.')
+        },
+    },
+    proxy: {
+        id: 'proxy',
+        name: "Corporate Proxy Server",
+        color: 'gray',
+        Icon: IconNetwork,
+        Options: PROXY,
+        input: false,
+        initialValues: {
+            name: 'ProxyServer',
+            url: '',
+            username: '',
+            password: '',
+        },
+        validation: {
+            name: isNotEmpty('Name can not be empty.'),
+            url: hasLength({ min: 3 }, 'URL must be at least 3 characters long.')
         },
     },
 }
