@@ -185,7 +185,7 @@ export default async function process(schema: Schema , rule: Rule, idFilter?: st
     if (rule.test) idFilter = undefined;
     const connections: connections = {};
     try {
-        history.info({schema: schema.name, rule: rule.name, message: `${idFilter?'Executing':'Evaluating'} rule: ${rule.name}`, scheduled, actioning: idFilter?.length });
+        if (!rule.test) history.info({schema: schema.name, rule: rule.name, message: `${idFilter?'Executing':'Evaluating'} rule: ${rule.name}`, scheduled, actioning: idFilter?.length });
         const cur: cur = {time: (new Date()).getTime()+1, index: 0, performance: 0, startTime: performance.now(), progress: 0 };
         progress(cur, 0, 'Search engine initialized');
         server.io.emit("global_status", {schema: schema.name,  rule: rule.name, running: !!idFilter });

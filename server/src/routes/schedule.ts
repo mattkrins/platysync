@@ -53,7 +53,8 @@ async function run(schedule: Schedule) {
   delete errors[schedule.id];
   const info = schedule.type==="cron" ? {nextRun: scheduled[schedule.id].nextRun()} : { changeDetected: true };
   const rules: string[] = JSON.parse(schedule.rules||"[]")||[];
-  history.info({schema: schedule.schema, rule: rules.length === 0 ? 'all' : rules.join(','), schedule: schedule.id, message: 'Running Schedule.', ...info});
+  const rule = rules.length === 0 ? 'all' : rules.join(',');
+  history.info({schema: schedule.schema, rule, schedule: schedule.id, message: `Running ${schedule.schema} schedule for: ${rule}.`, ...info});
   const schema = validate(schedule);
   for (const rule of schema.rules||[]){
     if ( rules.length > 0 && !rules.includes(rule.name) ) continue;
