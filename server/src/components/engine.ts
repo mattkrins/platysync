@@ -33,9 +33,10 @@ import { wait, xError } from "../modules/common.js";
 import { Rule, Schema } from "./models.js";
 import { schemas } from "../routes/schema.js";
 import DirAccountControl from "./operations/DirAccountControl.js";
-import EmailSend from "./operations/EmailSend.js";
+import TransEmailSend from "./operations/TransEmailSend.js";
 import SysWait from "./operations/SysWait.js";
 import { settings } from "../routes/settings.js";
+import TransAPIRequest from "./operations/TransAPIRequest.js";
 
 interface sKeys { [k: string]: string }
 interface template {[connector: string]: {[header: string]: string}|string|object}
@@ -78,7 +79,8 @@ const availableActions: { [k: string]: operation } = {
     'Upload Student Passwords': StmcUpload,
     'Run Command': SysRunCommand,
     'Wait': SysWait,
-    'Send Email': EmailSend,
+    'Send Email': TransEmailSend,
+    'API Request': TransAPIRequest,
 }
 
 async function conclude(connections: connections): Promise<void> {

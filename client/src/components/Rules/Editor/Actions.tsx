@@ -151,9 +151,15 @@ function ActionList( { form, actionType, templateProps }: {form: UseFormReturnTy
 
 
 export default function Actions( { form, allow, templates }: {form: UseFormReturnType<Rule>, allow: string[], templates: string[]  } ) {
-  const add = (name: string) => form.insertListItem('actions', { name, displayName: name });
-  const addBeforeRule = (name: string) => form.insertListItem('before_actions', { name, displayName: name });
-  const addAfterRule = (name: string) => form.insertListItem('after_actions', { name, displayName: name });
+  const add = (name: string, list: string) =>{
+    const x = availableActions.find(action=>action.id===name);
+    if (!x) return;
+    const initialValues = x.initialValues||{};
+    form.insertListItem(list, { name, displayName: name, ...initialValues });
+  }
+  const addPerItem = (name: string) => add(name, 'actions');
+  const addBeforeRule = (name: string) => add(name, 'before_actions');
+  const addAfterRule = (name: string) => add(name, 'after_actions');
   const { templateProps, explorer } = useTemplater({allow, templates});
   
   return (
@@ -164,7 +170,7 @@ export default function Actions( { form, allow, templates }: {form: UseFormRetur
       <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('before_actions', { from: source.index, to: destination? destination.index : 0 }) } >
         <ActionList form={form} templateProps={templateProps} actionType={"before_actions"} />
       </DragDropContext>
-      <Divider my="xs" label={<ActionGroup add={add} label="Row Action" sources={allow} />} labelPosition="right" />
+      <Divider my="xs" label={<ActionGroup add={addPerItem} label="Row Action" sources={allow} />} labelPosition="right" />
       <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('actions', { from: source.index, to: destination? destination.index : 0 }) } >
         <ActionList form={form} templateProps={templateProps} actionType={"actions"} />
       </DragDropContext>

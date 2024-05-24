@@ -28,7 +28,7 @@ export default async function ({ action, template, execute, data, schema }: prop
         await email.validate();
         if (!execute) return { data };
         await email.configure();
-        await email.send(data.to, data.subject, data.text, data.html); //TODO - 
+        await email.send(data.to, data.subject, data.text, data.html);
         return { success: true, data };
     } catch (e){
         return { error: new xError(e), data };

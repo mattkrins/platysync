@@ -16,7 +16,7 @@ export interface api_options extends base_provider_options {
 }
 
 export default class API extends base_provider {
-    private endpoint: string;
+    public endpoint: string;
     private auth: string;
     public password?: string|Hash;
     public append?: string;
@@ -46,7 +46,7 @@ export default class API extends base_provider {
             this.proxy = new PROXY({ schema: this.schema, name: this.proxy as string, id: '' })
             await this.proxy.configure();
         }
-        if (this.auth!=="none") this.password = await decrypt(this.password as Hash);
+        if (this.auth!=="none" && typeof this.password !== "string") this.password = await decrypt(this.password as Hash);
         if (this.auth==="basic") this.password = Buffer.from(this.password as string).toString('base64');
         this.client = axios.create({
             baseURL: this.endpoint,

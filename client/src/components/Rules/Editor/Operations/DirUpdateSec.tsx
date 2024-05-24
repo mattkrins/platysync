@@ -32,7 +32,7 @@ function Groups( { form, index, templateProps, actionType, templates }: {
                         </Grid.Col>
                         <Grid.Col span={2}>
                             <Select
-                            defaultValue="Replace"
+                            defaultValue="Add"
                             data={[{ value: 'Add', label: 'Add To' },{ value: 'Delete', label: 'Remove From' }]}
                             {...form.getInputProps(`${actionType}.${index}.groups.${index2}.type`)}
                             />

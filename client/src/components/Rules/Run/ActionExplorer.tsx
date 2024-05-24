@@ -12,24 +12,28 @@ function ObjectMap( { data }: { data: data }  ){
     return data.constructor === Array ? (data as Array<string>).map((d, i)=>
     <List.Item key={i} className={classes.overflow} >
         <Box style={{whiteSpace:"nowrap"}}>
-            {(typeof d =="object")?<ObjectMap data={d||{}} />:<Code>{String(d)}</Code>}
+            {(typeof d =="object")?<ObjectMap data={d||{}} />:<Code c={isNaN(data[d] as unknown as number)?undefined:'orange'} >{String(d)}</Code>}
         </Box>
     </List.Item>): Object.keys(data).map((d, i)=>
     <List.Item key={i} className={classes.overflow} >
         <Box style={{whiteSpace:"nowrap"}}>{d}:
-            {(typeof data[d] =="object")?<ObjectMap data={data[d] as data} />:<Code>{String(data[d])}</Code>}
+            {(typeof data[d] =="object")?<ObjectMap data={data[d] as data} />:<Code c={isNaN(data[d] as unknown as number)?undefined:'orange'} >{String(data[d])}</Code>}
         </Box>
     </List.Item>);
 }
 
 function DataReadout({ action }:{ action: action }) {
     if (!action.result.data) return <></>;
-    const data = action.result.data as data;
+    const {error, ...data} = action.result.data as data;
     return (
     <Box>
         <List size="sm" icon={<>-</>} >
         <ObjectMap data={data||{}} />
         </List>
+        {error && typeof error =="string" &&
+        <Notification mt="xs" icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error Data">
+            {error}
+        </Notification>}
     </Box>)
 }
 

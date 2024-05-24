@@ -78,6 +78,7 @@ interface ActionItem {
     actionType: string;
     sources: string[];
     templates: string[];
+    initialValues?: Record<string, unknown>;
 }
 
 interface evaluated { checked?: boolean, id: string, display?: string, actions: action[], actionable: boolean }

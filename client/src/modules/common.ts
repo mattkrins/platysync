@@ -188,6 +188,7 @@ export const availableActions: {
     color?: string;
     catagory: string;
     Component: (props: ActionItem) => JSX.Element;
+    initialValues?: Record<string, unknown>;
     perRule?: boolean;
     requires?: string;
 }[] = [
@@ -230,6 +231,9 @@ export const availableActions: {
         Icon: IconPencil,
         color: 'orange',
         Component: UpdateAttributes,
+        initialValues: {
+            attributes: []
+        },
     },
     {
         id: "Update Groups",
@@ -238,6 +242,9 @@ export const availableActions: {
         Icon: IconUsersGroup,
         color: 'yellow',
         Component: DirUpdateSec,
+        initialValues: {
+            groups: []
+        },
     },
     {
         id: "Update Account Controls",
@@ -331,6 +338,9 @@ export const availableActions: {
         catagory: 'system',
         Icon: IconTemplate,
         Component: Template,
+        initialValues: {
+            templates: []
+        },
     },
     {
         id: "Encrypt String",
@@ -343,6 +353,9 @@ export const availableActions: {
         catagory: 'system',
         Icon: IconEqualNot,
         Component: SysComparator,
+        initialValues: {
+            conditions: []
+        },
     },
     {
         id: "Wait",
@@ -375,7 +388,12 @@ export const availableActions: {
         catagory: 'transmission',
         Icon: IconCloudUp,
         color: 'red',
-        Component: TransAPISend
+        Component: TransAPISend,
+        initialValues: {
+            method: 'get',
+            mime: 'json',
+            form: []
+        },
     },
 ]
 
