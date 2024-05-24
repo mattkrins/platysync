@@ -2,7 +2,7 @@ import { Box, TextInput, Textarea } from "@mantine/core";
 import { IconMail, IconTextCaption } from "@tabler/icons-react";
 import SelectConnector from "../../../Common/SelectConnector";
 
-export default function EmailSend( { form, index, templateProps, actionType, templates }: ActionItem ) {
+export default function TransEmailSend( { form, index, templateProps, actionType, templates }: ActionItem ) {
     return (
         <Box p="xs" pt={0} >
             <SelectConnector

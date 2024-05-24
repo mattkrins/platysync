@@ -1,7 +1,8 @@
 import { ActionIcon, PasswordInput, TextInput } from "@mantine/core";
-import { IconTag, IconWorld, IconKey, IconEdit } from "@tabler/icons-react";
+import { IconTag, IconWorld, IconKey, IconEdit, IconNetwork } from "@tabler/icons-react";
 import { UseFormReturnType } from '@mantine/form';
 import Concealer from "../../Common/Concealer";
+import SelectConnector from "../../Common/SelectConnector";
 
 export default function API( { form, editing }: { form: UseFormReturnType<Record<string, unknown>>, editing: boolean  } ) {
     return (
@@ -13,7 +14,7 @@ export default function API( { form, editing }: { form: UseFormReturnType<Record
             withAsterisk {...form.getInputProps('name')}
         />
         <TextInput
-            label="API endpoint URL" mt="md"
+            label="Base API endpoint URL" mt="md"
             description="Prepended to all API target URLs."
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="https://service.com/api/v1"
@@ -52,11 +53,20 @@ export default function API( { form, editing }: { form: UseFormReturnType<Record
         </Concealer>
         <Concealer>
             <TextInput
-                label="Append Query" mt="md"
+                label="Append Query"
                 description="Appended to all API target URLs (added to query string)."
                 leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                 placeholder="access_token=secret"
                 {...form.getInputProps('append')}
+            />
+            <SelectConnector
+                label="Proxy Connector"
+                placeholder="Corporate Proxy Server"
+                clearable
+                {...form.getInputProps('proxy')}
+                filter={data=>data.filter(c=>c.id==="proxy")}
+                leftSection={<IconNetwork size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+                mt="md"
             />
         </Concealer>
     </>);

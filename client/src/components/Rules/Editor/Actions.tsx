@@ -69,6 +69,7 @@ function Action( { form, index, a, actionType, templateProps }: {form: UseFormRe
     for (const action of allActions){
       switch (action.name) {
         case "Encrypt String":{ t.push(action.target as string); break; }
+        case "API Request":{ t.push(action.response as string); break; }
         case "Comparator":{ t.push(action.target as string); break; }
         case "Template": {
           for (const template of action.templates||[]) {
