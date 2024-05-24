@@ -1,5 +1,5 @@
-import { ActionIcon, PasswordInput, TextInput } from "@mantine/core";
-import { IconTag, IconWorld, IconKey, IconEdit, IconNetwork } from "@tabler/icons-react";
+import { ActionIcon, Input, PasswordInput, SegmentedControl, TextInput } from "@mantine/core";
+import { IconTag, IconWorld, IconKey, IconEdit, IconNetwork, IconTestPipe } from "@tabler/icons-react";
 import { UseFormReturnType } from '@mantine/form';
 import Concealer from "../../Common/Concealer";
 import SelectConnector from "../../Common/SelectConnector";
@@ -21,36 +21,29 @@ export default function API( { form, editing }: { form: UseFormReturnType<Record
             withAsterisk
             {...form.getInputProps('endpoint')}
         />
-        <Concealer label="Authentication" open >
-            {(typeof form.values.bearer) === 'string' || !editing  ?<PasswordInput
-                label="Bearer Token"
-                description="OAuth 2.0 bearer token."
-                placeholder="secret"
-                leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...form.getInputProps('bearer')}
-            />:<PasswordInput
-                label="Bearer Token"
-                description="OAuth 2.0 bearer token."
-                readOnly={true}
-                value="**************"
-                leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                rightSection={ <ActionIcon variant="subtle"><IconEdit onClick={()=>form.setFieldValue('bearer', '')} size={16} style={{ display: 'block', opacity: 0.5 }} /></ActionIcon> }
-            />}
-            {(typeof form.values.basic) === 'string' || !editing  ?<PasswordInput
-                label="Basic"
-                description="Credentials to be Base64 encoded."
-                placeholder="username:password"
-                leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...form.getInputProps('basic')}
-            />:<PasswordInput
-                label="Basic"
-                description="Credentials to be Base64 encoded."
-                readOnly={true}
-                value="**************"
-                leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                rightSection={ <ActionIcon variant="subtle"><IconEdit onClick={()=>form.setFieldValue('basic', '')} size={16} style={{ display: 'block', opacity: 0.5 }} /></ActionIcon> }
-            />}
-        </Concealer>
+        <Input.Wrapper mt="xs" mb="xs" withAsterisk label="Authentication" >
+        <SegmentedControl fullWidth 
+        {...form.getInputProps('auth')}
+        defaultValue="none"
+        data={[
+            //{ label: 'OAuth 2.0', value: 'oauth' },
+            { label: 'None', value: 'none' },
+            { label: 'Basic', value: 'basic' },
+            { label: 'Bearer Token', value: 'bearer' },
+        ]} />
+        </Input.Wrapper>
+        {form.values.auth!=="none"&&<>
+        {(typeof form.values.password) === 'string' || !editing  ?<PasswordInput
+            placeholder={form.values.auth==="basic"?"username:password":"secret"}
+            leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+            {...form.getInputProps('password')}
+        />:<PasswordInput
+            readOnly={true}
+            value="**************"
+            leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+            rightSection={ <ActionIcon variant="subtle"><IconEdit onClick={()=>form.setFieldValue('password', '')} size={16} style={{ display: 'block', opacity: 0.5 }} /></ActionIcon> }
+        />}
+        </>}
         <Concealer>
             <TextInput
                 label="Append Query"
@@ -59,14 +52,20 @@ export default function API( { form, editing }: { form: UseFormReturnType<Record
                 placeholder="access_token=secret"
                 {...form.getInputProps('append')}
             />
-            <SelectConnector
+            <SelectConnector mt="xs"
                 label="Proxy Connector"
                 placeholder="Corporate Proxy Server"
                 clearable
                 {...form.getInputProps('proxy')}
                 filter={data=>data.filter(c=>c.id==="proxy")}
                 leftSection={<IconNetwork size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                mt="md"
+            />
+            <TextInput mt="xs"
+                label="Test Endpoint"
+                description="Get request expecting response 200 to test authentication."
+                leftSection={<IconTestPipe size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+                placeholder="/some/endpoint"
+                {...form.getInputProps('test')}
             />
         </Concealer>
     </>);

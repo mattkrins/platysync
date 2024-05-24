@@ -16,6 +16,15 @@ export interface proxy_options extends base_provider_options {
 export default class PROXY extends base_provider {
     private schema: Schema;
     public url: URL|string;
+    public auth?: {
+        host: string;
+        port: number;
+        auth?: {
+            username: string;
+            password: string;
+        };
+        protocol?: string;
+    }
     constructor(options: proxy_options) {
         super(options);
         this.schema = options.schema;
@@ -41,6 +50,12 @@ export default class PROXY extends base_provider {
         if (connector.username) url.username = connector.username as string;
         if (connector.password) url.password = await decrypt(connector.password as Hash);
         this.url = url;
+        this.auth = {
+            host: url.host,
+            port: Number(url.port),
+            auth: { username: url.username, password: url.password },
+            protocol: url.protocol,
+        }
         return url;
     }
 }

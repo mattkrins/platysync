@@ -9,6 +9,7 @@ import STMC, { stmc_options } from './providers/stmc.js';
 import LDAP, { ldap_options } from "./providers/ldap.js";
 import EMAIL from './providers/email.js';
 import PROXY from './providers/proxy.js';
+import API from "./providers/api.js";
 
 interface connectorConfig {[k: string]: unknown}
 export default async function connect(schema: Schema, connectorName: string, connections: connections, id: string, config: connectorConfig = {}, caseSen = false): Promise<connection> {
@@ -72,4 +73,5 @@ export const providers: { [id: string]: typeof base_provider } = {
     csv: CSV,
     stmc: STMC,
     ldap: LDAP,
+    api: API,
 };

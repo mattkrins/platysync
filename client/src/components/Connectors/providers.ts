@@ -1,5 +1,5 @@
 import { UseFormReturnType, hasLength, isNotEmpty } from "@mantine/form";
-import { TablerIconsProps, IconFileTypeCsv, IconBinaryTree2, IconSchool, IconNetwork, IconFolder, IconMail } from "@tabler/icons-react";
+import { TablerIconsProps, IconFileTypeCsv, IconBinaryTree2, IconSchool, IconNetwork, IconFolder, IconMail, IconCloudComputing } from "@tabler/icons-react";
 import CSV from "./Providers/CSV";
 import LDAP from "./Providers/LDAP";
 import STMC from "./Providers/STMC";
@@ -8,6 +8,7 @@ import LDAPConfig from "../Rules/Editor/Providers/LDAP";
 import STMCConfig from "../Rules/Editor/Providers/STMC";
 import FOLDER from "./Providers/FOLDER";
 import EMAIL from "./Providers/EMAIL";
+import API from "./Providers/API";
 
 export interface provider {
     id: string;
@@ -101,25 +102,25 @@ const providers: {
             path: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
         },
     },
-    //api: {
-    //    id: 'api',
-    //    name: "Web API",
-    //    color: 'red',
-    //    Icon: IconCloudComputing,
-    //    Options: API,
-    //    input: true,
-    //    initialValues: {
-    //        name: '',
-    //        endpoint: '',
-    //        append: '',
-    //        bearer: '',
-    //        basic: '',
-    //    },
-    //    validation: {
-    //        name: isNotEmpty('Name can not be empty.'),
-    //        path: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
-    //    },
-    //},
+    api: {
+        id: 'api',
+        name: "Web API",
+        color: 'red',
+        Icon: IconCloudComputing,
+        Options: API,
+        input: true,
+        initialValues: {
+            name: '',
+            endpoint: '',
+            append: '',
+            auth: 'none',
+            password: '',
+        },
+        validation: {
+            name: isNotEmpty('Name can not be empty.'),
+            endpoint: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
+        },
+    },
     email: {
         id: 'email',
         name: "Email Sender",
