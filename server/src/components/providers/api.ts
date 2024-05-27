@@ -4,6 +4,7 @@ import { Hash, decrypt } from "../../modules/cryptography.js";
 import { Schema } from "../models.js";
 import PROXY from "./proxy.js";
 import axios, { AxiosInstance } from 'axios';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 export interface api_options extends base_provider_options {
     endpoint: string;
@@ -50,7 +51,8 @@ export default class API extends base_provider {
         if (this.auth==="basic") this.password = Buffer.from(this.password as string).toString('base64');
         this.client = axios.create({
             baseURL: this.endpoint,
-            proxy:  this.proxy ? (this.proxy as PROXY).auth : false,
+            httpsAgent: this.proxy ? new HttpsProxyAgent((this.proxy as PROXY).url) : false,
+            proxy: false,
             headers: { Authorization:
                 this.auth==="basic" ? `Basic ${this.password}` :
                 this.auth==="bearer" ? `Bearer ${this.password}` : undefined

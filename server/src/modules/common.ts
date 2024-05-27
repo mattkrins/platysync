@@ -6,7 +6,7 @@ type status = 400|401|403|404|405|406|408|409|500|number;
 export class xError {
     message: string;
     name: string = "Error";
-    stack?: string;
+    stack?: string|NodeJS.CallSite[];
     field?: string;
     status?: number;
     validation?: { validation: { [k: string]: string } };
@@ -35,11 +35,12 @@ export class xError {
             }
         } catch { /* empty */ }
       }
-      if (log && log.silly) log.silly(this.message);
+      if (Error.captureStackTrace) Error.captureStackTrace(this, xError);
+      if (!this.stack) this.stack = (new Error()).stack;
+      if (field) this.validation = { validation: { [field]: this.message } }
       this.field = field;
       this.status = status;
-      if (field) this.validation = { validation: { [field]: this.message } }
-      if (Error.captureStackTrace) Error.captureStackTrace(this, xError);
+      if (log && log.verbose) log.verbose({...this, stack: this.stack });
     }
     public attach(error: xError|unknown = {}) {
       const e = (error as xError) || {};
