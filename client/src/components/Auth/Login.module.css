@@ -1,6 +1,0 @@
-.box {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-}
-.input {
-    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7));
-}
