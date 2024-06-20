@@ -3,8 +3,8 @@ import { ModalsProvider } from '@mantine/modals';
 import { TextInput } from '@mantine/core';
 import { createTheme } from "@mantine/core";
 import { Route, Switch, useLocation } from "wouter";
-import AppProvider from "./providers/AppProvider";
 import useFetch from "./hooks/useFetch";
+import { Provider } from 'react-redux';
 
 import "@mantine/core/styles.css";
 import '@mantine/dates/styles.css';
@@ -15,7 +15,7 @@ import Schemas from "./routes/Schemas";
 import Login from "./routes/Auth/Login";
 import Logout from "./routes/Auth/Logout";
 import { AppLayout } from "./AppLayout";
-import SchemaProvider from "./providers/SchemaProvider";
+import store from "./providers/store";
 
 const theme = createTheme({
   fontFamily: 'Roboto, sans-serif',
@@ -50,12 +50,10 @@ function Router() {
 export default function App() {
     return (
         <MantineProvider defaultColorScheme="auto" theme={theme}>
-            <ModalsProvider>
-                <AppProvider>
-                    <SchemaProvider>
-                      <Router/>
-                    </SchemaProvider>
-                </AppProvider>
+            <ModalsProvider>    
+                <Provider store={store}>
+                        <Router/>
+                </Provider>
             </ModalsProvider>
         </MantineProvider>
     )

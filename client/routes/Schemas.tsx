@@ -1,8 +1,7 @@
 import { Card,  Text,  SimpleGrid,  UnstyledButton,  Anchor,  Group,  Container,  Title,  ActionIcon,  Menu,  Grid,  Code, Modal, LoadingOverlay, Tooltip } from '@mantine/core';
 import { IconDotsVertical, IconPlus, IconTrash, IconPackageExport, IconGridDots, IconPackageImport, IconRefresh } from '@tabler/icons-react';
 import classes from './Setup/Setup.module.css';
-import AppContext from '../providers/AppContext';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { modals } from '@mantine/modals';
 import useAPI from '../hooks/useAPI';
 import { Link, Redirect, useLocation } from 'wouter';
@@ -11,18 +10,19 @@ import { useDisclosure } from '@mantine/hooks';
 import NewSchema from '../components/NewSchema';
 import Exporter from '../components/Exporter';
 import Importer from '../components/Importer';
-import SchemaContext from '../providers/SchemaContext';
+import { useAppDispatch, useAppSelector } from '../providers/hooks';
+import { loadApp, loadSchemas, loadUser } from '../providers/appSlice';
+import { loadSchema } from '../providers/schemaSlice';
 
 function Schema({ schema, exportSchema }: { schema: Schema, exportSchema(schema: Schema): void }) {
-  const [_, setLocation] = useLocation();
   if (!getCookie("setup")) return <Redirect to="/setup" />;
   if (!getCookie("auth")) return <Redirect to="/login" />;
+  const [_, setLocation] = useLocation();
+  const dispatch = useAppDispatch();
   const { del, loading: deleting } = useAPI({
     url: "/api/v1/schema", data: { name: schema.name },
-    finally: () => getSchemas()
-  });
-  const { getSchemas } = useContext(AppContext);
-  const { getSchema, loadingSchema } = useContext(SchemaContext);
+    finally: () => dispatch(loadSchemas())
+  }); 
   const deleteSchema = () =>
     modals.openConfirmModal({
       title: 'Delete Schema',
@@ -31,8 +31,8 @@ function Schema({ schema, exportSchema }: { schema: Schema, exportSchema(schema:
       confirmProps: { color: 'red' },
       onConfirm: () => del(),
   });
-  const loading = deleting||loadingSchema;
-  const openSchema = () => { if (loading) return; getSchema(schema.name).then(()=>setLocation("/home")); }
+  const loading = deleting;
+  const openSchema = () => { if (loading) return; dispatch(loadSchema(schema.name)).then(()=>setLocation("home")); }
   return (
     <Card shadow="sm" radius="md" withBorder className={classes.item} >
         <Grid align="center" gutter={0}>
@@ -70,12 +70,17 @@ function Version({ version }: { version: string }) {
 }
 
 export default function Schemas() {
-  const { schemas, getSchemas, loadingSchemas, version } = useContext(AppContext);
+  const { schemas, user: { username }, loadingSchemas, version } = useAppSelector(state => state.app);
+  const dispatch = useAppDispatch();
+  useEffect(()=>{
+    dispatch(loadApp());
+    dispatch(loadSchemas());
+    dispatch(loadUser());
+  }, []);
   const [opened, { open, close }] = useDisclosure(false);
   const [importing, { open: openImporter, close: closeImporter }] = useDisclosure(false);
   const [exporting, setExporting] = useState<Schema|undefined>(undefined);
   const [defaultImport, setImporting] = useState<Schema|undefined>(undefined);
-  useEffect(()=>{getSchemas()}, []);
   const onImport = (schema: Schema) => { setImporting(schema); closeImporter(); open(); };
   return (
     <Container mt="10%">
@@ -93,7 +98,7 @@ export default function Schemas() {
               <Menu.Dropdown>
                   <Menu.Item onClick={open} leftSection={<IconPlus size={15}/>}>New</Menu.Item>
                   <Menu.Item onClick={openImporter} leftSection={<IconPackageImport size={15}/>}>Import</Menu.Item>
-                  <Menu.Item onClick={getSchemas} leftSection={<IconRefresh size={15}/>}>Refresh</Menu.Item>
+                  <Menu.Item onClick={()=>dispatch(loadSchemas())} leftSection={<IconRefresh size={15}/>}>Refresh</Menu.Item>
               </Menu.Dropdown>
           </Menu>
         </Group>
@@ -101,7 +106,7 @@ export default function Schemas() {
         {schemas.length<=0&&<Text c="dimmed" >No schemas configured. <Anchor >Create</Anchor> a new schema to begin.</Text>}
       </Card>
       <Group justify="space-between" m="xs" >
-        <Anchor component={Link} href='/logout' size="xs">Logout</Anchor>
+        <Anchor component={Link} href='/logout' size="xs">Logout ({username})</Anchor>
         <Version version={version} />
       </Group>
     </Container>

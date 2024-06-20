@@ -1,16 +1,14 @@
 import { Alert, Button, Group, Modal, PasswordInput, TextInput } from "@mantine/core";
-import { UseFormReturnType, isNotEmpty, useForm } from "@mantine/form";
+import { isNotEmpty, useForm } from "@mantine/form";
 import { IconUser, IconKey, IconCheck } from "@tabler/icons-react";
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import useAPI from "../../hooks/useAPI";
-import AppContext from "../../providers/AppContext";
 
 const validate = {
   username: isNotEmpty('Username can not be empty.'),
 }
 
 export default function Editor({ editing, close, refresh }: { editing?: [User,boolean], close(): void, refresh(): void }) {
-  const { username } = useContext(AppContext);
   const adding = editing && editing[0] && !editing[1];
   useEffect(()=>editing&&form.setValues(editing[0]), [ editing ]);
   const form = useForm<User>({ validate });

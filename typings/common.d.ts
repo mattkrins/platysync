@@ -18,10 +18,16 @@ interface Log {
   rule?: string;
 }
 
+interface Connector {
+    name: string;
+    type: 'provider'|'adapter';
+    id: string;
+}
+
 interface Schema {
     name: string;
     version: string;
-    connectors: [];
+    connectors: Connector[];
     rules: [];
 }
 

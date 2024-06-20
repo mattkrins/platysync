@@ -1,5 +1,5 @@
 import { Center, Paper, Grid, Box, Title, BackgroundImage, Group, CloseButton, Text, Loader, Container, Anchor, LoadingOverlay, ScrollArea, Badge, SimpleGrid, Table } from "@mantine/core";
-import { useLocalStorage, useViewportSize } from "@mantine/hooks";
+import { useLocalStorage } from "@mantine/hooks";
 import { AreaChart } from '@mantine/charts';
 import useAPI from "../../hooks/useAPI";
 
@@ -7,8 +7,8 @@ import '@mantine/charts/styles.css';
 import { Link } from "wouter";
 import { colors, events } from "../Logs/Logs";
 import { IconListSearch, IconRun } from "@tabler/icons-react";
-import { useContext } from "react";
-import AppContext from "../../providers/AppContext";
+import { useMemo } from "react";
+import { useAppSelector } from "../../providers/hooks";
 
 function Welcome() {
   const [welcome, setWelcome] = useLocalStorage({ key: 'welcome', defaultValue: 'true' });
@@ -58,13 +58,13 @@ function Chart({}) {
       url: `/api/v1/log/history?level=all&limit=1000`,
       default: [], fetch: true,
   });
-  const chart = Object.values(data.reduce((acc: Record<string, TransformedData>, log) => {
+  const chart = useMemo(()=>Object.values(data.reduce((acc: Record<string, TransformedData>, log) => {
     const date = new Date(log.timestamp).toLocaleDateString();
     const logType = log.message.includes("Evaluating") ? "Evaluated" : log.message.includes("Executing") ? "Executed" : "Errors";
     if (!acc[date]) acc[date] = { timestamp: date, "Evaluated": 0, "Executed": 0, "Errors": 0 };
     acc[date][logType] += 1;
     return acc;
-  }, {}));
+  }, {})), [ data ]);
 
   return (
   <SimpleGrid cols={2}>
@@ -75,8 +75,8 @@ function Chart({}) {
           data={chart}
           dataKey="timestamp"
           series={[
-            { name: 'Evaluated', color: 'blue.6' },
-            { name: 'Executed', color: 'indigo.6' },
+            { name: 'Evaluated', color: 'indigo.6' },
+            { name: 'Executed', color: 'lime.6' },
             { name: 'Errors', color: 'red.6' },
           ]}
           curveType="natural"
@@ -140,7 +140,8 @@ function Stats({}) {
 }
 
 function Schemas() {
-  const { schemas, loadingSchemas } = useContext(AppContext);
+  const { schemas, loadingSchemas } = useAppSelector(state => state.app);
+
   return (
     <Paper mt="lg" withBorder>
       <Group m="xs" justify="space-between">

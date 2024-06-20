@@ -28,3 +28,10 @@ export function checkForUpdate(): Promise<string> {
     }));
   });
 }
+
+export const defaultSchema: Schema = {
+  name: '',
+  version: '',
+  connectors: [],
+  rules: [],
+};

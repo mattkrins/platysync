@@ -4,11 +4,12 @@ import useAPI from "../../hooks/useAPI";
 import { useLocalStorage } from "@mantine/hooks";
 import { IconAlertCircle, IconCheck } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { checkForUpdate, compareVersion } from "../../modules/common";
-import AppContext from "../../providers/AppContext";
 import { useLocation } from "wouter";
 import classes from '../../App.module.css';
+import { useAppSelector } from "../../providers/hooks";
+import { getVersion } from "../../providers/appSlice";
 
 const initialValues = {
     logLevel: 'info',
@@ -16,7 +17,7 @@ const initialValues = {
 } as Settings;
 
 export default function Settings() {
-    const { version } = useContext(AppContext);
+    const version = useAppSelector(getVersion);
     const [_, setLocation] = useLocation();
     const [newVersion, setAvailable] = useState<string|true|undefined>(undefined);
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();

@@ -1,17 +1,18 @@
-import { TextInput, Button, Container, Paper, Title, Group, Text, Alert } from "@mantine/core";
+import { TextInput, Button, Group, Alert } from "@mantine/core";
 import { useForm, isNotEmpty } from "@mantine/form";
 import { useLocation } from "wouter";
 import useAPI from "../hooks/useAPI";
 import { onKeyUp } from "../modules/common";
 import classes from './NewSchema.module.css';
-import { useContext, useState } from "react";
-import AppContext from "../providers/AppContext";
+import { useState } from "react";
 import Importer from "./Importer";
 import { useDisclosure } from "@mantine/hooks";
 import { IconAlertCircle } from "@tabler/icons-react";
+import { loadSchemas } from "../providers/appSlice";
+import { useAppDispatch } from "../providers/hooks";
 
 export default function NewSchema( { then, defaultImport }: { then?(name: string): void, defaultImport?: Schema } ) {
-    const { getSchemas } = useContext(AppContext);
+    const dispatch = useAppDispatch();
     const [_, setLocation] = useLocation();
     const [importing, setImporting] = useState<Schema|undefined>(defaultImport);
     const [importOpen, { open: openImporter, close: closeImporter }] = useDisclosure(false);
@@ -25,7 +26,7 @@ export default function NewSchema( { then, defaultImport }: { then?(name: string
     const { post, loading, error } = useAPI<string>( {
         url: "/api/v1/schema", form,
         mutateData: (data: object) => importing ? ({...importing, ...data, importing: true }): data,
-        then: (name: string) => { setLocation('/'); getSchemas(); if (then) then(name) },
+        then: (name: string) => { setLocation('/'); dispatch(loadSchemas()); if (then) then(name) },
     } );
 
     const submit = () => post();
