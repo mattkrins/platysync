@@ -1,11 +1,15 @@
 import { createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit';
-import { getCookie } from "../modules/common";
-import axios from 'axios';
+import { navigate } from "wouter/use-browser-location";
+import axios, { AxiosError } from 'axios';
+import { RootState } from './store';
 
-interface appState {
+interface app {
   application: string;
   version: string;
-  setup: number;
+  setup: boolean;
+}
+
+interface appState extends app {
   schemas: Schema[];
   user: { username: string };
   loadingApp: boolean;
@@ -16,7 +20,7 @@ interface appState {
 const initialState: appState = {
   application: '',
   version: '',
-  setup: 0,
+  setup: true,
   schemas: [],
   user: { username: '' },
   loadingApp: false,
@@ -28,10 +32,15 @@ const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    init(_, action: PayloadAction<appState>) { return action.payload; },
-    mutate(state, action: PayloadAction<Partial<appState>>) { return { ...state, ...action.payload }; },
+    init(state, { payload }: PayloadAction<app>) {
+      state.application = payload.application;
+      state.version = payload.version;
+      state.setup = payload.setup;
+    },
+    mutate(state, { payload }: PayloadAction<Partial<appState>>) { return { ...state, ...payload }; },
   },
   selectors: {
+    isSetup: state => state.setup,
     getVersion: state => state.version,
     getSetup: state => state.setup,
     getSchemas: state => state.schemas,
@@ -41,13 +50,14 @@ const appSlice = createSlice({
 
 export default appSlice;
 
-export const { getVersion, getSetup, getSchemas, getUser } = appSlice.selectors;
+export const { isSetup, getVersion, getSetup, getSchemas, getUser } = appSlice.selectors;
 
 export const loadApp = () => async (dispatch: Dispatch) => {
   dispatch(appSlice.actions.mutate({loadingApp: true}));
   try {
-    const response = await axios({ url: '/api/v1' });
-    dispatch(appSlice.actions.init({...initialState, ...response.data as appState}));
+    const { data } = await axios<app>({ url: '/api/v1' });
+    dispatch(appSlice.actions.init(data));
+    return data.setup;
   } finally {
     dispatch(appSlice.actions.mutate({loadingApp: false}));
   }
@@ -58,18 +68,24 @@ export const loadSchemas = () => async (dispatch: Dispatch) => {
   try {
     const response = await axios({ url: '/api/v1/schemas' });
     dispatch(appSlice.actions.mutate({schemas: response.data as Schema[]}));
+  } catch (e) {
+    const response = (e as {response?: AxiosError}).response;
+    if (response?.status === 401) navigate("/logout", { replace: true });
   } finally {
     dispatch(appSlice.actions.mutate({loadingSchemas: false}));
-  }
+  } 
 }
 
 export const loadUser = () => async (dispatch: Dispatch) => {
-  dispatch(appSlice.actions.mutate({loadingSchemas: true}));
+  dispatch(appSlice.actions.mutate({loadingUser: true}));
   try {
     const response = await axios({ url: '/api/v1/auth' });
     dispatch(appSlice.actions.mutate({user: response.data as Session}));
+  } catch (e) {
+    const response = (e as {response?: AxiosError}).response;
+    if (response?.status === 401) navigate("/logout", { replace: true });
   } finally {
-    dispatch(appSlice.actions.mutate({loadingSchemas: false}));
+    dispatch(appSlice.actions.mutate({loadingUser: false}));
   }
 }
 

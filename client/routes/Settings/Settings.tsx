@@ -1,4 +1,4 @@
-import { Alert, Anchor, Button, Code, Container, Grid, Group, Input, LoadingOverlay, Paper, SegmentedControl, Select, Switch, Title, Text, useMantineColorScheme } from "@mantine/core";
+import { Alert, Anchor, Button, Code, Container, Grid, Group, Input, SegmentedControl, Select, Switch, Title, Text, useMantineColorScheme } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import useAPI from "../../hooks/useAPI";
 import { useLocalStorage } from "@mantine/hooks";
@@ -7,9 +7,9 @@ import { modals } from "@mantine/modals";
 import { useState } from "react";
 import { checkForUpdate, compareVersion } from "../../modules/common";
 import { useLocation } from "wouter";
-import classes from '../../App.module.css';
-import { useAppSelector } from "../../providers/hooks";
-import { getVersion } from "../../providers/appSlice";
+import { useAppDispatch, useAppSelector } from "../../providers/hooks";
+import { getVersion, loadApp } from "../../providers/appSlice";
+import Wrapper from "../../components/Wrapper";
 
 const initialValues = {
     logLevel: 'info',
@@ -18,6 +18,7 @@ const initialValues = {
 
 export default function Settings() {
     const version = useAppSelector(getVersion);
+    const dispatch = useAppDispatch();
     const [_, setLocation] = useLocation();
     const [newVersion, setAvailable] = useState<string|true|undefined>(undefined);
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();
@@ -38,11 +39,14 @@ export default function Settings() {
     });
     const { put: purge, loading: purging } = useAPI({
         url: "/api/v1/settings/purge",
-        then: (e: Settings) => { form.setValues(e); console.log(e) },
+        then: (e: Settings) => form.setValues(e),
     });
     const { put: reset, loading: resetting } = useAPI({
         url: "/api/v1/settings/reset",
-        then: () => setLocation("/setup"),
+        then: () => {
+            dispatch(loadApp());
+            setLocation("/logout");
+        },
     });
 
     const openResetModal = () =>
@@ -65,7 +69,8 @@ export default function Settings() {
     const check = () => {
         setAvailable(true);
         checkForUpdate().then(newVersion=>{
-            if ( compareVersion(newVersion, version) > 0 ) setAvailable(newVersion);
+            if ( compareVersion(newVersion, version) > 0 ) return setAvailable(newVersion);
+            setAvailable(undefined);
         }).catch(()=>setAvailable(undefined));
     }
 
@@ -74,8 +79,7 @@ export default function Settings() {
             <Title mb="xs" >Application Settings</Title>
             <Button onClick={()=>save()} loading={saving} >Save</Button>
         </Group>
-        <Paper p="lg" className={classes.box} withBorder pos="relative">
-            <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 1 }} />
+        <Wrapper loading={loading} >
             {!!success&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Settings saved successfully.</Alert>}
             {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
             <Input.Wrapper label="Theme" description="Change colours of the application" >
@@ -122,7 +126,7 @@ export default function Settings() {
             Must be set manually via the <Anchor href='https://github.com/mattkrins/platysync/wiki/Settings#enable-runcommand-action' size="xs" target='_blank' >settings </Anchor> 
             file by adding <Code>"enableRun": true,</Code></>}
             />
-        </Paper>
+        </Wrapper>
     </Container>
   )
 }

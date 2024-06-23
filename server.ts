@@ -70,13 +70,13 @@ async function routes(route: FastifyInstance) {
   addRoute(route, '/log', logs);
   route.get('/', async (_, reply) => {
     const {data: { users, schemas }} = await database();
-    const setup = users.length <= 0 ? 0 : (schemas.length <= 0 ? 2 : 3);
+    const setup = users.length > 0;
     const response = {
       application: "PlatySync",
       version,
       setup,
     };
-    if (response.setup >= 3){ reply.setCookie("setup", "true", { path: "/" }); } else {  reply.clearCookie("setup", { path: "/" }); }
+    if (setup){ reply.setCookie("setup", "true", { path: "/" }); } else {  reply.clearCookie("setup", { path: "/" }); }
     return response;
   });
 }

@@ -15,6 +15,20 @@ export async function logout(request: FastifyRequest, reply: FastifyReply) {
     return true;
 }
 
+async function login(reply: FastifyReply, username: string) {
+    const db = await database();
+    const { data: { sessions } } = db;
+    const sessionId = uuidv4();
+    reply.setCookie("auth", sessionId, { path: "/" });
+    const expiresAt = new Date((new Date()).getTime() + (12 * 60 * 60 * 1000));
+    for (const id of (Object.keys(sessions))) {
+        if (sessions[id].username === username) delete sessions[id];
+    }
+    sessions[sessionId] = { username, expires: String(expiresAt), sessionId };
+    await db.write();
+    return sessions[sessionId];
+}
+
 export default async function auth(route: FastifyInstance) {
     route.post('/setup', async (request, reply) => {
         const { username, password, confirm } = request.body as { username: string, password: string, confirm: string };
@@ -29,7 +43,7 @@ export default async function auth(route: FastifyInstance) {
             const encrypted = await encrypt(password);
             users.push({username, password: JSON.stringify(encrypted) });
             await db.write();
-            return true;
+            return login(reply, username);
         } catch (e) { new xError(e).send(reply); }
     });
     route.get('/', async (request, reply) => {
@@ -52,20 +66,12 @@ export default async function auth(route: FastifyInstance) {
                 password: isNotEmpty('Password can not be empty.'),
             });
             const db = await database();
-            const { data: { users, sessions } } = db;
+            const { data: { users } } = db;
             const user = users.find(u=>u.username===username);
             if (!user) throw new xError("Username or Password incorrect.", null, 401);
             const decrypted = await decrypt(JSON.parse(user.password));
             if (password!==decrypted) throw new xError("Username or Password incorrect.", null, 401);
-            const sessionId = uuidv4();
-            reply.setCookie("auth", sessionId, { path: "/" });
-            const expiresAt = new Date((new Date()).getTime() + (12 * 60 * 60 * 1000));
-            for (const id of (Object.keys(sessions))) {
-                if (sessions[id].username === username) delete sessions[id];
-            }
-            sessions[sessionId] = { username, expires: String(expiresAt), sessionId };
-            await db.write();
-            return sessions[sessionId];
+            return login(reply, username);
         } catch (e) { new xError(e).send(reply); }
     });
 }

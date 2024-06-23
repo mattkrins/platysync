@@ -16,6 +16,8 @@ export interface Options<returnType = unknown, sendType = unknown> extends Axios
     fetch?: boolean;
     /** @type {boolean} Preserve options on fetch. */
     preserve?: boolean;
+    /** @param {Options} options Runs before sending. */
+    before?(options: Options<returnType, sendType>): any;
     /** @param {Options} options Return true to halt fetch. */
     validate?(options: Options<returnType, sendType>): boolean|undefined|void;
     /** @param {unknown} data Mutate returned data. */
@@ -82,6 +84,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         if (options.append) options.url = `${options.url}${options.append}`;
         if (options.prepend) options.url = `${options.prepend}${options.url}`;
         const deferred = new Deferred<returnType>();
+        if (options.before) options.before(options);
         if (options.validate && options.validate(options)){ return deferred.promise as Promise<returnType>;}
         try {
             if (options.mutateReq) options = options.mutateReq(options, inline) as Options<returnType, sendType>;

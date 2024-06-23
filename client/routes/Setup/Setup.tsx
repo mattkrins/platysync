@@ -1,25 +1,20 @@
-import { Redirect, useLocation, useParams } from 'wouter';
+import { Redirect, useParams } from 'wouter';
 import CreateUser from './CreateUser';
 import CreateSchema from './CreateSchema';
 import SplashScreen from './SplashScreen';
-import { Container, Center, Loader, Alert } from '@mantine/core';
-import useFetch from '../../hooks/useFetch';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { useAppDispatch, useAppSelector } from '../../providers/hooks';
+import { isSetup, loadApp } from '../../providers/appSlice';
+import { useEffect } from 'react';
 
 export default function Setup({}) {
   const params = useParams();
-  const [_, setLocation] = useLocation();
-  const { data, loading, error } = useFetch<{ setup: number }>( {
-      url: "/api/v1",
-      fetch: true,
-      then: ({ setup }) => setLocation(`/setup/${setup}`),
-  } );
-  if (loading) return <Container fluid mt="10%" ><Center><Loader size="xl" type="dots" /></Center></Container>;
-  if (!data||error) return <Container mt="10%" ><Alert title="Error: App init failure" color="red" icon={<IconInfoCircle />} >{error||"Failed to init."}</Alert></Container>;
+  const setup = useAppSelector(isSetup);
+  const dispatch = useAppDispatch();
+  useEffect(()=>{ dispatch(loadApp()); }, []);
+  if (setup) return <Redirect to="/" />;
   switch (Number(params.step)) {
     case 1: return <CreateUser/>;
     case 2: return <CreateSchema/>;
-    case 3: return <Redirect to="/" />;
     default: return <SplashScreen/>;
   }
 }

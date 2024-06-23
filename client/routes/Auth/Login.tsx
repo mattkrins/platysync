@@ -2,12 +2,17 @@ import { TextInput, PasswordInput, Button, Container, Paper, Title, Text, Avatar
 import { useForm, isNotEmpty } from "@mantine/form";
 import classes from './Login.module.css';
 import useAPI from "../../hooks/useAPI";
-import { useLocation } from "wouter";
+import { Redirect, useLocation } from "wouter";
 import { onKeyUp } from "../../modules/common";
 import { IconAlertCircle, IconKey, IconUser } from "@tabler/icons-react";
+import { isSetup, loadApp } from "../../providers/appSlice";
+import { useAppDispatch, useAppSelector } from "../../providers/hooks";
+import { useEffect } from "react";
 
 export default function Login() {
     const [_, setLocation] = useLocation();
+    const setup = useAppSelector(isSetup);
+    const dispatch = useAppDispatch();
     const form = useForm({
         initialValues: { username: '', password: '', confirm: '' },
         validate: {
@@ -21,8 +26,10 @@ export default function Login() {
         then: () => setLocation('/'),
     });
 
+    useEffect(()=>{ dispatch(loadApp()); }, []);
+
     const submit = () => post();
-    
+    if (!setup) return <Redirect to="/setup" />;
     return (
     <Container size={400} my={20}>
         <Center><Avatar src={'/logo.png'} size="xl" /></Center>

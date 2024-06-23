@@ -6,14 +6,15 @@ interface SchemaState extends Schema {
 }
 
 const initialState: SchemaState = {
-  name: '', version: '', connectors: [], rules: [],
-  prev: { name: '', version: '', connectors: [], rules: [] }
+  name: '', version: '', connectors: [], rules: [], files: [],
+  prev: { name: '', version: '', connectors: [], rules: [], files: [] }
 };
 
 const schemaSlice = createSlice({
   name: 'schema',
   initialState,
   reducers: {
+    init() { return initialState; },
     setSchema(_, action: PayloadAction<SchemaState>) {
       const { prev, ...payload } = action.payload;
       return { ...payload, prev: payload };
@@ -27,14 +28,16 @@ const schemaSlice = createSlice({
     },
   },
   selectors: {
-    schema: state => state,
-    name: state => state.name,
-    version: state => state.version,
+    getName: state => state.name,
+    getVersion: state => state.version,
+    getConnectors: state => state.connectors,
+    getRules: state => state.rules,
+    getFiles: state => state.files,
   },
 });
 
-export const { mutate, undo } = schemaSlice.actions;
-export const { schema, name, version } = schemaSlice.selectors;
+export const { mutate, undo, init } = schemaSlice.actions;
+export const { getName, getVersion, getConnectors, getRules, getFiles } = schemaSlice.selectors;
 
 export default schemaSlice;
 

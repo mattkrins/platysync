@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Container, Group, Title, Button, Paper, Grid, ActionIcon, LoadingOverlay, Tooltip } from "@mantine/core";
-import classes from '../../App.module.css';
+import { Container, Group, Title, Button, Paper, Grid, ActionIcon, Tooltip } from "@mantine/core";
 import Editor from "./Editor";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
+import Wrapper from "../../components/Wrapper";
 
 function User({ user: { username }, edit, refresh }: { user: User, edit(): void, refresh(): void }) {
     const { del, loading: deleting, error } = useAPI<User[]>({
@@ -46,8 +46,7 @@ export default function Users() {
             <Title mb="xs" >User Manager</Title>
             <Button onClick={add} loading={false} leftSection={<IconPlus size={18} />} >Create</Button>
         </Group>
-        <Paper className={classes.box} p="lg" withBorder pos="relative">
-            <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 1 }} />
+        <Wrapper loading={loading}>
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
                     <Grid.Col span={10}>Username</Grid.Col>
@@ -55,7 +54,7 @@ export default function Users() {
                 </Grid>
             </Paper>
             {users.map((user) => <User key={user.username} user={user} edit={()=>setEditing([user,true])} refresh={refresh} />)}
-        </Paper>
+        </Wrapper>
     </Container>
     )
 }

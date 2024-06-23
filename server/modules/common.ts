@@ -65,6 +65,7 @@ export function validStr(string?: unknown) {
     return true;
 }
 
+export const hasLength = (len = 0, error = "Too short.") => (value: unknown) => (value as string).length > len ? false : error;
 export const isNotEmpty = (error = "Can not be empty.") => (value: unknown) => validStr(value) ? false : error;
 export const contains = (array: string[], error = "Does not contain.") => (value: unknown) => array.includes(value as string) ? false : error;
 

@@ -1,4 +1,4 @@
-import { Card,  Text,  SimpleGrid,  UnstyledButton,  Anchor,  Group,  Container,  Title,  ActionIcon,  Menu,  Grid,  Code, Modal, LoadingOverlay, Tooltip } from '@mantine/core';
+import { Card, Text, SimpleGrid, UnstyledButton, Anchor, Group, Container, Title, ActionIcon, Menu, Grid, Code, Modal, LoadingOverlay, Tooltip, Image, Center, Loader } from '@mantine/core';
 import { IconDotsVertical, IconPlus, IconTrash, IconPackageExport, IconGridDots, IconPackageImport, IconRefresh } from '@tabler/icons-react';
 import classes from './Setup/Setup.module.css';
 import { useEffect, useState } from 'react';
@@ -70,20 +70,24 @@ function Version({ version }: { version: string }) {
 }
 
 export default function Schemas() {
-  const { schemas, user: { username }, loadingSchemas, version } = useAppSelector(state => state.app);
+  const { setup, schemas, user: { username }, loadingApp, loadingSchemas, loadingUser, version } = useAppSelector(state => state.app);
   const dispatch = useAppDispatch();
   useEffect(()=>{
-    dispatch(loadApp());
-    dispatch(loadSchemas());
-    dispatch(loadUser());
+    dispatch(loadApp()).then(()=>
+      dispatch(loadSchemas()).then(()=>
+        dispatch(loadUser()))
+    );
   }, []);
   const [opened, { open, close }] = useDisclosure(false);
   const [importing, { open: openImporter, close: closeImporter }] = useDisclosure(false);
   const [exporting, setExporting] = useState<Schema|undefined>(undefined);
   const [defaultImport, setImporting] = useState<Schema|undefined>(undefined);
   const onImport = (schema: Schema) => { setImporting(schema); closeImporter(); open(); };
+  if (!setup) return <Redirect to="/setup" />;
   return (
-    <Container mt="10%">
+    <Container mt="2%">
+      <LoadingOverlay visible={loadingApp} overlayProps={{ radius: "sm", blur: 1 }} />
+      <Center pb="xl" ><Image src="/logo.png" alt="Logo" h={128} w="auto" /></Center>
       <Importer title="Import Schema" opened={importing} close={closeImporter} onImport={onImport} onError={()=>setImporting(undefined)} json accept={['application/json']} />
       <Exporter title="Export Schema" filename={exporting?`${exporting.name}.json`:''} data={exporting?JSON.stringify(exporting, null, 2):''} json close={()=>setExporting(undefined)} />
       <Modal opened={opened} onClose={close} title="New Schema">
@@ -103,10 +107,10 @@ export default function Schemas() {
           </Menu>
         </Group>
         <SimpleGrid cols={1} mt="md">{schemas.map((schema)=>(<Schema schema={schema} key={schema.name} exportSchema={setExporting} />))}</SimpleGrid>
-        {schemas.length<=0&&<Text c="dimmed" >No schemas configured. <Anchor >Create</Anchor> a new schema to begin.</Text>}
+        {schemas.length<=0&&<Text c="dimmed" >No schemas configured. <Anchor onClick={open} >Create</Anchor> a new schema to begin.</Text>}
       </Card>
       <Group justify="space-between" m="xs" >
-        <Anchor component={Link} href='/logout' size="xs">Logout ({username})</Anchor>
+        <Anchor component={Link} href='/logout' size="xs">{(!username||loadingUser) ? <Loader size={16} type="dots" /> : `Logout (${username})`}</Anchor>
         <Version version={version} />
       </Group>
     </Container>

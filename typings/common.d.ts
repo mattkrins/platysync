@@ -24,11 +24,17 @@ interface Connector {
     id: string;
 }
 
+interface xFile {
+    name: string;
+    path: string;
+}
+
 interface Schema {
     name: string;
     version: string;
     connectors: Connector[];
     rules: [];
+    files: xFile[];
 }
 
 interface User {

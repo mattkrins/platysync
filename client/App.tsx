@@ -16,6 +16,9 @@ import Login from "./routes/Auth/Login";
 import Logout from "./routes/Auth/Logout";
 import { AppLayout } from "./AppLayout";
 import store from "./providers/store";
+import { useAppDispatch, useAppSelector } from "./providers/hooks";
+import { isSetup, loadApp } from "./providers/appSlice";
+import { useEffect } from "react";
 
 const theme = createTheme({
   fontFamily: 'Roboto, sans-serif',
@@ -29,20 +32,20 @@ const theme = createTheme({
 });
 
 function Router() {
+    const dispatch = useAppDispatch();
+    const setup = useAppSelector(isSetup);
     const [_, setLocation] = useLocation();
-    useFetch<{ setup: number }>({
-        url: "/api/v1", fetch: true,
-        then: ({ setup }) => !setup||setup < 3 ? setLocation(`/setup/${setup}`) : null,
-    });
+    useEffect(()=>{
+      dispatch(loadApp()).then(setup=> setup ? null : setLocation(`/setup`));
+    }, []);
     return (
     <Switch>
         <Route path="/login" component={Login} />
         <Route path="/logout" component={Logout} />
-        <Route path="/setup" component={Setup} />
-        <Route path="/setup/:step" component={Setup} />
+        {!setup&&<Route path="/setup" component={Setup} />}
+        {!setup&&<Route path="/setup/:step" component={Setup} />}
         <Route path="/schemas" component={Schemas} />
-        <Route path="/:page" component={AppLayout} />
-        <Route><Schemas/></Route>
+        <Route><AppLayout/></Route>
     </Switch>
     )
 }

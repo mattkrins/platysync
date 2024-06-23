@@ -3,21 +3,23 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconAdjustmentsHorizontal, IconCheckbox, IconClock, IconFiles, IconHistory, IconHome, IconLogout, IconPlug, IconSettings, IconUsersGroup } from "@tabler/icons-react";
 import { useRoute, useLocation, Redirect, Switch, Route } from "wouter";
 import { getCookie } from "./modules/common";
+import { useAppSelector, useAppDispatch } from "./providers/hooks";
+import { getName, loadSchema } from "./providers/schemaSlice";
+import { useEffect } from "react";
 
 import classes from "./App.module.css";
+
 import Home from "./routes/Home/Home";
 import Schema from "./routes/Schema/Schema";
 import Settings from "./routes/Settings/Settings";
 import Users from "./routes/Users/Users";
 import Logs from "./routes/Logs/Logs";
-import { useAppSelector, useAppDispatch } from "./providers/hooks";
-import { loadSchema } from "./providers/schemaSlice";
-import { useEffect } from "react";
+import Files from "./routes/Files/Files";
 
 const links = [
     { label: "Home", link: "/home", icon: <IconHome size={15} />, page: Home },
     { label: "Schema", link: "/schema", icon: <IconAdjustmentsHorizontal size={15} />, page: Schema },
-    { label: "Files", link: "/files", icon: <IconFiles size={15} /> },
+    { label: "Files", link: "/files", icon: <IconFiles size={15} />, page: Files },
     { label: "Connectors", link: "/connectors", icon: <IconPlug size={15} />  },
     //REVIEW - potential names:
     // connector, provider, integration, adapter, interface
@@ -36,8 +38,8 @@ function Schemas({}) {
   const [_, setLocation] = useLocation();
   const dispatch = useAppDispatch();
   const { schemas, loadingSchemas } = useAppSelector(state => state.app);
-  const { name } = useAppSelector(state => state.schema);
-  if (!name) return <Redirect to="/" />;
+  const name = useAppSelector(getName);
+  if (!name) return <Redirect to="/schemas" />;
   useEffect(()=>{ if (name) setLocation("home"); }, [ name ]);
   return (
     <Select ml="xs" leftSection={(loadingSchemas)&&<Loader size={16} />}
@@ -90,7 +92,7 @@ export function AppLayout() {
                   <Avatar src="/logo.png" />
                   <Schemas/>
                   <Group ml="sm" gap="xs" visibleFrom="sm">
-                      {links.map(link => <Link key={link.label} {...link} /> )}
+                      {links.map((link) => <Link key={link.label} {...link} link={link.link} /> )}
                   </Group>
               </Group>
               <Group mr="lg" >
@@ -100,15 +102,17 @@ export function AppLayout() {
           </Group>
         </AppShell.Header>
         <AppShell.Navbar py="md" px={4}>
-          {links.map((link) => <Link key={link.label} {...link} /> )}
+          {links.map((link) => <Link key={link.label} {...link} link={link.link} /> )}
         </AppShell.Navbar>
         <AppShell.Main>
           <Switch>
-                {links.filter(link=>link.page).map(link=><Route key={link.label} path={link.link} component={link.page} />)}
                 <Route path={"/settings"} component={Settings} />
                 <Route path={"/users"} component={Users} />
                 <Route path={"/logs"} component={Logs} />
-              <Route>Unknown Route</Route>
+                {links.filter(link=>link.page).map(link=><Route key={link.label} path={link.link} component={link.page} />)}
+                <Route path="*">
+                  {(params) => `404, Sorry the page ${params["*"]} does not exist!`}
+                </Route>
           </Switch>
         </AppShell.Main>
       </AppShell>

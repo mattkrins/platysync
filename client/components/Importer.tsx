@@ -40,8 +40,8 @@ export default function Importer({ opened, close, onImport, onError, title, json
             {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
             <Dropzone onDrop={onDrop} {...props} >
                 {json?
-                <JsonInput size="xs" variant="filled" autosize value={value} minRows={4} onChange={v=>setValue(v)} />:
-                <Textarea size="xs" variant="filled" autosize value={value} minRows={4} onChange={v=>setValue(v.target.value)} />}
+                <JsonInput size="xs" variant="filled" autosize value={value} minRows={4} onChange={v=>setValue(v)} placeholder='Drop .json exports here.' />:
+                <Textarea size="xs" variant="filled" autosize value={value} minRows={4} onChange={v=>setValue(v.target.value)} placeholder='Drop exported files here.'  />}
             </Dropzone>
         </Modal>
     );

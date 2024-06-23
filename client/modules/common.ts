@@ -35,3 +35,4 @@ export const defaultSchema: Schema = {
   connectors: [],
   rules: [],
 };
+

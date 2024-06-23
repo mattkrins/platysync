@@ -1,11 +1,11 @@
-import { Container, Group, Title, Button, Paper, LoadingOverlay, Grid, Tabs, ActionIcon, Badge, Box, Code, Indicator, List, Modal, Select, Table, TextInput, Text } from '@mantine/core';
+import { Container, Group, Title, Button, Paper, Tabs, ActionIcon, Badge, Box, Code, Indicator, List, Modal, Select, Table, TextInput, Text } from '@mantine/core';
 import { IconRefresh, IconTrash, IconSearch, IconDots, IconAlertCircle, IconPlayerPlay, IconRun, IconProps, Icon } from '@tabler/icons-react';
 import react, { ReactElement, useEffect, useState } from 'react';
-import classes from '../../App.module.css';
 import useAPI from '../../hooks/useAPI';
 import { modals } from '@mantine/modals';
 import { DatePickerInput } from '@mantine/dates';
 import { useViewportSize } from '@mantine/hooks';
+import Wrapper from '../../components/Wrapper';
 
 export const events: {[event: string]: react.ForwardRefExoticComponent<IconProps & react.RefAttributes<Icon>>} = {
   error: IconAlertCircle,
@@ -161,15 +161,12 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
 
 export default function Logs() {
     const [activeTab, setActiveTab] = useState<string | null>('general');
-    const add = () => {};
-    const loading = false;
     return (
     <Container size="90%">
         <Group justify="space-between">
             <Title mb="xs" >Log Browser</Title>
         </Group>
-        <Paper className={classes.box} p="lg" withBorder pos="relative">
-            <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 1 }} />
+        <Wrapper>
             <Paper mb="xs" p="xs" >
                 <Tabs value={activeTab} onChange={setActiveTab}>
                     <Tabs.List>
@@ -187,7 +184,7 @@ export default function Logs() {
                     </Tabs.Panel>
                 </Tabs>
             </Paper>
-        </Paper>
+        </Wrapper>
     </Container>
     )
 }
