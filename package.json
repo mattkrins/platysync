@@ -8,7 +8,7 @@
   "scripts": {
     "start": "npm-run-all --parallel client server",
     "server": "tsx watch --clear-screen=false --ignore ./build server.ts",
-    "client": "vite",
+    "client": "vite --host",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },

@@ -15,14 +15,14 @@ function Welcome() {
   const close = () => setWelcome("false");
   if (welcome==="false") return "";
   return (
-  <Center>
+  <Center pb="lg" >
       <Paper miw={"50%"} h={256} shadow="xl" p={0}
       style={{background:"linear-gradient(250.38deg, rgb(31, 34, 35) 2.39%, rgb(0, 68, 141) 34.42%, rgb(0, 79, 191) 60.95%, rgb(7, 70, 174) 84.83%, rgb(0, 35, 112) 104.37%)"}}>
       <Grid grow justify="center" gutter={0} align="stretch">
           <Grid.Col span={6}>
               <Box m="xl" >
-                  <Title>Welcome to PlatySync</Title>
-                  <Text>PlatySync is an application which takes data input, such as a CSV file, and execute actions based on conditions.</Text>
+                  <Title c="white" >Welcome to PlatySync</Title>
+                  <Text c="white">PlatySync is an application which takes data input, such as a CSV file, and execute actions based on conditions.</Text>
               </Box>
           </Grid.Col>
           <Grid.Col span={6}>
