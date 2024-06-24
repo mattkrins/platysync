@@ -4,7 +4,7 @@ import { IconUser, IconCheck } from "@tabler/icons-react";
 import { useEffect } from "react";
 import useAPI from "../../hooks/useAPI";
 import { Dropzone } from '@mantine/dropzone';
-import classes from './Demo.module.css';
+import classes from './Editor.module.css';
 
 const validate = {
   name: isNotEmpty('Name can not be empty.'),
