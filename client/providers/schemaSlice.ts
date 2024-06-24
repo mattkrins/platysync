@@ -24,6 +24,9 @@ const schemaSlice = createSlice({
     mutate(state, action: PayloadAction<Partial<SchemaState>>) {
       return { ...state, ...action.payload, prev: (({prev, ...s})=>s)(state) };
     },
+    addFile(state, { payload }: PayloadAction<psFile>) {
+      state.files.push(payload)
+    },
     undo(state) {
       const {prev, ...prev_state} = state.prev||initialState;
       return { ...prev_state, prev: prev_state };
@@ -38,7 +41,7 @@ const schemaSlice = createSlice({
   },
 });
 
-export const { mutate, undo, init } = schemaSlice.actions;
+export const { mutate, undo, init, addFile } = schemaSlice.actions;
 export const { getName, getVersion, getConnectors, getRules, getFiles } = schemaSlice.selectors;
 
 export default schemaSlice;

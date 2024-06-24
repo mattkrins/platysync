@@ -8,6 +8,14 @@ interface newSchema extends Schema {
     editing?: string;
 }
 
+const defaultSchema: Schema = {
+    name: '',
+    version: '',
+    connectors: [],
+    rules: [],
+    files: [],
+}
+
 export default async function schema(route: FastifyInstance) {
     route.get('s', async (request, reply) => {
         try {
@@ -26,7 +34,7 @@ export default async function schema(route: FastifyInstance) {
             const db = await database();
             const { data: { schemas } } = db;
             if (schemas.find(s=>s.name===name)) throw new xError("Schema name taken.", "name", 409);
-            schemas.push({ name, ...schema, version });
+            schemas.push({ ...defaultSchema, name, ...schema, version });
             await db.write();
             return name;
         } catch (e) { new xError(e).send(reply); }

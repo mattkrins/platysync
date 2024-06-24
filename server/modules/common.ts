@@ -68,6 +68,8 @@ export function validStr(string?: unknown) {
 export const hasLength = (len = 0, error = "Too short.") => (value: unknown) => (value as string).length > len ? false : error;
 export const isNotEmpty = (error = "Can not be empty.") => (value: unknown) => validStr(value) ? false : error;
 export const contains = (array: string[], error = "Does not contain.") => (value: unknown) => array.includes(value as string) ? false : error;
+export const testRegex = (error = "Invalid.", regex: RegExp) => (value: unknown) => regex.test(value as string) ? false : error;
+export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => testRegex(error, /^[a-zA-Z0-9]+$/)(value);
 
 export function validate(values: { [k: string]: unknown }, validation: { [k: string]: (value: unknown) => unknown }) {
   for (const key of (Object.keys(validation))){

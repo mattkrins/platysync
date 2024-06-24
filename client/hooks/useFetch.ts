@@ -78,6 +78,9 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
     const reset = useCallback(() => {
         setRequest(opt1);
         setData((opt1.default||undefined) as returnType);
+        setResponse(undefined);
+        setError(undefined);
+        setErrors(undefined);
     }, [ opt1 ]);
     const execute = useCallback(async (inline: Options<returnType, sendType> = {}): Promise<returnType> => {
         let options = { ...opt1, ...inline } as Options<returnType, sendType>;
