@@ -24,9 +24,11 @@ interface Connector {
     id: string;
 }
 
-interface xFile {
+interface psFile {
     name: string;
-    path: string;
+    path?: string;
+    key?: string;
+    format?: string;
 }
 
 interface Schema {
@@ -34,7 +36,7 @@ interface Schema {
     version: string;
     connectors: Connector[];
     rules: [];
-    files: xFile[];
+    files: psFile[];
 }
 
 interface User {

@@ -1,8 +1,9 @@
 import { Action, ThunkAction, combineSlices, configureStore } from '@reduxjs/toolkit';
 import schemaSlice from './schemaSlice';
 import appSlice from './appSlice';
+import loadSlice from './loadSlice';
 
-const rootReducer = combineSlices(schemaSlice, appSlice)
+const rootReducer = combineSlices(schemaSlice, appSlice, loadSlice)
 const store = configureStore({
   reducer: rootReducer,
 });

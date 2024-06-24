@@ -84,8 +84,8 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         if (options.append) options.url = `${options.url}${options.append}`;
         if (options.prepend) options.url = `${options.prepend}${options.url}`;
         const deferred = new Deferred<returnType>();
-        if (options.before) options.before(options);
         if (options.validate && options.validate(options)){ return deferred.promise as Promise<returnType>;}
+        if (options.before) options.before(options);
         try {
             if (options.mutateReq) options = options.mutateReq(options, inline) as Options<returnType, sendType>;
             if (options.mutateData) options.data = options.mutateData(options.data as sendType) as sendType;

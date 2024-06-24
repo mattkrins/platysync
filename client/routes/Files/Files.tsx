@@ -8,13 +8,9 @@ import Editor from "./Editor";
 
 export default function Files() {
     const files = useAppSelector(getFiles);
-    const [ editing, setEditing ] = useState<[xFile,boolean]|undefined>(undefined);
+    const [ editing, setEditing ] = useState<[psFile,boolean]|undefined>(undefined);
     const close = () => setEditing(undefined);
-    const add = () => setEditing([{ name: "", path: "" },false]);
-    //const { get: refresh, data: users, loading } = useAPI<User[]>({
-    //    url: "/api/v1/user", fetch: true,
-    //    default: []
-    //});
+    const add = () => setEditing([{ name: "", key: "" },false]);
     return (
     <Container>
         <Editor editing={editing} close={close} refresh={()=>{}}  />

@@ -17,6 +17,7 @@
     "@fastify/static": "^7.0.4",
     "axios": "^1.7.2",
     "fastify": "^4.28.0",
+    "fastify-multer": "^2.0.3",
     "lowdb": "^7.0.1",
     "uuid": "^10.0.0",
     "winston": "^3.13.0"

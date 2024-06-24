@@ -1,5 +1,7 @@
 import { createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from './store';
+import axios from 'axios';
+import { startLoading, stopLoading } from './loadSlice';
 
 interface SchemaState extends Schema {
   prev?: SchemaState;
@@ -46,4 +48,15 @@ export const loadSchema = (name: string) => async (dispatch: Dispatch, getState:
   const schema = schemas.find(s=>s.name===name);
   if (!schema) throw Error("Schema does not exist.");
   dispatch(schemaSlice.actions.setSchema(schema));
+}
+
+export const loadFiles = (schema_name: string) => async (dispatch: Dispatch) => {
+  dispatch(startLoading('schemas'));
+  try {
+    const { data } = await axios<psFile[]>({ url: `/api/v1/schema/${schema_name}/files` });
+    dispatch(schemaSlice.actions.mutate({files: data}));
+    return data;
+  } finally {
+    dispatch(stopLoading('schemas'));
+  }
 }
