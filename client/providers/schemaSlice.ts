@@ -19,17 +19,18 @@ const schemaSlice = createSlice({
     init() { return initialState; },
     setSchema(_, action: PayloadAction<SchemaState>) {
       const { prev, ...payload } = action.payload;
-      return { ...payload, prev: payload };
+      return { ...payload, prev: {...payload} };
     },
     mutate(state, action: PayloadAction<Partial<SchemaState>>) {
-      return { ...state, ...action.payload, prev: (({prev, ...s})=>s)(state) };
+      return { ...state, ...action.payload, prev: (({prev, ...s})=>s)({...state}) };
     },
     addFile(state, { payload }: PayloadAction<psFile>) {
-      state.files.push(payload)
+      state.prev = {...state};
+      state.files.push(payload);
     },
     undo(state) {
       const {prev, ...prev_state} = state.prev||initialState;
-      return { ...prev_state, prev: prev_state };
+      return { ...prev_state, prev: {...prev_state} };
     },
   },
   selectors: {

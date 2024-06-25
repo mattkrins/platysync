@@ -6,7 +6,7 @@ import useAPI from "../../hooks/useAPI";
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import classes from './Editor.module.css';
 import { useAppDispatch, useAppSelector } from "../../providers/hooks";
-import { getFiles, getName, addFile, undo } from "../../providers/schemaSlice";
+import { getName, undo } from "../../providers/schemaSlice";
 
 const validate = {
   name: isNotEmpty('Name can not be empty.'),
@@ -16,10 +16,9 @@ function Content({ initialValues, refresh, adding }: { initialValues: psFile, re
   const editing = initialValues.name;
   const form = useForm<psFile>({ validate, initialValues });
   const dispatch = useAppDispatch();
-  const files = useAppSelector(getFiles);
   const schema_name = useAppSelector(getName);
   const [ data, setData ] = useState<FileWithPath|undefined>(undefined);
-  const { data: success, put, post, loading, reset, error } = useAPI<unknown, FormData>({
+  const { data: success, put, post, loading, reset, error } = useAPI<psFile, FormData>({
     url: `/api/v1/schema/${schema_name}/file${adding?'':`/${editing}`}`,
     headers: { 'Content-Type': 'multipart/form-data' },
     mutateData: ()=>{
@@ -28,9 +27,6 @@ function Content({ initialValues, refresh, adding }: { initialValues: psFile, re
       send.append('name', form.values.name);
       send.append('key', form.values.key as string);
       return send;
-    },
-    before: () => {
-      dispatch(addFile(form.values));
     },
     validate: () => { form.validate(); return !form.isValid(); },
     then: () => refresh(),
@@ -61,11 +57,13 @@ function Content({ initialValues, refresh, adding }: { initialValues: psFile, re
     {...form.getInputProps('key')}
     leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     />
-    <Input.Wrapper label="File" required={adding} error={form.getInputProps('path').error} >
+    <Input.Wrapper label={adding ? "File" : "Replace File"} required={adding} error={form.getInputProps('path').error} >
         <Dropzone mb="xs" onDrop={onDrop} className={classes.root} maxFiles={1} multiple={false} >
             <Text ta="center">{data?<>{data.path} <CloseButton size="xs" onClick={()=>setData(undefined)} /></>:'Drop file here'}</Text>
         </Dropzone>
     </Input.Wrapper>
+    {initialValues.path&&<Text size="sm">Current File</Text>}
+    {initialValues.path&&<Text size="xs" c="dimmed" >{initialValues.path}</Text>}
     <Group justify='flex-end' mt="md">
           <Button loading={loading} onClick={()=>adding?post():put()}>{adding ? "Upload" : "Save"}</Button>
     </Group>

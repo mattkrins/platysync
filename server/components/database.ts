@@ -34,6 +34,8 @@ export default async function database(force?: boolean) {
     return db;
 }
 
+export async function sync() { return await (await database()).write(); }
+
 async function upgrade() {
     try {
         log.info(`Upgrading version from ${db.data.version} to ${version}`);
@@ -48,9 +50,12 @@ async function upgrade() {
 export async function Settings() { return (await database()).data.settings; }
 export async function Users() { return (await database()).data.users; }
 export async function Schemas() { return (await database()).data.schemas; }
-export async function getFiles(schema_name: string, fieldName?: string) {
+export async function getSchema(schema_name: string, fieldName?: string) {
     const { data: { schemas } } = await database();
     const schema = schemas.find(s=>s.name===schema_name);
     if (!schema) throw new xError("Unknown schema.", fieldName, 404);
-    return schema.files;
+    return schema;
+}
+export async function getFiles(schema_name: string, fieldName?: string) {
+    return (await getSchema(schema_name, fieldName)).files;
 }
