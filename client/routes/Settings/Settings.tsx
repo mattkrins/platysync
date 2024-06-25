@@ -7,7 +7,7 @@ import { modals } from "@mantine/modals";
 import { useState } from "react";
 import { checkForUpdate, compareVersion } from "../../modules/common";
 import { useLocation } from "wouter";
-import { useAppDispatch, useAppSelector } from "../../providers/hooks";
+import { useDispatch, useSelector } from "../../hooks/redux";
 import { getVersion, loadApp } from "../../providers/appSlice";
 import Wrapper from "../../components/Wrapper";
 
@@ -17,8 +17,8 @@ const initialValues = {
 } as Settings;
 
 export default function Settings() {
-    const version = useAppSelector(getVersion);
-    const dispatch = useAppDispatch();
+    const version = useSelector(getVersion);
+    const dispatch = useDispatch();
     const [_, setLocation] = useLocation();
     const [newVersion, setAvailable] = useState<string|true|undefined>(undefined);
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();

@@ -6,13 +6,13 @@ import { Redirect, useLocation } from "wouter";
 import { onKeyUp } from "../../modules/common";
 import { IconAlertCircle, IconKey, IconUser } from "@tabler/icons-react";
 import { isSetup, loadApp } from "../../providers/appSlice";
-import { useAppDispatch, useAppSelector } from "../../providers/hooks";
+import { useDispatch, useSelector } from "../../hooks/redux";
 import { useEffect } from "react";
 
 export default function Login() {
     const [_, setLocation] = useLocation();
-    const setup = useAppSelector(isSetup);
-    const dispatch = useAppDispatch();
+    const setup = useSelector(isSetup);
+    const dispatch = useDispatch();
     const form = useForm({
         initialValues: { username: '', password: '', confirm: '' },
         validate: {

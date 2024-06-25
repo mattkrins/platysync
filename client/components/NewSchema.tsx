@@ -9,10 +9,10 @@ import Importer from "./Importer";
 import { useDisclosure } from "@mantine/hooks";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { loadSchemas } from "../providers/appSlice";
-import { useAppDispatch } from "../providers/hooks";
+import { useDispatch } from "../hooks/redux";
 
 export default function NewSchema( { then, defaultImport }: { then?(name: string): void, defaultImport?: Schema } ) {
-    const dispatch = useAppDispatch();
+    const dispatch = useDispatch();
     const [_, setLocation] = useLocation();
     const [importing, setImporting] = useState<Schema|undefined>(defaultImport);
     const [importOpen, { open: openImporter, close: closeImporter }] = useDisclosure(false);

@@ -2,19 +2,15 @@ import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, ActionIcon,
 import { IconDownload, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import Wrapper from "../../components/Wrapper";
-import { useAppDispatch, useAppSelector } from "../../providers/hooks";
+import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
 import { getFiles, getName, loadFiles } from "../../providers/schemaSlice";
 import Editor from "./Editor";
 import useAPI from "../../hooks/useAPI";
 import { modals } from "@mantine/modals";
-
-const download = (schema_name: string, name: string) => {
-    const url = new URL(window.location.href);
-    window.open(`/api/v1/schema/${schema_name}/file/${name}`, "_blank");
-}
+import { download } from "../../modules/common";
 
 function File({ file: { name, key }, edit, refresh }: { file: psFile, edit(): void, refresh(): void }) {
-    const schema_name = useAppSelector(getName);
+    const schema_name = useSelector(getName);
     const { del, loading: deleting, error } = useAPI<User[]>({
         url: `/api/v1/schema/${schema_name}/file`, data: { name },
         then: () => refresh()
@@ -32,10 +28,10 @@ function File({ file: { name, key }, edit, refresh }: { file: psFile, edit(): vo
     <Paper mb="xs" p="xs" withBorder >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={5}>{name}</Grid.Col>
-            <Grid.Col span={5}>{key}</Grid.Col>
+            <Grid.Col span={5}>{key||<Text c="dimmed" >{name}</Text>}</Grid.Col>
             <Grid.Col span={2}>
                     <Group gap="xs" justify="flex-end">
-                        <ActionIcon onClick={()=>download(schema_name, name)} variant="subtle" color="green">
+                        <ActionIcon onClick={()=>download(`/schema/${schema_name}/file/${name}`)} variant="subtle" color="green">
                             <IconDownload size={16} stroke={1.5} />
                         </ActionIcon>
                         <ActionIcon onClick={edit} variant="subtle" color="orange">
@@ -52,11 +48,11 @@ function File({ file: { name, key }, edit, refresh }: { file: psFile, edit(): vo
     </Paper>)
 }
 
-
 export default function Files() {
-    const dispatch = useAppDispatch();
-    const files = useAppSelector(getFiles);
-    const schema_name = useAppSelector(getName);
+    const { loadingFiles } = useLoader();
+    const dispatch = useDispatch();
+    const files = useSelector(getFiles);
+    const schema_name = useSelector(getName);
     const [ editing, setEditing ] = useState<[psFile,boolean]|undefined>(undefined);
     const close = () => setEditing(undefined);
     const add = () => setEditing([{ name: "", key: "" },false]);
@@ -66,9 +62,9 @@ export default function Files() {
         <Editor editing={editing} close={close} refresh={refresh} />
         <Group justify="space-between">
             <Title mb="xs" >File Manager</Title>
-            <Button onClick={add} loading={false} leftSection={<IconPlus size={18} />} >Add</Button>
+            <Button onClick={add} loading={loadingFiles} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
-        <Wrapper>
+        <Wrapper loading={loadingFiles} >
             {files.length<=0?<Text c="dimmed" >No files in schema. <Anchor onClick={add} >Add</Anchor> static files for use in templating.</Text>:
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
@@ -77,7 +73,7 @@ export default function Files() {
                     <Grid.Col span={2}/>
                 </Grid>
             </Paper>}
-            {files.map((file) => <File key={file.name} file={file} edit={()=>setEditing([file,true])} refresh={refresh} />)}
+            {files.map((file) => <File key={file.name} file={file} edit={()=>setEditing([{...file},true])} refresh={refresh} />)}
         </Wrapper>
     </Container>
     )

@@ -7,7 +7,7 @@ import Importer from "../../components/Importer";
 import { useDisclosure } from "@mantine/hooks";
 import SplitButton from "../../components/SplitButton";
 import Exporter from "../../components/Exporter";
-import { useAppDispatch, useAppSelector } from "../../providers/hooks";
+import { useDispatch, useSelector } from "../../hooks/redux";
 import { onKeyUp } from "../../modules/common";
 import schemaSlice, { init, mutate } from "../../providers/schemaSlice";
 import { loadSchemas } from "../../providers/appSlice";
@@ -28,10 +28,10 @@ function ActionButton( { save, saving, open, clickExport, clickDel }: { save(): 
 
 export default function Schema() {
   const [_, setLocation] = useLocation();
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch();
   const [exporting, setExporting] = useState<Schema|undefined>(undefined);
   const [importOpen, { open: openImporter, close: closeImporter }] = useDisclosure(false);
-  const { prev, ...initialValues  } = useAppSelector(state => state.schema);
+  const { prev, ...initialValues  } = useSelector(state => state.schema);
   const form = useForm<Schema>({ initialValues, validate: {
     name: hasLength({ min: 3 }, 'Name must be greater than 2 characters.'),
   }, });

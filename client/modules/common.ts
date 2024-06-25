@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const getCookie = (name: string) => document.cookie.split('; ').filter(row => row.startsWith(`${name}=`)).map(c=>c.split('=')[1])[0];
 export const onKeyUp = (func:()=>unknown) => (e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && func();
-
+export const download = (url: string) => { window.open(`/api/v1/${url}`, "_blank"); }
 export function compareVersion(a: string, b: string) {
   const regExStrip0 = /(\.0+)+$/;
   const segmentsA = a.replace(regExStrip0, '').split('.');
@@ -28,11 +28,3 @@ export function checkForUpdate(): Promise<string> {
     }));
   });
 }
-
-export const defaultSchema: Schema = {
-  name: '',
-  version: '',
-  connectors: [],
-  rules: [],
-};
-

@@ -10,7 +10,7 @@ import { useDisclosure } from '@mantine/hooks';
 import NewSchema from '../components/NewSchema';
 import Exporter from '../components/Exporter';
 import Importer from '../components/Importer';
-import { useAppDispatch, useAppSelector } from '../providers/hooks';
+import { useDispatch, useSelector } from '../hooks/redux';
 import { loadApp, loadSchemas, loadUser } from '../providers/appSlice';
 import { loadSchema } from '../providers/schemaSlice';
 
@@ -18,7 +18,7 @@ function Schema({ schema, exportSchema }: { schema: Schema, exportSchema(schema:
   if (!getCookie("setup")) return <Redirect to="/setup" />;
   if (!getCookie("auth")) return <Redirect to="/login" />;
   const [_, setLocation] = useLocation();
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch();
   const { del, loading: deleting } = useAPI({
     url: "/api/v1/schema", data: { name: schema.name },
     finally: () => dispatch(loadSchemas())
@@ -70,8 +70,8 @@ function Version({ version }: { version: string }) {
 }
 
 export default function Schemas() {
-  const { setup, schemas, user: { username }, loadingApp, loadingSchemas, loadingUser, version } = useAppSelector(state => state.app);
-  const dispatch = useAppDispatch();
+  const { setup, schemas, user: { username }, loadingApp, loadingSchemas, loadingUser, version } = useSelector(state => state.app);
+  const dispatch = useDispatch();
   useEffect(()=>{
     dispatch(loadApp()).then(()=>
       dispatch(loadSchemas()).then(()=>

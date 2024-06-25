@@ -1,11 +1,11 @@
 import { Container, Paper, Title, Text } from "@mantine/core";
 import classes from './Setup.module.css';
 import NewSchema from "../../components/NewSchema";
-import { useAppDispatch } from "../../providers/hooks";
+import { useDispatch } from "../../hooks/redux";
 import { loadApp } from "../../providers/appSlice";
 
 export default function CreateSchema() {
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch();
   return (
     <Container size={400} my={20}>
       <Title ta="center" className={classes.title}>Let&apos;s Begin!</Title>

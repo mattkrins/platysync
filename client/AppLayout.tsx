@@ -3,7 +3,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconAdjustmentsHorizontal, IconCheckbox, IconClock, IconFiles, IconHistory, IconHome, IconLogout, IconPlug, IconSettings, IconUsersGroup } from "@tabler/icons-react";
 import { useRoute, useLocation, Redirect, Switch, Route } from "wouter";
 import { getCookie } from "./modules/common";
-import { useAppSelector, useAppDispatch } from "./providers/hooks";
+import { useSelector, useDispatch } from "./hooks/redux";
 import { getName, loadSchema } from "./providers/schemaSlice";
 import { useEffect } from "react";
 
@@ -15,12 +15,13 @@ import Settings from "./routes/Settings/Settings";
 import Users from "./routes/Users/Users";
 import Logs from "./routes/Logs/Logs";
 import Files from "./routes/Files/Files";
+import Connectors from "./routes/Connectors/Connectors";
 
 const links = [
     { label: "Home", link: "/home", icon: <IconHome size={15} />, page: Home },
     { label: "Schema", link: "/schema", icon: <IconAdjustmentsHorizontal size={15} />, page: Schema },
     { label: "Files", link: "/files", icon: <IconFiles size={15} />, page: Files },
-    { label: "Connectors", link: "/connectors", icon: <IconPlug size={15} />  },
+    { label: "Connectors", link: "/connectors", icon: <IconPlug size={15} />, page: Connectors  },
     //REVIEW - potential names:
     // connector, provider, integration, adapter, interface
     // connectors can be a provider or adapter, provider provide data, adapters do not
@@ -36,9 +37,9 @@ function Link({ link, label, icon }: { link: string, label: string, icon?: JSX.E
 
 function Schemas({}) {
   const [_, setLocation] = useLocation();
-  const dispatch = useAppDispatch();
-  const { schemas, loadingSchemas } = useAppSelector(state => state.app);
-  const name = useAppSelector(getName);
+  const dispatch = useDispatch();
+  const { schemas, loadingSchemas } = useSelector(state => state.app);
+  const name = useSelector(getName);
   if (!name) return <Redirect to="/schemas" />;
   useEffect(()=>{ if (name) setLocation("home"); }, [ name ]);
   return (
@@ -53,7 +54,7 @@ function Schemas({}) {
 
 function User({}) {
   const [_, setLocation] = useLocation();
-  const { user: { username } } = useAppSelector(state => state.app);
+  const { user: { username } } = useSelector(state => state.app);
   return (
   <Menu offset={15} >
     <Menu.Target>

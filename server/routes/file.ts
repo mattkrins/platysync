@@ -33,7 +33,7 @@ export default async function (route: FastifyInstance) {
     route.register(multer.contentParser);
     route.post('/', { preValidation: upload.single('file') }, async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
-        const { file: data } = (request as unknown as { file: { buffer: Buffer, originalname: string }, name: string, key: string });
+        const { file: data } = (request as unknown as { file?: { buffer: Buffer, originalname: string }, name: string, key: string });
         let { name, key } = request.body as { name: string, key: string };
         try {
             validate( { name }, {
@@ -44,7 +44,7 @@ export default async function (route: FastifyInstance) {
             }); } else {
                 validate( { name }, {
                     name: isAlphanumeric('No key provided. Name can only contain alphanumeric characters.'),
-                }); key = name;
+                });
             }
             if (!data) throw new xError("No file selected", 'path', 404);
             const files = await getFiles(schema_name);
@@ -58,6 +58,7 @@ export default async function (route: FastifyInstance) {
             const format = file_name[1];
             const id = uuidv4();
             const path = `${file_name[0]}.${id}.${format}`;
+            if (fs.existsSync(`${folder}/${path}`)) throw new xError("File exists.", 'path', 409);
             fs.writeFileSync(`${folder}/${path}`, data.buffer);
             files.push({ name, path, key, format, });
             await sync();
@@ -66,7 +67,45 @@ export default async function (route: FastifyInstance) {
         catch (e) { new xError(e).send(reply); }
     });
     route.put('/:editing', { preValidation: upload.single('file') }, async (request, reply) => {
-        return true
+        const { schema_name, editing } = request.params as { schema_name: string, editing: string };
+        const { file: data } = (request as unknown as { file?: { buffer: Buffer, originalname: string }, name: string, key: string });
+        let { name, key } = request.body as { name: string, key: string };
+        try {
+            validate( { name }, {
+                name: isNotEmpty('Name can not be empty.'),
+            });
+            if (key){ validate( { key }, {
+                key: isAlphanumeric('Key can only contain alphanumeric characters.'),
+            }); } else {
+                validate( { name }, {
+                    name: isAlphanumeric('No key provided. Name can only contain alphanumeric characters.'),
+                });
+            }
+            const schema = await getSchema(schema_name);
+            const file = schema.files.find(f=>f.name===editing);
+            if (!file) throw new xError("File not found.", "name", 404 );
+            if (editing!==name){
+                if (schema.files.find(s=>s.name===name)) throw new xError("File name taken.", "name", 409);
+            }
+            file.name = name;
+            file.key = key;
+            if (data) {
+                const file_name = data.originalname.split(".");
+                const format = file_name[1];
+                const id = uuidv4();
+                const folder = `${paths.storage}/${schema_name}`;
+                const old_path = `${folder}/${file.path}`;
+                const path = `${file_name[0]}.${id}.${format}`;
+                if (fs.existsSync(`${folder}/${path}`)) throw new xError("File exists.", 'path', 409);
+                try { if (fs.existsSync(old_path)) fs.rmSync(old_path); } catch (e) { throw new xError("Failed to remove old file.", null, 500 ); }
+                fs.writeFileSync(`${folder}/${path}`, data.buffer);
+                file.format = format;
+                file.path = path;
+            }
+            await sync();
+            return true;
+        }
+        catch (e) { new xError(e).send(reply); }
     });
     route.delete('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };

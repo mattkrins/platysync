@@ -16,7 +16,7 @@ import Login from "./routes/Auth/Login";
 import Logout from "./routes/Auth/Logout";
 import { AppLayout } from "./AppLayout";
 import store from "./providers/store";
-import { useAppDispatch, useAppSelector } from "./providers/hooks";
+import { useDispatch, useSelector } from "./hooks/redux";
 import { isSetup, loadApp } from "./providers/appSlice";
 import { useEffect } from "react";
 
@@ -32,8 +32,8 @@ const theme = createTheme({
 });
 
 function Router() {
-    const dispatch = useAppDispatch();
-    const setup = useAppSelector(isSetup);
+    const dispatch = useDispatch();
+    const setup = useSelector(isSetup);
     const [_, setLocation] = useLocation();
     useEffect(()=>{
       dispatch(loadApp()).then(setup=> setup ? null : setLocation(`/setup`));

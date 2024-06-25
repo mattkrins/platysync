@@ -3,13 +3,12 @@ import { RootState } from './store';
 import axios from 'axios';
 import { startLoading, stopLoading } from './loadSlice';
 
-interface SchemaState extends Schema {
-  prev?: SchemaState;
-}
-
-const initialState: SchemaState = {
-  name: '', version: '', connectors: [], rules: [], files: [],
-  prev: { name: '', version: '', connectors: [], rules: [], files: [] }
+const initialState: Schema = {
+  name: '',
+  version: '',
+  connectors: [],
+  rules: [],
+  files: [],
 };
 
 const schemaSlice = createSlice({
@@ -17,21 +16,8 @@ const schemaSlice = createSlice({
   initialState,
   reducers: {
     init() { return initialState; },
-    setSchema(_, action: PayloadAction<SchemaState>) {
-      const { prev, ...payload } = action.payload;
-      return { ...payload, prev: {...payload} };
-    },
-    mutate(state, action: PayloadAction<Partial<SchemaState>>) {
-      return { ...state, ...action.payload, prev: (({prev, ...s})=>s)({...state}) };
-    },
-    addFile(state, { payload }: PayloadAction<psFile>) {
-      state.prev = {...state};
-      state.files.push(payload);
-    },
-    undo(state) {
-      const {prev, ...prev_state} = state.prev||initialState;
-      return { ...prev_state, prev: {...prev_state} };
-    },
+    setSchema(_, { payload }: PayloadAction<Schema>) { return { ...payload }; },
+    mutate(state, { payload }: PayloadAction<Partial<Schema>>) { return { ...state, ...payload }; },
   },
   selectors: {
     getName: state => state.name,
@@ -42,7 +28,7 @@ const schemaSlice = createSlice({
   },
 });
 
-export const { mutate, undo, init, addFile } = schemaSlice.actions;
+export const { init, mutate } = schemaSlice.actions;
 export const { getName, getVersion, getConnectors, getRules, getFiles } = schemaSlice.selectors;
 
 export default schemaSlice;
@@ -55,12 +41,12 @@ export const loadSchema = (name: string) => async (dispatch: Dispatch, getState:
 }
 
 export const loadFiles = (schema_name: string) => async (dispatch: Dispatch) => {
-  dispatch(startLoading('schemas'));
+  dispatch(startLoading('Files'));
   try {
     const { data } = await axios<psFile[]>({ url: `/api/v1/schema/${schema_name}/files` });
     dispatch(schemaSlice.actions.mutate({files: data}));
     return data;
   } finally {
-    dispatch(stopLoading('schemas'));
+    dispatch(stopLoading('Files'));
   }
 }
