@@ -4,6 +4,9 @@ interface Settings {
     logLevel: string;
     redact: string[];
     enableRun?: boolean;
+    proxy_url?: string;
+    proxy_username?: string;
+    proxy_password?: string|Hash;
     server?: {
         host: string;
         port: number;
@@ -21,7 +24,6 @@ interface Log {
 interface Connector {
     name: string;
     type: 'provider'|'adapter';
-    id: string;
 }
 
 interface psFile {
@@ -49,4 +51,10 @@ interface Session {
     username: string;
     expires: string;
     sessionId: string;
+}
+
+interface Hash {
+    hex: string;
+    iv: string;
+    it: number;
 }

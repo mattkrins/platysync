@@ -13,7 +13,7 @@ export default function Editor({ editing, close, refresh }: { editing?: [User,bo
   useEffect(()=>editing&&form.setValues(editing[0]), [ editing ]);
   const form = useForm<User>({ validate });
   const { data: success, put, post, loading, reset } = useAPI<unknown, User>({
-    url: `/api/v1/user${adding?'':`/${editing&&editing[0].username}`}`, form,
+    url: `/user${adding?'':`/${editing&&editing[0].username}`}`, form,
     then: () => refresh(),
   });
   const onClose = () => { close(); reset(); }

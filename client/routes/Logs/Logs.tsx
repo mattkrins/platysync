@@ -53,7 +53,7 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
   const [query, search] = useState<string>('');
   const [viewing, view] = useState<log|undefined>(undefined);
   const { data: logs, fetch, del, loading } = useAPI<log[]>({
-      url: `/api/v1/log/${endpoint}?level=${level}&limit=${limit}${!date[0]?'':`&date=${String(date[0])}${!date[1]?'':`,${String(date[1])}`}`}`,
+      url: `/log/${endpoint}?level=${level}&limit=${limit}${!date[0]?'':`&date=${String(date[0])}${!date[1]?'':`,${String(date[1])}`}`}`,
       default: [],
   });
   const filtered = (logs||[]).filter(log=>find(query, log));

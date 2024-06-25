@@ -36,7 +36,7 @@ export default function Schema() {
     name: hasLength({ min: 3 }, 'Name must be greater than 2 characters.'),
   }, });
   const { data: success, put: save, del, loading: saving, error } = useAPI({
-    url: `/api/v1/schema`, form,
+    url: `/schema`, form,
     data: { editing: initialValues.name },
     then: () => {
       if (initialValues.name === form.values.name) return;

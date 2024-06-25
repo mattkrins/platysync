@@ -55,7 +55,7 @@ export default async function (route: FastifyInstance) {
             const folder = `${paths.storage}/${schema_name}`;
             if (!fs.existsSync(folder)) fs.mkdirSync(folder);
             const file_name = data.originalname.split(".");
-            const format = file_name[1];
+            const format = file_name.pop();
             const id = uuidv4();
             const path = `${file_name[0]}.${id}.${format}`;
             if (fs.existsSync(`${folder}/${path}`)) throw new xError("File exists.", 'path', 409);
@@ -91,7 +91,7 @@ export default async function (route: FastifyInstance) {
             file.key = key;
             if (data) {
                 const file_name = data.originalname.split(".");
-                const format = file_name[1];
+                const format = file_name.pop();
                 const id = uuidv4();
                 const folder = `${paths.storage}/${schema_name}`;
                 const old_path = `${folder}/${file.path}`;

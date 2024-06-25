@@ -1,23 +1,20 @@
-import { Alert, Anchor, Button, Code, Container, Grid, Group, Input, SegmentedControl, Select, Switch, Title, Text, useMantineColorScheme } from "@mantine/core";
+import { Alert, Anchor, Button, Code, Container, Grid, Group, Input, SegmentedControl, Select, Switch, Title, Text, useMantineColorScheme, SimpleGrid, PasswordInput, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import useAPI from "../../hooks/useAPI";
 import { useLocalStorage } from "@mantine/hooks";
-import { IconAlertCircle, IconCheck } from "@tabler/icons-react";
+import { IconAlertCircle, IconCheck, IconKey, IconUser, IconWorld } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { useState } from "react";
 import { checkForUpdate, compareVersion } from "../../modules/common";
 import { useLocation } from "wouter";
-import { useDispatch, useSelector } from "../../hooks/redux";
-import { getVersion, loadApp } from "../../providers/appSlice";
+import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
+import { getVersion, loadApp, loadSettings } from "../../providers/appSlice";
 import Wrapper from "../../components/Wrapper";
-
-const initialValues = {
-    logLevel: 'info',
-    enableRun: false,
-} as Settings;
+import SecurePasswordInput from "../../components/SecurePasswordInput";
 
 export default function Settings() {
-    const version = useSelector(getVersion);
+    const { loadingSettings } = useLoader();
+    const { version, settings } = useSelector(({ app })=> app);
     const dispatch = useDispatch();
     const [_, setLocation] = useLocation();
     const [newVersion, setAvailable] = useState<string|true|undefined>(undefined);
@@ -28,25 +25,24 @@ export default function Settings() {
         setColorScheme(value as ("auto" | "light" | "dark"));
         setValue(value);
     }
-    const form = useForm<Settings>({ initialValues, validate: {} });
-    const { loading } = useAPI<Settings>({
-        url: "/api/v1/settings", fetch: true,
-        then: (e: Settings) => form.setValues(e),
-    });
+    const form = useForm<Settings>({ initialValues: {...settings} as Settings, validate: {} });
     const { data: success, put: save, loading: saving, error } = useAPI<Settings>({
-        url: "/api/v1/settings", form,
-        then: (e: Settings) => form.setValues(e),
+        url: "/settings", form,
+        then: async () => await dispatch(loadSettings()).then(e=>form.setValues(e)),
     });
     const { put: purge, loading: purging } = useAPI({
-        url: "/api/v1/settings/purge",
-        then: (e: Settings) => form.setValues(e),
+        url: "/settings/purge",
+        then: async () => await dispatch(loadSettings()).then(e=>form.setValues(e)),
     });
     const { put: reset, loading: resetting } = useAPI({
-        url: "/api/v1/settings/reset",
+        url: "/settings/reset",
         then: () => {
             dispatch(loadApp());
             setLocation("/logout");
         },
+    });
+    const { data: proxy_valid, loading: testing_proxy, post: test_proxy, error: proxy_error } = useAPI<boolean>({
+        url: "/settings/test_proxy", form
     });
 
     const openResetModal = () =>
@@ -79,7 +75,7 @@ export default function Settings() {
             <Title mb="xs" >Application Settings</Title>
             <Button onClick={()=>save()} loading={saving} >Save</Button>
         </Group>
-        <Wrapper loading={loading} >
+        <Wrapper loading={loadingSettings} >
             {!!success&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Settings saved successfully.</Alert>}
             {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
             <Input.Wrapper label="Theme" description="Change colours of the application" >
@@ -112,7 +108,7 @@ export default function Settings() {
                 <Grid.Col span={4}><Input.Wrapper
                 label="Clear Cache"
                 description="Purges the server cache and sync's the database."
-                ><Button loading={!!purging} onClick={()=>purge()} mt={5} mb={5} >Clear</Button>
+                ><Button color="orange" loading={!!purging} onClick={()=>purge()} mt={5} mb={5} >Clear</Button>
                 </Input.Wrapper></Grid.Col>
                 <Grid.Col span={4}><Input.Wrapper
                 label="Factory Reset"
@@ -126,6 +122,36 @@ export default function Settings() {
             Must be set manually via the <Anchor href='https://github.com/mattkrins/platysync/wiki/Settings#enable-runcommand-action' size="xs" target='_blank' >settings </Anchor> 
             file by adding <Code>"enableRun": true,</Code></>}
             />
+            <Input.Wrapper mt="xs" label="Proxy" description="If running behind a corporate proxy, set for internet access."
+            error={proxy_error||form.getInputProps('proxy_url').error}
+            />
+            {proxy_valid&&<Text size="xs" c="green" >Proxy validated successfully.</Text>}
+            <Grid gutter="xs" columns={17} justify="space-between" >
+                <Grid.Col span={5}>
+                    <TextInput
+                    label="URL" {...form.getInputProps('proxy_url')}
+                    leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+                    placeholder="http://proxy.server:8080"
+                    />
+                </Grid.Col>
+                <Grid.Col span={5}>
+                    <TextInput
+                    label="Username" {...form.getInputProps('proxy_username')}
+                    placeholder="username"
+                    leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+                    />
+                </Grid.Col>
+                <Grid.Col span={5}>
+                    <SecurePasswordInput
+                    label="Password"
+                    placeholder="password"
+                    secure={!!form.values.proxy_password&&typeof form.values.proxy_password !== 'string'}
+                    unlock={()=>form.setFieldValue("proxy_password", "")}
+                    {...form.getInputProps('proxy_password')}
+                    />
+                </Grid.Col>
+                <Grid.Col span={2}><Button onClick={()=>test_proxy()} loading={testing_proxy} mt={25} fullWidth >Validate</Button></Grid.Col>
+            </Grid>
         </Wrapper>
     </Container>
   )

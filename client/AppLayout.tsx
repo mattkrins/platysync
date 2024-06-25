@@ -4,7 +4,7 @@ import { IconAdjustmentsHorizontal, IconCheckbox, IconClock, IconFiles, IconHist
 import { useRoute, useLocation, Redirect, Switch, Route } from "wouter";
 import { getCookie } from "./modules/common";
 import { useSelector, useDispatch } from "./hooks/redux";
-import { getName, loadSchema } from "./providers/schemaSlice";
+import { getConnectors, getName, getRules, loadSchema } from "./providers/schemaSlice";
 import { useEffect } from "react";
 
 import classes from "./App.module.css";
@@ -29,10 +29,12 @@ const links = [
     { label: "Schedules", link: "/schedules", icon: <IconClock size={15} /> },
 ];
 
-function Link({ link, label, icon }: { link: string, label: string, icon?: JSX.Element }) {
+function Link({ link, label, icon, disabled }: { link: string, label: string, icon?: JSX.Element, disabled?: boolean }) {
     const [ active ] = useRoute(link);
     const [_, setLocation] = useLocation();
-    return <UnstyledButton onClick={()=>setLocation(link)} data-active={active || undefined} className={classes.link}><Group gap="xs">{icon}<Text>{label}</Text></Group></UnstyledButton>
+    return <UnstyledButton onClick={()=>setLocation(link)} data-active={active || undefined} data-disabled={disabled || undefined} className={classes.link} disabled={disabled} >
+      <Group gap="xs">{icon}<Text>{label}</Text></Group>
+    </UnstyledButton>;
 }
 
 function Schemas({}) {
@@ -80,6 +82,13 @@ function User({}) {
 export function AppLayout() {
   if (!getCookie("auth")) return <Redirect to="/login" />;
   const [opened, { toggle }] = useDisclosure();
+  const connectors = useSelector(getConnectors);
+  const rules = useSelector(getRules);
+  const disabled =  (label: string) => { switch (label) {
+      case "Rules": return connectors.length <= 0;
+      case "Schedules": return rules.length <= 0;
+      default: return false;
+  } }
   return (
       <AppShell
         header={{ height: 60 }} padding="md"
@@ -93,7 +102,7 @@ export function AppLayout() {
                   <Avatar src="/logo.png" />
                   <Schemas/>
                   <Group ml="sm" gap="xs" visibleFrom="sm">
-                      {links.map((link) => <Link key={link.label} {...link} link={link.link} /> )}
+                      {links.map((link) => <Link key={link.label} {...link} link={link.link} disabled={disabled(link.label)} /> )}
                   </Group>
               </Group>
               <Group mr="lg" >
@@ -103,7 +112,7 @@ export function AppLayout() {
           </Group>
         </AppShell.Header>
         <AppShell.Navbar py="md" px={4}>
-          {links.map((link) => <Link key={link.label} {...link} link={link.link} /> )}
+          {links.map((link) => <Link key={link.label} {...link} link={link.link} disabled={disabled(link.label)} /> )}
         </AppShell.Navbar>
         <AppShell.Main>
           <Switch>

@@ -2,6 +2,7 @@ import { createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit';
 import { navigate } from "wouter/use-browser-location";
 import axios, { AxiosError } from 'axios';
 import { RootState } from './store';
+import { startLoading, stopLoading } from './loadSlice';
 
 interface app {
   application: string;
@@ -11,6 +12,7 @@ interface app {
 
 interface appState extends app {
   schemas: Schema[];
+  settings: Partial<Settings>;
   user: { username: string };
   loadingApp: boolean;
   loadingSchemas: boolean;
@@ -23,6 +25,10 @@ const initialState: appState = {
   setup: true,
   schemas: [],
   user: { username: '' },
+  settings: {
+    logLevel: 'info',
+    enableRun: false,
+  },
   loadingApp: false,
   loadingSchemas: false,
   loadingUser: false,
@@ -32,10 +38,8 @@ const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    init(state, { payload }: PayloadAction<app>) {
-      state.application = payload.application;
-      state.version = payload.version;
-      state.setup = payload.setup;
+    init(_, { payload: { application, version, setup } }: PayloadAction<app>) {
+      return { ...initialState, application, version, setup }
     },
     mutate(state, { payload }: PayloadAction<Partial<appState>>) { return { ...state, ...payload }; },
   },
@@ -62,6 +66,20 @@ export const loadApp = () => async (dispatch: Dispatch) => {
     dispatch(appSlice.actions.mutate({loadingApp: false}));
   }
 }
+
+const load = (name: string) => async (dispatch: Dispatch) => {
+  dispatch(startLoading(name));
+  try {
+    const { data } = await axios({ url: `/api/v1/${name.toLowerCase()}` });
+    dispatch(appSlice.actions.mutate({ [name.toLowerCase()]: data }));
+    return data;
+  } finally {
+    dispatch(stopLoading(name));
+  }
+}
+
+export const loadSettings = () => load("Settings" );
+//TODO - convert the rest and use settings slice in app
 
 export const loadSchemas = () => async (dispatch: Dispatch) => {
   dispatch(appSlice.actions.mutate({loadingSchemas: true}));

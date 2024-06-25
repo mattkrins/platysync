@@ -3,15 +3,24 @@ import useFetch, { Options, fetchReturn } from "./useFetch";
 import { useLocation } from "wouter";
 import { AxiosError } from "axios";
 import { useMemo } from "react";
+import { useSelector } from "./redux";
+import { getName } from "../providers/schemaSlice";
 
 interface APIOptions<returnType, sendType> extends Options<returnType, sendType> {
     form?: UseFormReturnType<any>;
     noAuth?: boolean;
+    schema?: boolean;
 }
 
-export default function useAPI<returnType = unknown, sendType = unknown>({form, noAuth, catch: c, data, ...options}: APIOptions<returnType, sendType> = { method: 'get', url: "/" }): fetchReturn<returnType, sendType> {
+interface APIReturn<returnType = unknown, sendType = unknown> extends fetchReturn<returnType, sendType> {
+    schema_name: string;
+}
+
+export default function useAPI<returnType = unknown, sendType = unknown>({form, noAuth, schema, catch: c, data, ...options}: APIOptions<returnType, sendType> = { method: 'get', url: "/" }): APIReturn<returnType, sendType> {
     const [_, setLocation] = useLocation();
+    const schema_name = useSelector(getName);
     const mutatedOptions = useMemo(() => {
+        options.url = schema ? `/api/v1/schema/${schema_name}${options.url}` : `/api/v1${options.url}`;
         if (form) {
             data = {...form.values, ...data} as sendType;
             options.validate = () => { form.validate(); return !form.isValid(); };
@@ -23,6 +32,7 @@ export default function useAPI<returnType = unknown, sendType = unknown>({form, 
             if (c) c(message, errors, response, options);
         };
         return options;
-    }, [form, noAuth, c, data, options]);
-    return useFetch<returnType, sendType>(mutatedOptions);
+    }, [form, noAuth, c, data, schema, options]);
+    const returns = useFetch<returnType, sendType>(mutatedOptions);
+    return { ...returns, schema_name };
 }

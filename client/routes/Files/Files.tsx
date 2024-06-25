@@ -3,16 +3,15 @@ import { IconDownload, IconPencil, IconPlus, IconTrash } from "@tabler/icons-rea
 import { useState } from "react";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { getFiles, getName, loadFiles } from "../../providers/schemaSlice";
+import { getFiles, loadFiles } from "../../providers/schemaSlice";
 import Editor from "./Editor";
 import useAPI from "../../hooks/useAPI";
 import { modals } from "@mantine/modals";
 import { download } from "../../modules/common";
 
 function File({ file: { name, key }, edit, refresh }: { file: psFile, edit(): void, refresh(): void }) {
-    const schema_name = useSelector(getName);
-    const { del, loading: deleting, error } = useAPI<User[]>({
-        url: `/api/v1/schema/${schema_name}/file`, data: { name },
+    const { del, loading: deleting, error, schema_name } = useAPI({
+        url: `/file`, data: { name }, schema: true,
         then: () => refresh()
     });
     const clickDel = () =>
@@ -52,11 +51,10 @@ export default function Files() {
     const { loadingFiles } = useLoader();
     const dispatch = useDispatch();
     const files = useSelector(getFiles);
-    const schema_name = useSelector(getName);
     const [ editing, setEditing ] = useState<[psFile,boolean]|undefined>(undefined);
     const close = () => setEditing(undefined);
     const add = () => setEditing([{ name: "", key: "" },false]);
-    const refresh = () => dispatch(loadFiles(schema_name));
+    const refresh = () => dispatch(loadFiles());
     return (
     <Container>
         <Editor editing={editing} close={close} refresh={refresh} />

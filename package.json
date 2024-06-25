@@ -18,6 +18,8 @@
     "axios": "^1.7.2",
     "fastify": "^4.28.0",
     "fastify-multer": "^2.0.3",
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.4",
     "lowdb": "^7.0.1",
     "mime": "^4.0.3",
     "uuid": "^10.0.0",

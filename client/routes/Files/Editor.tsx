@@ -5,8 +5,6 @@ import { useState } from "react";
 import useAPI from "../../hooks/useAPI";
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import classes from './Editor.module.css';
-import { useSelector } from "../../hooks/redux";
-import { getName } from "../../providers/schemaSlice";
 import { download } from "../../modules/common";
 
 const validate = {
@@ -16,10 +14,9 @@ const validate = {
 function Content({ file, refresh, adding }: { file: psFile, refresh(): void, adding: boolean }) {
   const editing = file.name;
   const form = useForm<psFile>({ validate, initialValues: file });
-  const schema_name = useSelector(getName);
   const [ data, setData ] = useState<FileWithPath|undefined>(undefined);
-  const { data: success, put, post, loading, reset, error } = useAPI<psFile, FormData>({
-    url: `/api/v1/schema/${schema_name}/file${adding?'':`/${editing}`}`,
+  const { data: success, put, post, loading, error, schema_name } = useAPI<psFile, FormData>({
+    url: `/file${adding?'':`/${editing}`}`, schema: true,
     headers: { 'Content-Type': 'multipart/form-data' },
     validate: () => { form.validate(); return !form.isValid(); },
     mutateData: ()=>{

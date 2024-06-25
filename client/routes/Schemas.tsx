@@ -20,7 +20,7 @@ function Schema({ schema, exportSchema }: { schema: Schema, exportSchema(schema:
   const [_, setLocation] = useLocation();
   const dispatch = useDispatch();
   const { del, loading: deleting } = useAPI({
-    url: "/api/v1/schema", data: { name: schema.name },
+    url: "/schema", data: { name: schema.name },
     finally: () => dispatch(loadSchemas())
   }); 
   const deleteSchema = () =>

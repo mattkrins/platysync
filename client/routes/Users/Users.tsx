@@ -7,7 +7,7 @@ import Wrapper from "../../components/Wrapper";
 
 function User({ user: { username }, edit, refresh }: { user: User, edit(): void, refresh(): void }) {
     const { del, loading: deleting, error } = useAPI<User[]>({
-        url: "/api/v1/user", data: { username },
+        url: "/user", data: { username },
         then: () => refresh()
     });
     return (
@@ -36,7 +36,7 @@ export default function Users() {
     const close = () => setEditing(undefined);
     const add = () => setEditing([{ username: "", password: "", confirm: "" },false]);
     const { get: refresh, data: users, loading } = useAPI<User[]>({
-        url: "/api/v1/user", fetch: true,
+        url: "/user", fetch: true,
         default: []
     });
     return (

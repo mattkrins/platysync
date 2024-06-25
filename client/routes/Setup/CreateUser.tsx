@@ -18,7 +18,7 @@ export default function CreateUser() {
     });
 
     const { post, loading, error } = useAPI( {
-        url: "/api/v1/auth/setup", form,
+        url: "/auth/setup", form,
         then: () => setLocation('/setup/2'),
     } );
 

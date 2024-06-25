@@ -55,7 +55,7 @@ interface TransformedData {
 
 function Chart({}) {
   const { data, loading } = useAPI<Log[]>({
-      url: `/api/v1/log/history?level=all&limit=1000`,
+      url: `/log/history?level=all&limit=1000`,
       default: [], fetch: true,
   });
   const chart = useMemo(()=>Object.values(data.reduce((acc: Record<string, TransformedData>, log) => {
@@ -106,19 +106,19 @@ function Chart({}) {
 
 function Stats({}) {
   const { data: evaluated, loading: evaluated_loading } = useAPI<number>({
-      url: `/api/v1/log/history?message=Evaluating&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
+      url: `/log/history?message=Evaluating&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
       default: 0, fetch: true,
   });
   const { data: executed, loading: executed_loading } = useAPI<number>({
-    url: `/api/v1/log/history?message=Executing&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
+    url: `/log/history?message=Executing&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
     default: 0, fetch: true,
   });
   const { data: evaluated_total, loading: evaluated_total_loading } = useAPI<number>({
-      url: `/api/v1/log/history?message=Evaluating&count=true&limit=9000`,
+      url: `/log/history?message=Evaluating&count=true&limit=9000`,
       default: 0, fetch: true,
   });
   const { data: executed_total, loading: executed_total_loading } = useAPI<number>({
-      url: `/api/v1/log/history?message=Executing&count=true&limit=9000`,
+      url: `/log/history?message=Executing&count=true&limit=9000`,
       default: 0, fetch: true,
   });
   return (

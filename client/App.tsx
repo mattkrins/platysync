@@ -1,9 +1,8 @@
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, PasswordInput } from "@mantine/core";
 import { ModalsProvider } from '@mantine/modals';
 import { TextInput } from '@mantine/core';
 import { createTheme } from "@mantine/core";
 import { Route, Switch, useLocation } from "wouter";
-import useFetch from "./hooks/useFetch";
 import { Provider } from 'react-redux';
 
 import "@mantine/core/styles.css";
@@ -17,13 +16,18 @@ import Logout from "./routes/Auth/Logout";
 import { AppLayout } from "./AppLayout";
 import store from "./providers/store";
 import { useDispatch, useSelector } from "./hooks/redux";
-import { isSetup, loadApp } from "./providers/appSlice";
+import { isSetup, loadApp, loadSettings } from "./providers/appSlice";
 import { useEffect } from "react";
 
 const theme = createTheme({
   fontFamily: 'Roboto, sans-serif',
   components: {
       TextInput: TextInput.extend({
+        classNames: {
+          input: themeClasses.input,
+        },
+      }),
+      PasswordInput: TextInput.extend({
         classNames: {
           input: themeClasses.input,
         },
@@ -36,7 +40,7 @@ function Router() {
     const setup = useSelector(isSetup);
     const [_, setLocation] = useLocation();
     useEffect(()=>{
-      dispatch(loadApp()).then(setup=> setup ? null : setLocation(`/setup`));
+      dispatch(loadApp()).then(setup=> setup ? loadSettings() : setLocation(`/setup`));
     }, []);
     return (
     <Switch>
