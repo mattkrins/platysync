@@ -17,11 +17,11 @@ export default async function (route: FastifyInstance) {
         const { schema_name } = request.params as { schema_name: string };
         const { to, from } = request.body as { to: number, from: number };
         try {
-            const files = await getFiles(schema_name);
-            const to_value = files[to];
-            const from_value = files[from];
-            files[from] = to_value;
-            files[to] = from_value;
+            const array = await getFiles(schema_name);
+            const to_value = array[to];
+            const from_value = array[from];
+            array[from] = to_value;
+            array[to] = from_value;
             await sync();
             return true;
         }
@@ -32,10 +32,10 @@ export default async function (route: FastifyInstance) {
         try {
             const schema = await getSchema(schema_name);
             const file = schema.files.find(f=>f.name===name);
-            if (!file) throw new xError("File not found.", "name", 404 );
+            if (!file) throw new xError("File not found.", null, 404 );
             const folder = `${paths.storage}/${schema_name}`;
             const path = `${folder}/${file.path}`;
-            if (!fs.existsSync(path)) throw new xError("File not found on system.", undefined, 404 );
+            if (!fs.existsSync(path)) throw new xError("File not found on system.", null, 404 );
             const mime_type = mime.getType(path)
             const bufferIndexHtml = fs.readFileSync(path);
             reply.type(mime_type||'text/txt').send(bufferIndexHtml);
