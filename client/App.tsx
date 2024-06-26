@@ -40,7 +40,8 @@ function Router() {
     const setup = useSelector(isSetup);
     const [_, setLocation] = useLocation();
     useEffect(()=>{
-      dispatch(loadApp()).then(setup=> setup ? loadSettings() : setLocation(`/setup`));
+      dispatch(loadApp()).then(setup=> setup ? null : setLocation(`/setup`))
+      .then(()=>dispatch(loadSettings()));
     }, []);
     return (
     <Switch>

@@ -1,9 +1,9 @@
-import { UnstyledButton, AppShell, Group, Burger, Avatar, Select, Text, Loader, Menu } from "@mantine/core";
+import { UnstyledButton, AppShell, Group, Burger, Avatar, Select, Text, Loader, Menu, Anchor } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconAdjustmentsHorizontal, IconCheckbox, IconClock, IconFiles, IconHistory, IconHome, IconLogout, IconPlug, IconSettings, IconUsersGroup } from "@tabler/icons-react";
 import { useRoute, useLocation, Redirect, Switch, Route } from "wouter";
 import { getCookie } from "./modules/common";
-import { useSelector, useDispatch } from "./hooks/redux";
+import { useSelector, useDispatch, useLoader } from "./hooks/redux";
 import { getConnectors, getName, getRules, loadSchema } from "./providers/schemaSlice";
 import { useEffect } from "react";
 
@@ -40,10 +40,11 @@ function Link({ link, label, icon, disabled }: { link: string, label: string, ic
 function Schemas({}) {
   const [_, setLocation] = useLocation();
   const dispatch = useDispatch();
-  const { schemas, loadingSchemas } = useSelector(state => state.app);
+  const { loadingSchemas } = useLoader();
+  const { schemas } = useSelector(state => state.app);
   const name = useSelector(getName);
-  if (!name) return <Redirect to="/schemas" />;
   useEffect(()=>{ if (name) setLocation("home"); }, [ name ]);
+  if (!name) return <Redirect to="/schemas" />;
   return (
     <Select ml="xs" leftSection={(loadingSchemas)&&<Loader size={16} />}
     placeholder="Schema"
@@ -56,7 +57,7 @@ function Schemas({}) {
 
 function User({}) {
   const [_, setLocation] = useLocation();
-  const { user: { username } } = useSelector(state => state.app);
+  const { auth: { username } } = useSelector(state => state.app);
   return (
   <Menu offset={15} >
     <Menu.Target>
@@ -80,10 +81,11 @@ function User({}) {
 }
 
 export function AppLayout() {
-  if (!getCookie("auth")) return <Redirect to="/login" />;
+  const [_, setLocation] = useLocation();
   const [opened, { toggle }] = useDisclosure();
   const connectors = useSelector(getConnectors);
   const rules = useSelector(getRules);
+  if (!getCookie("auth")) return <Redirect to="/login" />;
   const disabled =  (label: string) => { switch (label) {
       case "Rules": return connectors.length <= 0;
       case "Schedules": return rules.length <= 0;
@@ -99,7 +101,7 @@ export function AppLayout() {
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Group justify="space-between" style={{ flex: 1 }}>
               <Group ml="xs" gap={0} visibleFrom="sm">
-                  <Avatar src="/logo.png" />
+                  <Anchor onClick={()=>setLocation("/schemas")} ><Avatar src="/logo.png" /></Anchor>
                   <Schemas/>
                   <Group ml="sm" gap="xs" visibleFrom="sm">
                       {links.map((link) => <Link key={link.label} {...link} link={link.link} disabled={disabled(link.label)} /> )}
@@ -120,9 +122,7 @@ export function AppLayout() {
                 <Route path={"/users"} component={Users} />
                 <Route path={"/logs"} component={Logs} />
                 {links.filter(link=>link.page).map(link=><Route key={link.label} path={link.link} component={link.page} />)}
-                <Route path="*">
-                  {(params) => `404, Sorry the page ${params["*"]} does not exist!`}
-                </Route>
+                <Route path="*">{(params) => `404, Sorry the page ${params["*"]} does not exist!`}</Route>
           </Switch>
         </AppShell.Main>
       </AppShell>

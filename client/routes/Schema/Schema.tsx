@@ -31,7 +31,7 @@ export default function Schema() {
   const dispatch = useDispatch();
   const [exporting, setExporting] = useState<Schema|undefined>(undefined);
   const [importOpen, { open: openImporter, close: closeImporter }] = useDisclosure(false);
-  const { prev, ...initialValues  } = useSelector(state => state.schema);
+  const initialValues = useSelector(state => state.schema);
   const form = useForm<Schema>({ initialValues, validate: {
     name: hasLength({ min: 3 }, 'Name must be greater than 2 characters.'),
   }, });

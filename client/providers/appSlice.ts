@@ -1,7 +1,6 @@
 import { createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit';
 import { navigate } from "wouter/use-browser-location";
 import axios, { AxiosError } from 'axios';
-import { RootState } from './store';
 import { startLoading, stopLoading } from './loadSlice';
 
 interface app {
@@ -11,12 +10,9 @@ interface app {
 }
 
 interface appState extends app {
-  schemas: Schema[];
+  auth: { username: string };
   settings: Partial<Settings>;
-  user: { username: string };
-  loadingApp: boolean;
-  loadingSchemas: boolean;
-  loadingUser: boolean;
+  schemas: Schema[];
 }
 
 const initialState: appState = {
@@ -24,14 +20,11 @@ const initialState: appState = {
   version: '',
   setup: true,
   schemas: [],
-  user: { username: '' },
+  auth: { username: '' },
   settings: {
     logLevel: 'info',
     enableRun: false,
   },
-  loadingApp: false,
-  loadingSchemas: false,
-  loadingUser: false,
 };
 
 const appSlice = createSlice({
@@ -48,7 +41,7 @@ const appSlice = createSlice({
     getVersion: state => state.version,
     getSetup: state => state.setup,
     getSchemas: state => state.schemas,
-    getUser: state => state.user,
+    getUser: state => state.auth,
   },
 });
 
@@ -57,13 +50,13 @@ export default appSlice;
 export const { isSetup, getVersion, getSetup, getSchemas, getUser } = appSlice.selectors;
 
 export const loadApp = () => async (dispatch: Dispatch) => {
-  dispatch(appSlice.actions.mutate({loadingApp: true}));
+  dispatch(startLoading("App"));
   try {
     const { data } = await axios<app>({ url: '/api/v1' });
-    dispatch(appSlice.actions.init(data));
+    dispatch(appSlice.actions.mutate(data));
     return data.setup;
   } finally {
-    dispatch(appSlice.actions.mutate({loadingApp: false}));
+    dispatch(stopLoading("App"));
   }
 }
 
@@ -73,37 +66,14 @@ const load = (name: string) => async (dispatch: Dispatch) => {
     const { data } = await axios({ url: `/api/v1/${name.toLowerCase()}` });
     dispatch(appSlice.actions.mutate({ [name.toLowerCase()]: data }));
     return data;
+  } catch (e) {
+    const response = (e as {response?: AxiosError}).response;
+    if (response?.status === 401) navigate("/logout", { replace: true });
   } finally {
     dispatch(stopLoading(name));
   }
 }
 
 export const loadSettings = () => load("Settings" );
-//TODO - convert the rest and use settings slice in app
-
-export const loadSchemas = () => async (dispatch: Dispatch) => {
-  dispatch(appSlice.actions.mutate({loadingSchemas: true}));
-  try {
-    const response = await axios({ url: '/api/v1/schemas' });
-    dispatch(appSlice.actions.mutate({schemas: response.data as Schema[]}));
-  } catch (e) {
-    const response = (e as {response?: AxiosError}).response;
-    if (response?.status === 401) navigate("/logout", { replace: true });
-  } finally {
-    dispatch(appSlice.actions.mutate({loadingSchemas: false}));
-  } 
-}
-
-export const loadUser = () => async (dispatch: Dispatch) => {
-  dispatch(appSlice.actions.mutate({loadingUser: true}));
-  try {
-    const response = await axios({ url: '/api/v1/auth' });
-    dispatch(appSlice.actions.mutate({user: response.data as Session}));
-  } catch (e) {
-    const response = (e as {response?: AxiosError}).response;
-    if (response?.status === 401) navigate("/logout", { replace: true });
-  } finally {
-    dispatch(appSlice.actions.mutate({loadingUser: false}));
-  }
-}
-
+export const loadSchemas = () => load("Schemas" );
+export const loadUser = () => load("Auth" );

@@ -56,6 +56,5 @@ export async function getSchema(schema_name: string, fieldName?: string) {
     if (!schema) throw new xError("Unknown schema.", fieldName, 404);
     return schema;
 }
-export async function getFiles(schema_name: string, fieldName?: string) {
-    return (await getSchema(schema_name, fieldName)).files;
-}
+export async function getFiles(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).files; }
+export async function getConnectors(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).connectors; }

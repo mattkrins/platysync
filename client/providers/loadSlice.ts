@@ -10,7 +10,7 @@ const loadSlice = createSlice({
   initialState,
   reducers: {
     startLoading(state, { payload }: PayloadAction<Partial<string>>) { state[`loading${payload}`] = true; },
-    stopLoading(state, { payload }: PayloadAction<Partial<string>>) { state[`loading${payload}`] = false; },
+    stopLoading(state, { payload }: PayloadAction<Partial<string>>) { delete state[`loading${payload}`]; },
   },
 });
 

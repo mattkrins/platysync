@@ -8,7 +8,8 @@ import { Link } from "wouter";
 import { colors, events } from "../Logs/Logs";
 import { IconListSearch, IconRun } from "@tabler/icons-react";
 import { useMemo } from "react";
-import { useSelector } from "../../hooks/redux";
+import { useLoader, useSelector } from "../../hooks/redux";
+import { getSchemas } from "../../providers/appSlice";
 
 function Welcome() {
   const [welcome, setWelcome] = useLocalStorage({ key: 'welcome', defaultValue: 'true' });
@@ -140,7 +141,8 @@ function Stats({}) {
 }
 
 function Schemas() {
-  const { schemas, loadingSchemas } = useSelector(state => state.app);
+  const { loadingSchemas } = useLoader();
+  const schemas = useSelector(getSchemas);
 
   return (
     <Paper mt="lg" withBorder>

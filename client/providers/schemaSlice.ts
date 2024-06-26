@@ -11,6 +11,12 @@ const initialState: Schema = {
   rules: [],
 };
 
+function getNested(obj: {[k: string]: any}, path: string): unknown {
+  if (!path.includes(".")) return obj[path];
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
+
+
 const schemaSlice = createSlice({
   name: 'schema',
   initialState,
@@ -18,6 +24,13 @@ const schemaSlice = createSlice({
     init() { return initialState; },
     setSchema(_, { payload }: PayloadAction<Schema>) { return { ...payload }; },
     mutate(state, { payload }: PayloadAction<Partial<Schema>>) { return { ...state, ...payload }; },
+    reorder(state, { payload: { name, to, from } }: PayloadAction<{name: string, to: number, from: number}>) {
+      const array = state[name as keyof Schema] as unknown[];
+      const to_value = array[to];
+      const from_value = array[from];
+      array[from] = to_value;
+      array[to] = from_value;
+    },
   },
   selectors: {
     getName: state => state.name,
@@ -32,6 +45,24 @@ export const { init, mutate } = schemaSlice.actions;
 export const { getName, getVersion, getFiles, getConnectors, getRules } = schemaSlice.selectors;
 
 export default schemaSlice;
+
+export const reorder = (payload: {name: string, to: number, from: number, url?: string}) => async (dispatch: Dispatch, getState: ()=> RootState) => {
+  const { name, to, from, url } = payload;
+  if (to===from) return;
+  dispatch(schemaSlice.actions.reorder(payload));
+  const { schema } = getState();
+  dispatch(startLoading(`${name}_${to}`));
+  dispatch(startLoading(`${name}_${from}`));
+  try {
+    await axios({
+      url: `/api/v1/schema/${schema.name}/${url?url:`${name}/reorder`}`,
+      method: "post", data: payload
+    });
+} finally {
+    dispatch(stopLoading(`${name}_${to}`));
+    dispatch(stopLoading(`${name}_${from}`));
+  }
+}
 
 export const loadSchema = (name: string) => async (dispatch: Dispatch, getState: ()=> RootState) => {
   const { app: { schemas } } = getState();

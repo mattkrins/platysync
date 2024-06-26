@@ -1,15 +1,18 @@
-import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, ActionIcon, Tooltip } from "@mantine/core";
-import { IconDownload, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, ActionIcon, Tooltip, Loader } from "@mantine/core";
+import { IconDownload, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { getFiles, loadFiles } from "../../providers/schemaSlice";
+import { getFiles, loadFiles, reorder } from "../../providers/schemaSlice";
 import Editor from "./Editor";
 import useAPI from "../../hooks/useAPI";
 import { modals } from "@mantine/modals";
 import { download } from "../../modules/common";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
-function File({ file: { name, key }, edit, refresh }: { file: psFile, edit(): void, refresh(): void }) {
+function File({ index, file: { name, key }, edit, refresh }: { index: number, file: psFile, edit(): void, refresh(): void }) {
+    const loaders = useLoader();
+    const loading = loaders[`loadingfiles_${index}`];
     const { del, loading: deleting, error, schema_name } = useAPI({
         url: `/file`, data: { name }, schema: true,
         then: () => refresh()
@@ -24,12 +27,18 @@ function File({ file: { name, key }, edit, refresh }: { file: psFile, edit(): vo
     });
     
     return (
-    <Paper mb="xs" p="xs" withBorder >
+    <Draggable index={index} draggableId={name}>
+    {(provided, snapshot) => (
+    <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
-            <Grid.Col span={5}>{name}</Grid.Col>
-            <Grid.Col span={5}>{key||<Text c="dimmed" >{name}</Text>}</Grid.Col>
-            <Grid.Col span={2}>
+            <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
+                <Group><IconGripVertical size="1.2rem" /></Group>
+            </Grid.Col>
+            <Grid.Col span={4}>{name}</Grid.Col>
+            <Grid.Col span={4}>{key||<Text c="dimmed" >{name}</Text>}</Grid.Col>
+            <Grid.Col span={3}>
                     <Group gap="xs" justify="flex-end">
+                        {loading&&<Loader size="xs" />}
                         <ActionIcon onClick={()=>download(`/schema/${schema_name}/file/${name}`)} variant="subtle" color="green">
                             <IconDownload size={16} stroke={1.5} />
                         </ActionIcon>
@@ -44,11 +53,13 @@ function File({ file: { name, key }, edit, refresh }: { file: psFile, edit(): vo
                     </Group>
             </Grid.Col>
         </Grid>
-    </Paper>)
+    </Paper>
+    )}
+    </Draggable>)
 }
 
 export default function Files() {
-    const { loadingFiles } = useLoader();
+    const { loadingFiles, ...loaders } = useLoader();
     const dispatch = useDispatch();
     const files = useSelector(getFiles);
     const [ editing, setEditing ] = useState<[psFile,boolean]|undefined>(undefined);
@@ -66,12 +77,26 @@ export default function Files() {
             {files.length<=0?<Text c="dimmed" >No files in schema. <Anchor onClick={add} >Add</Anchor> static files for use in templating.</Text>:
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
-                    <Grid.Col span={5}>Name</Grid.Col>
-                    <Grid.Col span={5}>Key</Grid.Col>
-                    <Grid.Col span={2}/>
+                    <Grid.Col span={1}/>
+                    <Grid.Col span={4} >Name</Grid.Col>
+                    <Grid.Col span={4}>Template Key</Grid.Col>
+                    <Grid.Col span={3}/>
                 </Grid>
             </Paper>}
-            {files.map((file) => <File key={file.name} file={file} edit={()=>setEditing([{...file},true])} refresh={refresh} />)}
+            <DragDropContext
+            onDragEnd={({ destination, source }) =>
+                dispatch(reorder({ name: "files", from: source.index, to: destination?.index || 0 }))
+            }
+            >
+            <Droppable droppableId="dnd-list" direction="vertical">
+                {(provided) => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {files.map((file, index) => <File index={index} key={file.name} file={file} edit={()=>setEditing([{...file},true])} refresh={refresh} />)}
+                    {provided.placeholder}
+                </div>
+                )}
+            </Droppable>
+            </DragDropContext>
         </Wrapper>
     </Container>
     )

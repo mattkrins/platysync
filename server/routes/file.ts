@@ -5,12 +5,26 @@ import multer from 'fastify-multer';
 import { paths } from "../../server";
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import mime from 'mime';
+import mime from 'mime/lite';
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         try { return await getFiles(schema_name); }
+        catch (e) { new xError(e).send(reply); }
+    });
+    route.post('s/reorder', async (request, reply) => {
+        const { schema_name } = request.params as { schema_name: string };
+        const { to, from } = request.body as { to: number, from: number };
+        try {
+            const files = await getFiles(schema_name);
+            const to_value = files[to];
+            const from_value = files[from];
+            files[from] = to_value;
+            files[to] = from_value;
+            await sync();
+            return true;
+        }
         catch (e) { new xError(e).send(reply); }
     });
     route.get('/:name', async (request, reply) => {

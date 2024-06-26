@@ -24,7 +24,7 @@ export default function NewSchema( { then, defaultImport }: { then?(name: string
     });
 
     const { post, loading, error } = useAPI<string>( {
-        url: "/api/v1/schema", form,
+        url: "/schema", form,
         mutateData: (data: object) => importing ? ({...importing, ...data, importing: true }): data,
         then: (name: string) => { setLocation('/'); dispatch(loadSchemas()); if (then) then(name) },
     } );
