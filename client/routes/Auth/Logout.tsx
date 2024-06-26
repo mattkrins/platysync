@@ -6,7 +6,7 @@ import useFetch from '../../hooks/useFetch';
 export default function Logout() {
   const [_, setLocation] = useLocation();
   const { del } = useFetch<{ setup: number }>({
-      url: "/api/v1/auth",
+      url: "/auth",
       finally: () => setLocation(`/login`),
   });
   useEffect(()=>{ del() }, []);

@@ -14,6 +14,9 @@ export function compareVersion(a: string, b: string) {
   } return segmentsA.length - segmentsB.length;
 }
 
+export const testRegex = (error = "Invalid.", regex: RegExp) => (value: unknown) => regex.test(value as string) ? false : error;
+export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => testRegex(error, /^[a-zA-Z0-9_]+$/)(value);
+
 export function checkForUpdate(): Promise<string> {
   return new Promise((resolve, reject) => {
     const axiosClient = axios.create({headers: {'X-GitHub-Api-Version': '2022-11-28'}});

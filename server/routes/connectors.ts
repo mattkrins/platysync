@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
-import { hasLength, validate, xError } from "../modules/common";
-import { getConnectors, sync } from "../components/database";
+import { isAlphanumeric, validate, xError } from "../modules/common";
+import { getConnectors, getSchema, sync } from "../components/database";
+import { providers } from "../components/providers";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -22,12 +23,17 @@ export default async function (route: FastifyInstance) {
         }
         catch (e) { new xError(e).send(reply); }
     });
-    route.post('/', async (request, reply) => {
-        const { name, ...connector } = request.body as Connector;
+    route.post('/validate', async (request, reply) => {
+        const { schema_name } = request.params as { schema_name: string };
+        const { id, name, ...connector } = request.body as Connector;
         try {
             validate( { name }, {
-                name: hasLength(2, 'Name must be greater than 2 characters.'),
+                name: isAlphanumeric('Name can only contain alphanumeric characters.'),
             });
+            const schema = await getSchema(schema_name);
+            const provider = new providers[id]({ id, name, ...connector, schema });
+            await provider.preConfigure();
+            await provider.validate();
             
             return name;
         } catch (e) { new xError(e).send(reply); }

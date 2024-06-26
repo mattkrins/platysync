@@ -16,7 +16,7 @@ const defaultSchema: Schema = {
     files: [],
 }
 
-export default async function schema(route: FastifyInstance) {
+export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
         try {
             return await Schemas();
@@ -26,7 +26,7 @@ export default async function schema(route: FastifyInstance) {
         const { name, importing, ...schema } = request.body as newSchema;
         try {
             validate( { name }, {
-                name: hasLength(2, 'Name must be greater than 2 characters.'),
+                name: hasLength({ min: 2 }, 'Name must be greater than 2 characters.'),
             });
             if (importing) {
                 if (!schema.version) throw new xError("Malformed structure.");
@@ -43,7 +43,7 @@ export default async function schema(route: FastifyInstance) {
         let { name, editing, importing, ...schema } = request.body as newSchema;
         try {
             validate( { name, editing }, {
-                name: hasLength(2, 'Name must be greater than 2 characters.'),
+                name: hasLength({ min: 2 }, 'Name must be greater than 2 characters.'),
                 editing: isNotEmpty('Username Param can not be empty.'),
             });
             if (importing) {

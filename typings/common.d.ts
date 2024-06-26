@@ -22,8 +22,10 @@ interface Log {
 }
 
 interface Connector {
+    id: string;
     name: string;
     type: 'provider'|'adapter';
+    headers:  string[];
 }
 
 interface psFile {
@@ -57,4 +59,8 @@ interface Hash {
     hex: string;
     iv: string;
     it: number;
+}
+
+interface template {
+  [connector: string]: {[header: string]: string} | string | object
 }

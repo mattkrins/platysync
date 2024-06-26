@@ -59,7 +59,7 @@ function File({ index, file: { name, key }, edit, refresh }: { index: number, fi
 }
 
 export default function Files() {
-    const { loadingFiles, ...loaders } = useLoader();
+    const { loadingFiles } = useLoader();
     const dispatch = useDispatch();
     const files = useSelector(getFiles);
     const [ editing, setEditing ] = useState<[psFile,boolean]|undefined>(undefined);
@@ -83,11 +83,7 @@ export default function Files() {
                     <Grid.Col span={3}/>
                 </Grid>
             </Paper>}
-            <DragDropContext
-            onDragEnd={({ destination, source }) =>
-                dispatch(reorder({ name: "files", from: source.index, to: destination?.index || 0 }))
-            }
-            >
+            <DragDropContext onDragEnd={({ destination, source }) => dispatch(reorder({ name: "files", from: source.index, to: destination?.index || 0 })) } >
             <Droppable droppableId="dnd-list" direction="vertical">
                 {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>

@@ -5,7 +5,7 @@ import { encrypt } from "../modules/cryptography";
 import { logout } from "./auth";
 import { FastifyRequestX } from "../../server";
 
-export default async function user(route: FastifyInstance) {
+export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {
         try {
             const users = await Users();

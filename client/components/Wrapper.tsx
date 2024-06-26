@@ -1,6 +1,6 @@
 import { PropsWithChildren } from 'react'
 import { Paper, LoadingOverlay, PaperProps } from '@mantine/core';
-import classes from '../App.module.css';
+import classes from './Wrapper.module.css';
 
 export default function Wrapper( { loading, children, ...props }: { loading?: boolean } & PropsWithChildren & PaperProps ) {
   return (

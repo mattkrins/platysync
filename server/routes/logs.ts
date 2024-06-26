@@ -15,7 +15,7 @@ interface query extends Log {
     count?: string;
 }
 
-export default async function logs(route: FastifyInstance) {
+export default async function (route: FastifyInstance) {
     route.get('/:endpoint', async (request, reply) => {
         if (!loggers.general) init();
         const { endpoint } = request.params as { endpoint: string };

@@ -7,7 +7,7 @@ import { useSelector, useDispatch, useLoader } from "./hooks/redux";
 import { getConnectors, getName, getRules, loadSchema } from "./providers/schemaSlice";
 import { useEffect } from "react";
 
-import classes from "./App.module.css";
+import classes from "./theme.module.css";
 
 import Home from "./routes/Home/Home";
 import Schema from "./routes/Schema/Schema";

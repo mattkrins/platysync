@@ -22,7 +22,7 @@ export default function Login() {
     });
 
     const { post, loading, error } = useAPI({
-        url: "/api/v1/auth", form, noAuth: true,
+        url: "/auth", form, noAuth: true,
         then: () => setLocation('/'),
     });
 

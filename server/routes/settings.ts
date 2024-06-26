@@ -13,7 +13,7 @@ function sanitizeSettings(settings: Settings) {
     return cleaned;
 }
 
-export default async function settings(route: FastifyInstance) {
+export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {
         try {
             const { key, redact, enableRun, ...settings} = await Settings();

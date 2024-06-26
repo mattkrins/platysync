@@ -1,4 +1,4 @@
-import { MantineProvider, PasswordInput } from "@mantine/core";
+import { MantineProvider, PasswordInput, Select } from "@mantine/core";
 import { ModalsProvider } from '@mantine/modals';
 import { TextInput } from '@mantine/core';
 import { createTheme } from "@mantine/core";
@@ -28,6 +28,11 @@ const theme = createTheme({
         },
       }),
       PasswordInput: TextInput.extend({
+        classNames: {
+          input: themeClasses.input,
+        },
+      }),
+      Select: TextInput.extend({
         classNames: {
           input: themeClasses.input,
         },

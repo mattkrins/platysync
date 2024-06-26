@@ -1,0 +1,20 @@
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7));
+  border: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-sm);
+  min-height: rem(90px);
+  transition:
+    box-shadow 150ms ease,
+    transform 100ms ease;
+
+  @mixin hover {
+    box-shadow: var(--mantine-shadow-md);
+    transform: scale(1.02);
+    background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-8));
+  }
+}
