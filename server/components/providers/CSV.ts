@@ -8,15 +8,18 @@ import Papa, { ParseResult } from "papaparse";
 export interface csv_options extends base_provider_options {
     path: string;
     encoding?: BufferEncoding;
+    noHeaders?: boolean;
 }
 
 export default class CSV extends base_provider {
     private path: string;
     private encoding: BufferEncoding;
+    private noHeaders: boolean;
     constructor(options: csv_options) {
         super(options);
         this.path = options.path;
         this.encoding = options.encoding || 'utf8';
+        this.noHeaders = options.noHeaders || false;
     }
     public async validate() {
         validate( this, {
@@ -36,15 +39,25 @@ export default class CSV extends base_provider {
         } this.path = compile(docsTemplate, this.path);
     }
     public async getHeaders(): Promise<string[]> {
+        if (this.noHeaders) return [];
         const content = await this.open();
         return content.meta.fields || [];
     }
-    public async open(header=true, autoClose=true): Promise<ParseResult<unknown>> {
+    //public async Connect(foreign_key?: string, primary_data?: string) {
+    //    const data = await this.open() as { data: {[k: string]: string}[] };
+    //    const rows = [];
+    //    // foreign_key = STKEY
+    //    for (const row of data.data){ // row = {STKEY: "KRI0001",ETC:"TEST"}
+    //        if (foreign_key && (!row[foreign_key] || row[foreign_key]!==primary_data) ) continue;
+    //        rows.push(row);
+    //    }
+    //}
+    public async open(autoClose=true): Promise<ParseResult<unknown>> {
         return new Promise((resolve, reject) => {
             try {
                 const file = fs.createReadStream(this.path, this.encoding);
                 Papa.parse(file, {
-                    header,
+                    header: !this.noHeaders,
                     complete: (result: Papa.ParseResult<unknown> | PromiseLike<Papa.ParseResult<unknown>>) => {
                         if (autoClose) file.close();
                         return resolve(result);

@@ -13,7 +13,7 @@ const validate = {
 
 function Content({ file, refresh, adding }: { file: psFile, refresh(): void, adding: boolean }) {
   const editing = file.name;
-  const form = useForm<psFile>({ validate, initialValues: file });
+  const form = useForm<psFile>({ validate, initialValues: structuredClone(file) });
   const [ data, setData ] = useState<FileWithPath|undefined>(undefined);
   const { data: success, put, post, loading, error, schema_name } = useAPI<psFile, FormData>({
     url: `/file${adding?'':`/${editing}`}`, schema: true,

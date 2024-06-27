@@ -1,7 +1,7 @@
 import { ActionIcon, Alert, Anchor, Button, Center, Grid, Group, Loader, Modal, Progress, ScrollArea, SimpleGrid, Stepper, Tabs, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import Wrapper from "../../components/Wrapper";
 import classes from './Editor.module.css';
-import { IconAlertCircle, IconArrowBigRight, IconCheck, IconDeviceFloppy, IconGripVertical, IconList, IconListCheck, IconPlus, IconRecycle, IconSettings, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
+import { IconAlertCircle, IconArrowBigRight, IconCheck, IconDeviceFloppy, IconGripVertical, IconList, IconListCheck, IconPlayerSkipForward, IconPlus, IconRecycle, IconSettings, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
 import { provider, providers } from "../../modules/providers";
 import { useState } from "react";
 import { UseFormReturnType, useForm } from "@mantine/form";
@@ -130,8 +130,8 @@ function ConfigButton( { save, loading, validate, force }: { save(): void, loadi
   const theme = useMantineTheme();
   return (
     <SplitButton loading={loading} onClick={save} options={[
-      {  onClick:()=>validate(), label: 'Validate', leftSection: <IconTestPipe size={16} color={theme.colors.green[5]}  /> },
-      {  onClick:()=>force(), label: 'Force Continue', leftSection: <IconArrowBigRight size={16} color={theme.colors.orange[5]}  /> },
+      {  onClick:()=>validate(), label: 'Validate', leftSection: <IconTestPipe size={16} color={theme.colors.lime[5]}  /> },
+      {  onClick:()=>force(), label: 'Force Continue', leftSection: <IconPlayerSkipForward size={16} color={theme.colors.orange[5]}  /> },
       ]} >Continue</SplitButton>
   )
 }
@@ -183,15 +183,26 @@ function NewConnector({ close }: { close(): void, }) {
   )
 }
 
-function EditConnector({ provider: { validate, Options, ...provider }, initialValues }: { provider: provider, initialValues: Connector, refresh(): void }) {
+function EditConnector({ provider: { validate, Options }, initialValues }: { provider: provider, initialValues: Connector, refresh(): void }) {
+  const theme = useMantineTheme();
   const dispatch = useDispatch();
-  const form = useForm<Connector>({ validate, initialValues });
-  const { data: success, put, error, loading } = useAPI({
-    url: `/connector`, form, schema: true,
-    then: () => dispatch(loadConnectors())
+  const form = useForm<Connector>({ validate, initialValues: structuredClone(initialValues) });
+  const { data: success, put, error: e1, loading: l1 } = useAPI({
+    url: `/connector/${initialValues.name}`, schema: true,
+    data: form.values,
+    then: () => dispatch(loadConnectors()),
+    catch: (_, errors) => form.setErrors(errors as {}),
   });
+  const { data: valid, post: val, error: e2, loading: l2 } = useAPI({
+    url: `/connector/validate`, form, schema: true,
+  });
+  const error = e1||e2;
+  const loading = l1||l2;
+  const save = () => { form.validate(); if (form.isValid()) put(); }
+  const force = () => put({append:"?force=true"});
   return (
   <>
+    {!!valid&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Validated successfully.</Alert>}
     {!!success&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Connector updated successfully.</Alert>}
     {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
     <TextInput withAsterisk mt="xs" mb="xs"
@@ -201,15 +212,15 @@ function EditConnector({ provider: { validate, Options, ...provider }, initialVa
         {...form.getInputProps('name')}
     />
     <Options form={form} />
-    <Concealer label="Headers" >
-        <Headers initialValues={initialValues} editing={form} />
-    </Concealer>
-    <Group justify="space-between" mt="md">
-          <Button color="green" loading={loading} onClick={()=>put()}>Validate</Button>
-          <Button disabled={form.values.headers.length<=0} loading={loading} onClick={()=>put()}>Save</Button>
+    <Concealer label="Headers" ><Headers initialValues={initialValues} editing={form} /></Concealer>
+    <Group justify="right" mt="md">
+      <SplitButton disabled={form.values.headers.length<=0} loading={loading} onClick={()=>save()} leftSection={<IconDeviceFloppy size={16}  />} options={[
+            {  onClick:()=>val(), label: 'Validate', leftSection: <IconTestPipe color={theme.colors['lime'][6]} size={16}  /> },
+            {  onClick:()=>force(), label: 'Force Save', leftSection: <IconDeviceFloppy color={theme.colors['orange'][6]} size={16}  /> },
+      ]}>Save</SplitButton>
     </Group>
   </>)
-} //TODO - add force option
+}
 
 function Content({ connector, refresh, adding, close }: { connector: Connector, refresh(): void, adding: boolean, close(): void, }) {
   const provider = providers.find(p=>p.id===connector.id);

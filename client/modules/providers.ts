@@ -29,11 +29,11 @@ export const providers: provider[] = [
             path: hasLength({ min: 4 }, 'Path must be at least 4 characters long.'),
         },
     },
-    {
-        id: 'ldap',
-        name: "Lightweight Directory Access Protocol (LDAP)",
-        color: 'blue',
-        Icon: IconBinaryTree2,
-        Options: CSV,
-    },
+    //{
+    //    id: 'ldap',
+    //    name: "Lightweight Directory Access Protocol (LDAP)",
+    //    color: 'blue',
+    //    Icon: IconBinaryTree2,
+    //    Options: CSV,
+    //},
 ];

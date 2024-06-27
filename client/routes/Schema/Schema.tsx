@@ -65,7 +65,7 @@ export default function Schema() {
     <Importer title="Import Schema" opened={importOpen} close={closeImporter} onImport={onImport} json accept={['application/json']} />
     <Exporter title="Export Schema" filename={exporting?`${exporting.name}.json`:''} data={exporting?JSON.stringify(exporting, null, 2):''} json close={()=>setExporting(undefined)} />
     <Group justify="space-between">
-      <Title mb="xs" >Schema Settings</Title>
+      <Title mb="xs" >Schema</Title>
       <ActionButton save={save} saving={saving} open={openImporter} clickExport={clickExport} clickDel={clickDel} />
     </Group>
     <Wrapper>

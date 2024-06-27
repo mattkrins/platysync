@@ -1,4 +1,4 @@
-import { TextInput, Select } from "@mantine/core";
+import { TextInput, Select, Checkbox } from "@mantine/core";
 import { IconFile, IconTypography } from "@tabler/icons-react";
 import Concealer from "../../../components/Concealer";
 import { UseFormReturnType } from "@mantine/form";
@@ -16,7 +16,8 @@ export default function CSV( { form }: { form: UseFormReturnType<Connector> } ) 
             error={form.getInputProps('path').error||templateProps(form, 'path').error}
         />
         <Concealer>
-            <Select
+            <Checkbox mt="xs" label="Does not contain headers" {...form.getInputProps('noHeaders', { type: 'checkbox' })} />
+            <Select mt="xs"
                 label="Text Encoding"
                 defaultValue="utf8"
                 placeholder="Encoding"

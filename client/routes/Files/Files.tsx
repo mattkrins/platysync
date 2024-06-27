@@ -1,4 +1,4 @@
-import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, ActionIcon, Tooltip, Loader, useMantineTheme } from "@mantine/core";
+import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, ActionIcon, Tooltip, Loader, useMantineTheme, Box } from "@mantine/core";
 import { Icon, IconDownload, IconFile, IconFileTypeCsv, IconGripVertical, IconPencil, IconPlus, IconProps, IconTrash } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import Wrapper from "../../components/Wrapper";
@@ -9,12 +9,13 @@ import useAPI from "../../hooks/useAPI";
 import { modals } from "@mantine/modals";
 import { download, fileIcons } from "../../modules/common";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import MenuTip from "../../components/MenuTip";
 
 function File({ index, file: { name, key, format }, edit, refresh }: { index: number, file: psFile, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
     const loaders = useLoader();
     const loading = loaders[`loadingfiles_${index}`];
-    const { del, loading: deleting, error, schema_name } = useAPI({
+    const { del, loading: deleting, error: dError, reset: dReset, schema_name } = useAPI({
         url: `/file`, data: { name }, schema: true,
         then: () => refresh()
     });
@@ -35,25 +36,17 @@ function File({ index, file: { name, key, format }, edit, refresh }: { index: nu
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                 <Group justify="space-between">
                     <IconGripVertical size="1.2rem" />
-                    <icon.Icon size={20} color={icon.color?theme.colors[icon.color][6]:undefined} />
+                    <Group visibleFrom="xl" ><icon.Icon size={20} color={icon.color?theme.colors[icon.color][6]:undefined} /></Group>
                 </Group>
             </Grid.Col>
             <Grid.Col span={4}>{name}</Grid.Col>
             <Grid.Col span={4}>{key||<Text c="dimmed" >{name}</Text>}</Grid.Col>
-            <Grid.Col span={3}>
+            <Grid.Col span={3} miw={120}>
                     <Group gap="xs" justify="flex-end">
                         {loading&&<Loader size="xs" />}
-                        <ActionIcon onClick={()=>download(`/schema/${schema_name}/file/${name}`)} variant="subtle" color="green">
-                            <IconDownload size={16} stroke={1.5} />
-                        </ActionIcon>
-                        <ActionIcon onClick={edit} variant="subtle" color="orange">
-                            <IconPencil size={16} stroke={1.5} />
-                        </ActionIcon>
-                        <Tooltip label={error} opened={!!error} withArrow position="right" color="red">
-                        <ActionIcon onClick={clickDel} loading={deleting} variant="subtle" color="red">
-                            <IconTrash size={16} stroke={1.5} />
-                        </ActionIcon>
-                        </Tooltip>
+                        <MenuTip label="Download" Icon={IconDownload} onClick={()=>download(`/schema/${schema_name}/file/${name}`)} color="lime" variant="subtle" />
+                        <MenuTip label="Edit" Icon={IconPencil} onClick={edit} color="orange" variant="subtle" />
+                        <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={clickDel} loading={deleting} color="red" variant="subtle" />
                     </Group>
             </Grid.Col>
         </Grid>
@@ -74,7 +67,7 @@ export default function Files() {
     <Container>
         <Editor editing={editing} close={close} refresh={refresh} />
         <Group justify="space-between">
-            <Title mb="xs" >File Manager</Title>
+            <Title mb="xs" >Files</Title>
             <Button onClick={add} loading={loadingFiles} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
         <Wrapper loading={loadingFiles} >

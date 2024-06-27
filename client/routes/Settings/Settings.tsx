@@ -25,7 +25,7 @@ export default function Settings() {
         setColorScheme(value as ("auto" | "light" | "dark"));
         setValue(value);
     }
-    const form = useForm<Settings>({ initialValues: {...settings} as Settings, validate: {} });
+    const form = useForm<Settings>({ initialValues: structuredClone(settings) as Settings, validate: {} });
     const { data: success, put: save, loading: saving, error } = useAPI<Settings>({
         url: "/settings", form,
         then: async () => await dispatch(loadSettings()).then(e=>form.setValues(e)),

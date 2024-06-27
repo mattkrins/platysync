@@ -8,7 +8,7 @@ interface Props {
     onClick?: ()=>void;
     loading?: boolean;
     menu?: object;
-    buttonDisabled?: boolean;
+    disabled?: boolean;
     leftSection?: React.ReactNode;
     options: {
       leftSection?: React.ReactNode;
@@ -19,10 +19,10 @@ interface Props {
       [any: string]: any,
     }  [];
 }
-export default function SplitButton( { children, options = [], onClick, loading, menu, variant, buttonDisabled }: Props ) {
+export default function SplitButton( { children, options = [], onClick, loading, menu, variant, disabled }: Props ) {
   return (
     <Group wrap="nowrap" gap={0}>
-      <Button variant={variant} disabled={buttonDisabled} loading={loading} onClick={onClick} className={classes.button}>{children}</Button>
+      <Button variant={variant} disabled={disabled} loading={loading} onClick={onClick} className={classes.button}>{children}</Button>
       <Menu disabled={loading} transitionProps={{ transition: 'pop' }} position="bottom-end" {...menu} withinPortal>
         <Menu.Target>
           <ActionIcon variant={variant}

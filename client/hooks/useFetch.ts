@@ -16,6 +16,8 @@ export interface Options<returnType = unknown, sendType = unknown> extends Axios
     fetch?: boolean;
     /** @type {boolean} Preserve options on fetch. */
     preserve?: boolean;
+    /** @type {number} Reset after x milliseconds. */
+    resetAfter?: number;
     /** @param {Options} options Runs before sending. */
     before?(options: Options<returnType, sendType>): any;
     /** @param {Options} options Return true to halt fetch. */
@@ -114,6 +116,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         } finally {
             if (options.finally) options.finally(options);
             setLoading(false);
+            if (options.resetAfter) setTimeout(reset, options.resetAfter||1000);
         }
         return deferred.promise as Promise<returnType>;
     }, [opt1, reset]);
