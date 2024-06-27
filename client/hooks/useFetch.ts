@@ -49,6 +49,7 @@ export interface fetchReturn<returnType = unknown, sendType = unknown> {
     get: (inline?: Options<returnType, sendType>) => Promise<returnType>;
     del: (inline?: Options<returnType, sendType>) => Promise<returnType>;
     setData: (data: returnType|React.SetStateAction<returnType>)=>void;
+    setError: (data: string|undefined|React.SetStateAction<string|undefined>)=>void;
     set: (data: returnType|React.SetStateAction<returnType>)=>void;
     reset: ()=>void;
     mutate: (mutation: {[k: string]: unknown})=>void;
@@ -126,7 +127,7 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         put: (o: Options<returnType, sendType> = {}) => execute({ ...o, method: "put" }),
         get: (o: Options<returnType, sendType> = {}) => execute({ ...o, method: "get" }),
         del: (o: Options<returnType, sendType> = {}) => execute({ ...o, method: "delete" }),
-        setData, set: setData,
+        setData, set: setData, setError,
         reset, mutate,
         request, response, data,
         loading, error, errors,

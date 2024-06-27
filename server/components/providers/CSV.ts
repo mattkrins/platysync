@@ -35,6 +35,10 @@ export default class CSV extends base_provider {
             (docsTemplate.$file as { [k: string]: string })[file.key||file.name] = path;
         } this.path = compile(docsTemplate, this.path);
     }
+    public async getHeaders(): Promise<string[]> {
+        const content = await this.open();
+        return content.meta.fields || [];
+    }
     public async open(header=true, autoClose=true): Promise<ParseResult<unknown>> {
         return new Promise((resolve, reject) => {
             try {

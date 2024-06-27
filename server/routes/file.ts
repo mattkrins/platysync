@@ -61,11 +61,12 @@ export default async function (route: FastifyInstance) {
                 });
             }
             if (!data) throw new xError("No file selected", 'path', 404);
+            if (!data.originalname.includes(".")) throw new xError("File extention not found.", 'path');
             const files = await getFiles(schema_name);
             const file = files.find(f=>f.name===name);
             if (file) throw new xError("File name taken", 'name', 409);
             const file_key = files.find(f=>f.key===key);
-            if (file_key) throw new xError("Key already in use.", 'key', 409);
+            if (key && file_key) throw new xError("Key already in use.", 'key', 409);
             const folder = `${paths.storage}/${schema_name}`;
             if (!fs.existsSync(folder)) fs.mkdirSync(folder);
             const file_name = data.originalname.split(".");

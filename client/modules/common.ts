@@ -1,4 +1,6 @@
+import { IconProps, Icon, IconFile, IconFileTypeCsv, IconFileTypePdf } from "@tabler/icons-react";
 import axios from "axios";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export const getCookie = (name: string) => document.cookie.split('; ').filter(row => row.startsWith(`${name}=`)).map(c=>c.split('=')[1])[0];
 export const onKeyUp = (func:()=>unknown) => (e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && func();
@@ -30,4 +32,13 @@ export function checkForUpdate(): Promise<string> {
         return false;
     }));
   });
+}
+
+export const fileIcons: {[k: string]:  {
+  Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
+  color?: string;
+}} = {
+  txt: { Icon: IconFile },
+  csv: { Icon: IconFileTypeCsv, color: "teal" },
+  pdf: { Icon: IconFileTypePdf, color: "red" },
 }

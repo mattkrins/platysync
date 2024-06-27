@@ -34,6 +34,7 @@ function Content({ file, refresh, adding }: { file: psFile, refresh(): void, add
     setData(files[0]);
     const data = new FormData();
     data.append('file', files[0]);
+    if (!form.values.name) form.setFieldValue("name", files[0].name)
   }
   return (<>
     {!!success&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">File {adding ? "uploaded" : "updated"} successfully.</Alert>}

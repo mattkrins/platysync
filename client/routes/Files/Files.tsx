@@ -1,16 +1,17 @@
-import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, ActionIcon, Tooltip, Loader } from "@mantine/core";
-import { IconDownload, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, ActionIcon, Tooltip, Loader, useMantineTheme } from "@mantine/core";
+import { Icon, IconDownload, IconFile, IconFileTypeCsv, IconGripVertical, IconPencil, IconPlus, IconProps, IconTrash } from "@tabler/icons-react";
+import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
 import { getFiles, loadFiles, reorder } from "../../providers/schemaSlice";
 import Editor from "./Editor";
 import useAPI from "../../hooks/useAPI";
 import { modals } from "@mantine/modals";
-import { download } from "../../modules/common";
+import { download, fileIcons } from "../../modules/common";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
-function File({ index, file: { name, key }, edit, refresh }: { index: number, file: psFile, edit(): void, refresh(): void }) {
+function File({ index, file: { name, key, format }, edit, refresh }: { index: number, file: psFile, edit(): void, refresh(): void }) {
+    const theme = useMantineTheme();
     const loaders = useLoader();
     const loading = loaders[`loadingfiles_${index}`];
     const { del, loading: deleting, error, schema_name } = useAPI({
@@ -25,14 +26,17 @@ function File({ index, file: { name, key }, edit, refresh }: { index: number, fi
         confirmProps: { color: 'red' },
         onConfirm: async () => await del(),
     });
-    
+    const icon = format ? (fileIcons[format]||fileIcons.txt) : fileIcons.txt;
     return (
     <Draggable index={index} draggableId={name}>
     {(provided, snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
-                <Group><IconGripVertical size="1.2rem" /></Group>
+                <Group justify="space-between">
+                    <IconGripVertical size="1.2rem" />
+                    <icon.Icon size={20} color={icon.color?theme.colors[icon.color][6]:undefined} />
+                </Group>
             </Grid.Col>
             <Grid.Col span={4}>{name}</Grid.Col>
             <Grid.Col span={4}>{key||<Text c="dimmed" >{name}</Text>}</Grid.Col>
@@ -78,7 +82,7 @@ export default function Files() {
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
                     <Grid.Col span={1}/>
-                    <Grid.Col span={4} >Name</Grid.Col>
+                    <Grid.Col span={4}>Name</Grid.Col>
                     <Grid.Col span={4}>Template Key</Grid.Col>
                     <Grid.Col span={3}/>
                 </Grid>

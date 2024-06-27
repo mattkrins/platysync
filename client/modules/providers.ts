@@ -3,24 +3,23 @@ import { UseFormReturnType, hasLength, isNotEmpty } from "@mantine/form";
 import { Icon, IconBinaryTree2, IconFileTypeCsv, IconProps } from "@tabler/icons-react";
 
 import CSV from "../routes/Connectors/providers/CSV";
-import { isAlphanumeric } from "./common";
+import { fileIcons, isAlphanumeric } from "./common";
 
 export interface provider {
     id: string;
     name: string;
-    color: string;
+    color?: string;
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
-    Options(props: { form: UseFormReturnType<Record<string, unknown>>, editing?: boolean }): JSX.Element;
-    initialValues?: Record<string, unknown>;
+    Options(props: { form: UseFormReturnType<Connector>, editing?: boolean }): JSX.Element;
+    initialValues?: Partial<Connector>;
     validate?: {[value: string]: (...v: unknown[]) => unknown};
 }
 
 export const providers: provider[] = [
     {
+        ...fileIcons.csv,
         id: 'csv',
         name: "Comma-Separated Values (CSV)",
-        color: 'teal',
-        Icon: IconFileTypeCsv,
         Options: CSV,
         initialValues: {
             name: 'MyCSV',

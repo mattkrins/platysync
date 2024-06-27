@@ -1,21 +1,132 @@
-import { Alert, Center, Group, Loader, Modal, Progress, SimpleGrid, Stepper, Text, TextInput, UnstyledButton, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Alert, Anchor, Button, Center, Grid, Group, Loader, Modal, Progress, ScrollArea, SimpleGrid, Stepper, Tabs, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import Wrapper from "../../components/Wrapper";
 import classes from './Editor.module.css';
-import { IconAlertCircle, IconArrowBigRight, IconCheck, IconTag, IconTestPipe } from "@tabler/icons-react";
+import { IconAlertCircle, IconArrowBigRight, IconCheck, IconDeviceFloppy, IconGripVertical, IconList, IconListCheck, IconPlus, IconRecycle, IconSettings, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
 import { provider, providers } from "../../modules/providers";
 import { useState } from "react";
-import { useForm } from "@mantine/form";
+import { UseFormReturnType, useForm } from "@mantine/form";
 import SplitButton from "../../components/SplitButton";
 import useAPI from "../../hooks/useAPI";
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import { loadConnectors } from "../../providers/schemaSlice";
+import { useDispatch } from "../../hooks/redux";
+import Concealer from "../../components/Concealer";
 
-function Headers() {
-    return (<>
-        <Center><Group><Loader size="sm" type="dots" /><Text>Autodetecting Headers...</Text></Group></Center>
-    
-    </>)
+const findDuplicateIndexes = (arr: string[]) => {
+  const elementMap = new Map();
+  const duplicateIndexes: number[] = [];
+  arr.forEach((item, index) => {
+    if (elementMap.has(item)) {
+      duplicateIndexes.push(index);
+    } else {
+      elementMap.set(item, index);
+    }
+  });
+  return duplicateIndexes;
+};
+
+function List( { form, autodetect, detecting, editing, close }: { form: UseFormReturnType<Connector>, autodetect(): void, detecting?: boolean, editing?: boolean, close?(): void } ) {
+  const dispatch = useDispatch();
+  const { post, error, loading } = useAPI({
+    url: `/connector`, form, schema: true,
+    then: () => { dispatch(loadConnectors()); if (close) close();  }
+  });
+  const headers = (form.values.headers || []) as string[];
+  const add = () => form.insertListItem('headers', '');
+  const clear = () => { form.setFieldValue("headers", []); form.clearErrors(); }
+  const save = () => {
+    for (const index in form.values.headers) {
+      if (!form.values.headers[index]){ form.setFieldError(`headers.${index}`, "Header can not be empty."); return; }
+    } const duplicates = findDuplicateIndexes(form.values.headers);
+    for (const index in duplicates){ form.setFieldError(`headers.${index}`, "Duplicate header."); return; }
+    post();
+  }
+  return (
+  <>
+    {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
+    <Group justify={editing?"flex-end":"space-between"} mb="xs" >
+      {!editing&&<Tooltip label="Save Connector">
+        <ActionIcon onClick={save} variant="subtle" color="blue" disabled={headers.length<=0} loading={loading} >
+            <IconDeviceFloppy size="1.2rem" stroke={1.5} />
+        </ActionIcon>
+      </Tooltip>}
+      {detecting&&<Group><Loader size="sm" type="dots" /><Text>Autodetecting Headers</Text></Group>}
+      <Group mt="xs" mb="xs" justify="flex-end">
+        <Tooltip label="Autodetect Headers">
+          <ActionIcon onClick={()=>autodetect()} variant="subtle" color="orange" loading={detecting} >
+              <IconRecycle size="1.2rem" stroke={1.5} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="Add Header">
+          <ActionIcon onClick={add} variant="subtle" color="green">
+              <IconPlus size="1.2rem" stroke={1.5} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="Delete All">
+          <ActionIcon  mr="md" onClick={clear} variant="subtle" color="red"  disabled={headers.length<=0} >
+              <IconTrash size="1.2rem" stroke={1.5} />
+          </ActionIcon>
+        </Tooltip>
+      </Group>
+    </Group>
+    {(headers.length===0&&!detecting)&&<Center c="dimmed" fz="xs" >No headers configured. <Anchor size="xs" ml={2} mr={2} onClick={add} >Add</Anchor> one to continue.</Center>}
+    <ScrollArea.Autosize mah={300} mx="auto" type="scroll" scrollbarSize={2} >
+    <DragDropContext
+    onDragEnd={({ destination, source }) => form.reorderListItem('headers', { from: source.index, to: destination? destination.index : 0 }) }
+    >
+    <Droppable droppableId="dnd-list" direction="vertical">
+        {(provided) => (
+        <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
+            {headers.map((_, index) => (
+            <Draggable key={index} index={index} draggableId={index.toString()}>
+                {(provided) => (
+                <Grid gutter="xs" mr="md" align="center" ref={provided.innerRef} {...provided.draggableProps}
+                style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }}
+                >
+                    <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
+                        <Group><IconGripVertical size="1rem" /></Group>
+                    </Grid.Col>
+                    <Grid.Col span="auto">
+                        <TextInput size="xs" 
+                        {...form.getInputProps(`headers.${index}`)}
+                        />
+                    </Grid.Col>
+                    <Grid.Col span="content">
+                        <Group gap={0} justify="flex-end">
+                            <ActionIcon onClick={()=>form.removeListItem('headers', index)} variant="subtle" color="red">
+                                <IconTrash size="1.2rem" stroke={1.5} />
+                            </ActionIcon>
+                        </Group>
+                    </Grid.Col>
+                </Grid>
+                )}
+            </Draggable>
+            ))}
+            {provided.placeholder}
+        </div>
+        )}
+    </Droppable>
+    </DragDropContext>
+    </ScrollArea.Autosize>
+  </>
+  );
 }
 
-function ActionButton( { save, loading, validate, force }: { save(): void, loading?: boolean, validate(): void, force(): void } ) {
+function Headers({ initialValues, close, editing  }: { initialValues: Connector, close?(): void, editing?: UseFormReturnType<Connector> }) {
+  const form = useForm<Connector>({ initialValues });
+  const { post: autodetect, error, loading: detecting, setError } = useAPI<string[]>({
+    url: `/connector/getHeaders`, schema: true, fetch: !editing,
+    data: (editing||form).values, method: "post",
+    then: (headers) => (editing||form).setFieldValue("headers", headers),
+  });
+  return (<>
+    {error&&<Alert withCloseButton onClose={()=>setError(undefined)} title={<>Failed to autodetect headers <Button onClick={()=>autodetect()} color="red" size="compact-xs" >Retry</Button></>
+    } mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
+    <List form={editing||form} autodetect={autodetect} detecting={detecting} editing={!!editing} close={close} />
+  </>)
+}
+
+function ConfigButton( { save, loading, validate, force }: { save(): void, loading?: boolean, validate(): void, force(): void } ) {
   const theme = useMantineTheme();
   return (
     <SplitButton loading={loading} onClick={save} options={[
@@ -25,11 +136,11 @@ function ActionButton( { save, loading, validate, force }: { save(): void, loadi
   )
 }
 
-function Configure({ provider: { validate, initialValues, id, Options }, setConfig }: { provider: provider, setConfig(config: object): void }) {
-    const form = useForm<{}>({ validate, initialValues });
-    const save = () => post().then(()=>setConfig({ ...form.values, id }));
-    const force = () => setConfig({ ...form.values, id });
-    const { data: valid, post, error, loading } = useAPI({ url: `/connector/validate`, form, data: { id }, schema: true, });
+function Configure({ provider: { validate, initialValues, id, Options }, config, setConfig }: { provider: provider, config?: Partial<Connector>, setConfig(config: object): void }) {
+    const form = useForm<Connector>({ validate, initialValues: (config||initialValues) as Connector });
+    const save = () => post().then(()=>setConfig({ ...form.values, id, headers: [] }));
+    const force = () => setConfig({ ...form.values, id, headers: [] });
+    const { data: valid, post, error, loading } = useAPI({ url: `/connector/validate?creating=true`, form, data: { id }, schema: true, });
     return <>
         {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
         {!!valid&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Validated successfully.</Alert>}
@@ -40,47 +151,76 @@ function Configure({ provider: { validate, initialValues, id, Options }, setConf
             {...form.getInputProps('name')}
         />
         <Options form={form} />
-        <Group mt="xs" justify="flex-end"><ActionButton loading={loading} save={save} validate={post} force={force} /></Group>
+        <Group mt="xs" justify="flex-end"><ConfigButton loading={loading} save={save} validate={post} force={force} /></Group>
     </>
-
 }
 
-function Content({ connector, refresh, adding }: { connector: Connector, refresh(): void, adding: boolean }) {
-    const theme = useMantineTheme();
-    const [active, setActive] = useState<number>(0);
-    const [config, setConfig] = useState<object>(connector);
-    const [provider, setProvider] = useState<provider|undefined>(undefined);
-    const useConfig = (data: object) => { setConfig(data); setActive(2); }
-    return (
-    <Wrapper>
-      <Stepper size="sm" active={active} onStepClick={setActive} >
-        <Stepper.Step label="Select Provider" >
-            <SimpleGrid cols={2} mt="md">{providers.map(p=>
-                <UnstyledButton onClick={()=>{ setProvider(p); setActive(1); setConfig(connector); }} key={p.id} className={classes.item} >
-                    <p.Icon size={32} color={theme.colors[p.color][6]} />
-                    <Text size="xs" mt={5} >{p.name}</Text>
-                </UnstyledButton>)}
-            </SimpleGrid>
-        </Stepper.Step>
-        <Stepper.Step label="Configure" allowStepSelect={!!config} >
-          {provider&&<Configure provider={provider} setConfig={useConfig} />}
-        </Stepper.Step>
-        <Stepper.Step label="Select Headers" allowStepSelect={false} >
-        {!!config&&<Headers/>}
-        </Stepper.Step>
-        <Stepper.Completed>
-          Completed, click back button to get to previous step
-        </Stepper.Completed>
-      </Stepper>
-    </Wrapper>
-    )
+function NewConnector({ close }: { close(): void, }) {
+  const theme = useMantineTheme();
+  const [active, setActive] = useState<number>(0);
+  const [config, setConfig] = useState<Connector|undefined>(undefined);
+  const [provider, setProvider] = useState<provider|undefined>(undefined);
+  const useConfig = (data: Connector) => { setConfig(data); setActive(2); }
+  return (
+  <Wrapper>
+    <Stepper size="sm" active={active} onStepClick={setActive} >
+      <Stepper.Step label="Select Provider" description={provider&&provider.id} >
+          <SimpleGrid cols={2} mt="md">{providers.map(p=>
+              <UnstyledButton onClick={()=>{ setProvider(p); setActive(1); }} key={p.id} className={classes.item} >
+                  <p.Icon size={32} color={p.color?theme.colors[p.color][6]:undefined} />
+                  <Text size="xs" mt={5} >{p.name}</Text>
+              </UnstyledButton>)}
+          </SimpleGrid>
+      </Stepper.Step>
+      <Stepper.Step label="Configure" allowStepSelect={!!config} description={config&&config.name} >
+        {provider&&<Configure provider={provider} setConfig={useConfig} config={config} />}
+      </Stepper.Step>
+      <Stepper.Step label="Select Headers" allowStepSelect={false} >
+      {!!config&&<Headers initialValues={config} close={close} />}
+      </Stepper.Step>
+    </Stepper>
+  </Wrapper>
+  )
+}
+
+function EditConnector({ provider: { validate, Options, ...provider }, initialValues }: { provider: provider, initialValues: Connector, refresh(): void }) {
+  const dispatch = useDispatch();
+  const form = useForm<Connector>({ validate, initialValues });
+  const { data: success, put, error, loading } = useAPI({
+    url: `/connector`, form, schema: true,
+    then: () => dispatch(loadConnectors())
+  });
+  return (
+  <>
+    {!!success&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Connector updated successfully.</Alert>}
+    {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
+    <TextInput withAsterisk mt="xs" mb="xs"
+        label="Connector Name"
+        placeholder="name"
+        leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+        {...form.getInputProps('name')}
+    />
+    <Options form={form} />
+    <Concealer label="Headers" >
+        <Headers initialValues={initialValues} editing={form} />
+    </Concealer>
+    <Group justify="space-between" mt="md">
+          <Button color="green" loading={loading} onClick={()=>put()}>Validate</Button>
+          <Button disabled={form.values.headers.length<=0} loading={loading} onClick={()=>put()}>Save</Button>
+    </Group>
+  </>)
+} //TODO - add force option
+
+function Content({ connector, refresh, adding, close }: { connector: Connector, refresh(): void, adding: boolean, close(): void, }) {
+  const provider = providers.find(p=>p.id===connector.id);
+  return ( adding? <NewConnector close={close} /> : provider&&<EditConnector initialValues={connector} provider={provider} refresh={refresh} /> )
 }
 
 export default function Editor({ editing, close, refresh }: { editing?: [Connector,boolean], close(): void, refresh(): void }) {
     const adding = (editing && editing[0] && !editing[1]) || false ;
     return (
-      <Modal size="lg" opened={!!editing} onClose={close} styles={{content:{background:"none"},header:{background:"none"}}} closeOnClickOutside={false} >
-        {editing&&<Content connector={editing[0]} refresh={refresh} adding={adding} />}
+      <Modal size="xl" opened={!!editing} title={adding?undefined:"Edit Connector"} onClose={close} styles={adding?{content:{background:"none"},header:{background:"none"}}:undefined} closeOnClickOutside={!adding} >
+        {editing&&<Content connector={editing[0]} refresh={refresh} adding={adding} close={close} />}
       </Modal>
     );
   }
