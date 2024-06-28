@@ -1,29 +1,37 @@
 import { useState } from "react";
-import { Container, Group, Title, Button, Paper, Grid, ActionIcon, Tooltip } from "@mantine/core";
+import { Container, Group, Title, Button, Paper, Grid, ActionIcon, Text, Tooltip } from "@mantine/core";
 import Editor from "./Editor";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
 import Wrapper from "../../components/Wrapper";
+import MenuTip from "../../components/MenuTip";
+import { modals } from "@mantine/modals";
+import { useSelector } from "../../hooks/redux";
 
 function User({ user: { username }, edit, refresh }: { user: User, edit(): void, refresh(): void }) {
-    const { del, loading: deleting, error } = useAPI<User[]>({
+    const { auth: { username: self } } = useSelector(state => state.app);
+    const { del, loading: deleting, error: dError, reset: dReset } = useAPI<User[]>({
         url: "/user", data: { username },
         then: () => refresh()
     });
+
+    const clickDel = () =>
+    modals.openConfirmModal({
+        title: 'Delete User',
+        children: <Text size="sm">Are you sure you want to delete <b>{username}</b>?</Text>,
+        labels: { confirm: 'Delete user', cancel: "Cancel" },
+        confirmProps: { color: 'red' },
+        onConfirm: async () => await del(),
+    });
+    
     return (
     <Paper mb="xs" p="xs" withBorder >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={10}>{username}</Grid.Col>
             <Grid.Col span={2}>
                     <Group gap="xs" justify="flex-end">
-                        <ActionIcon onClick={edit} variant="subtle" color="orange">
-                            <IconPencil size={16} stroke={1.5} />
-                        </ActionIcon>
-                        <Tooltip label={error} opened={!!error} withArrow position="right" color="red">
-                        <ActionIcon onClick={()=>del()} loading={deleting} variant="subtle" color="red">
-                            <IconTrash size={16} stroke={1.5} />
-                        </ActionIcon>
-                        </Tooltip>
+                        <MenuTip label="Edit" Icon={IconPencil} onClick={edit} color="orange" variant="subtle" />
+                        <MenuTip label="Delete" disabled={self===username} Icon={IconTrash} error={dError} reset={dReset} onClick={clickDel} loading={deleting} color="red" variant="subtle" />
                     </Group>
             </Grid.Col>
         </Grid>

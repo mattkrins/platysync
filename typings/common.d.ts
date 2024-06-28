@@ -28,6 +28,13 @@ interface Connector {
     headers:  string[];
 }
 
+interface Rule {
+    name: string;
+    enabled: boolean;
+    description?: string;
+    actions: [];
+}
+
 interface psFile {
     name: string;
     path?: string;
@@ -39,7 +46,7 @@ interface Schema {
     name: string;
     version: string;
     connectors: Connector[];
-    rules: [];
+    rules: Rule[];
     files: psFile[];
 }
 

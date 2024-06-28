@@ -16,25 +16,23 @@ import Users from "./routes/Users/Users";
 import Logs from "./routes/Logs/Logs";
 import Files from "./routes/Files/Files";
 import Connectors from "./routes/Connectors/Connectors";
+import Rules from "./routes/Rules/Rules";
 
 const links = [
     { label: "Home", link: "/home", icon: <IconHome size={15} />, page: Home },
     { label: "Schema", link: "/schema", icon: <IconAdjustmentsHorizontal size={15} />, page: Schema },
     { label: "Files", link: "/files", icon: <IconFiles size={15} />, page: Files },
     { label: "Connectors", link: "/connectors", icon: <IconPlug size={15} />, page: Connectors  },
-    //REVIEW - potential names:
-    // connector, provider, integration, adapter, interface
-    // connectors can be a provider or adapter, provider provide data, adapters do not
-    { label: "Rules", link: "/rules", icon: <IconCheckbox size={15} /> },
+    { label: "Rules", link: "/rules", icon: <IconCheckbox size={15} />, page: Rules, match: "/rules/*?" },
     { label: "Schedules", link: "/schedules", icon: <IconClock size={15} /> },
 ];
 
-function Link({ link, label, icon, disabled }: { link: string, label: string, icon?: JSX.Element, disabled?: boolean }) {
-    const [ active ] = useRoute(link);
-    const [_, setLocation] = useLocation();
-    return <UnstyledButton onClick={()=>setLocation(link)} data-active={active || undefined} data-disabled={disabled || undefined} className={classes.link} disabled={disabled} >
-      <Group gap="xs">{icon}<Text>{label}</Text></Group>
-    </UnstyledButton>;
+function Link({ link, label, icon, disabled, match }: { link: string, match?: string, label: string, icon?: JSX.Element, disabled?: boolean }) {
+  const [ active ] = useRoute(match||link);
+  const [_, setLocation] = useLocation();
+  return <UnstyledButton onClick={()=>setLocation(link)} data-active={active || undefined} data-disabled={disabled || undefined} className={classes.link} disabled={disabled} >
+    <Group gap="xs">{icon}<Text>{label}</Text></Group>
+  </UnstyledButton>;
 }
 
 function Schemas({}) {
@@ -104,7 +102,7 @@ export function AppLayout() {
                   <Anchor onClick={()=>setLocation("/schemas")} ><Avatar src="/logo.png" /></Anchor>
                   <Schemas/>
                   <Group ml="sm" gap="xs" visibleFrom="sm">
-                      {links.map((link) => <Link key={link.label} {...link} link={link.link} disabled={disabled(link.label)} /> )}
+                      {links.map((link) => <Link key={link.label} {...link} link={link.link} disabled={disabled(link.label)} match={link.match} /> )}
                   </Group>
               </Group>
               <Group mr="lg" >
@@ -114,14 +112,14 @@ export function AppLayout() {
           </Group>
         </AppShell.Header>
         <AppShell.Navbar py="md" px={4}>
-          {links.map((link) => <Link key={link.label} {...link} link={link.link} disabled={disabled(link.label)} /> )}
+          {links.map((link) => <Link key={link.label} {...link} link={link.link} disabled={disabled(link.label)} match={link.match} /> )}
         </AppShell.Navbar>
         <AppShell.Main>
           <Switch>
                 <Route path={"/settings"} component={Settings} />
                 <Route path={"/users"} component={Users} />
                 <Route path={"/logs"} component={Logs} />
-                {links.filter(link=>link.page).map(link=><Route key={link.label} path={link.link} component={link.page} />)}
+                {links.filter(link=>link.page).map(link=><Route key={link.label} path={link.link} component={link.page} nest />)}
                 <Route path="*">{(params) => `404, Sorry the page ${params["*"]} does not exist!`}</Route>
           </Switch>
         </AppShell.Main>

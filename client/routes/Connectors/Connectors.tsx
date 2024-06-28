@@ -43,7 +43,7 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
         <Draggable index={index} draggableId={name}>
         {(provided, snapshot) => (
         <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
-            <Tooltip label="Connected successfully" position="right" opened={valid||false} withArrow color="green" zIndex={100} >
+            <Tooltip label="Test successfull" position="right" opened={valid||false} withArrow color="green" zIndex={100} >
             <Grid columns={17} justify="space-between"  align="center" >
                 <Grid.Col span={2} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                     <Group justify="space-between">
@@ -59,7 +59,7 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
                 <Grid.Col span={4} miw={160}>
                     <Group gap="xs" justify="flex-end">
                         {loading&&<Loader size="xs" />}
-                        <MenuTip label="Validate" Icon={IconTestPipe} error={vError} reset={vReset} onClick={()=>validate()} loading={validating} color="lime" variant="subtle" />
+                        <MenuTip label="Test" Icon={IconTestPipe} error={vError} reset={vReset} onClick={()=>validate()} loading={validating} color="lime" variant="subtle" />
                         <MenuTip label="Copy" Icon={IconCopy} error={cError} reset={cReset} onClick={()=>copy()} loading={copying} color="indigo" variant="subtle" />
                         <MenuTip label="Edit" Icon={IconPencil} onClick={edit} color="orange" variant="subtle" />
                         <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={clickDel} loading={deleting} color="red" variant="subtle" />
@@ -69,8 +69,10 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
         </Paper>
         )}
         </Draggable>)
-} //TODO - add tooltips to user page
-
+}
+//REVIEW - potential names:
+// connector, provider, integration, adapter, interface
+// connectors can be a provider or adapter, provider provide data, adapters do not
 export default function Connectors() {
     const { loadingConnectors } = useLoader();
     const dispatch = useDispatch();
@@ -87,7 +89,7 @@ export default function Connectors() {
             <Button onClick={add} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
         <Wrapper loading={loadingConnectors} >
-            {connectors.length<=0?<Text c="dimmed" >No connectors in schema. <Anchor onClick={add} >Add</Anchor> a connector to create rules.</Text>:
+            {connectors.length<=0?<Text c="dimmed" >No connectors configured. <Anchor onClick={add} >Add</Anchor> a connector to create rules.</Text>:
             <Paper mb="xs" p="xs" >
                 <Grid columns={17} justify="space-between">
                     <Grid.Col span={2}/>

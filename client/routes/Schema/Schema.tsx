@@ -15,6 +15,10 @@ import Wrapper from "../../components/Wrapper";
 import { useLocation } from "wouter";
 import { modals } from "@mantine/modals";
 
+const validate = {
+  name: hasLength({ min: 3 }, 'Name must be greater than 2 characters.'),
+}
+
 function ActionButton( { save, saving, open, clickExport, clickDel }: { save(): void, saving: boolean, open(): void, clickExport(): void, clickDel(): void, } ) {
   const theme = useMantineTheme();
   return (
@@ -32,9 +36,7 @@ export default function Schema() {
   const [exporting, setExporting] = useState<Schema|undefined>(undefined);
   const [importOpen, { open: openImporter, close: closeImporter }] = useDisclosure(false);
   const initialValues = useSelector(state => state.schema);
-  const form = useForm<Schema>({ initialValues, validate: {
-    name: hasLength({ min: 3 }, 'Name must be greater than 2 characters.'),
-  }, });
+  const form = useForm<Schema>({ initialValues, validate });
   const { data: success, put: save, del, loading: saving, error } = useAPI({
     url: `/schema`, form,
     data: { editing: initialValues.name },
