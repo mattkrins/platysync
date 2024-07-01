@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Code, Collapse, Drawer, Flex, Group, Loader, Text, TextInput, Title, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Drawer, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { Icon, IconAlertCircle, IconBraces, IconChevronRight, IconCode, IconFiles, IconPlug, IconProps, IconSearch } from "@tabler/icons-react";
@@ -6,8 +6,8 @@ import { ForwardRefExoticComponent, RefAttributes, useCallback, useMemo, useStat
 import { compile, helpers } from "../modules/handlebars";
 import classes from './useTemplater.module.css';
 import { useSelector } from "react-redux";
-import { getConnectors, getFiles } from "../providers/schemaSlice";
-import { provider, providers } from "../modules/providers";
+import { getFiles } from "../providers/schemaSlice";
+import { useConnectors } from "./redux";
 
 type Template = {
     [k: string]: string | { [k: string]: string };
@@ -54,18 +54,27 @@ function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
     )
 }
 
-export default function useTemplater( { context, templates: base }: { context?: string[], templates?: string[] } = {} ) {
+interface TemplateOptions {
+    inline?: string[];
+    buttons?: JSX.Element;
+    disabled?: boolean;
+}
+
+export default function useTemplater( { names, templates: base }: { names?: string[], templates?: string[] } = {} ) {
     const theme = useMantineTheme();
     const [ opened, { open, close } ] = useDisclosure(false);
-    const [ viewFiles, { toggle: toggleFiles } ] = useDisclosure(false);
     const [ viewHelpers, { toggle: toggleHelpers } ] = useDisclosure(false);
     const [ filter, setFilter ] = useState<string>('');
     const [ click, setClick ] = useState(() => (d: string) => console.log(d));
     const [ inline, SetInline ] = useState<string[]>([]);
     const files = useSelector(getFiles);
-    const connectors = useSelector(getConnectors);
-    const contextualised = useMemo(()=>!context?connectors:connectors.filter(c=>context.includes(c.name)),[ connectors ]);
-    const pro_connectors = useMemo(()=>contextualised.map(c=>({ ...(providers.find(p=>p.id===c.id) as provider), ...c })),[ contextualised ]);
+    const { proConnectors } = useConnectors();
+
+    const contextualised = useMemo(()=>{
+        let context = proConnectors;
+        if (names) context = context.filter(c=>names.includes(c.name));
+        return context;
+    },[ proConnectors, names ]);
 
     const template = useMemo(()=>{
         const head: {[k: string]: {[k: string]: string}|string } = { $file: {} };
@@ -80,21 +89,20 @@ export default function useTemplater( { context, templates: base }: { context?: 
     const tags = useMemo(()=>flattenTemplate(template),[ template ]);
     const filteredTags = useMemo(()=>tags.filter(item => item.toLowerCase().includes(filter.toLowerCase()) ),[ tags, filter ]);
 
-
-    const templateProps = useCallback((form: UseFormReturnType<any>, path: string, inline?: string[], buttons?: JSX.Element) => {
+    const templateProps = useCallback((form: UseFormReturnType<any>, path: string, options: TemplateOptions = {}) => {
         const inputProps = form.getInputProps(path);
         let error: string|undefined = inputProps?.error||undefined;
         try { compile(inputProps?.value||"")(template); }
         catch (e) { error = (e as {message: string}).message; }
-        const exploreButton = <ActionIcon onClick={()=>{
+        const exploreButton = <ActionIcon disabled={options.disabled} onClick={()=>{
             setClick(() => (value: string) => form.setFieldValue(path, `${inputProps?.value||""}{{${value}}}`) );
-            if (inline) SetInline(inline);
+            if (options.inline) SetInline(options.inline); //REVIEW - this might break if templates change between explores
             open();
         }} variant="subtle" ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }} /></ActionIcon>;
         const rightSection =
-        <Button.Group style={{marginRight:buttons?(error?55:30):error?25:0}} >
+        <Button.Group style={{marginRight:options.buttons?(error?55:30):error?25:0}} >
             {error&&<Tooltip withArrow label={error} w={220} multiline position="top-end" color="red" ><IconAlertCircle stroke={1.5} color="red" /></Tooltip>}
-            {buttons}
+            {options.buttons}
             {exploreButton}
         </Button.Group>;
         return { rightSection, ...inputProps, error: !!error };
@@ -107,6 +115,7 @@ export default function useTemplater( { context, templates: base }: { context?: 
         <TextInput
         pb="xs" leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }}/>}
         placeholder="Search" onChange={event=>setFilter(event.target.value)} value={filter}
+        rightSection={ (filter) ? ( <CloseButton size="sm" onClick={() => setFilter("")} aria-label="Clear value" /> ) : undefined }
         />
         {filter?
         <Flex style={{justifyContent: 'center'}} gap="sm" justify="flex-start" align="center" direction="row" wrap="wrap" >
@@ -114,17 +123,10 @@ export default function useTemplater( { context, templates: base }: { context?: 
             <Button onClick={()=>click(item)} variant="default" radius="xl" size="compact-xs" key={item}>{item}</Button>
         ))}
         </Flex> : <>
-        {pro_connectors.map(c=>
+        {contextualised.map(c=>
         <Section label={c.name} Icon={c.Icon} color={c.color?theme.colors[c.color][6]:undefined} Ricon={IconPlug} onClick={()=>setFilter(`${c.name}.`)}/>
         )}
         {files.length>0&&<Section label="Files" Icon={IconFiles} onClick={()=>setFilter(`$file.`)} Ricon={IconSearch} />}
-        <Collapse in={viewFiles}>
-            <Flex mt="xs" style={{justifyContent: 'center'}} gap="sm" justify="flex-start" align="center" direction="row" wrap="wrap" >
-            {files.map(({ name, key }) => (
-                <Button onClick={()=>click(`$file.${key||name}`)} variant="default" radius="xl" size="compact-xs" key={name}>{name}</Button>
-            ))}
-            </Flex>
-        </Collapse>
         <Section open={viewHelpers} label="Helpers" Icon={IconBraces} onClick={toggleHelpers} />
         <Collapse mt="xs" in={viewHelpers}>
             {helpers.map(helper=>

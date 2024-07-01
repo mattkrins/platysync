@@ -11,6 +11,7 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { loadConnectors } from "../../providers/schemaSlice";
 import { useDispatch } from "../../hooks/redux";
 import Concealer from "../../components/Concealer";
+import { useDisclosure } from "@mantine/hooks";
 
 const findDuplicateIndexes = (arr: string[]) => {
   const elementMap = new Map();
@@ -184,6 +185,7 @@ function NewConnector({ close }: { close(): void, }) {
 }
 
 function EditConnector({ provider: { validate, Options }, initialValues }: { provider: provider, initialValues: Connector, refresh(): void }) {
+  const [opened, { toggle }] = useDisclosure(false);
   const theme = useMantineTheme();
   const dispatch = useDispatch();
   const form = useForm<Connector>({ validate, initialValues: structuredClone(initialValues) });
@@ -212,7 +214,7 @@ function EditConnector({ provider: { validate, Options }, initialValues }: { pro
         {...form.getInputProps('name')}
     />
     <Options form={form} />
-    <Concealer label="Headers" ><Headers initialValues={initialValues} editing={form} /></Concealer>
+    <Concealer label="Headers" onClick={toggle} isOpen={opened} >{opened&&<Headers initialValues={initialValues} editing={form} />}</Concealer>
     <Group justify="right" mt="md">
       <SplitButton disabled={form.values.headers.length<=0} loading={loading} onClick={()=>save()} leftSection={<IconDeviceFloppy size={16}  />} options={[
             {  onClick:()=>val(), label: 'Validate', leftSection: <IconTestPipe color={theme.colors['lime'][6]} size={16}  /> },

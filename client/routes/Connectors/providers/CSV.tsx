@@ -5,7 +5,7 @@ import { UseFormReturnType } from "@mantine/form";
 import useTemplater from "../../../hooks/useTemplater";
 
 export default function CSV( { form }: { form: UseFormReturnType<Connector> } ) {
-    const { templateProps, explorer } = useTemplater({context:[]});
+    const { templateProps, explorer } = useTemplater({names:[]});
     return (
     <>  {explorer}
         <TextInput

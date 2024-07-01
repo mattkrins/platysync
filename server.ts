@@ -16,6 +16,7 @@ import { xError } from './server/modules/common';
 import logs from './server/routes/logs';
 import file from './server/routes/file';
 import connectors from './server/routes/connectors';
+import rule from './server/routes/rule';
 const { combine, timestamp, json, simple, errors } = winston.format;
 
 export let version = process.env.npm_package_version as string;
@@ -66,6 +67,7 @@ function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (
 async function routes(route: FastifyInstance) {
   if (dev) route.addHook('preHandler', (req, res, done: () => void) => setTimeout(done, 200) );
   addRoute(route, '/auth', auth, false);
+  addRoute(route, '/schema/:schema_name/rule', rule);
   addRoute(route, '/schema/:schema_name/file', file);
   addRoute(route, '/schema/:schema_name/connector', connectors);
   addRoute(route, '/schema', schema);

@@ -1,7 +1,5 @@
-import { MantineProvider, PasswordInput, Select } from "@mantine/core";
+import { createTheme, MantineProvider, PasswordInput, Select, TextInput, Textarea } from "@mantine/core";
 import { ModalsProvider } from '@mantine/modals';
-import { TextInput } from '@mantine/core';
-import { createTheme } from "@mantine/core";
 import { Route, Switch, useLocation } from "wouter";
 import { Provider } from 'react-redux';
 
@@ -19,24 +17,19 @@ import { useDispatch, useSelector } from "./hooks/redux";
 import { isSetup, loadApp, loadSettings } from "./providers/appSlice";
 import { useEffect } from "react";
 
+const inputTheme = {
+  classNames: {
+    input: themeClasses.input,
+  },
+};
+
 const theme = createTheme({
   fontFamily: 'Roboto, sans-serif',
   components: {
-      TextInput: TextInput.extend({
-        classNames: {
-          input: themeClasses.input,
-        },
-      }),
-      PasswordInput: TextInput.extend({
-        classNames: {
-          input: themeClasses.input,
-        },
-      }),
-      Select: TextInput.extend({
-        classNames: {
-          input: themeClasses.input,
-        },
-      }),
+      TextInput: TextInput.extend(inputTheme),
+      PasswordInput: PasswordInput.extend(inputTheme),
+      Select: Select.extend(inputTheme),
+      Textarea: Textarea.extend(inputTheme),
   },
 });
 

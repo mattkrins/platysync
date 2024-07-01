@@ -94,6 +94,7 @@ export default async function (route: FastifyInstance) {
             const connectors = await getConnectors(schema_name);
             const connector = connectors.find(c=>c.name===name);
             if (connector) throw new xError("Connector name taken", 'name', 409);
+            options.type = options.type||"provider";
             connectors.push({ id, name, ...options, headers });
             await sync();
             return true;

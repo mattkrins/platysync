@@ -28,10 +28,21 @@ interface Connector {
     headers:  string[];
 }
 
+interface Join {
+    foreignName: string;
+    foreignKey?: string;
+    primaryName: string;
+    primaryKey?: string;
+}
+
 interface Rule {
     name: string;
     enabled: boolean;
+    log: boolean;
     description?: string;
+    primary?: string;
+    primaryKey?: string;
+    sources: Join[];
     actions: [];
 }
 

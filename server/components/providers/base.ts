@@ -17,6 +17,7 @@ export class base_provider implements base_provider_options {
     }
     public async validate(): Promise<void> {}
     public async configure(): Promise<void> {}
+    public async connect(): Promise<any> {}
     public async preConfigure(): Promise<void> {}
     public async getHeaders(): Promise<string[]> { return []; }
 }

@@ -43,6 +43,17 @@ export default class CSV extends base_provider {
         const content = await this.open();
         return content.meta.fields || [];
     }
+    public async connect(foreign_key?: string) {
+        const data = await this.open() as { data: {[k: string]: string}[] };
+        const rows = [];
+        const keyed: {[foreign_key: string]: object} = {};
+        for (const row of data.data){ // row = {STKEY: "KRI0001",ETC:"TEST"}
+            if (foreign_key) {
+                const foreign_data = row[foreign_key];
+                keyed[foreign_data] = row;
+            } rows.push(row);
+        } return { rows, keyed };
+    }
     //public async Connect(foreign_key?: string, primary_data?: string) {
     //    const data = await this.open() as { data: {[k: string]: string}[] };
     //    const rows = [];
