@@ -1,4 +1,4 @@
-import { Box, Grid, Group, Select, TextInput, Text, ActionIcon, Modal, Button, SimpleGrid, Paper, useMantineTheme, Textarea, Switch } from "@mantine/core";
+import { Box, Grid, Group, Select, TextInput, Text, ActionIcon, Modal, Button, SimpleGrid, Paper, useMantineTheme, Textarea, Switch, Tooltip } from "@mantine/core";
 import { UseFormReturnType, isNotEmpty, useForm } from "@mantine/form";
 import { IconGripVertical, IconKey, IconPencil, IconPlus, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../components/SelectConnector";
@@ -9,7 +9,7 @@ import { provider } from "../../../modules/providers";
 import MenuTip from "../../../components/MenuTip";
 import useTemplater from "../../../hooks/useTemplater";
 
-function Source({ index, source, form, edit }: { index: number, source: Join, form: UseFormReturnType<Rule, (values: Rule) => Rule>, edit(source: Join, index: number): void }) {
+function Source({ index, source, form, edit }: { index: number, source: Source, form: UseFormReturnType<Rule>, edit(source: Source, index: number): void }) {
     const theme = useMantineTheme();
     const { proConnectors } = useConnectors();
     const provider = proConnectors.find(c=>c.name===source.foreignName) || {} as Connector&provider;
@@ -41,9 +41,9 @@ const validate = {
     primaryName: isNotEmpty('Primary connector must not be empty.'),
 }
 
-function SourceModal({ join, index, adding, sources, rule, close }: { join: Join, index?: number, adding: boolean, sources: string[], rule: UseFormReturnType<Rule, (values: Rule) => Rule>, close(): void }) {
+function SourceModal({ join, index, adding, sources, rule, close }: { join: Source, index?: number, adding: boolean, sources: string[], rule: UseFormReturnType<Rule>, close(): void }) {
     const { proConnectors } = useConnectors();
-    const form = useForm<Join>({ validate, initialValues: structuredClone(join) });
+    const form = useForm<Source>({ validate, initialValues: structuredClone(join) });
     const add = () => {
         form.validate(); if (!form.isValid()) return;
         rule.insertListItem('sources', form.values);
@@ -54,7 +54,11 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Join
         close();
     }
     const edit = () => {
-        rule.values.sources.find(s=>s.foreignName)
+        form.validate(); if (!form.isValid()) return;
+        rule.setFieldValue(`sources.${index}.foreignKey`, form.values.foreignKey||null);
+        rule.setFieldValue(`sources.${index}.primaryName`, form.values.primaryName||null);
+        rule.setFieldValue(`sources.${index}.primaryKey`, form.values.primaryKey||null);
+        close();
     }
     const foreignName = form.values.foreignName;
     const primaryName = form.values.primaryName;
@@ -109,7 +113,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Join
     </>)
 }
 
-function SourceEditor({ editing, close, sources, form }: { editing?: [Join,number|undefined,boolean], close(): void, sources: string[], form: UseFormReturnType<Rule, (values: Rule) => Rule> }) {
+function SourceEditor({ editing, close, sources, form }: { editing?: [Source,number|undefined,boolean], close(): void, sources: string[], form: UseFormReturnType<Rule> }) {
     const adding = (editing && editing[0] && !editing[2]) || false ;
     return (
     <Modal opened={!!editing} size="xl" onClose={close} title={adding ? "Add Source" : "Edit Source"}>
@@ -118,14 +122,14 @@ function SourceEditor({ editing, close, sources, form }: { editing?: [Join,numbe
     );
 }
 
-export default function Settings( { form, used, sources }: { form: UseFormReturnType<Rule, (values: Rule) => Rule>, used: string[], sources: string[] } ) {
+export default function Settings( { form, used, sources }: { form: UseFormReturnType<Rule>, used: string[], sources: string[] } ) {
     const { templateProps, explorer } = useTemplater({names:sources});
-    const [ editingSource, setEditingSource ] = useState<[Join,number|undefined,boolean]|undefined>(undefined);
+    const [ editingSource, setEditingSource ] = useState<[Source,number|undefined,boolean]|undefined>(undefined);
     const { proConnectors } = useConnectors();
     const primary = useMemo(()=>proConnectors.find((item) => item.name === form.values.primary), [ form.values.primary ]);
     const primaryHeaders = primary ? primary.headers : [];
-    const add = () => setEditingSource([{ foreignName: null, primaryName: null } as unknown as Join,undefined,false]);
-    const edit = (source: Join, index: number) => setEditingSource([source,index,true]);
+    const add = () => setEditingSource([{ foreignName: null, primaryName: null } as unknown as Source,undefined,false]);
+    const edit = (source: Source, index: number) => setEditingSource([source,index,true]);
     
     const changePrimary = () => {
         form.setFieldValue("primaryKey", null as unknown as string);
@@ -168,9 +172,11 @@ export default function Settings( { form, used, sources }: { form: UseFormReturn
                 <Text size="xs" c="dimmed" >Join connectors with relational keys for additional data.</Text>
             </SimpleGrid>
             <Group justify="right" gap="xs" >
-                <ActionIcon size="lg" variant="default" disabled={!form.values.primary||sources.length>=proConnectors.length} onClick={add} >
-                    <IconPlus size={15} stroke={1.5} />
-                </ActionIcon>
+                <Tooltip label="Add Source" >
+                    <ActionIcon size="lg" variant="default" disabled={!form.values.primary||sources.length>=proConnectors.length} onClick={add} >
+                        <IconPlus size={15} stroke={1.5} />
+                    </ActionIcon>
+                </Tooltip>
             </Group>
         </Group>
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('sources', { from: source.index, to: destination? destination.index : 0 }) } >

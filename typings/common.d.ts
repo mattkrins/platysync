@@ -28,11 +28,19 @@ interface Connector {
     headers:  string[];
 }
 
-interface Join {
+interface Source {
     foreignName: string;
     foreignKey?: string;
     primaryName: string;
     primaryKey?: string;
+}
+
+interface Condition {
+    name: string,
+    key: string,
+    operator: string,
+    value: string,
+    delimiter?: string,
 }
 
 interface Rule {
@@ -42,7 +50,9 @@ interface Rule {
     description?: string;
     primary?: string;
     primaryKey?: string;
-    sources: Join[];
+    display?: string;
+    sources: Source[];
+    conditions: Condition[];
     actions: [];
 }
 

@@ -1,4 +1,4 @@
-import { IconProps, Icon, IconFile, IconFileTypeCsv, IconFileTypePdf } from "@tabler/icons-react";
+import { IconProps, Icon, IconFile, IconFileTypeCsv, IconFileTypePdf, IconPhoto, IconFileTypeDocx, IconFileTypeXls, IconFileText, IconFileZip } from "@tabler/icons-react";
 import axios from "axios";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
@@ -40,5 +40,15 @@ export const fileIcons: {[k: string]:  {
 }} = {
   txt: { Icon: IconFile },
   csv: { Icon: IconFileTypeCsv, color: "teal" },
+  json: { Icon: IconFileText, color: "teal" },
+  xml: { Icon: IconFileText, color: "teal" },
   pdf: { Icon: IconFileTypePdf, color: "red" },
+  jpg: { Icon: IconPhoto, color: "orange" },
+  png: { Icon: IconPhoto, color: "orange" },
+  gif: { Icon: IconPhoto, color: "orange" },
+  doc: { Icon: IconFileTypeDocx, color: "blue" },
+  docx: { Icon: IconFileTypeDocx, color: "blue" },
+  xls: { Icon: IconFileTypeXls, color: "green" },
+  xlsx: { Icon: IconFileTypeXls, color: "green" },
+  zip: { Icon: IconFileZip, color: "yellow" },
 }

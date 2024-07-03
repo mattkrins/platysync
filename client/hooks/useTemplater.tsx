@@ -3,7 +3,7 @@ import { UseFormReturnType } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { Icon, IconAlertCircle, IconBraces, IconChevronRight, IconCode, IconFiles, IconPlug, IconProps, IconSearch } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes, useCallback, useMemo, useState } from "react";
-import { compile, helpers } from "../modules/handlebars";
+import { compile, genericHelpers } from "../modules/handlebars";
 import classes from './useTemplater.module.css';
 import { useSelector } from "react-redux";
 import { getFiles } from "../providers/schemaSlice";
@@ -60,6 +60,17 @@ interface TemplateOptions {
     disabled?: boolean;
 }
 
+export type templateProps = (form: UseFormReturnType<any>, path: string, options?: TemplateOptions) => {
+    error: boolean;
+    onChange: any;
+    value?: any;
+    defaultValue?: any;
+    checked?: any;
+    onFocus?: any;
+    onBlur?: any;
+    rightSection: JSX.Element;
+}
+
 export default function useTemplater( { names, templates: base }: { names?: string[], templates?: string[] } = {} ) {
     const theme = useMantineTheme();
     const [ opened, { open, close } ] = useDisclosure(false);
@@ -89,7 +100,7 @@ export default function useTemplater( { names, templates: base }: { names?: stri
     const tags = useMemo(()=>flattenTemplate(template),[ template ]);
     const filteredTags = useMemo(()=>tags.filter(item => item.toLowerCase().includes(filter.toLowerCase()) ),[ tags, filter ]);
 
-    const templateProps = useCallback((form: UseFormReturnType<any>, path: string, options: TemplateOptions = {}) => {
+    const templateProps: templateProps = useCallback((form: UseFormReturnType<any>, path: string, options: TemplateOptions = {}) => {
         const inputProps = form.getInputProps(path);
         let error: string|undefined = inputProps?.error||undefined;
         try { compile(inputProps?.value||"")(template); }
@@ -103,7 +114,7 @@ export default function useTemplater( { names, templates: base }: { names?: stri
         <Button.Group style={{marginRight:options.buttons?(error?55:30):error?25:0}} >
             {error&&<Tooltip withArrow label={error} w={220} multiline position="top-end" color="red" ><IconAlertCircle stroke={1.5} color="red" /></Tooltip>}
             {options.buttons}
-            {exploreButton}
+            <Tooltip label="Template Explorer" >{exploreButton}</Tooltip>
         </Button.Group>;
         return { rightSection, ...inputProps, error: !!error };
     }, [ template ]);
@@ -129,7 +140,7 @@ export default function useTemplater( { names, templates: base }: { names?: stri
         {files.length>0&&<Section label="Files" Icon={IconFiles} onClick={()=>setFilter(`$file.`)} Ricon={IconSearch} />}
         <Section open={viewHelpers} label="Helpers" Icon={IconBraces} onClick={toggleHelpers} />
         <Collapse mt="xs" in={viewHelpers}>
-            {helpers.map(helper=>
+            {genericHelpers.map(helper=>
             <UnstyledButton onClick={addHelper(helper.key, helper.example)} mb="xs" key={helper.key} className={classes.connector} p="xs" pt={0} pb={4} >
                 <Title size="h5" >{helper.key}</Title>
                 {helper.description&&<Text size="xs" c="dimmed" >{helper.description}</Text>}

@@ -3,11 +3,14 @@ import { IconFilter, IconPackageExport, IconPackageImport, IconRun, IconSettings
 import Wrapper from "../../../components/Wrapper";
 import { useLocation } from "wouter";
 import SplitButton from "../../../components/SplitButton";
-import { isNotEmpty, useForm } from "@mantine/form";
+import { UseFormReturnType, isNotEmpty, useForm } from "@mantine/form";
 import useAPI from "../../../hooks/useAPI";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Settings from "./Settings";
 import { modals } from "@mantine/modals";
+import Conditions from "./Conditions";
+import { useConnectors } from "../../../hooks/redux";
+import Actions from "./Actions";
 
 const validate = {
     name: isNotEmpty('Name must not be empty.'),
@@ -23,6 +26,14 @@ function ActionButton( { loading, save, test, cancel }: { loading?: boolean, sav
       {  onClick:()=>cancel(), label: 'Cancel', leftSection: <IconX size={16} color={theme.colors.red[5]}  /> },
       ]} >Save</SplitButton>
   )
+}
+
+export function useRule( form: UseFormReturnType<Rule> ) {
+    const used = (form.values.sources||[]).map(s=>s.foreignName);
+    const sources = form.values.primary ? [form.values.primary, ...used] : [];
+    const { proConnectors } = useConnectors();
+    const ruleProConnectors = useMemo(()=>proConnectors.filter(c=>sources.includes(c.name)), [ proConnectors, sources ]);
+    return { used, sources, ruleProConnectors };
 }
 
 export default function Editor({ editing, close }: { editing: [Rule,boolean], close(): void }) {
@@ -47,11 +58,10 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
         onConfirm: () => cancel(),
     }) : cancel();
 
-    const used = (form.values.sources||[]).map(s=>s.foreignName);
-    const sources = form.values.primary ? [form.values.primary, ...used] : [];
+    const { used, sources } = useRule(form);
 
     return (
-    <Container>
+    <Container size="lg">
         <Group justify="space-between">
             <Title mb="xs" ><Title mb="xs" onClick={safeCancel} component={Anchor} >Rules</Title> / Rule - {adding?'New':'Edit'}</Title>
             <ActionButton save={()=>{}} test={()=>test()} cancel={safeCancel} />
@@ -63,7 +73,9 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
                 <Tabs.Tab value="conditions" disabled={!form.values.primary} leftSection={<IconFilter size="1rem" />}>Conditions</Tabs.Tab>
                 <Tabs.Tab value="actions" leftSection={<IconRun size="1rem" />}>Actions</Tabs.Tab>
             </Tabs.List>
-            <Tabs.Panel value="settings" p="xs" >{activeTab==="settings"&&<Settings form={form} used={used} sources={sources} />}</Tabs.Panel>
+            <Tabs.Panel value="settings" pt="xs" >{activeTab==="settings"&&<Settings form={form} used={used} sources={sources} />}</Tabs.Panel>
+            <Tabs.Panel value="conditions" pt="xs" >{activeTab==="conditions"&&<Conditions form={form} />}</Tabs.Panel>
+            <Tabs.Panel value="actions" pt="xs" >{activeTab==="actions"&&<Actions form={form} />}</Tabs.Panel>
             </Tabs>
         </Wrapper>
     </Container>

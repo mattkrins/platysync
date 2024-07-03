@@ -13,7 +13,7 @@ function RulesList({ add }: { add(): void }) {
     const dispatch = useDispatch();
     const rules = useSelector(getRules);
     return (
-    <Container>
+    <Container size="lg">
         <Group justify="space-between">
             <Title mb="xs" >Rules</Title>
             <Button onClick={add} leftSection={<IconPlus size={18} />} >Add</Button>
@@ -49,7 +49,7 @@ export default function Rules() {
     const [ editing, setEditing ] = useState<[Rule,boolean]|undefined>(undefined);
     const close = () => setEditing(undefined);
     const add = () => {
-        setEditing([{ name: "", enabled: false, sources: [], actions: [] },false]);
+        setEditing([{ name: "", enabled: false, sources: [], actions: [], conditions: [], log: false },false]);
         setLocation("/edit");
     }
     return (

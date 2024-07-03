@@ -20,7 +20,7 @@ export const compile = function(input: string, options?: CompileOptions | undefi
     return Handlebars.compile(input, {...options, noEscape: true, strict: true });
 }
 
-export const helpers = [
+export const genericHelpers = [
     { key: "$upper", description: "Converts the input to UPPERCASE.", example: "{{$upper 'HELLO world'}} > HELLO WORLD" },
     { key: "$lower", description: "Converts the input to lowercase.", example: "{{$lower 'HELLO world'}} > hello world" },
     { key: "$title", description: "Converts the input to Title Case.", example: "{{$title 'HELLO world'}} > Hello World" },

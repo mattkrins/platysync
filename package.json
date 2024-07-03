@@ -21,6 +21,7 @@
     "handlebars": "^4.7.8",
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.4",
+    "ldapjs": "^3.0.7",
     "lowdb": "^7.0.1",
     "mime": "^4.0.3",
     "papaparse": "^5.4.1",
