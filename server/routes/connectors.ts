@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../modules/common";
 import { getConnectors, getSchema, sync } from "../components/database";
 import { providers } from "../components/providers";
+import { encrypt } from "../modules/cryptography";
 
 function validateHeaders(headers: string[]) {
     const findDuplicateIndexes = (arr: string[]) => {
@@ -62,7 +63,7 @@ export default async function (route: FastifyInstance) {
             }
             const schema = await getSchema(schema_name);
             const provider = new providers[id]({ id, name, ...options, schema });
-            await provider.preConfigure();
+            await provider.initialize();
             await provider.validate();
             return true;
         } catch (e) { new xError(e).send(reply); }
@@ -77,7 +78,7 @@ export default async function (route: FastifyInstance) {
             });
             const schema = await getSchema(schema_name);
             const provider = new providers[id]({ id, name, ...options, schema });
-            await provider.preConfigure();
+            await provider.initialize();
             await provider.configure();
             return await provider.getHeaders();
         } catch (e) { new xError(e).send(reply); }
@@ -94,6 +95,7 @@ export default async function (route: FastifyInstance) {
             const connectors = await getConnectors(schema_name);
             const connector = connectors.find(c=>c.name===name);
             if (connector) throw new xError("Connector name taken", 'name', 409);
+            if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
             options.type = options.type||"provider";
             connectors.push({ id, name, ...options, headers });
             await sync();
@@ -114,13 +116,14 @@ export default async function (route: FastifyInstance) {
             const connector = schema.connectors.find(f=>f.name===editing);
             if (!connector) throw new xError("Connector not found.", "name", 404 );
             try {
-                const provider = new providers[id]({ id, name, ...options, schema });
-                await provider.preConfigure();
+                const provider = new providers[id]({ id, name, headers, ...options, schema });
+                await provider.initialize();
                 await provider.validate();
             } catch (e) { if (!force) throw new xError(e);  }
             if (editing!==name){
                 if (schema.connectors.find(c=>c.name===name)) throw new xError("Connector name taken.", "name", 409);
             }
+            if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
             schema.connectors = schema.connectors.map(c=>c.name!==editing?c:{...c, name, ...options, headers })
             await sync();
             return true;

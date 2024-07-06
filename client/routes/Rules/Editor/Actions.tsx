@@ -4,8 +4,12 @@ import { useClickOutside, useDisclosure } from "@mantine/hooks";
 import classes from './Actions.module.css';
 import { IconProps, Icon, IconChevronRight, IconChevronDown } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { availableActions, availableCategories, availableCategory } from "../../../modules/actions";
+import { availableAction, availableActions, availableCategories, availableCategory } from "../../../modules/actions";
 //LINK - https://github.com/hello-pangea/dnd/blob/main/docs/api/droppable.md#conditionally-dropping
+
+//NOTE - do not make target connector avalible if only 1 of type in context
+//NOTE - unlock context, enable selecting any connector but additional field target user appears with filter
+//NOTE - on server-side, if no target specified, use user in context
 
 interface SectionProps {
     onClick(): void;
@@ -67,8 +71,9 @@ function ActionButton() {
 }
 
 export default function Actions({ form }: { form: UseFormReturnType<Rule> }) {
-  return (
-  <Box>
-      <Divider my="xs" label={<ActionButton/>} labelPosition="right" />
-  </Box>)
+    const add = (c: availableAction) => () => form.insertListItem('actions', { name: c.name });
+    return (
+    <Box>
+        <Divider my="xs" label={<ActionButton/>} labelPosition="right" />
+    </Box>)
 }

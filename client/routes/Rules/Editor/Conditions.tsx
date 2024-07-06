@@ -1,11 +1,12 @@
 import { ActionIcon, Autocomplete, Box, Button, Grid, Group, Menu, Popover, Select, Text, TextInput, Tooltip, useMantineTheme } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
-import { Icon, IconCalendar, IconChevronDown, IconCirclesRelation, IconCodeAsterix, IconCopy, IconDots, IconFile, IconFolder, IconGripVertical, IconMathFunction, IconProps, IconTrash, IconUserQuestion, IconUsersGroup } from '@tabler/icons-react';
+import { Icon, IconCalendar, IconChevronDown, IconCirclesRelation, IconCodeAsterix, IconCopy, IconDots, IconFile, IconFolder, IconGripVertical, IconLock, IconLockOff, IconMathFunction, IconProps, IconQuestionMark, IconSearch, IconTrash, IconUserQuestion, IconUsersGroup, IconX } from '@tabler/icons-react';
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from 'react'
 import { useRule } from './Editor';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import useTemplater, { templateProps } from '../../../hooks/useTemplater';
 import SelectConnector from '../../../components/SelectConnector';
+import { useDisclosure } from '@mantine/hooks';
 
 const stringOperators = [
     { label: '== Equal To', value: '==' },
@@ -127,6 +128,7 @@ function File({ form, templateProps, index, c }: { form: UseFormReturnType<Rule>
 }
 
 function Ldap({ form, templateProps, index, c }: { form: UseFormReturnType<Rule>, templateProps: templateProps, index: number, c: availableCondition }) {
+    const { sources } = useRule(form);
     const data = useMemo(()=>{ switch (c.id) {
         case 'ldap.status': return statusOperators;
         case 'ldap.group': return groupOperators;
@@ -136,7 +138,7 @@ function Ldap({ form, templateProps, index, c }: { form: UseFormReturnType<Rule>
     return (
     <>
         <Grid.Col span="auto" >
-            <SelectConnector {...form.getInputProps(`conditions.${index}.key`)} ids={["ldap"]} clearable />
+            <SelectConnector {...form.getInputProps(`conditions.${index}.key`)} ids={["ldap"]} names={sources} clearable />
         </Grid.Col>
         <Grid.Col span="content" >
             <Select
@@ -195,6 +197,15 @@ const availableConditions: availableCondition[] = [
         id: 'file',
         Icon: IconFile,
         color: "lime",
+        group: "file",
+        Options: File,
+        defaultOperator: 'file.exists',
+    },
+    {
+        name: "Folder Constraint",
+        id: 'folder',
+        Icon: IconFolder,
+        color: "green",
         group: "file",
         Options: File,
         defaultOperator: 'file.exists',
@@ -261,7 +272,7 @@ export default function Conditions({ form, label, compact }: { form: UseFormRetu
     const add = (c: availableCondition) => () => form.insertListItem('conditions', { name: c.name, operator: c.defaultOperator, key: null, value: null, });
     const { ruleProConnectors, sources } = useRule(form);
     const { templateProps, explorer } = useTemplater({names:sources});
-    const ldapProvider = ruleProConnectors.find(c=>c.id!=="ldap");
+    const ldapAvailable = ruleProConnectors.find(c=>c.id==="ldap");
     return (
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >
@@ -282,7 +293,7 @@ export default function Conditions({ form, label, compact }: { form: UseFormRetu
                     {availableConditions.filter(c=>c.group==="file").map(c=>
                         <Menu.Item key={c.id} onClick={add(c)} leftSection={<c.Icon color={c.color?theme.colors[c.color][6]:undefined} size="1rem" stroke={1.5} />}>{c.name}</Menu.Item>
                     )}
-                    {ldapProvider&&<>
+                    {ldapAvailable&&<>
                     <Menu.Label>Directory</Menu.Label>
                     {availableConditions.filter(c=>c.group==="directory").map(c=>
                         <Menu.Item key={c.id} onClick={add(c)} leftSection={<c.Icon color={c.color?theme.colors[c.color][6]:undefined} size="1rem" stroke={1.5} />}>{c.name}</Menu.Item>

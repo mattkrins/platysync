@@ -16,8 +16,16 @@ export function compareVersion(a: string, b: string) {
   } return segmentsA.length - segmentsB.length;
 }
 
+
+export function validStr(string?: unknown) {
+  if (!string) return false;
+  if (typeof string !== "string") return false;
+  if (string.trim()==="") return false;
+  return true;
+}
+
 export const testRegex = (error = "Invalid.", regex: RegExp) => (value: unknown) => regex.test(value as string) ? false : error;
-export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => testRegex(error, /^[a-zA-Z0-9_]+$/)(value);
+export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => validStr(value) ? testRegex(error, /^[a-zA-Z0-9_]+$/)(value) : "Can not be empty";
 
 export function checkForUpdate(): Promise<string> {
   return new Promise((resolve, reject) => {

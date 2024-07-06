@@ -29,11 +29,19 @@ function ActionButton( { loading, save, test, cancel }: { loading?: boolean, sav
 }
 
 export function useRule( form: UseFormReturnType<Rule> ) {
-    const used = (form.values.sources||[]).map(s=>s.foreignName);
-    const sources = form.values.primary ? [form.values.primary, ...used] : [];
+    const usedSources = (form.values.sources||[]).map(s=>s.foreignName);
+    const usedContexts = (form.values.contexts||[]).map(s=>s.name); 
+    const sources = form.values.primary ? [form.values.primary, ...usedSources, ...usedContexts] : [];
     const { proConnectors } = useConnectors();
+    const contextSources = useMemo(()=>{
+        const contextCapable = proConnectors.filter(c=>c.Context).map(c=>c.name);
+        return contextCapable.filter(c=>!sources.includes(c));
+    }, [ proConnectors, sources ]);
     const ruleProConnectors = useMemo(()=>proConnectors.filter(c=>sources.includes(c.name)), [ proConnectors, sources ]);
-    return { used, sources, ruleProConnectors };
+    const primary = useMemo(()=>proConnectors.find((item) => item.name === form.values.primary), [ form.values.primary ]);
+    const primaryHeaders = primary ? primary.headers : [];
+    const displayExample = `{{${form.values.primary?`${form.values.primary}.`:''}${form.values.primaryKey ? form.values.primaryKey :  (primaryHeaders[0] ? primaryHeaders[0] : 'id')}}}`
+    return { used: usedSources, sources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample };
 }
 
 export default function Editor({ editing, close }: { editing: [Rule,boolean], close(): void }) {

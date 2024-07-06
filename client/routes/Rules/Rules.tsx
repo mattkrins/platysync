@@ -49,7 +49,7 @@ export default function Rules() {
     const [ editing, setEditing ] = useState<[Rule,boolean]|undefined>(undefined);
     const close = () => setEditing(undefined);
     const add = () => {
-        setEditing([{ name: "", enabled: false, sources: [], actions: [], conditions: [], log: false },false]);
+        setEditing([{ name: "", enabled: false, log: false, sources: [], contexts: [], conditions: [], actions: [] },false]);
         setLocation("/edit");
     }
     return (

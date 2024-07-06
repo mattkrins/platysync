@@ -65,12 +65,12 @@ export function validStr(string?: unknown) {
     return true;
 }
 
-export const hasLength = ({ min, max }: { min: number, max?: number } = { min: 0, max: 0 }, error = "Too short.") => (value: unknown) =>
+export const hasLength = ({ min, max }: { min: number, max?: number } = { min: 0, max: 0 }, error = "Too short.") => (value: unknown = "") =>
 max ? ( (value as string).length <= min && (value as string).length >= min ) :  (value as string).length >= min ? false : error;
 export const isNotEmpty = (error = "Can not be empty.") => (value: unknown) => validStr(value) ? false : error;
 export const contains = (array: string[], error = "Does not contain.") => (value: unknown) => array.includes(value as string) ? false : error;
 export const testRegex = (error = "Invalid.", regex: RegExp) => (value: unknown) => regex.test(value as string) ? false : error;
-export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => testRegex(error, /^[a-zA-Z0-9_]+$/)(value);
+export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => validStr(value) ? testRegex(error, /^[a-zA-Z0-9_]+$/)(value) : "Can not be empty";
 
 export function validate(values: { [k: string]: unknown }, validation: { [k: string]: (value: unknown) => unknown }) {
   for (const key of (Object.keys(validation))){

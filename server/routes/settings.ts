@@ -63,7 +63,7 @@ export default async function (route: FastifyInstance) {
             const url = new URL(proxy_url as string);
             if (proxy_username) url.username = proxy_username;
             if (proxy_password){
-                if (proxy_password !== 'string') proxy_password = await decrypt(proxy_password as Hash);
+                if (typeof proxy_password !== 'string') proxy_password = await decrypt(proxy_password as Hash);
                 url.password = proxy_password as string;
             }
             const response = await axios.get('https://www.example.com/', {

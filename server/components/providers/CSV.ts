@@ -30,7 +30,7 @@ export default class CSV extends base_provider {
         if (!(fs.lstatSync(this.path as string).isFile())) throw new xError("Path is not a file.", "path");
         await this.open();
     }
-    public async preConfigure() {
+    public async initialize() {
         const docsTemplate: template = { $file: {} };
         for (const file of this.schema.files) {
             const folder = `${paths.storage}/${this.schema.name}`;

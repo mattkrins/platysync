@@ -26,6 +26,12 @@ interface Connector {
     name: string;
     type: 'provider'|'adapter';
     headers:  string[];
+    [k: string]: unknown;
+}
+
+interface Context {
+    name: string;
+    [k: string]: unknown;
 }
 
 interface Source {
@@ -43,6 +49,14 @@ interface Condition {
     delimiter?: string,
 }
 
+interface Action {
+    name: string,
+    display?: string,
+    enabled?: boolean,
+    stage: 0|1|2,
+    [k: string]: unknown;
+}
+
 interface Rule {
     name: string;
     enabled: boolean;
@@ -52,8 +66,9 @@ interface Rule {
     primaryKey?: string;
     display?: string;
     sources: Source[];
+    contexts: Context[];
     conditions: Condition[];
-    actions: [];
+    actions: Action[];
 }
 
 interface psFile {
