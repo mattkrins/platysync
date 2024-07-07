@@ -279,7 +279,7 @@ export default function Settings( { form }: { form: UseFormReturnType<Rule>, use
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-                {(form.values.sources||[]).map((source, index)=> <Source index={index} source={source} form={form} edit={editSource} />)}
+                {(form.values.sources||[]).map((source, index)=> <Source key={index} index={index} source={source} form={form} edit={editSource} />)}
             </div>
             )}
             </Droppable>
@@ -301,7 +301,7 @@ export default function Settings( { form }: { form: UseFormReturnType<Rule>, use
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-                {(form.values.contexts||[]).map((context, index)=> <ContextRow index={index} context={context} form={form} edit={editContext} />)}
+                {(form.values.contexts||[]).map((context, index)=> <ContextRow key={index} index={index} context={context} form={form} edit={editContext} />)}
             </div>
             )}
             </Droppable>

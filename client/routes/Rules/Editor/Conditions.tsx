@@ -277,7 +277,7 @@ export default function Conditions({ form, label, compact }: { form: UseFormRetu
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >
             <Grid.Col span="content" >
-                <Text c="dimmed" size="xs" >{label||"Conditions are evaluated per row, entry, user, etc and must all be true for iterative actions to execute."}</Text>
+                <Text c="dimmed" size="xs" >{label||"Conditions are evaluated for each row, entry, user, etc and must all be true for an iterative action to execute."}</Text>
             </Grid.Col>
             <Grid.Col span="content">
                 <Menu position="bottom-end" >
@@ -303,12 +303,12 @@ export default function Conditions({ form, label, compact }: { form: UseFormRetu
                 </Menu>
             </Grid.Col>
         </Grid>
-        {(form.values.conditions||[]).length===0&&<Text c="lighter" size="sm" >No conditions in effect. All iterative actions will be executed.</Text>}
+        {form.values.conditions.length===0&&<Text c="lighter" size="sm" >No conditions in effect. All iterative actions will be executed.</Text>}
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('conditions', { from: source.index, to: destination? destination.index : 0 }) } >
         <Droppable droppableId="dnd-list" direction="vertical">
             {provided => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
-                {(form.values.conditions||[]).map((condition, index) =><Condition key={index} index={index} condition={condition} form={form} templateProps={templateProps} />)}
+                {form.values.conditions.map((condition, index) =><Condition key={index} index={index} condition={condition} form={form} templateProps={templateProps} />)}
                 {provided.placeholder}
             </div>
             )}

@@ -83,7 +83,7 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
             </Tabs.List>
             <Tabs.Panel value="settings" pt="xs" >{activeTab==="settings"&&<Settings form={form} used={used} sources={sources} />}</Tabs.Panel>
             <Tabs.Panel value="conditions" pt="xs" >{activeTab==="conditions"&&<Conditions form={form} />}</Tabs.Panel>
-            <Tabs.Panel value="actions" pt="xs" >{activeTab==="actions"&&<Actions form={form} />}</Tabs.Panel>
+            <Tabs.Panel value="actions" pt="xs" >{activeTab==="actions"&&<Actions form={form} setActiveTab={setActiveTab} />}</Tabs.Panel>
             </Tabs>
         </Wrapper>
     </Container>

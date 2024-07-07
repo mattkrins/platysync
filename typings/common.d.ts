@@ -53,7 +53,6 @@ interface Action {
     name: string,
     display?: string,
     enabled?: boolean,
-    stage: 0|1|2,
     [k: string]: unknown;
 }
 
@@ -68,7 +67,9 @@ interface Rule {
     sources: Source[];
     contexts: Context[];
     conditions: Condition[];
-    actions: Action[];
+    initActions: Action[];
+    iterativeActions: Action[];
+    finalActions: Action[];
 }
 
 interface psFile {
