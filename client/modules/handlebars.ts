@@ -33,5 +33,11 @@ export const genericHelpers = [
     { key: "$special", description: "Generates a random special character from '!?$%&*)>'.", example: "{{$special}} > %" },
     { key: "$word", description: "Retrieves a random word from the dictionary.", example: "{{$word}} > bread" },
     { key: "$grad", description: "Converts a numeric value to a graduation year.", example: "{{$grad '7'}} > 2029 (if run in 2024)" },
-    { key: "$dir", description: "Prints working directory of platysync.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync" },
 ];
+
+export const paths = [
+    { key: "$dir", description: "Prints the working directory of platysync.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync" },
+    //{ key: "$cache", description: "Prints a temporary / unique directory for this rule.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync\\cache\\2b9b619b-380e-47f1-86de-89248a0a79bf" },
+];
+
+//TODO - add rule specific templates

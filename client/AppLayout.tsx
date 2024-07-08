@@ -68,11 +68,11 @@ function User({}) {
     </Menu.Target>
     <Menu.Dropdown>
       <Menu.Label>Application</Menu.Label>
-      <Menu.Item onClick={()=>setLocation("settings")} leftSection={<IconSettings size={14} />} >Settings</Menu.Item>
-      <Menu.Item onClick={()=>setLocation("users")} leftSection={<IconUsersGroup size={14} />} >Users</Menu.Item>
-      <Menu.Item onClick={()=>setLocation("logs")} leftSection={<IconHistory size={14} />}>Logs</Menu.Item>
+      <Menu.Item onClick={()=>setLocation("/settings")} leftSection={<IconSettings size={14} />} >Settings</Menu.Item>
+      <Menu.Item onClick={()=>setLocation("/users")} leftSection={<IconUsersGroup size={14} />} >Users</Menu.Item>
+      <Menu.Item onClick={()=>setLocation("/logs")} leftSection={<IconHistory size={14} />}>Logs</Menu.Item>
       <Menu.Label>User</Menu.Label>
-      <Menu.Item onClick={()=>setLocation("logout")} leftSection={<IconLogout size={14} />} >Logout</Menu.Item>
+      <Menu.Item onClick={()=>setLocation("/logout")} leftSection={<IconLogout size={14} />} >Logout</Menu.Item>
     </Menu.Dropdown>
   </Menu>
   )

@@ -2,6 +2,8 @@ import { FastifyInstance } from "fastify";
 import { xError } from "../modules/common";
 import { getSchema } from "../components/database";
 import { engine } from "../components/engine";
+import pdfPrinter from "pdf-to-printer";
+const { getPrinters } = pdfPrinter;
 
 export default async function (route: FastifyInstance) {
     route.post('/test', async (request, reply) => {
@@ -11,6 +13,10 @@ export default async function (route: FastifyInstance) {
             const schema = await getSchema(schema_name);
             return await engine(rule, schema);
         }
+        catch (e) { new xError(e).send(reply); }
+    });
+    route.get('/getPrinters', async (request, reply) => {
+        try { return await getPrinters(); }
         catch (e) { new xError(e).send(reply); }
     });
 }

@@ -1,5 +1,17 @@
 import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
+import { templateProps } from "../hooks/useTemplater";
+import { UseFormReturnType } from "@mantine/form";
+import DocWritePDF from "../routes/Rules/Editor/actions/DocWritePDF";
+import DocPDFPrint from "../routes/Rules/Editor/actions/DocPDFPrint";
+import FileCopy from "../routes/Rules/Editor/actions/FileCopy";
+import FileDelete from "../routes/Rules/Editor/actions/FileDelete";
+import FileMove from "../routes/Rules/Editor/actions/FileMove";
+import FileWriteTxt from "../routes/Rules/Editor/actions/FileWriteTxt";
+import FolderCopy from "../routes/Rules/Editor/actions/FolderCopy";
+import FolderCreate from "../routes/Rules/Editor/actions/FolderCreate";
+import FolderDelete from "../routes/Rules/Editor/actions/FolderDelete";
+import FolderMove from "../routes/Rules/Editor/actions/FolderMove";
 
 export interface availableCategory {
     id: string,
@@ -17,7 +29,6 @@ export const availableCategories: availableCategory[] = [
         provider: 'ldap',
         Icon: IconBinaryTree2,
         color: "blue",
-        iterative: true,
     },
     {
         name: "eduSTAR Operations",
@@ -57,23 +68,30 @@ export const availableCategories: availableCategory[] = [
     },
 ]
 
+export interface actionOptions {
+    form: UseFormReturnType<Rule>;
+    path: string;
+    templateProps: templateProps;
+}
+
 export interface availableAction {
     name: string;
     label?: string;
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
     color?: string;
     category: string;
-    //Options?(props: { form: UseFormReturnType<Rule>, templateProps?: templateProps, index: number, c: availableCondition }): JSX.Element;
+    Options?(props: actionOptions): JSX.Element;
     initialValues?: Record<string, unknown>;
-    perRule?: boolean;
-    requires?: string;
+    validator?: boolean;
+    overwriter?: boolean;
+    provider?: string;
 }
 
 export const availableActions: availableAction[] = [
     {
         name: "Create User",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconUserPlus,
         color: 'blue',
     },
@@ -81,7 +99,7 @@ export const availableActions: availableAction[] = [
     {
         name: "Enable User",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconLockOpen,
         color: 'green',
         // EnableUser,
@@ -89,7 +107,7 @@ export const availableActions: availableAction[] = [
     {
         name: "Disable User",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconLock,
         color: 'pink',
         // EnableUser,
@@ -97,7 +115,7 @@ export const availableActions: availableAction[] = [
     {
         name: "Delete User",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconTrash,
         color: 'red',
         // EnableUser,
@@ -105,7 +123,7 @@ export const availableActions: availableAction[] = [
     {
         name: "Update Attributes",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconPencil,
         color: 'orange',
         // UpdateAttributes,
@@ -116,7 +134,7 @@ export const availableActions: availableAction[] = [
     {
         name: "Update Groups",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconUsersGroup,
         color: 'yellow',
         // DirUpdateSec,
@@ -127,7 +145,7 @@ export const availableActions: availableAction[] = [
     {
         name: "Update Account Controls",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconShieldCog,
         color: 'orange',
         // DirAccountControl,
@@ -135,7 +153,7 @@ export const availableActions: availableAction[] = [
     {
         name: "Move Organisational Unit",
         category: 'directory',
-        requires: 'ldap',
+        provider: 'ldap',
         Icon: IconFolderShare,
         color: 'grape',
         // MoveOU,
@@ -145,68 +163,87 @@ export const availableActions: availableAction[] = [
         category: 'document',
         Icon: IconFileTypePdf,
         color: 'red',
+        validator: true,
+        overwriter: true,
+        Options: DocWritePDF,
     },
     {
-        name: "Send To Printer",
+        name: "Print PDF",
         category: 'document',
         Icon: IconPrinter,
         color: 'lime',
+        validator: true,
+        Options: DocPDFPrint,
     },
     {
         name: "Copy File",
         category: 'file',
         Icon: IconCopy,
         color: 'blue',
-        // // Component: CopyFile,
-    },
-    {
-        name: "Move File",
-        category: 'file',
-        Icon: IconArrowBarToRight,
-        color: 'orange',
-        // Component: MoveFile,
+        validator: true,
+        overwriter: true,
+        Options: FileCopy,
     },
     {
         name: "Delete File",
         category: 'file',
         Icon: IconTrash,
         color: 'red',
-        // Component: DeleteFile,
+        validator: true,
+        Options: FileDelete,
+    },
+    {
+        name: "Move File",
+        category: 'file',
+        Icon: IconArrowBarToRight,
+        color: 'orange',
+        validator: true,
+        overwriter: true,
+        Options: FileMove,
     },
     {
         name: "Write To File",
         category: 'file',
         Icon: IconPencil,
         color: 'lime',
-        // Component: FileWriteTxt,
+        validator: true,
+        overwriter: true,
+        Options: FileWriteTxt,
     },
     {
         name: "Copy Folder",
         category: 'folder',
         Icon: IconCopy,
         color: 'blue',
-        // Component: CopyFolder,
-    },
-    {
-        name: "Move Folder",
-        category: 'folder',
-        Icon: IconArrowBarToRight,
-        color: 'orange',
-        // Component: MoveFolder,
-    },
-    {
-        name: "Delete Folder",
-        category: 'folder',
-        Icon: IconTrash,
-        color: 'red',
-        // Component: DeleteFolder,
+        validator: true,
+        overwriter: true,
+        Options: FolderCopy,
     },
     {
         name: "Create Folder",
         category: 'folder',
         Icon: IconPlus,
         color: 'lime',
-        // Component: FolderCreate,
+        validator: true,
+        overwriter: true,
+        Options: FolderCreate,
+    },
+    {
+        name: "Delete Folder",
+        category: 'folder',
+        Icon: IconTrash,
+        color: 'red',
+        validator: true,
+        Options: FolderDelete,
+    },
+    {
+        name: "Move Folder",
+        category: 'folder',
+        Icon: IconArrowBarToRight,
+        color: 'orange',
+        validator: true,
+        overwriter: true,
+        Options: FolderMove,
     },
     {
         name: "Template",

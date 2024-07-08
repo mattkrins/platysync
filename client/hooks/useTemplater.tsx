@@ -1,9 +1,9 @@
 import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Drawer, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { Icon, IconAlertCircle, IconBraces, IconChevronRight, IconCode, IconFiles, IconPlug, IconProps, IconSearch } from "@tabler/icons-react";
+import { Icon, IconAlertCircle, IconBraces, IconChevronRight, IconCode, IconFiles, IconFolderCode, IconPlug, IconProps, IconSearch } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes, useCallback, useMemo, useState } from "react";
-import { compile, genericHelpers } from "../modules/handlebars";
+import { compile, genericHelpers, paths } from "../modules/handlebars";
 import classes from './useTemplater.module.css';
 import { useSelector } from "react-redux";
 import { getFiles } from "../providers/schemaSlice";
@@ -75,6 +75,7 @@ export default function useTemplater( { names, templates: base }: { names?: stri
     const theme = useMantineTheme();
     const [ opened, { open, close } ] = useDisclosure(false);
     const [ viewHelpers, { toggle: toggleHelpers } ] = useDisclosure(false);
+    const [ viewPaths, { toggle: togglePaths } ] = useDisclosure(false);
     const [ filter, setFilter ] = useState<string>('');
     const [ click, setClick ] = useState(() => (d: string) => console.log(d));
     const [ inline, SetInline ] = useState<string[]>([]);
@@ -121,7 +122,7 @@ export default function useTemplater( { names, templates: base }: { names?: stri
 
     const addHelper = (k: string, e: string) => ()=> click(e? e.split(" > ")[0].replace(/[{}]/g, ''): k);
     const explorer = (
-    <Drawer position="right" size="sm" opened={opened} onClose={close} overlayProps={{ opacity: 0.2}}
+    <Drawer position="right" size="lg" opened={opened} onClose={close} overlayProps={{ opacity: 0.2}}
     title={<Group><Text>Template Explorer</Text></Group>} >
         <TextInput
         pb="xs" leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }}/>}
@@ -141,6 +142,15 @@ export default function useTemplater( { names, templates: base }: { names?: stri
         <Section open={viewHelpers} label="Helpers" Icon={IconBraces} onClick={toggleHelpers} />
         <Collapse mt="xs" in={viewHelpers}>
             {genericHelpers.map(helper=>
+            <UnstyledButton onClick={addHelper(helper.key, helper.example)} mb="xs" key={helper.key} className={classes.connector} p="xs" pt={0} pb={4} >
+                <Title size="h5" >{helper.key}</Title>
+                {helper.description&&<Text size="xs" c="dimmed" >{helper.description}</Text>}
+                {helper.example&&<Code>{helper.example}</Code>}
+            </UnstyledButton>)}
+        </Collapse>
+        <Section open={viewPaths} label="Paths" Icon={IconFolderCode} onClick={togglePaths} />
+        <Collapse mt="xs" in={viewPaths}>
+            {paths.map(helper=>
             <UnstyledButton onClick={addHelper(helper.key, helper.example)} mb="xs" key={helper.key} className={classes.connector} p="xs" pt={0} pb={4} >
                 <Title size="h5" >{helper.key}</Title>
                 {helper.description&&<Text size="xs" c="dimmed" >{helper.description}</Text>}

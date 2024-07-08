@@ -53,6 +53,8 @@ interface Action {
     name: string,
     display?: string,
     enabled?: boolean,
+    validate?: boolean,
+    overwrite?: boolean,
     [k: string]: unknown;
 }
 
