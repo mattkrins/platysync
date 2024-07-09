@@ -24,7 +24,6 @@ interface Log {
 interface Connector {
     id: string;
     name: string;
-    type: 'provider'|'adapter';
     headers:  string[];
     [k: string]: unknown;
 }

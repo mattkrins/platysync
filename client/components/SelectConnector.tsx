@@ -42,18 +42,17 @@ function SelectOption({ name, cName, Icon, color, inactive }: Item&{ inactive?: 
 
 export default function SelectConnector( { value, onChange, Icon, placeholder, clearable, provider, names, ids, removeNames, removeIds, ...props }: Props ) {
     const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption(), });
-    const connectors = useSelector(getConnectors);    
+    const connectors = useSelector(getConnectors);
     const proConnectors = useMemo(()=>connectors.map(({name, ...c})=>({ ...(providers.find(p=>p.id===c.id) as provider), ...c, cName: name })),[ connectors ]);
     const selectedOption = proConnectors.find((item) => item.cName === value);
     const contextualised = useMemo(()=>{
         let context = proConnectors;
         if (names) context = context.filter(c=>names.includes(c.cName));
         if (ids) context = context.filter(c=>ids.includes(c.id));
-        if (provider) context = context.filter(c=>c.type==="provider");
         if (removeNames) context = context.filter(c=>!removeNames.includes(c.cName));
         if (removeIds) context = context.filter(c=>!removeIds.includes(c.id));
         return context;
-    },[ proConnectors, provider, names, ids, removeNames, removeIds ]);
+    },[ proConnectors, names, ids, removeNames, removeIds ]);
     const options = contextualised.map((item) => (
         <Combobox.Option value={item.cName} key={item.cName}>
             <SelectOption {...item} inactive />

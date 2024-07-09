@@ -10,7 +10,7 @@ export const useSelector = useSelectorX.withTypes<RootState>();
 export function useLoader() { return useSelector(state => state.load); }
 export function useConnectors() {
     const connectors = useSelector(getConnectors);
-    const proConnectors = useMemo(()=>connectors.filter(c=>c.type==="provider").map((c)=>{
+    const proConnectors = useMemo(()=>connectors.map((c)=>{
         const { name, ...provider} = ((providers.find(p=>p.id===c.id) || {}) as provider);
         return { ...c, ...provider, pName: name };
     }),[ connectors ]);

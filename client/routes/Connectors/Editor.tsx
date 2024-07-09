@@ -1,7 +1,7 @@
 import { ActionIcon, Alert, Anchor, Button, Center, Grid, Group, Loader, Modal, Progress, ScrollArea, SimpleGrid, Stepper, Tabs, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import Wrapper from "../../components/Wrapper";
 import classes from './Editor.module.css';
-import { IconAlertCircle, IconArrowBigRight, IconCheck, IconDeviceFloppy, IconGripVertical, IconList, IconListCheck, IconPlayerSkipForward, IconPlus, IconRecycle, IconSettings, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
+import { IconAlertCircle, IconArrowBigRight, IconCheck, IconDeviceFloppy, IconGripVertical, IconKey, IconList, IconListCheck, IconPlayerSkipForward, IconPlus, IconRecycle, IconSettings, IconStar, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
 import { provider, providers } from "../../modules/providers";
 import { useState } from "react";
 import { UseFormReturnType, useForm } from "@mantine/form";
@@ -85,7 +85,9 @@ function List( { form, autodetect, detecting, editing, close }: { form: UseFormR
                 style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }}
                 >
                     <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
-                        <Group><IconGripVertical size="1rem" /></Group>
+                        <Group>
+                          <IconGripVertical size="1rem" />
+                        </Group>
                     </Grid.Col>
                     <Grid.Col span="auto">
                         <TextInput size="xs" 
@@ -94,6 +96,7 @@ function List( { form, autodetect, detecting, editing, close }: { form: UseFormR
                     </Grid.Col>
                     <Grid.Col span="content">
                         <Group gap={0} justify="flex-end">
+                            {index===0&&<Tooltip label="Default/Primary Key" ><IconKey size="1rem" color="orange" /></Tooltip>}
                             <ActionIcon onClick={()=>form.removeListItem('headers', index)} variant="subtle" color="red">
                                 <IconTrash size="1.2rem" stroke={1.5} />
                             </ActionIcon>

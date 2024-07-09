@@ -83,7 +83,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
         <Grid pt="xs" >
             <Grid.Col span={7}>
                 <SelectConnector label="Join Data From" placeholder="Foreign Connector" withAsterisk
-                removeNames={sources} provider withinPortal clearable disabled={!adding}
+                removeNames={sources} withinPortal clearable disabled={!adding}
                 {...form.getInputProps(`foreignName`)}
                 onChange={(v)=>{
                     form.getInputProps(`foreignName`).onChange(v);
@@ -103,7 +103,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
         <Grid>
             <Grid.Col span={7}>
                 <SelectConnector label="Join Data To" placeholder="Primary Connector" withAsterisk
-                names={sources} removeNames={usedContexts} provider withinPortal clearable
+                names={sources} removeNames={usedContexts} withinPortal clearable
                 {...form.getInputProps(`primaryName`)}
                 onChange={(v)=>{
                     form.getInputProps(`primaryName`).onChange(v);
@@ -190,7 +190,7 @@ function ContextModal({ join, index, adding, rule, close }: { join: Context, ind
         <Text size="xs" c="dimmed" >Add a connector <b>without</b> a relational key to the rule scope.</Text>
         <Text size="xs" c="dimmed" >These can be used in conditions and actions, but do <b>not</b> provide any template data.</Text>
         <SelectConnector label="Connector" pt="xs" withAsterisk
-        names={contextSources} provider withinPortal clearable disabled={!adding}
+        names={contextSources} withinPortal clearable disabled={!adding}
         {...form.getInputProps(`name`)}
         onChange={(v)=>{
             form.reset();
@@ -269,7 +269,7 @@ export default function Settings( { form }: { form: UseFormReturnType<Rule>, use
             </SimpleGrid>
             <Group justify="right" gap="xs" >
                 <Tooltip label="Add Source" >
-                    <ActionIcon size="lg" variant="default" disabled={!form.values.primary||sources.length>=proConnectors.length} onClick={addSource} >
+                    <ActionIcon size="lg" variant="default" disabled={!form.values.primary||(sources.length-1)>=proConnectors.length} onClick={addSource} >
                         <IconPlus size={15} stroke={1.5} />
                     </ActionIcon>
                 </Tooltip>
