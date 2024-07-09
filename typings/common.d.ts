@@ -10,6 +10,10 @@ interface Settings {
     server?: {
         host: string;
         port: number;
+        https?: false | {
+            crt: string;
+            key: string;
+        }
     };
 }
 

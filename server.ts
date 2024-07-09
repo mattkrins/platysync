@@ -2,6 +2,7 @@ import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import pa, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import * as fs from 'fs';
 import type { FastifyCookieOptions } from '@fastify/cookie'
 import cookie from '@fastify/cookie'
 import { getKey } from './server/modules/cryptography';
@@ -100,6 +101,21 @@ export const history: winston.Logger = winston.createLogger({
   transports
 });
 
+async function getHTTPS() {
+  const settings = await Settings();
+  if (settings.server?.https) {
+    try { return {
+      cert: fs.readFileSync(settings.server?.https.crt),
+      key: fs.readFileSync(settings.server?.https.key),
+    }; } catch { throw Error("Failed to init https from database."); }
+  } else if (fs.existsSync(`${path}/https.crt`) && fs.existsSync(`${path}/https.key`)) {
+    try { return {
+        cert: fs.readFileSync(`${path}/https.crt`),
+        key: fs.readFileSync(`${path}/https.key`),
+    }; } catch { throw Error("Failed to init https from file."); }
+  } return null
+}
+
 const initServer = async () => {
   if (!testing) {
     log.remove(transports)
@@ -108,7 +124,8 @@ const initServer = async () => {
     history.remove(transports)
     .add(new winston.transports.File({ filename: `${paths.logs}/history.txt` }));
   }
-  const server = fastify({ logger: false });
+  const https = await getHTTPS();
+  const server = fastify({ logger: false, https });
   const key = await getKey();
   server.register(cookie, { secret: key, } as FastifyCookieOptions);
   addRoute(server, '/api/v1', routes, false);
