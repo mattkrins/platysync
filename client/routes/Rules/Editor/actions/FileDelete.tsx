@@ -1,8 +1,8 @@
 import { TextInput } from '@mantine/core'
 import { IconFileMinus } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { actionProps } from '../../../../modules/actions'
 
-export default function FileDelete( { form, path, templateProps }: actionOptions ) {
+export default function FileDelete( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <TextInput

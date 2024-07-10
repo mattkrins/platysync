@@ -52,12 +52,30 @@ interface Condition {
     delimiter?: string,
 }
 
+interface FormDataValue {
+    type: string,
+    key: string,
+    value: string,
+}
+
+interface SysTemplate {
+    key: string,
+    value: string,
+}
+
+interface ActionConfig {
+    id: string,
+    name: string,
+    [k: string]: unknown;
+}
+
 interface Action {
     name: string,
     display?: string,
     enabled?: boolean,
     validate?: boolean,
     overwrite?: boolean,
+    config?: string,
     [k: string]: unknown;
 }
 
@@ -87,9 +105,10 @@ interface psFile {
 interface Schema {
     name: string;
     version: string;
+    files: psFile[];
     connectors: Connector[];
     rules: Rule[];
-    files: psFile[];
+    actions: ActionConfig[];
 }
 
 interface User {

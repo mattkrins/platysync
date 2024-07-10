@@ -57,4 +57,5 @@ export async function getSchema(schema_name: string, fieldName?: string) {
     return schema;
 }
 export async function getFiles(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).files; }
+export async function getActions(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).actions; }
 export async function getConnectors(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).connectors; }

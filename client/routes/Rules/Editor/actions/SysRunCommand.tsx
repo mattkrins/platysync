@@ -1,8 +1,8 @@
-import { NumberInput, TextInput } from '@mantine/core'
-import { IconClock, IconFileMinus, IconTerminal } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { NumberInput, Switch, TextInput } from '@mantine/core'
+import { IconClock, IconTerminal } from '@tabler/icons-react'
+import { actionProps } from '../../../../modules/actions'
 
-export default function SysRunCommand( { form, path, templateProps }: actionOptions ) {
+export default function SysRunCommand( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <TextInput
@@ -19,6 +19,14 @@ export default function SysRunCommand( { form, path, templateProps }: actionOpti
         leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.8 }}/>}
         min={100}
         {...form.getInputProps(`${path}.timeout`)}
+    />
+    <Switch label="Run Detached"
+    description="Process will spawn detached from PlatySync and rule will not wait for execution to finish."
+    mt="xs" {...form.getInputProps(`${path}.detached`, { type: 'checkbox' })}
+    />
+    <Switch label="Kill After Timeout"
+    description="Attempt to forcefully kill the process if timeout is reached."
+    mt="xs" {...form.getInputProps(`${path}.kill`, { type: 'checkbox' })}
     />
   </>
   )

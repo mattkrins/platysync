@@ -42,12 +42,13 @@ const appSlice = createSlice({
     getSetup: state => state.setup,
     getSchemas: state => state.schemas,
     getUser: state => state.auth,
+    getSettings: state => state.settings,
   },
 });
 
 export default appSlice;
 
-export const { isSetup, getVersion, getSetup, getSchemas, getUser } = appSlice.selectors;
+export const { isSetup, getVersion, getSetup, getSchemas, getUser, getSettings } = appSlice.selectors;
 
 export const loadApp = () => async (dispatch: Dispatch) => {
   dispatch(startLoading("App"));

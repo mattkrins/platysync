@@ -16,7 +16,7 @@ function sanitizeSettings(settings: Settings) {
 export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {
         try {
-            const { key, redact, enableRun, ...settings} = await Settings();
+            const { key, redact, ...settings} = await Settings();
             return settings;
         } catch (e) { new xError(e).send(reply); }
     });

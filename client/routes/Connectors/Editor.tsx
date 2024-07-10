@@ -1,7 +1,7 @@
-import { ActionIcon, Alert, Anchor, Button, Center, Grid, Group, Loader, Modal, Progress, ScrollArea, SimpleGrid, Stepper, Tabs, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Alert, Anchor, Button, Center, Grid, Group, Loader, Modal, ScrollArea, SimpleGrid, Stepper, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import Wrapper from "../../components/Wrapper";
 import classes from './Editor.module.css';
-import { IconAlertCircle, IconArrowBigRight, IconCheck, IconDeviceFloppy, IconGripVertical, IconKey, IconList, IconListCheck, IconPlayerSkipForward, IconPlus, IconRecycle, IconSettings, IconStar, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
+import { IconAlertCircle, IconCheck, IconDeviceFloppy, IconGripVertical, IconKey, IconPlayerSkipForward, IconPlus, IconRecycle, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
 import { provider, providers } from "../../modules/providers";
 import { useState } from "react";
 import { UseFormReturnType, useForm } from "@mantine/form";

@@ -11,9 +11,10 @@ interface newSchema extends Schema {
 const defaultSchema: Schema = {
     name: '',
     version: '',
+    files: [],
     connectors: [],
     rules: [],
-    files: [],
+    actions: [],
 }
 
 export default async function (route: FastifyInstance) {

@@ -1,8 +1,8 @@
 import { Switch, TextInput, Textarea } from '@mantine/core'
 import { IconFilePencil } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { actionProps } from '../../../../modules/actions'
 
-export default function FileWriteTxt( { form, path, templateProps }: actionOptions ) {
+export default function FileWriteTxt( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <TextInput

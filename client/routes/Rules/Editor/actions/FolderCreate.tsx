@@ -1,8 +1,8 @@
 import { Switch, TextInput } from '@mantine/core'
 import { IconFolderPlus } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { actionProps } from '../../../../modules/actions'
 
-export default function FolderCreate( { form, path, templateProps }: actionOptions ) {
+export default function FolderCreate( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <TextInput

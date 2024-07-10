@@ -1,7 +1,7 @@
 import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
-import { UseFormReturnType } from "@mantine/form";
+import { UseFormReturnType, isNotEmpty } from "@mantine/form";
 import DocWritePDF from "../routes/Rules/Editor/actions/DocWritePDF";
 import DocPDFPrint from "../routes/Rules/Editor/actions/DocPDFPrint";
 import FileCopy from "../routes/Rules/Editor/actions/FileCopy";
@@ -12,6 +12,13 @@ import FolderCopy from "../routes/Rules/Editor/actions/FolderCopy";
 import FolderCreate from "../routes/Rules/Editor/actions/FolderCreate";
 import FolderDelete from "../routes/Rules/Editor/actions/FolderDelete";
 import FolderMove from "../routes/Rules/Editor/actions/FolderMove";
+import SysComparator from "../routes/Rules/Editor/actions/SysComparator";
+import SysEncryptString from "../routes/Rules/Editor/actions/SysEncryptString";
+import SysRunCommand from "../routes/Rules/Editor/actions/SysRunCommand";
+import SysTemplate from "../routes/Rules/Editor/actions/SysTemplate";
+import SysWait from "../routes/Rules/Editor/actions/SysWait";
+import TransEmailSend, { TransEmailSendConfig } from "../routes/Rules/Editor/actions/TransEmailSend";
+import TransAPIRequest, { TransAPIRequestConfig } from "../routes/Rules/Editor/actions/TransAPIRequest";
 
 export interface availableCategory {
     id: string,
@@ -68,10 +75,14 @@ export const availableCategories: availableCategory[] = [
     },
 ]
 
-export interface actionOptions {
+export interface actionProps {
     form: UseFormReturnType<Rule>;
     path: string;
     templateProps: templateProps;
+}
+
+export interface actionConfigProps {
+    form: UseFormReturnType<ActionConfig>;
 }
 
 export interface availableAction {
@@ -80,11 +91,14 @@ export interface availableAction {
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
     color?: string;
     category: string;
-    Options?(props: actionOptions): JSX.Element;
+    Options?(props: actionProps): JSX.Element;
+    Config?(props: actionConfigProps): JSX.Element;
     initialValues?: Record<string, unknown>;
+    initialConfig?: Record<string, unknown>;
     validator?: boolean;
     overwriter?: boolean;
     provider?: string;
+    validate?: {[value: string]: (...v: unknown[]) => unknown};
 }
 
 export const availableActions: availableAction[] = [
@@ -168,8 +182,8 @@ export const availableActions: availableAction[] = [
         Options: DocWritePDF,
     },
     {
-        name: "Print PDF",
-        category: 'document',
+        name: "Print PDF", //TODO - make windows only flag?
+        category: 'document', //NOTE - linux print (generic) https://github.com/artiebits/unix-print
         Icon: IconPrinter,
         color: 'lime',
         validator: true,
@@ -246,41 +260,37 @@ export const availableActions: availableAction[] = [
         Options: FolderMove,
     },
     {
-        name: "Template",
-        label: "Build Data Template",
+        name: "Comparator",
         category: 'system',
-        Icon: IconTemplate,
-        // Component: Template,
-        initialValues: {
-            templates: []
-        },
+        Icon: IconEqualNot,
+        Options: SysComparator,
+        initialValues: { conditions: [] },
     },
     {
         name: "Encrypt String",
         category: 'system',
         Icon: IconKey,
-        // Component: EncryptString,
-    },
-    {
-        name: "Comparator",
-        category: 'system',
-        Icon: IconEqualNot,
-        // Component: SysComparator,
-        initialValues: {
-            conditions: []
-        },
-    },
-    {
-        name: "Wait",
-        category: 'system',
-        Icon: IconClock,
-        // Component: SysWait,
+        Options: SysEncryptString,
     },
     {
         name: "Run Command",
         category: 'system',
         Icon: IconTerminal,
-        // Component: RunCommand,
+        Options: SysRunCommand,
+    },
+    {
+        name: "Template",
+        label: "Build Data Template",
+        category: 'system',
+        Icon: IconTemplate,
+        Options: SysTemplate,
+        initialValues: { templates: [] },
+    },
+    {
+        name: "Wait",
+        category: 'system',
+        Icon: IconClock,
+        Options: SysWait,
     },
     {
         name: "Upload Student Passwords",
@@ -294,18 +304,31 @@ export const availableActions: availableAction[] = [
         category: 'transmission',
         Icon: IconMailForward,
         color: 'grape',
-        // Component: TransEmailSend
+        Options: TransEmailSend,
+        Config: TransEmailSendConfig,
+        validate: {
+            host: isNotEmpty('Host can not be empty.'),
+            username: isNotEmpty('Username can not be empty.'),
+            password: isNotEmpty('Password can not be empty.'),
+        },
     },
     {
         name: "API Request",
         category: 'transmission',
         Icon: IconCloudUp,
         color: 'red',
-        // Component: TransAPISend,
+        Options: TransAPIRequest,
+        Config: TransAPIRequestConfig,
         initialValues: {
             method: 'get',
             mime: 'json',
-            form: []
+            form: [],
+        },
+        initialConfig: {
+            auth: 'none',
+        },
+        validate: {
+            endpoint: isNotEmpty('Endpoint can not be empty.'),
         },
     },
 ]

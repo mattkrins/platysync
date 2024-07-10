@@ -34,11 +34,8 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
         confirmProps: { color: 'red' },
         onConfirm: async () => await del(),
     });
-
     const provider = providers.find(p=>p.id===id);
     if (!provider) return <></>;
-    
-
     return (
         <Draggable index={index} draggableId={name}>
         {(provided, snapshot) => (

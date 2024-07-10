@@ -1,9 +1,9 @@
 import { Loader, Select, TextInput } from "@mantine/core";
 import { IconFile, IconPrinter } from "@tabler/icons-react";
-import { actionOptions } from "../../../../modules/actions";
+import { actionProps } from "../../../../modules/actions";
 import useAPI from "../../../../hooks/useAPI";
 
-export default function DocPDFPrint( { form, path, templateProps }: actionOptions ) {
+export default function DocPDFPrint( { form, path, templateProps }: actionProps ) {
     const { data: printers, loading } = useAPI<string[]>({
         url: `/rule/getPrinters`, schema: true,
         fetch: true, default: [],

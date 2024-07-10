@@ -1,8 +1,14 @@
-import { NumberInput, PasswordInput, TextInput } from '@mantine/core'
-import { IconBraces, IconKey, IconLock, IconPencil } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { ActionIcon, NumberInput, PasswordInput, TextInput } from '@mantine/core'
+import { IconBraces, IconEye, IconEyeOff, IconKey, IconLock, IconPencil } from '@tabler/icons-react'
+import { actionProps } from '../../../../modules/actions'
+import { useDisclosure } from '@mantine/hooks';
 
-export default function SysEncryptString( { form, path, templateProps }: actionOptions ) {
+export default function SysEncryptString( { form, path, templateProps }: actionProps ) {
+  const [visible, { toggle }] = useDisclosure(false);
+  const EyeIcon = <ActionIcon onClick={toggle} variant="subtle">{!visible ?
+      <IconEye style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} /> :
+      <IconEyeOff style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} />}
+  </ActionIcon>;
   return (
   <>
     <TextInput
@@ -16,9 +22,9 @@ export default function SysEncryptString( { form, path, templateProps }: actionO
         label="Encryption Key" withAsterisk mt="xs"
         description={<>String to encrypt the secret with. <b>Warning: this is stored in clear text</b></>}
         placeholder="password"
+        visible={visible}
         leftSection={<IconKey size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-        rightSectionWidth={"calc(var(--psi-icon-size) * 4)"}
-        {...templateProps(form, `${path}.password`)}
+        {...templateProps(form, `${path}.password`, { buttons: EyeIcon })}
     />
     <NumberInput mt="xs"
         label="Encryption Strength"

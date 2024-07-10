@@ -1,8 +1,8 @@
 import { TextInput } from '@mantine/core'
 import { IconTemplate, IconFilePlus } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { actionProps } from '../../../../modules/actions'
 
-export default function DocWritePDF( { form, path, templateProps }: actionOptions ) {
+export default function DocWritePDF( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <TextInput

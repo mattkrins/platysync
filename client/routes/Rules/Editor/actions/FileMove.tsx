@@ -1,8 +1,8 @@
 import { TextInput } from '@mantine/core'
 import { IconFileSymlink, IconFileX } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { actionProps } from '../../../../modules/actions'
 
-export default function FileMove( { form, path, templateProps }: actionOptions ) {
+export default function FileMove( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <TextInput

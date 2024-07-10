@@ -1,14 +1,16 @@
-import { ActionIcon, Anchor, Box, Button, Checkbox, Collapse, Divider, Grid, Group, Indicator, Paper, Popover, Switch, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Anchor, Box, Button, Collapse, Divider, Grid, Group, Indicator, Menu, Paper, Popover, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { useClickOutside, useDisclosure } from "@mantine/hooks";
 import classes from './Actions.module.css';
-import { IconProps, Icon, IconChevronRight, IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconCheck, IconX, IconFolderSearch, IconEraser } from "@tabler/icons-react";
+import { IconProps, Icon, IconChevronRight, IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconX, IconFolderSearch, IconEraser, IconSettings2, IconCheck } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from "react";
 import { availableAction, availableActions, availableCategories, availableCategory } from "../../../modules/actions";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import MenuTip from "../../../components/MenuTip";
 import { useRule } from "./Editor";
 import useTemplater, { templateProps } from "../../../hooks/useTemplater";
+import { useSelector, useSettings } from "../../../hooks/redux";
+import { getActions } from "../../../providers/schemaSlice";
 //LINK - https://github.com/hello-pangea/dnd/blob/main/docs/api/droppable.md#conditionally-dropping
 
 //NOTE - do not make target connector avalible if only 1 of type in context
@@ -42,7 +44,13 @@ function Category({ category, add, form }: { category: availableCategory, add(c:
     const theme = useMantineTheme();
     const [opened, { toggle }] = useDisclosure(false);
     const { ruleProConnectors } = useRule(form);
-    const filtered = useMemo(()=>availableActions.filter(a=>a.category===category.id).filter(a=>a.provider?ruleProConnectors.find(c=>c.id===a.provider):true), [ ruleProConnectors ]);
+    const settings = useSettings();
+    const filtered = useMemo(()=>availableActions.
+    filter(a=>settings.enableRun?true:(a.name!=="Run Command")).
+    filter(a=>a.category===category.id).
+    filter(a=>a.provider?ruleProConnectors.
+    find(c=>c.id===a.provider):true)
+    , [ ruleProConnectors ]);
     return (
     <>
         <Section open={opened} label={category.name} Icon={category.Icon} onClick={toggle} color={category.color?theme.colors[category.color][6]:undefined} />
@@ -61,22 +69,49 @@ function Category({ category, add, form }: { category: availableCategory, add(c:
     );
 }
 
-function ActionButton({ label, add, type, form }: { label: string, type: string, add(c: availableAction, type: string): void, form: UseFormReturnType<Rule> }) {
+function ActionButton({ label, add, type, form, disabled }: { label: string, type: string, add(c: availableAction, type: string): void, form: UseFormReturnType<Rule>, disabled?: boolean }) {
     const [opened, { open, close }] = useDisclosure(false);
     const ref = useClickOutside(() => close());
     const addClose = (c: availableAction) => { add(c, type); close(); }
     const { ruleProConnectors } = useRule(form);
-    const filtered = useMemo(()=>availableCategories.filter(a=>a.provider?ruleProConnectors.find(c=>c.id===a.provider):true), [ ruleProConnectors ]);
+    const filtered = useMemo(()=>availableCategories.
+    filter(a=>a.provider?ruleProConnectors.
+    find(c=>c.id===a.provider):true)
+    , [ ruleProConnectors ]);
     return (
     <Popover opened={opened} width={300} position="left-start" shadow="md" clickOutsideEvents={['mouseup', 'touchend']}>
         <Popover.Target>
-            <Button size="sm" onClick={open} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>{label}</Button>
+            <Button disabled={disabled} size="sm" onClick={open} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>{label}</Button>
         </Popover.Target>
         <Popover.Dropdown ref={ref} >
-            {filtered.map(category=><Category category={category} add={addClose} form={form} />)}
+            {filtered.map(category=><Category key={category.name} category={category} add={addClose} form={form} />)}
         </Popover.Dropdown>
     </Popover>
     );
+}
+
+function SelectConfig({ id, onClick, active }: { id: string, onClick(name?: string): void, active?: string }) {
+    const actions = useSelector(getActions);
+    const filtered = actions.filter(a=>a.id===id);
+    return (
+    <Menu shadow="md" position="left" width={200} >
+        <Menu.Target>
+            <Tooltip label="Select Config" color="green" >
+                <ActionIcon disabled={filtered.length<=0} color="green" variant={active?"light":"subtle"} >
+                    <IconSettings2 size={16} stroke={1.5} />
+                </ActionIcon>
+            </Tooltip>
+        </Menu.Target>
+        <Menu.Dropdown>
+            {filtered.map(a=>
+            <Menu.Item key={a.name}
+            leftSection={active===a.name?<IconCheck size={14} stroke={1.5} />:undefined}
+            onClick={()=>active===a.name?onClick(undefined):onClick(a.name)} >
+            {a.name}
+            </Menu.Item>)}
+        </Menu.Dropdown>
+    </Menu>
+    )
 }
 
 function Action({ index, action, type, form, templateProps }: { index: number, action: Action, form: UseFormReturnType<Rule>, type: string, templateProps: templateProps }) {
@@ -89,10 +124,12 @@ function Action({ index, action, type, form, templateProps }: { index: number, a
         open();
     }
     const theme = useMantineTheme();
-    const { Icon, color, name, validator, overwriter, Options } = availableActions.find(a=>a.name===action.name) as availableAction;
+    const { Icon, color, name, validator, overwriter, Options, Config } = availableActions.find(a=>a.name===action.name) as availableAction;
     const remove = () => form.removeListItem(type, index);
     const copy = () => form.insertListItem(type, structuredClone(form.values[type as "initActions"][index]), index+1);
     const display = form.values[type as "initActions"][index].display;
+    const config = form.values[type as "initActions"][index].config;
+    const setConfig = (name: string) => form.setFieldValue(`${type}.${index}.config`, name);
     return <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
     {(provided) => (
     <Indicator disabled={!!action.enabled} color="red"  {...provided.draggableProps} ref={provided.innerRef} >
@@ -111,7 +148,7 @@ function Action({ index, action, type, form, templateProps }: { index: number, a
             </Grid.Col>
             <Grid.Col span={13}>
                 <TextInput variant="filled" {...form.getInputProps(`${type}.${index}.display`)}
-                value={display?display:action.name}
+                value={display?display:(config||action.name)}
                 />
             </Grid.Col>
             <Grid.Col span={5} miw={120}>
@@ -120,6 +157,7 @@ function Action({ index, action, type, form, templateProps }: { index: number, a
                         onClick={()=>form.setFieldValue(`${type}.${index}.overwrite`, !action.overwrite)} />}
                         {validator&&<MenuTip label="Validate Paths" Icon={IconFolderSearch} color="lime" variant={action.validate?"light":"subtle"}
                         onClick={()=>form.setFieldValue(`${type}.${index}.validate`, !action.validate)} />}
+                        {Config&&<SelectConfig id={name} onClick={setConfig} active={config} />}
                         <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
                         onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
                         <Divider orientation="vertical" />
@@ -130,17 +168,21 @@ function Action({ index, action, type, form, templateProps }: { index: number, a
             </Grid.Col>
         </Grid>
         <Collapse in={opened} >
+            {render&&<>
             <Divider mb="xs" mt={4} />
             <Box p="xs" pt={0} >
-                {(Options&&render)&&<Options form={form} path={`${type}.${index}`} templateProps={templateProps} />}
+                {(Config&&!config)&&<Config form={form as unknown as UseFormReturnType<ActionConfig>} />}
+                {Config&&<Divider mt="md" label={config?`config - ${config}`:undefined} labelPosition="center" />}
+                {Options&&<Options form={form} path={`${type}.${index}`} templateProps={templateProps} />}
             </Box>
+            </>}
         </Collapse>
     </Paper></Indicator>)}
     </Draggable>
 }
 
 export default function Actions({ form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void }) {
-    const add = (c: availableAction, type: string) => form.insertListItem(type, { name: c.name, enabled: true });
+    const add = (c: availableAction, type: string) => form.insertListItem(type, { name: c.name, enabled: true, ...c.initialValues });
     const { sources } = useRule(form);
     const { templateProps, explorer } = useTemplater({names:sources});
     return (
@@ -167,8 +209,9 @@ export default function Actions({ form, setActiveTab }: { form: UseFormReturnTyp
             </div>
             )}
             </Droppable>
-            <Divider my="xs" label={<ActionButton add={add} type="iterativeActions" label="Iterative Action" form={form} />} labelPosition="right" />
-            {form.values.iterativeActions.length<=0&&
+            <Divider my="xs" label={<ActionButton add={add} type="iterativeActions" label="Iterative Action" form={form} disabled={!form.values.primary} />} labelPosition="right" />
+            {!form.values.primary ? <Text size="xs" c="dimmed" >Select a <Anchor onClick={()=>setActiveTab("settings")} >primary data source</Anchor> to execute iterative actions for each row, entry, user, etc.</Text>:
+            form.values.iterativeActions.length<=0&&
             <Text size="xs" c="dimmed" >Iterative actions are executed for each row, entry, user, etc.
             {form.values.conditions.length>0&&<> if they pass {form.values.conditions.length} <Anchor onClick={()=>setActiveTab("conditions")} >conditional</Anchor> checks.</>}</Text>}
             <Droppable droppableId="iterativeActions" direction="vertical" type="iterative" >

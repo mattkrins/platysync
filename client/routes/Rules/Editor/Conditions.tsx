@@ -60,10 +60,11 @@ interface ValueInput {
     form: UseFormReturnType<Rule>;
     templateProps: templateProps;
     index: number;
+    path: string;
 }
 
-function ValueInput( { form, index, templateProps }: ValueInput ) {
-    const noDelimiter = form.values.conditions[index].delimiter;
+function ValueInput( { form, index, templateProps, path }: ValueInput ) {
+    const noDelimiter = form.getInputProps(`${path}.${index}.delimiter`).value;
     const icon =
     noDelimiter ? <IconDots size={16} style={{ display: 'block', opacity: 0.8 }} />:
     <IconCodeAsterix size={16} style={{ display: 'block', opacity: 0.8 }} />;
@@ -71,20 +72,20 @@ function ValueInput( { form, index, templateProps }: ValueInput ) {
     <Popover width={85} trapFocus position="left" shadow="md">
         <Popover.Target><Tooltip label="OR Delimiter" ><ActionIcon variant="subtle" >{icon}</ActionIcon></Tooltip></Popover.Target>
         <Popover.Dropdown pt={2} >
-            <Autocomplete label="Delimiter" placeholder="," size="xs" {...form.getInputProps(`conditions.${index}.delimiter`)}
+            <Autocomplete label="Delimiter" placeholder="," size="xs" {...form.getInputProps(`${path}.${index}.delimiter`)}
             data={[',',';', ':', '|', '-', '_', '/' ]}
             />
         </Popover.Dropdown>
     </Popover>;
     return (
       <TextInput placeholder='Value'
-      {...form.getInputProps(`conditions.${index}.value`)}
-      {...templateProps(form, `conditions.${index}.value`, { buttons })}
+      {...form.getInputProps(`${path}.${index}.value`)}
+      {...templateProps(form, `${path}.${index}.value`, { buttons })}
       />
     )
   }
 
-function General({ form, templateProps, index, c }: { form: UseFormReturnType<Rule>, templateProps: templateProps, index: number, c: availableCondition }) {
+function General({ form, templateProps, index, c, path }: { form: UseFormReturnType<Rule>, templateProps: templateProps, index: number, c: availableCondition, path: string }) {
     const data = useMemo(()=>{ switch (c.id) {
         case 'string': return stringOperators;
         case 'math': return mathOperators;
@@ -94,40 +95,40 @@ function General({ form, templateProps, index, c }: { form: UseFormReturnType<Ru
     return (
     <>
         <Grid.Col span="auto" >
-            <TextInput placeholder='Key' {...templateProps(form, `conditions.${index}.key`)} />
+            <TextInput placeholder='Key' {...templateProps(form, `${path}.${index}.key`)} />
         </Grid.Col>
         <Grid.Col span="content" >
             <Select
                 placeholder="Operator"
                 checkIconPosition="right"
                 data={data} allowDeselect={false}
-                {...form.getInputProps(`conditions.${index}.operator`)}
+                {...form.getInputProps(`${path}.${index}.operator`)}
             />
         </Grid.Col>
         <Grid.Col span="auto" >
-            <ValueInput form={form} index={index} templateProps={templateProps} />
+            <ValueInput form={form} index={index} templateProps={templateProps} path={path} />
         </Grid.Col>
     </>)
 }
 
-function File({ form, templateProps, index, c }: { form: UseFormReturnType<Rule>, templateProps: templateProps, index: number, c: availableCondition }) {
+function File({ form, templateProps, index, path }: { form: UseFormReturnType<Rule>, templateProps: templateProps, index: number, path: string }) {
     return (
     <>
         <Grid.Col span="auto" >
-            <ValueInput form={form} index={index} templateProps={templateProps} />
+            <ValueInput form={form} index={index} templateProps={templateProps} path={path} />
         </Grid.Col>
         <Grid.Col span="content" >
             <Select
                 placeholder="Operator"
                 checkIconPosition="right"
                 data={fileOperators} allowDeselect={false}
-                {...form.getInputProps(`conditions.${index}.operator`)}
+                {...form.getInputProps(`${path}.${index}.operator`)}
             />
         </Grid.Col>
     </>)
 }
 
-function Ldap({ form, templateProps, index, c }: { form: UseFormReturnType<Rule>, templateProps: templateProps, index: number, c: availableCondition }) {
+function Ldap({ form, templateProps, index, c, path }: { form: UseFormReturnType<Rule>, templateProps: templateProps, index: number, c: availableCondition, path: string }) {
     const { sources } = useRule(form);
     const data = useMemo(()=>{ switch (c.id) {
         case 'ldap.status': return statusOperators;
@@ -138,18 +139,18 @@ function Ldap({ form, templateProps, index, c }: { form: UseFormReturnType<Rule>
     return (
     <>
         <Grid.Col span="auto" >
-            <SelectConnector {...form.getInputProps(`conditions.${index}.key`)} ids={["ldap"]} names={sources} clearable />
+            <SelectConnector {...form.getInputProps(`${path}.${index}.key`)} ids={["ldap"]} names={sources} clearable />
         </Grid.Col>
         <Grid.Col span="content" >
             <Select
                 placeholder="Operator"
                 checkIconPosition="right"
                 data={data} allowDeselect={false}
-                {...form.getInputProps(`conditions.${index}.operator`)}
+                {...form.getInputProps(`${path}.${index}.operator`)}
             />
         </Grid.Col>
         {c.id!=="ldap.status"&&<Grid.Col span="auto" >
-            <ValueInput form={form} index={index} templateProps={templateProps} />
+            <ValueInput form={form} index={index} templateProps={templateProps} path={path} />
         </Grid.Col>}
     </>)
 }
@@ -161,7 +162,7 @@ interface availableCondition {
     color?: string,
     group: string,
     defaultOperator?: string,
-    Options?(props: { form: UseFormReturnType<Rule>, templateProps?: templateProps, index: number, c: availableCondition }): JSX.Element;
+    Options?(props: { form: UseFormReturnType<Rule>, templateProps?: templateProps, index: number, c: availableCondition, path: string }): JSX.Element;
 }
 
 const availableConditions: availableCondition[] = [
@@ -239,12 +240,12 @@ const availableConditions: availableCondition[] = [
     },
 ];
 
-function Condition({ index, condition, form, templateProps }: { index: number, condition: Condition, form: UseFormReturnType<Rule>, templateProps: templateProps } ) {
+function Condition({ index, condition, form, templateProps, path }: { index: number, condition: Condition, form: UseFormReturnType<Rule>, templateProps: templateProps, path: string } ) {
     const theme = useMantineTheme();
     const c = availableConditions.find(c=>c.name===condition.name);
     if (!c) return <></>;
-    const copy = (c: Condition) => () => form.insertListItem('conditions', structuredClone(c));
-    const remove  = (index: number) => () => form.removeListItem('conditions', index);
+    const copy = (c: Condition) => () => form.insertListItem(path, structuredClone(c));
+    const remove  = (index: number) => () => form.removeListItem(path, index);
     return (
         <Draggable index={index} draggableId={String(index)}>
         {provided => (
@@ -255,7 +256,7 @@ function Condition({ index, condition, form, templateProps }: { index: number, c
                 <Grid.Col span="content" >
                     <Group><Tooltip label={condition.name}><c.Icon color={c.color?theme.colors[c.color][6]:undefined} size="1.2rem" /></Tooltip></Group>
                 </Grid.Col>
-                {c.Options&&<c.Options index={index} form={form} templateProps={templateProps} c={c} />}
+                {c.Options&&<c.Options index={index} form={form} templateProps={templateProps} c={c} path={path} />}
                 <Grid.Col span="content">
                     <Group justify="right" gap="xs">
                         <Tooltip label="Remove" ><ActionIcon onClick={remove(index)} variant="default" size="lg"><IconTrash size={15}/></ActionIcon></Tooltip>
@@ -267,12 +268,14 @@ function Condition({ index, condition, form, templateProps }: { index: number, c
         </Draggable>)
 }
 
-export default function Conditions({ form, label, compact }: { form: UseFormReturnType<Rule>, label?: string, compact?: boolean }) {
+export default function Conditions({ form, label, compact, path = "conditions" }: { form: UseFormReturnType<Rule>, label?: string, compact?: boolean, path?: string }) {
     const theme = useMantineTheme();
-    const add = (c: availableCondition) => () => form.insertListItem('conditions', { name: c.name, operator: c.defaultOperator, key: null, value: null, });
+    const add = (c: availableCondition) => () => form.insertListItem(path, { name: c.name, operator: c.defaultOperator, key: undefined, value: undefined, });
     const { ruleProConnectors, sources } = useRule(form);
     const { templateProps, explorer } = useTemplater({names:sources});
     const ldapAvailable = ruleProConnectors.find(c=>c.id==="ldap");
+    const conditions = form.getInputProps(path).value as Condition[];
+    //FIXME - dragging and dropping empty conditions are populated with the target values for some reason?
     return (
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >
@@ -303,12 +306,12 @@ export default function Conditions({ form, label, compact }: { form: UseFormRetu
                 </Menu>
             </Grid.Col>
         </Grid>
-        {form.values.conditions.length===0&&<Text c="lighter" size="sm" >No conditions in effect. All iterative actions will be executed.</Text>}
-        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('conditions', { from: source.index, to: destination? destination.index : 0 }) } >
+        {conditions.length===0&&<Text c="lighter" size="sm" >No conditions in effect. All iterative actions will be executed.</Text>}
+        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(path, { from: source.index, to: destination? destination.index : 0 }) } >
         <Droppable droppableId="dnd-list" direction="vertical">
             {provided => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
-                {form.values.conditions.map((condition, index) =><Condition key={index} index={index} condition={condition} form={form} templateProps={templateProps} />)}
+                {conditions.map((condition, index) =><Condition key={index} index={index} condition={condition} form={form} templateProps={templateProps} path={path} />)}
                 {provided.placeholder}
             </div>
             )}

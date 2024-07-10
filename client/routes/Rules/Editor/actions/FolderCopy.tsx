@@ -1,8 +1,8 @@
 import { TextInput } from '@mantine/core'
 import { IconFolderDown, IconFolderSymlink } from '@tabler/icons-react'
-import { actionOptions } from '../../../../modules/actions'
+import { actionProps } from '../../../../modules/actions'
 
-export default function FolderCopy( { form, path, templateProps }: actionOptions ) {
+export default function FolderCopy( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <TextInput

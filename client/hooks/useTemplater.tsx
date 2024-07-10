@@ -136,7 +136,7 @@ export default function useTemplater( { names, templates: base }: { names?: stri
         ))}
         </Flex> : <>
         {contextualised.map(c=>
-        <Section label={c.name} Icon={c.Icon} color={c.color?theme.colors[c.color][6]:undefined} Ricon={IconPlug} onClick={()=>setFilter(`${c.name}.`)}/>
+        <Section key={c.name} label={c.name} Icon={c.Icon} color={c.color?theme.colors[c.color][6]:undefined} Ricon={IconPlug} onClick={()=>setFilter(`${c.name}.`)}/>
         )}
         {files.length>0&&<Section label="Files" Icon={IconFiles} onClick={()=>setFilter(`$file.`)} Ricon={IconSearch} />}
         <Section open={viewHelpers} label="Helpers" Icon={IconBraces} onClick={toggleHelpers} />

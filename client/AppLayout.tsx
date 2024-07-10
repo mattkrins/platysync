@@ -1,6 +1,6 @@
 import { UnstyledButton, AppShell, Group, Burger, Avatar, Select, Text, Loader, Menu, Anchor } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconAdjustmentsHorizontal, IconCheckbox, IconClock, IconFiles, IconHistory, IconHome, IconLogout, IconPlug, IconSettings, IconUsersGroup } from "@tabler/icons-react";
+import { IconAdjustmentsHorizontal, IconCheckbox, IconClock, IconFiles, IconHistory, IconHome, IconLogout, IconPlug, IconSettings, IconSettings2, IconUsersGroup } from "@tabler/icons-react";
 import { useRoute, useLocation, Redirect, Switch, Route } from "wouter";
 import { getCookie } from "./modules/common";
 import { useSelector, useDispatch, useLoader } from "./hooks/redux";
@@ -17,12 +17,14 @@ import Logs from "./routes/Logs/Logs";
 import Files from "./routes/Files/Files";
 import Connectors from "./routes/Connectors/Connectors";
 import Rules from "./routes/Rules/Rules";
+import Actions from "./routes/Actions/Actions";
 
 const links = [
     { label: "Home", link: "/home", icon: <IconHome size={15} />, page: Home },
     { label: "Schema", link: "/schema", icon: <IconAdjustmentsHorizontal size={15} />, page: Schema },
     { label: "Files", link: "/files", icon: <IconFiles size={15} />, page: Files },
     { label: "Connectors", link: "/connectors", icon: <IconPlug size={15} />, page: Connectors  },
+    { label: "Actions", link: "/actions", icon: <IconSettings2 size={15} />, page: Actions },
     { label: "Rules", link: "/rules", icon: <IconCheckbox size={15} />, page: Rules, match: "/rules/*?" },
     { label: "Schedules", link: "/schedules", icon: <IconClock size={15} /> },
 ];

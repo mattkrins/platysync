@@ -1,22 +1,13 @@
 import { SimpleGrid, Switch, TextInput, Textarea } from '@mantine/core';
-import { actionOptions } from '../../../../modules/actions'
-import Conditions from '../Conditions'
-import { useForm } from '@mantine/form';
-import { useEffect } from 'react';
 import { IconBraces, IconCheck, IconX } from '@tabler/icons-react';
+import { actionProps } from '../../../../modules/actions'
+import Conditions from '../Conditions'
 
-export default function SysComparator( { form, path, templateProps }: actionOptions ) {
-    const conditions = form.getInputProps(`${path}.conditions`).value;
+export default function SysComparator( { form, path, templateProps }: actionProps ) {
     const output = form.getInputProps(`${path}.output`).value;
-    const initialValues = {conditions: conditions||[]} as unknown as Rule;
-    const form2 = useForm({ initialValues, validate: {} });
-
-    useEffect(() => {
-        form.setFieldValue(`${path}.conditions`, form2.values.conditions)
-    }, [JSON.stringify(form2.values.conditions)]);
     return (
     <>
-        <Conditions form={form2} label="This action can halt futher execution, or build conditional templates." compact />
+        <Conditions form={form} path={`${path}.conditions`} label="This action can halt futher execution, or build conditional templates." compact />
         <Switch label="Output result to template"
         description={output?undefined:"Execution will currently be halted if conditions do not pass."}
         mt="xs" mb="xs" {...form.getInputProps(`${path}.output`, { type: 'checkbox' })}
@@ -29,7 +20,7 @@ export default function SysComparator( { form, path, templateProps }: actionOpti
                 leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                 {...templateProps(form, `${path}.key`)}
             />
-            <SimpleGrid>
+            <SimpleGrid cols={2} pt="xs" >
                 <Textarea
                     placeholder="true"
                     autosize maxRows={4}
