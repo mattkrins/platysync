@@ -1,4 +1,4 @@
-import { hasLength, isAlphanumeric, isNotEmpty, validate } from "../../modules/common";
+import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common";
 import { base_provider, base_provider_options } from "./base";
 import ldap from "../../modules/ldap";
 
@@ -49,13 +49,13 @@ export default class LDAP extends base_provider {
         this.client.base = this.dse || await this.client.getRoot();
     }
     public async getHeaders(): Promise<string[]> {
-        if (!this.target) return await this.client.getAttributes();
+        if (!this.target) throw new xError("Specify a target to autodetect headers.", null, 400);
         const entry = await this.client.searchOne({ scope: 'sub' }, this.target);
         return entry.attributes.map(a=>a.type);
     }
-   //public async connect(): Promise<{ [k: string]: string }[]> {
-   //    const { data: rows } = await this.open() as { data: {[k: string]: string}[] };
-   //    this.data = rows;
-   //    return rows;
-   //}
+    public async connect(): Promise<{ [k: string]: string }[]> {
+        const { users } = await this.client.search(this.headers);
+        this.data = users;
+        return users;
+    }
 }

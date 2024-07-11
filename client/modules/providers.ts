@@ -1,10 +1,11 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { UseFormReturnType, hasLength, isNotEmpty } from "@mantine/form";
-import { Icon, IconBinaryTree2, IconProps } from "@tabler/icons-react";
+import { Icon, IconBinaryTree2, IconFolder, IconProps } from "@tabler/icons-react";
 import { fileIcons, isAlphanumeric } from "./common";
 
 import CSV from "../routes/Connectors/providers/CSV";
 import LDAP, { LDAPContext } from "../routes/Connectors/providers/LDAP";
+import FOLDER from "../routes/Connectors/providers/FOLDER";
 
 export interface ContextProps {
     form: UseFormReturnType<any>;
@@ -53,6 +54,21 @@ export const providers: provider[] = [
             url: hasLength({ min: 4 }, 'URL must be at least 4 characters long.'),
             username: isNotEmpty('Username can not be empty.'),
             password: isNotEmpty('Password can not be empty.'),
+        },
+    },
+    {
+        id: 'folder',
+        name: "System Folder",
+        color: 'lime',
+        Icon: IconFolder,
+        Options: FOLDER,
+        initialValues: {
+            name: 'MyFolder',
+            type: 'file',
+        },
+        validate: {
+            name: isNotEmpty('Name can not be empty.'),
+            path: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
         },
     },
 ];

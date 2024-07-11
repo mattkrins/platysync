@@ -42,6 +42,8 @@ interface Source {
     foreignKey?: string;
     primaryName: string;
     primaryKey?: string;
+    inCase?: boolean;
+    require?: boolean;
 }
 
 interface Condition {
@@ -131,4 +133,16 @@ interface Hash {
 
 interface template {
   [connector: string]: {[header: string]: string} | string | object
+}
+
+interface actionResult {
+    name: string;
+    displayName?: string;
+    result: { warn?: string, error?: string, data?: {[k: string]: unknown} };
+}
+interface primaryResult { id: string, display?: string, actions: actionResult[], actionable: boolean, checked?: boolean }
+interface response {
+    primary: primaryResult[];
+    finalActions: actionResult[];
+    initActions: actionResult[];
 }

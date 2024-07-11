@@ -182,8 +182,8 @@ export const availableActions: availableAction[] = [
         Options: DocWritePDF,
     },
     {
-        name: "Print PDF", //TODO - make windows only flag?
-        category: 'document', //NOTE - linux print (generic) https://github.com/artiebits/unix-print
+        name: "Print PDF",
+        category: 'document',
         Icon: IconPrinter,
         color: 'lime',
         validator: true,

@@ -11,6 +11,7 @@ import { modals } from "@mantine/modals";
 import Conditions from "./Conditions";
 import { useConnectors } from "../../../hooks/redux";
 import Actions from "./Actions";
+import Run from "../../../components/Run/Run";
 
 const validate = {
     name: isNotEmpty('Name must not be empty.'),
@@ -40,19 +41,32 @@ export function useRule( form: UseFormReturnType<Rule> ) {
     const ruleProConnectors = useMemo(()=>proConnectors.filter(c=>sources.includes(c.name)), [ proConnectors, sources ]);
     const primary = useMemo(()=>proConnectors.find((item) => item.name === form.values.primary), [ form.values.primary ]);
     const primaryHeaders = primary ? primary.headers : [];
-    const displayExample = `{{${form.values.primary?`${form.values.primary}.`:''}${form.values.primaryKey ? form.values.primaryKey :  (primaryHeaders[0] ? primaryHeaders[0] : 'id')}}}`
-    return { used: usedSources, sources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample };
+    const displayExample = `{{${form.values.primary?`${form.values.primary}.`:''}${form.values.primaryKey ? form.values.primaryKey :  (primaryHeaders[0] ? primaryHeaders[0] : 'id')}}}`;
+    const inline = useMemo(()=>{
+        let map: {[k: string]: string[]} = {};
+        for (const type of ['initActions', 'iterativeActions', 'finalActions']){
+            let array: string[] = [];
+            for (const action of form.values[type as 'initActions']){
+                switch (action.name) {
+                    case "Encrypt String":{ if (action.key) array.push(action.key as string); break; }
+                    case "Comparator":{ if (action.key) array.push(action.key as string); break; }
+                    case "Template":{
+                        array = [...array, ...((action.templates||[]) as SysTemplate[]).filter(s=>s.key).map(s=>s.key) ]; break;
+                    }
+                    default: break;
+                }
+            } map[type] = array;
+        } return map;
+    }, [ form.values.initActions, form.values.iterativeActions, form.values.finalActions ])
+    return { used: usedSources, sources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample, inline };
 }
 
 export default function Editor({ editing, close }: { editing: [Rule,boolean], close(): void }) {
     const [_, setLocation] = useLocation();
     const [activeTab, setActiveTab] = useState<string | null>('settings');
+    const [rule, setRule] = useState<Rule | undefined>(undefined);
     const form = useForm<Rule>({ validate, initialValues: structuredClone(editing[0]) });
     const adding = (editing && editing[0] && !editing[1]) || false ;
-    const { post: test } = useAPI<boolean>({
-        url: `/rule/test`, form, schema: true,
-    });
-
     const cancel = () => { close(); setLocation("/"); };
     const safeCancel = () => form.isTouched() ? modals.openConfirmModal({
         title: 'Attention: Unsaved Changes Detected', centered: true,
@@ -70,20 +84,21 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
 
     return (
     <Container size="lg">
+        <Run rule={rule} close={()=>setRule(undefined)} />
         <Group justify="space-between">
             <Title mb="xs" ><Title mb="xs" onClick={safeCancel} component={Anchor} >Rules</Title> / Rule - {adding?'New':'Edit'}</Title>
-            <ActionButton save={()=>{}} test={()=>test()} cancel={safeCancel} />
+            <ActionButton save={()=>{}} test={()=>setRule(form.values)} cancel={safeCancel} />
         </Group>
         <Wrapper>
             <Tabs value={activeTab} onChange={setActiveTab}>
-            <Tabs.List>
-                <Tabs.Tab value="settings" leftSection={<IconSettings size="1rem" />} >Settings</Tabs.Tab>
-                <Tabs.Tab value="conditions" disabled={!form.values.primary} leftSection={<IconFilter size="1rem" />}>Conditions</Tabs.Tab>
-                <Tabs.Tab value="actions" leftSection={<IconRun size="1rem" />}>Actions</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="settings" pt="xs" >{activeTab==="settings"&&<Settings form={form} used={used} sources={sources} />}</Tabs.Panel>
-            <Tabs.Panel value="conditions" pt="xs" >{activeTab==="conditions"&&<Conditions form={form} />}</Tabs.Panel>
-            <Tabs.Panel value="actions" pt="xs" >{activeTab==="actions"&&<Actions form={form} setActiveTab={setActiveTab} />}</Tabs.Panel>
+                <Tabs.List>
+                    <Tabs.Tab value="settings" leftSection={<IconSettings size="1rem" />} >Settings</Tabs.Tab>
+                    <Tabs.Tab value="conditions" disabled={!form.values.primary} leftSection={<IconFilter size="1rem" />}>Conditions</Tabs.Tab>
+                    <Tabs.Tab value="actions" leftSection={<IconRun size="1rem" />}>Actions</Tabs.Tab>
+                </Tabs.List>
+                <Tabs.Panel value="settings" pt="xs" >{activeTab==="settings"&&<Settings form={form} used={used} sources={sources} />}</Tabs.Panel>
+                <Tabs.Panel value="conditions" pt="xs" >{activeTab==="conditions"&&<Conditions form={form} />}</Tabs.Panel>
+                <Tabs.Panel value="actions" pt="xs" >{activeTab==="actions"&&<Actions form={form} setActiveTab={setActiveTab} />}</Tabs.Panel>
             </Tabs>
         </Wrapper>
     </Container>

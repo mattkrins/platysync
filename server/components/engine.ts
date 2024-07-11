@@ -1,46 +1,44 @@
 import { compile } from "../modules/handlebars";
 import { connect, connections } from "./providers";
 
-function Join( primary: string, record: Record<string, any>,  connections: connections, sources: Source[] ) {
+function Join( primary: string, record: Record<string, string>,  connections: connections, sources: Source[] ) {
     const joined: Record<string, any> = { [primary]: record };
     for (const source of sources) {
+        if (!joined[source.primaryName] || !connections[source.foreignName]) continue;
+        const primary = joined[source.primaryName];
         const foreignHeaders = connections[source.foreignName].headers;
         const primaryHeaders = connections[source.primaryName].headers;
         const foreignKey = source.foreignKey || foreignHeaders[0];
         const primaryKey = source.primaryKey || primaryHeaders[0];
-        if (source.primaryName !== primary) continue;
         const foreignData = connections[source.foreignName].data;
-        const foreignRecord = foreignData.find( item => item[foreignKey] === record[primaryKey] );
+        if (!foreignKey || !primaryKey || !primary[primaryKey]) continue;
+        const foreignRecord = foreignData.find( foreign => {
+            if (!foreign[foreignKey]) return false;
+            if (source.inCase) return foreign[foreignKey].toLowerCase() === primary[primaryKey].toLowerCase();
+            return foreign[foreignKey] === primary[primaryKey];
+        } )
+        if (source.require&&!foreignRecord) return false;
         joined[source.foreignName] = foreignRecord || {};
-        if (!foreignRecord) continue;
-        for (const nestedSource of sources) {
-            const foreignHeaders = connections[source.foreignName].headers;
-            const primaryHeaders = connections[source.primaryName].headers;
-            const foreignKey = source.foreignKey || foreignHeaders[0];
-            const primaryKey = source.primaryKey || primaryHeaders[0];
-            if (nestedSource.primaryName !== source.foreignName) continue;
-            const nestedForeignData = connections[nestedSource.foreignName].data;
-            const nestedForeignRecord = nestedForeignData.find( item => item[foreignKey] === foreignRecord[primaryKey] );
-            joined[nestedSource.foreignName] = nestedForeignRecord || {};
-        }
     } return joined;
 }
 
-export async function engine(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean ) {
+export default async function evaluate(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean ): Promise<response> {
     const connections: connections = {};
     if (rule.primary) {
-        if (rule.primary) await connect(schema, rule.primary, connections);
+        await connect(schema, rule.primary, connections);
         for (const source of rule.sources||[]) await connect(schema, source.foreignName, connections);
         const primary = connections[rule.primary];
-
         console.time("Iteration");
         for (const record of connections[rule.primary].data) {
+            const primaryResults: primaryResult[] = [];
+            const id = record[rule.primaryKey||primary.headers[0]];
             const template = Join(rule.primary, record, connections, rule.sources||[]);
-            const display = rule.display ? compile(template, rule.display) : record[rule.primaryKey||primary.headers[0]];
-            console.log(display)
+            if (!template) continue;
+            const display = rule.display ? compile(template, rule.display) : id;
+            console.log(display);
         }
         console.timeEnd("Iteration");
     }
-    return true;
+    return { primary: [], initActions: [], finalActions: [] };
 }
 

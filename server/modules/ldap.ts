@@ -5,8 +5,7 @@ export class ldap {
     public connected: boolean = false;
     public base: string = '';
     public filter: string = '(objectclass=person)'
-    constructor() {
-    }
+    constructor() { }
     /**
      * Connects to an LDAP server.
      * @param {string} url URL of target server. Examples:
@@ -159,12 +158,10 @@ export class ldap {
      * @param {boolean} caseSen should object keys be lowercased (optional)
      * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
-    public search(attributes?: string[], id?: string, caseSen = false): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: {[k: string]: string}}, keyedUsers: {[k: string]: User}}> {
+    public search(attributes?: string[]): Promise<{users: {[k: string]: string}[]}> {
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             const users: {[k: string]: string}[] = [];
-            const keyedUsers: {[k: string]: User} = {};
-            const keyed: {[k: string]: {[k: string]: string}} = {};
             const opts: ldapjs.SearchOptions = {
                 filter: this.filter,
                 scope: 'sub',
@@ -174,36 +171,65 @@ export class ldap {
             };
             this.client.search(this.base, opts, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
                 if (err) return reject( err );
-                let startTime = performance.now();
-                let counter = 0;
                 res.on('searchEntry', (entry) => {
-                    const endTime = performance.now();
-                    const elapsedTime = endTime - startTime;
-                    if (elapsedTime>5000) counter++; //REVIEW - might be worth adding timeout settings to GUI
-                    if (counter>3 && users.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${users.length} rows.`));
                     const user: {[k: string]: string} = {};
-                    let IDfound = false;
                     for (const attribute of entry.attributes) {
                         user[attribute.type] = ((attribute.values||[]) as string[]).join();
-                        if (id&&attribute.type===id){
-                            IDfound = true;
-                            const usr = new User(entry, this.client );
-                            const key = caseSen?user[attribute.type]:(user[attribute.type]).toLowerCase();
-                            keyed[key] = usr.plain_attributes;
-                            keyedUsers[key] = usr;
-                        }
-                    }
-                    if (id && IDfound) users.push(user);
-                    startTime = performance.now();
+                    } users.push(user);
                 });
                 res.on('error', (err) => reject(err));
                 res.on('end', (result) => {
                     if (!result || result.status !== 0) return reject(Error("Nothing found."));
-                    resolve({users, keyed, keyedUsers})
+                    resolve({users})
                 });
             });
         });
     }
+    //public search(attributes?: string[], id?: string, caseSen = false): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: {[k: string]: string}}, keyedUsers: {[k: string]: User}}> {
+    //    return new Promise((resolve, reject) => {
+    //        if (!this.client) return reject(Error("Not connected."));
+    //        const users: {[k: string]: string}[] = [];
+    //        const keyedUsers: {[k: string]: User} = {};
+    //        const keyed: {[k: string]: {[k: string]: string}} = {};
+    //        const opts: ldapjs.SearchOptions = {
+    //            filter: this.filter,
+    //            scope: 'sub',
+    //            sizeLimit: 1000,
+    //            paged: true,
+    //            attributes
+    //        };
+    //        this.client.search(this.base, opts, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
+    //            if (err) return reject( err );
+    //            let startTime = performance.now();
+    //            let counter = 0;
+    //            res.on('searchEntry', (entry) => {
+    //                const endTime = performance.now();
+    //                const elapsedTime = endTime - startTime;
+    //                if (elapsedTime>5000) counter++; //REVIEW - might be worth adding timeout settings to GUI
+    //                if (counter>3 && users.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${users.length} rows.`));
+    //                const user: {[k: string]: string} = {};
+    //                let IDfound = false;
+    //                for (const attribute of entry.attributes) {
+    //                    user[attribute.type] = ((attribute.values||[]) as string[]).join();
+    //                    if (id&&attribute.type===id){
+    //                        IDfound = true;
+    //                        const usr = new User(entry, this.client );
+    //                        const key = caseSen?user[attribute.type]:(user[attribute.type]).toLowerCase();
+    //                        keyed[key] = usr.plain_attributes;
+    //                        keyedUsers[key] = usr;
+    //                    }
+    //                }
+    //                if (id && IDfound) users.push(user);
+    //                startTime = performance.now();
+    //            });
+    //            res.on('error', (err) => reject(err));
+    //            res.on('end', (result) => {
+    //                if (!result || result.status !== 0) return reject(Error("Nothing found."));
+    //                resolve({users, keyed, keyedUsers})
+    //            });
+    //        });
+    //    });
+    //}
     /**
      * Create a new ldap object.
      * @param {string} dn DN path to create. Gets prepended to base path.

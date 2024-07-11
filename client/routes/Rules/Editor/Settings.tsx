@@ -17,16 +17,13 @@ function Source({ index, source, form, edit }: { index: number, source: Source, 
     const primaryProvider = proConnectors.find(c=>c.name===source.primaryName) || {} as Connector&provider;
     const remove = () => form.removeListItem(`sources`, index);
     const dependancy = form.values.sources.find(s=>s.primaryName===source.foreignName);
-    return <Draggable key={index} index={index} draggableId={index.toString()}>
-    {(provided) => (
-    <Paper mb="xs" p={4} withBorder  {...provided.draggableProps} ref={provided.innerRef} >
-        <Grid columns={20} justify="space-between"  align="center" >
-            <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
-                <Group justify="space-between">
-                    <IconGripVertical size="1.2rem" />
-                </Group>
+    return (
+        <Paper mb="xs" p={4} withBorder >
+        <Grid columns={20} justify="space-between"  align="center" gutter={0} >
+            <Grid.Col span={1} pl="md">
+            {index+1}.
             </Grid.Col>
-            <Grid.Col span={16} style={{ cursor: 'grab' }} {...provided.dragHandleProps} >
+            <Grid.Col span={16}>
                 <Group>
                     <foreignProvider.Icon size={20} color={foreignProvider.color?theme.colors[foreignProvider.color][6]:undefined} />
                     {foreignProvider.name}
@@ -42,8 +39,8 @@ function Source({ index, source, form, edit }: { index: number, source: Source, 
                     </Group>
             </Grid.Col>
         </Grid>
-    </Paper>)}
-    </Draggable>
+    </Paper>
+    )
 }
 
 const validate = {
@@ -69,6 +66,8 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
         rule.setFieldValue(`sources.${index}.foreignKey`, form.values.foreignKey||null);
         rule.setFieldValue(`sources.${index}.primaryName`, form.values.primaryName||null);
         rule.setFieldValue(`sources.${index}.primaryKey`, form.values.primaryKey||null);
+        rule.setFieldValue(`sources.${index}.inCase`, form.values.inCase||false);
+        rule.setFieldValue(`sources.${index}.require`, form.values.require||false);
         close();
     }
     const foreignName = form.values.foreignName;
@@ -76,6 +75,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
     const foreignProvider = proConnectors.find(c=>c.name===foreignName) || {} as Connector&provider;
     const foreignPlaceholder = !foreignName ? 'Foreign Key' : ( foreignProvider.headers ? foreignProvider.headers[0]: undefined );
     const primaryProvider = proConnectors.find(c=>c.name===primaryName) || {} as Connector&provider;
+    const dependancy = rule.values.sources.find(s=>s.primaryName===join.foreignName);
     return (
     <>
         <Text size="xs" c="dimmed" >Join connectors with relational keys, similar to an SQL join.</Text>
@@ -120,8 +120,16 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
                 />
             </Grid.Col>
         </Grid>
+        <Grid>
+            <Grid.Col span={5}>
+                <Switch label="Case Insensitive" description="Data will be matched regardless of case." mt="xs" {...form.getInputProps('inCase', { type: 'checkbox' })} />
+            </Grid.Col>
+            <Grid.Col span={7}>
+                <Switch label="Required" description="If no match is found, each row, entry, user, etc will be skipped." mt="xs" {...form.getInputProps('require', { type: 'checkbox' })} />
+            </Grid.Col>
+        </Grid>
         <Group justify={adding?"flex-end":"space-between"} mt="md">
-          {!adding&&<Button color="red" onClick={remove} >Remove</Button>}
+          {!adding&&<Tooltip hidden={!dependancy} color="red" label={dependancy?"Has dependancies":undefined} ><Button disabled={!!dependancy} color="red" onClick={remove} >Remove</Button></Tooltip>}
           <Button onClick={adding?add:edit} >{adding ? "Join Data" : "Save"}</Button>
         </Group>
     </>)
@@ -269,21 +277,13 @@ export default function Settings( { form }: { form: UseFormReturnType<Rule>, use
             </SimpleGrid>
             <Group justify="right" gap="xs" >
                 <Tooltip label="Add Source" >
-                    <ActionIcon size="lg" variant="default" disabled={!form.values.primary||(sources.length-1)>=proConnectors.length} onClick={addSource} >
+                    <ActionIcon size="lg" variant="default" disabled={!form.values.primary||(sources.length)>=proConnectors.length} onClick={addSource} >
                         <IconPlus size={15} stroke={1.5} />
                     </ActionIcon>
                 </Tooltip>
             </Group>
         </Group>
-        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('sources', { from: source.index, to: destination? destination.index : 0 }) } >
-            <Droppable droppableId="dnd-list" direction="vertical">
-            {(provided) => (
-            <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-                {(form.values.sources||[]).map((source, index)=> <Source key={index} index={index} source={source} form={form} edit={editSource} />)}
-            </div>
-            )}
-            </Droppable>
-        </DragDropContext>
+        {(form.values.sources||[]).map((source, index)=> <Source key={index} index={index} source={source} form={form} edit={editSource} />)}
         <Group grow justify="apart" mb="xs" mt="xs" gap="xs">
             <SimpleGrid cols={1} verticalSpacing={0} >
                 <Text size="sm">Additional Connectors</Text>

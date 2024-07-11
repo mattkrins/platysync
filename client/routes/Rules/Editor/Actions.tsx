@@ -114,7 +114,7 @@ function SelectConfig({ id, onClick, active }: { id: string, onClick(name?: stri
     )
 }
 
-function Action({ index, action, type, form, templateProps }: { index: number, action: Action, form: UseFormReturnType<Rule>, type: string, templateProps: templateProps }) {
+function Action({ index, action, type, form }: { index: number, action: Action, form: UseFormReturnType<Rule>, type: string }) {
     const [opened, { toggle: t1 }] = useDisclosure(false);
     const [render, { close, open }] = useDisclosure(false);
     const toggle = () => {
@@ -130,7 +130,19 @@ function Action({ index, action, type, form, templateProps }: { index: number, a
     const display = form.values[type as "initActions"][index].display;
     const config = form.values[type as "initActions"][index].config;
     const setConfig = (name: string) => form.setFieldValue(`${type}.${index}.config`, name);
-    return <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
+    const { sources, inline } = useRule(form);
+    const filteredInline = useMemo(()=>{
+        switch (type) {
+            case "initActions": return inline.initActions;
+            case "iterativeActions": return [ ...inline.initActions, ...inline.iterativeActions ];
+            case "finalActions": return [ ...inline.initActions, ...inline.finalActions ];
+            default: return [];
+        }
+    }, [ inline, type ])
+    const { templateProps, explorer } = useTemplater({names:sources, inline: filteredInline});
+
+    return <>{explorer}
+    <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
     {(provided) => (
     <Indicator disabled={!!action.enabled} color="red"  {...provided.draggableProps} ref={provided.innerRef} >
     <Paper mb="xs" p={4} withBorder>
@@ -178,15 +190,13 @@ function Action({ index, action, type, form, templateProps }: { index: number, a
             </>}
         </Collapse>
     </Paper></Indicator>)}
-    </Draggable>
+    </Draggable></>
 }
 
 export default function Actions({ form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void }) {
     const add = (c: availableAction, type: string) => form.insertListItem(type, { name: c.name, enabled: true, ...c.initialValues });
-    const { sources } = useRule(form);
-    const { templateProps, explorer } = useTemplater({names:sources});
     return (
-    <Box> {explorer}
+    <Box>
         <Divider my="xs" label={<ActionButton add={add} type="initActions" label="Initial Action" form={form} />} labelPosition="right" />
         {form.values.initActions.length<=0&&<Text size="xs" c="dimmed" >Initial actions are executed at the begining of rules unconditionally.</Text>}
         <DragDropContext onDragEnd={(result) => {
@@ -204,7 +214,7 @@ export default function Actions({ form, setActiveTab }: { form: UseFormReturnTyp
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
                 {(form.values.initActions||[]).map((action, index)=>
-                <Action key={`init${index}`} type="initActions" index={index} action={action} form={form} templateProps={templateProps} />)}
+                <Action key={`init${index}`} type="initActions" index={index} action={action} form={form} />)}
                 {provided.placeholder}
             </div>
             )}
@@ -218,7 +228,7 @@ export default function Actions({ form, setActiveTab }: { form: UseFormReturnTyp
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
                 {form.values.iterativeActions.map((action, index)=>
-                <Action key={`iterative${index}`} type="iterativeActions" index={index} action={action} form={form} templateProps={templateProps} />)}
+                <Action key={`iterative${index}`} type="iterativeActions" index={index} action={action} form={form} />)}
                 {provided.placeholder}
             </div>
             )}
@@ -229,7 +239,7 @@ export default function Actions({ form, setActiveTab }: { form: UseFormReturnTyp
             {(provided) => (
             <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
                 {(form.values.finalActions||[]).map((action, index)=>
-                <Action key={`final${index}`} type="finalActions" index={index} action={action} form={form} templateProps={templateProps} />)}
+                <Action key={`final${index}`} type="finalActions" index={index} action={action} form={form} />)}
                 {provided.placeholder}
             </div>
             )}

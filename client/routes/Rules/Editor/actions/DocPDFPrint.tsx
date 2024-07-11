@@ -7,7 +7,6 @@ export default function DocPDFPrint( { form, path, templateProps }: actionProps 
     const { data: printers, loading } = useAPI<string[]>({
         url: `/rule/getPrinters`, schema: true,
         fetch: true, default: [],
-        mutate: (data: {name: string}[]) => data.map(printer=>printer.name)
     });
     const printer = form.getInputProps(`${path}.target`).value;
     const merged = printer ? [...printers, printer] : printers;

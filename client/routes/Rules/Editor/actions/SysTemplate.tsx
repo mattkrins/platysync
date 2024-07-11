@@ -17,13 +17,13 @@ function Template({ index, template, form, templateProps, path }: { index: numbe
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
                 <Grid.Col span="auto" >
-                    <TextInput {...templateProps(form, `${path}.${index}.value`)}
+                    <TextInput {...templateProps(form, `${path}.${index}.key`)}
                     leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="Key"
                     />
                 </Grid.Col>
                 <Grid.Col span="auto" >
-                    <TextInput {...templateProps(form, `${path}.${index}.key`)}
+                    <TextInput {...templateProps(form, `${path}.${index}.value`)}
                     leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="Value"
                     />

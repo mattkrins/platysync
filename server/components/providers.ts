@@ -1,4 +1,5 @@
 import CSV from "./providers/CSV";
+import FOLDER from "./providers/FOLDER";
 import LDAP from "./providers/LDAP";
 import { base_provider } from "./providers/base";
 
@@ -17,4 +18,5 @@ export async function connect(schema: Schema, name: string, connectors: connecti
 export const providers: { [id: string]: typeof base_provider } = {
     csv: CSV,
     ldap: LDAP,
+    folder: FOLDER,
 };
