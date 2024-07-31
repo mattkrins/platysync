@@ -1,7 +1,5 @@
-import { paths } from "../../../server";
-import { hasLength, isNotEmpty, validate, xError } from "../../modules/common";
+import { isNotEmpty, validate, xError } from "../../modules/common";
 import eduSTAR from "../../modules/eduSTAR";
-import { compile } from "../../modules/handlebars";
 import { Settings } from "../database";
 import { base_provider, base_provider_options } from "./base";
 
@@ -13,7 +11,7 @@ export interface stmc_options extends base_provider_options {
     includeInactive?: boolean;
 }
 
-export default class FOLDER extends base_provider {
+export default class STMC extends base_provider {
     private username: string;
     private password: string|Hash;
     private school: string;

@@ -1,6 +1,7 @@
 import CSV from "./providers/CSV";
 import FOLDER from "./providers/FOLDER";
 import LDAP from "./providers/LDAP";
+import STMC from "./providers/STMC";
 import { base_provider } from "./providers/base";
 
 export interface connections { [name: string]: base_provider }
@@ -19,4 +20,5 @@ export const providers: { [id: string]: typeof base_provider } = {
     csv: CSV,
     ldap: LDAP,
     folder: FOLDER,
+    stmc: STMC,
 };

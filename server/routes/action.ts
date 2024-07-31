@@ -33,6 +33,7 @@ export default async function (route: FastifyInstance) {
             });
             if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
             const actions = await getActions(schema_name);
+            if (actions.find(c=>c.name===name)) throw new xError("Action name taken.", "name", 409);
             actions.push({ id, name, ...options });
             await sync();
             return true;
@@ -81,8 +82,8 @@ export default async function (route: FastifyInstance) {
         const { name } = request.body as { name: string };
         try {
             const schema = await getSchema(schema_name);
-            const connector = schema.actions.find(f=>f.name===name);
-            if (!connector) throw new xError("Action config not found.", "name", 404 );
+            const action = schema.actions.find(f=>f.name===name);
+            if (!action) throw new xError("Action config not found.", "name", 404 );
             schema.actions = schema.actions.filter(f=>f.name!==name);
             await sync();
             return true;

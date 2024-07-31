@@ -274,18 +274,20 @@ export default function Conditions({ form, label, compact, path = "conditions" }
     const { ruleProConnectors, sources } = useRule(form);
     const { templateProps, explorer } = useTemplater({names:sources});
     const ldapAvailable = ruleProConnectors.find(c=>c.id==="ldap");
-    const conditions = form.getInputProps(path).value as Condition[];
+    const conditions = (form.getInputProps(path).value || []) as Condition[];
+    const disabled = !form.values.primary;
     //FIXME - dragging and dropping empty conditions are populated with the target values for some reason?
     return (
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >
             <Grid.Col span="content" >
                 <Text c="dimmed" size="xs" >{label||"Conditions are evaluated for each row, entry, user, etc and must all be true for an iterative action to execute."}</Text>
+                {disabled&&<Text c="red" size="xs" >A primary data source is required to check conditions.</Text>}
             </Grid.Col>
             <Grid.Col span="content">
                 <Menu position="bottom-end" >
                     <Menu.Target>
-                        <Button size={compact?"compact-xs":"sm"} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>Add condition</Button>
+                        <Button disabled={disabled} size={compact?"compact-xs":"sm"} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>Add Condition</Button>
                     </Menu.Target>
                     <Menu.Dropdown>
                     <Menu.Label>General</Menu.Label>
@@ -306,7 +308,7 @@ export default function Conditions({ form, label, compact, path = "conditions" }
                 </Menu>
             </Grid.Col>
         </Grid>
-        {conditions.length===0&&<Text c="lighter" size="sm" >No conditions in effect. All iterative actions will be executed.</Text>}
+        {conditions.length===0&&<Text c="lighter" size="sm" >No conditions in effect. All iterative actions will be evaluated & executed.</Text>}
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(path, { from: source.index, to: destination? destination.index : 0 }) } >
         <Droppable droppableId="dnd-list" direction="vertical">
             {provided => (

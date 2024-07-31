@@ -81,6 +81,11 @@ interface Action {
     [k: string]: unknown;
 }
 
+interface resultColumn {
+    name: string;
+    value: string;
+}
+
 interface Rule {
     name: string;
     enabled: boolean;
@@ -89,12 +94,14 @@ interface Rule {
     primary?: string;
     primaryKey?: string;
     display?: string;
+    displayKey?: string;
     sources: Source[];
     contexts: Context[];
     conditions: Condition[];
     initActions: Action[];
     iterativeActions: Action[];
     finalActions: Action[];
+    columns: resultColumn[];
 }
 
 interface psFile {
@@ -132,17 +139,30 @@ interface Hash {
 }
 
 interface template {
-  [connector: string]: {[header: string]: string} | string | object
+  [connector: string]: {[header: string]: string}
 }
 
+interface xError {
+    message: string;
+    name: string = "Error";
+    stack?: string|NodeJS.CallSite[];
+    field?: string;
+    status?: number;
+    errors?: { [k: string]: string };
+}
+
+interface result {template?: object, success?: boolean, error?: xError|string, warn?: string, data?: { [k: string]: unknown }}
 interface actionResult {
     name: string;
-    displayName?: string;
-    result: { warn?: string, error?: string, data?: {[k: string]: unknown} };
+    display?: string;
+    result: result;
+    checked?: boolean;
 }
-interface primaryResult { id: string, display?: string, actions: actionResult[], actionable: boolean, checked?: boolean }
+interface primaryResult { id: string, display?: string, actions: actionResult[], actionable: boolean, columns: resultColumn[], checked?: boolean; }
 interface response {
-    primary: primaryResult[];
+    primaryResults: primaryResult[];
     finalActions: actionResult[];
     initActions: actionResult[];
+    columns: string[];
 }
+

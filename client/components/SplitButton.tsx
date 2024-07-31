@@ -11,12 +11,12 @@ interface Props {
     disabled?: boolean;
     leftSection?: React.ReactNode;
     options: {
+      label: string;
       leftSection?: React.ReactNode;
       rightSection?: React.ReactNode;
       onClick?: (label: string)=>void;
-      label: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [any: string]: any,
+      disabled?: boolean;
+      [any: string]: any;
     }  [];
 }
 export default function SplitButton( { children, options = [], onClick, loading, menu, variant, disabled }: Props ) {

@@ -158,18 +158,20 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                     </Group>
                 </Group>
             </Grid.Col>
-            <Grid.Col span={13}>
+            <Grid.Col span={12}>
                 <TextInput variant="filled" {...form.getInputProps(`${type}.${index}.display`)}
                 value={display?display:(config||action.name)}
                 />
             </Grid.Col>
-            <Grid.Col span={5} miw={120}>
+            <Grid.Col span={6} miw={120}>
                     <Group gap="xs" justify="flex-end">
                         {overwriter&&<MenuTip label="Should Overwrite" Icon={IconEraser} color="grape" variant={action.overwrite?"light":"subtle"}
                         onClick={()=>form.setFieldValue(`${type}.${index}.overwrite`, !action.overwrite)} />}
                         {validator&&<MenuTip label="Validate Paths" Icon={IconFolderSearch} color="lime" variant={action.validate?"light":"subtle"}
                         onClick={()=>form.setFieldValue(`${type}.${index}.validate`, !action.validate)} />}
                         {Config&&<SelectConfig id={name} onClick={setConfig} active={config} />}
+                        <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
+                        onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
                         <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
                         onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
                         <Divider orientation="vertical" />

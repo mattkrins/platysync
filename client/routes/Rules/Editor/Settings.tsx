@@ -1,4 +1,4 @@
-import { Box, Grid, Group, Select, TextInput, Text, ActionIcon, Modal, Button, SimpleGrid, Paper, useMantineTheme, Textarea, Switch, Tooltip, Divider } from "@mantine/core";
+import { Box, Grid, Group, Select, TextInput, Text, ActionIcon, Modal, Button, SimpleGrid, Paper, useMantineTheme, Textarea, Switch, Tooltip, Divider, Anchor } from "@mantine/core";
 import { UseFormReturnType, isNotEmpty, useForm } from "@mantine/form";
 import { IconGripVertical, IconKey, IconPencil, IconPlus, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../components/SelectConnector";
@@ -222,7 +222,7 @@ function ContextEditor({ editing, close, form }: { editing?: [Context,number|und
     );
 }
 
-export default function Settings( { form }: { form: UseFormReturnType<Rule>, used: string[], sources: string[] } ) {
+export default function Settings( { form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void } ) {
     const { sources, primaryHeaders, displayExample, contextSources } = useRule(form);
     const { templateProps, explorer } = useTemplater({names:sources});
     const [ editingSource, setEditingSource ] = useState<[Source,number|undefined,boolean]|undefined>(undefined);
@@ -308,7 +308,8 @@ export default function Settings( { form }: { form: UseFormReturnType<Rule>, use
         </DragDropContext>
         <TextInput
             label="Entry Display Name" mt="xs" disabled={!form.values.primary}
-            description="Displayed on each result row to identify each entry."
+            description={<>First {!form.values.primary?'column ':<Anchor size="xs" onClick={()=>setActiveTab("columns")} >column </Anchor>}
+            displayed on each result row to identify each row, entry, user, etc.</>}
             leftSection={<IconTable size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder={displayExample}
             {...templateProps(form, 'display', { disabled: !form.values.primary } )}
