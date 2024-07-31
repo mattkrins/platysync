@@ -2,8 +2,9 @@ import { ActionIcon, Checkbox, Divider, Group, Indicator, Table, TextInput, Tool
 import { availableActions } from "../../modules/actions";
 import ActionExplorer from "./ActionExplorer";
 import { useState } from "react";
-import { IconLetterCase, IconSearch } from "@tabler/icons-react";
+import { IconEye, IconEyeCheck, IconEyeClosed, IconEyeX, IconLetterCase, IconSearch, IconX } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
+import MenuTip from "../MenuTip";
 
 interface EvalProps {
     evaluated: response;
@@ -42,14 +43,15 @@ function TableRow({ r, c }: { r: primaryResult, c: string[] }) {
     )
 }
 
-function useHeader({ count }) {
+function useHeader({ count }: { count: number }) {
     const [query, search] = useState<string>("");
-    const [sE, { toggle: SE }] = useDisclosure(false);
+    const [e, E] = useState<number>(0);
+    const [w, W] = useState<number>(2);
     const [eE, { toggle: EE }] = useDisclosure(false);
     const [sW, { toggle: SW }] = useDisclosure(false);
     const [eW, { toggle: EW }] = useDisclosure(false);
     const [cased, { toggle: toggleCase }] = useDisclosure(false);
-    const Header = (
+    const header = (
         <Group justify="space-between" miw="600px" >
             <TextInput
             placeholder={`Search ${count} entries`}
@@ -59,19 +61,34 @@ function useHeader({ count }) {
             onChange={e=>search(e.currentTarget.value)}
             rightSection={<ActionIcon variant={cased?"subtle":"light"} onClick={toggleCase} color="gray" size={24}><IconLetterCase size={18} /></ActionIcon>}
             />
+            <Group>
+                <Tooltip label={{0:"Errors Disabled",1:"Errors Visible",2:"Errors Enabled"}[e]}>
+                    <Indicator color="red" size={{0:5,1:7,2:9}[e]} ><ActionIcon color={{0:"gray",1:"gray",2:"red"}[e]} variant="light" onClick={()=>E(e<2?e+1:0)} >
+                        {{0:<IconEyeX size={18} />,1:<IconEye size={18} />,2:<IconEyeCheck size={18} />}[e]}
+                    </ActionIcon></Indicator>
+                </Tooltip>
+                <Tooltip label={{0:"Warnings Disabled",1:"Warnings Visible",2:"Warnings Enabled"}[w]}>
+                    <Indicator color="orange" size={{0:5,1:7,2:9}[w]} ><ActionIcon color={{0:"gray",1:"gray",2:"orange"}[w]} variant="light" onClick={()=>W(w<2?w+1:0)} >
+                        {{0:<IconEyeX size={18} />,1:<IconEye size={18} />,2:<IconEyeCheck size={18} />}[w]}
+                    </ActionIcon></Indicator>
+                </Tooltip>
+            </Group>
         </Group>
-    ); return { Header, query }
+    ); return { header, query }
 }
 
 export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     const { primaryResults, initActions, finalActions, columns } = evaluated;
     const [query, search] = useState<string>("");
     const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
+    const { header } = useHeader({ count: 0 })
     return (<>
     <ActionExplorer viewing={viewing} view={view} />
     <ActionMap actions={initActions} view={view} />
-    <Divider/>
-    {primaryResults.length>0&&<Table stickyHeader >
+    {primaryResults.length>0&&<>
+    {header}
+    <Divider mt="sm" />
+    <Table stickyHeader >
         <Table.Thead>
             <Table.Tr>
                 <Table.Th w={56} ><Checkbox /></Table.Th>
@@ -81,7 +98,7 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
             </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{primaryResults.map(r=><TableRow key={r.id} r={r} c={columns} />)}</Table.Tbody>
-    </Table>}
+    </Table></>}
     <ActionMap actions={finalActions} view={view} />
     </>
     )

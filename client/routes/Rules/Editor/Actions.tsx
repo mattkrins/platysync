@@ -2,7 +2,7 @@ import { ActionIcon, Anchor, Box, Button, Collapse, Divider, Grid, Group, Indica
 import { UseFormReturnType } from "@mantine/form";
 import { useClickOutside, useDisclosure } from "@mantine/hooks";
 import classes from './Actions.module.css';
-import { IconProps, Icon, IconChevronRight, IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconX, IconFolderSearch, IconEraser, IconSettings2, IconCheck } from "@tabler/icons-react";
+import { IconProps, Icon, IconChevronRight, IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconX, IconFolderSearch, IconEraser, IconSettings2, IconCheck, IconExclamationCircle } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from "react";
 import { availableAction, availableActions, availableCategories, availableCategory } from "../../../modules/actions";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
@@ -139,12 +139,12 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
             default: return [];
         }
     }, [ inline, type ])
-    const { templateProps, explorer } = useTemplater({names:sources, inline: filteredInline});
+    const { templateProps, explorer } = useTemplater({names:type==="iterativeActions"?sources:[], inline: filteredInline});
 
     return <>{explorer}
     <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
     {(provided) => (
-    <Indicator disabled={!!action.enabled} color="red"  {...provided.draggableProps} ref={provided.innerRef} >
+    <Indicator disabled={!!action.enabled&&!action.noblock} color={!action.enabled?"red":"orange"}  {...provided.draggableProps} ref={provided.innerRef} >
     <Paper mb="xs" p={4} withBorder>
         <Grid columns={20} justify="space-between"  align="center" >
             <Grid.Col span={2} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
@@ -164,21 +164,21 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                 />
             </Grid.Col>
             <Grid.Col span={6} miw={120}>
-                    <Group gap="xs" justify="flex-end">
-                        {overwriter&&<MenuTip label="Should Overwrite" Icon={IconEraser} color="grape" variant={action.overwrite?"light":"subtle"}
-                        onClick={()=>form.setFieldValue(`${type}.${index}.overwrite`, !action.overwrite)} />}
-                        {validator&&<MenuTip label="Validate Paths" Icon={IconFolderSearch} color="lime" variant={action.validate?"light":"subtle"}
-                        onClick={()=>form.setFieldValue(`${type}.${index}.validate`, !action.validate)} />}
-                        {Config&&<SelectConfig id={name} onClick={setConfig} active={config} />}
-                        <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
-                        onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
-                        <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
-                        onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
-                        <Divider orientation="vertical" />
-                        <MenuTip label="Edit" Icon={IconPencil} onClick={toggle} color="orange" variant={opened?"filled":"subtle"} />
-                        <MenuTip label="Copy" Icon={IconCopy} onClick={copy} color="indigo" variant="subtle" />
-                        <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />
-                    </Group>
+                <Group gap="xs" justify="flex-end">
+                    {overwriter&&<MenuTip label="Should Overwrite" Icon={IconEraser} color="grape" variant={action.overwrite?"light":"subtle"}
+                    onClick={()=>form.setFieldValue(`${type}.${index}.overwrite`, !action.overwrite)} />}
+                    {validator&&<MenuTip label="Validate Paths" Icon={IconFolderSearch} color="lime" variant={action.validate?"light":"subtle"}
+                    onClick={()=>form.setFieldValue(`${type}.${index}.validate`, !action.validate)} />}
+                    {Config&&<SelectConfig id={name} onClick={setConfig} active={config} />}
+                    <MenuTip label="Continue On Error" Icon={IconExclamationCircle} color="orange" variant={action.noblock?"light":"subtle"}
+                    onClick={()=>form.setFieldValue(`${type}.${index}.noblock`, !action.noblock)} />
+                    <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
+                    onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
+                    <Divider orientation="vertical" />
+                    <MenuTip label="Edit" Icon={IconPencil} onClick={toggle} color="orange" variant={opened?"default":"subtle"} />
+                    <MenuTip label="Copy" Icon={IconCopy} onClick={copy} color="indigo" variant="subtle" />
+                    <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />
+                </Group>
             </Grid.Col>
         </Grid>
         <Collapse in={opened} >
