@@ -59,9 +59,10 @@ export default async function evaluate(rule: Rule, schema: Schema, context?:  st
                 const template = { ...initTemplate, ...joined };
                 const {todo: iterativeActions, error: initError } = await processActions(rule.iterativeActions, template, connections, execute);
                 const display = rule.display ? compile(template, rule.display) : id;
-                const output: primaryResult = { id, actions: [], actionable: false, columns: [ { name: 'Display', value: display } ] };
+                const output: primaryResult = { id, actions: [], error: false, columns: [ { name: 'Display', value: display } ] };
                 output.actions = iterativeActions;
-                output.actionable = iterativeActions.filter(t=>t.result.error).length <= 0;
+                output.error = iterativeActions.filter(t=>t.result.error).length > 0;
+                output.warn = iterativeActions.filter(t=>t.result.warn).length > 0;
                 for (const column of rule.columns){
                     if (!column.name || !column.value) continue;
                     output.columns.push({ name: column.name, value: compile(template, column.value) });

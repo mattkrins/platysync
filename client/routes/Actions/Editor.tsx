@@ -35,7 +35,7 @@ function Configuration({ form, editing }: { form: UseFormReturnType<ActionConfig
     )
 }
 
-function Content({ action, refresh, adding }: { action: ActionConfig, refresh(): void, adding: boolean }) {
+function Content({ action, refresh, adding, close }: { action: ActionConfig, refresh(): void, adding: boolean, close(): void }) {
     const editing = action.name;
     const act = (availableActions.find(a=>a.name===action.id) || {}) as availableAction;
     const theme = useMantineTheme();
@@ -43,7 +43,7 @@ function Content({ action, refresh, adding }: { action: ActionConfig, refresh():
     const form = useForm<ActionConfig>({ validate, initialValues: structuredClone(action) });
     const { data: success, put, post, loading, error } = useAPI<unknown, ActionConfig>({
         url: `/action${adding?'':`/${editing}`}`, schema: true, form: form,
-        then: () => refresh(),
+        then: () => { refresh(); close(); },
     });
     const select = (a: availableAction) => {
         form.setFieldValue('id',a.name);
@@ -72,8 +72,8 @@ export default function Editor({ editing, close, refresh }: { editing?: [ActionC
     return (
     <Modal size="lg" opened={!!editing} onClose={close} title={adding?"Add Action":"Edit Action"} styles={adding?{content:{background:"none"},header:{background:"none"}}:undefined} closeOnClickOutside={!adding} >
         {editing&&(editing[0].name?
-        <Content action={editing[0]} refresh={refresh} adding={adding} />:
-        <Wrapper><Content action={editing[0]} refresh={refresh} adding={adding} /></Wrapper>)}
+        <Content action={editing[0]} refresh={refresh} adding={adding} close={close} />:
+        <Wrapper><Content action={editing[0]} refresh={refresh} adding={adding} close={close} /></Wrapper>)}
     </Modal>
     );
 }

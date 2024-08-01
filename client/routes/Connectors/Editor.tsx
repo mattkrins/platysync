@@ -187,7 +187,7 @@ function NewConnector({ close }: { close(): void, }) {
   )
 }
 
-function EditConnector({ provider: { validate, Options }, initialValues }: { provider: provider, initialValues: Connector, refresh(): void }) {
+function EditConnector({ provider: { validate, Options }, initialValues, close }: { provider: provider, initialValues: Connector, refresh(): void, close(): void }) {
   const [opened, { toggle }] = useDisclosure(false);
   const theme = useMantineTheme();
   const dispatch = useDispatch();
@@ -195,7 +195,7 @@ function EditConnector({ provider: { validate, Options }, initialValues }: { pro
   const { data: success, put, error: e1, loading: l1 } = useAPI({
     url: `/connector/${initialValues.name}`, schema: true,
     data: form.values,
-    then: () => dispatch(loadConnectors()),
+    then: () => { dispatch(loadConnectors()); close(); },
     catch: (_, errors) => form.setErrors(errors as {}),
   });
   const { data: valid, post: val, error: e2, loading: l2 } = useAPI({
@@ -229,7 +229,7 @@ function EditConnector({ provider: { validate, Options }, initialValues }: { pro
 
 function Content({ connector, refresh, adding, close }: { connector: Connector, refresh(): void, adding: boolean, close(): void, }) {
   const provider = providers.find(p=>p.id===connector.id);
-  return ( adding? <NewConnector close={close} /> : provider&&<EditConnector initialValues={connector} provider={provider} refresh={refresh} /> )
+  return ( adding? <NewConnector close={close} /> : provider&&<EditConnector initialValues={connector} provider={provider} refresh={refresh} close={close} /> )
 }
 
 export default function Editor({ editing, close, refresh }: { editing?: [Connector,boolean], close(): void, refresh(): void }) {

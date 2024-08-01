@@ -67,7 +67,7 @@ export default function Actions() {
             <Button onClick={add} loading={loadingFiles} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
         <Wrapper loading={loadingFiles} >
-            {actions.length<=0?<Text c="dimmed" >No actions configured. <Anchor onClick={add} >Add</Anchor> pre-configurations to use specific actions in rules.</Text>:
+            {(actions||[]).length<=0?<Text c="dimmed" >No actions configured. <Anchor onClick={add} >Add</Anchor> pre-configurations to use specific actions in rules.</Text>:
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
                     <Grid.Col span={1}/>
@@ -80,7 +80,7 @@ export default function Actions() {
             <Droppable droppableId="dnd-list" direction="vertical">
                 {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {actions.map((action, index) => <Action index={index} key={action.name} action={action} edit={()=>setEditing([{...action},true])} refresh={refresh} />)}
+                    {(actions||[]).map((action, index) => <Action index={index} key={action.name} action={action} edit={()=>setEditing([{...action},true])} refresh={refresh} />)}
                     {provided.placeholder}
                 </div>
                 )}

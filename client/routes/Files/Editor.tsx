@@ -11,7 +11,7 @@ const validate = {
   name: isNotEmpty('Name can not be empty.'),
 }
 
-function Content({ file, refresh, adding }: { file: psFile, refresh(): void, adding: boolean }) {
+function Content({ file, refresh, adding, close }: { file: psFile, refresh(): void, adding: boolean, close(): void }) {
   const editing = file.name;
   const form = useForm<psFile>({ validate, initialValues: structuredClone(file) });
   const [ data, setData ] = useState<FileWithPath|undefined>(undefined);
@@ -26,7 +26,7 @@ function Content({ file, refresh, adding }: { file: psFile, refresh(): void, add
       send.append('key', form.values.key as string);
       return send;
     },
-    then: () => refresh(),
+    then: () => { refresh(); close(); },
     catch: (_, errors) => form.setErrors(errors as {}),
   });
   const onDrop = (files: FileWithPath[]) => {
@@ -70,7 +70,7 @@ export default function Editor({ editing, close, refresh }: { editing?: [psFile,
   const adding = (editing && editing[0] && !editing[1]) || false ;
   return (
     <Modal opened={!!editing} onClose={close} title={adding ? "New File" : "Edit File"}>
-      {editing&&<Content file={editing[0]} refresh={refresh} adding={adding} />}
+      {editing&&<Content file={editing[0]} refresh={refresh} adding={adding} close={close} />}
     </Modal>
   );
 }

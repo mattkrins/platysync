@@ -158,7 +158,7 @@ interface actionResult {
     result: result;
     checked?: boolean;
 }
-interface primaryResult { id: string, display?: string, actions: actionResult[], actionable: boolean, columns: resultColumn[], checked?: boolean; }
+interface primaryResult { id: string, Display?: string, actions: actionResult[], columns: resultColumn[], checked?: boolean, error?: boolean, warn?: boolean }
 interface response {
     primaryResults: primaryResult[];
     finalActions: actionResult[];
