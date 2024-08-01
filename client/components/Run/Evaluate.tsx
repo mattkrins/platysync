@@ -43,23 +43,17 @@ function TableRow({ r, c }: { r: primaryResult, c: string[] }) {
     )
 }
 
-function useHeader({ count }: { count: number }) {
-    const [query, search] = useState<string>("");
-    const [e, E] = useState<number>(0);
-    const [w, W] = useState<number>(2);
-    const [eE, { toggle: EE }] = useDisclosure(false);
-    const [sW, { toggle: SW }] = useDisclosure(false);
-    const [eW, { toggle: EW }] = useDisclosure(false);
-    const [cased, { toggle: toggleCase }] = useDisclosure(false);
-    const header = (
+function Header({ count, q, e, w, c, Q, E, W, C }: {
+    count: number, q: string, e: number, w: number, c: boolean, Q(s:string):void, E(e:number):void, W(w:number):void, C():void }) {
+    return (
         <Group justify="space-between" miw="600px" >
             <TextInput
             placeholder={`Search ${count} entries`}
             leftSection={<IconSearch size={16} stroke={1.5} />}
             visibleFrom="xs"
-            value={query}
-            onChange={e=>search(e.currentTarget.value)}
-            rightSection={<ActionIcon variant={cased?"subtle":"light"} onClick={toggleCase} color="gray" size={24}><IconLetterCase size={18} /></ActionIcon>}
+            value={q}
+            onChange={e=>Q(e.currentTarget.value)}
+            rightSection={<ActionIcon variant={c?"subtle":"light"} onClick={C} color="gray" size={24}><IconLetterCase size={18} /></ActionIcon>}
             />
             <Group>
                 <Tooltip label={{0:"Errors Disabled",1:"Errors Visible",2:"Errors Enabled"}[e]}>
@@ -74,31 +68,39 @@ function useHeader({ count }: { count: number }) {
                 </Tooltip>
             </Group>
         </Group>
-    ); return { header, query }
+    );
 }
 
-export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
-    const { primaryResults, initActions, finalActions, columns } = evaluated;
-    const [query, search] = useState<string>("");
-    const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
-    const { header } = useHeader({ count: 0 })
-    return (<>
-    <ActionExplorer viewing={viewing} view={view} />
-    <ActionMap actions={initActions} view={view} />
-    {primaryResults.length>0&&<>
-    {header}
-    <Divider mt="sm" />
+function TableData({ primaryResults, columns }: { primaryResults: primaryResult[], columns: string[] }) {
+    return (
     <Table stickyHeader >
         <Table.Thead>
             <Table.Tr>
                 <Table.Th w={56} ><Checkbox /></Table.Th>
                 <Table.Th>ID</Table.Th>
-                {columns.map(c=><Table.Th key={c} >{c}</Table.Th>)}
+                {columns.map((c)=><Table.Th key={c} >{c}</Table.Th>)}
                 <Table.Th>Actions</Table.Th>
             </Table.Tr>
         </Table.Thead>
-        <Table.Tbody>{primaryResults.map(r=><TableRow key={r.id} r={r} c={columns} />)}</Table.Tbody>
-    </Table></>}
+        <Table.Tbody>{primaryResults.map((r,i)=><TableRow key={r.id||i} r={r} c={columns} />)}</Table.Tbody>
+    </Table>
+    )
+}
+
+export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
+    const { primaryResults, initActions, finalActions, columns } = evaluated;
+    const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
+    const [q, Q] = useState<string>("");
+    const [e, E] = useState<number>(0);
+    const [w, W] = useState<number>(2);
+    const [c, { toggle: C }] = useDisclosure(false);
+    return (<>
+    <ActionExplorer viewing={viewing} view={view} />
+    <ActionMap actions={initActions} view={view} />
+    {primaryResults.length>0&&<>
+    <Header count={0} q={q} e={e} w={w} c={c} Q={Q} E={E} W={W} C={C} />
+    <Divider mt="sm" />
+    <TableData primaryResults={primaryResults} columns={columns} /></>}
     <ActionMap actions={finalActions} view={view} />
     </>
     )
