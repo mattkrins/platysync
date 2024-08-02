@@ -38,13 +38,18 @@ function DataReadout({ action }:{ action: actionResult }) {
 }
 
 
-function Action( { action }: { action: actionResult } ) {
+function Action( { action, name }: { action: actionResult, name: string } ) {
     return (
         <Box>
-            {action.result.error&&<Notification mb="xs" icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error!">
+            {action.result.error&&<><Notification withBorder mb="xs" icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error!">
             {action.result.error as string}
+            {action.noblock&&<Text size="xs" >Error was ignored and execution continued.</Text>}
+            </Notification>
+            {!action.noblock&&<Notification withBorder mb="xs" icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Execution Halted">
+                No futher actions were evaluated or run for '{name}'.
             </Notification>}
-            {action.result.warn&&<Notification mb="xs" icon={<IconAlertTriangle size={20} />} withCloseButton={false} color="orange">
+            </>}
+            {action.result.warn&&<Notification withBorder mb="xs" icon={<IconAlertTriangle size={20} />} withCloseButton={false} color="orange" title="Warning!" >
             {action.result.warn}
             </Notification>}
             <DataReadout action={action} />
@@ -57,7 +62,6 @@ function Action( { action }: { action: actionResult } ) {
 
 export default function ActionExplorer( { viewing, view }: { viewing?: {name: string, open: string, actions: actionResult[]}, view: (a: undefined) => void } ) {
     const theme = useMantineTheme();
-    const error = viewing && viewing.actions.filter(a=>!a.result||a.result.error).length > 0;
     return (
     <Drawer size="xl" opened={!!viewing} onClose={()=>view(undefined)} title={`Action Explorer: ${viewing?.name}`}>
         <Accordion multiple defaultValue={[ viewing?.open||'0' ]}>
@@ -69,15 +73,12 @@ export default function ActionExplorer( { viewing, view }: { viewing?: {name: st
                 return (
                 <Accordion.Item key={i} value={i.toString()} >
                     <Accordion.Control icon={
-                    <Indicator disabled={!problem} size={12} color={action.result.warn?'orange':'red'} inline><act.Icon color={col} /></Indicator>
+                    <Indicator processing={!!action.result.error} disabled={!problem} size={12} color={action.result.warn?'orange':'red'} inline><act.Icon color={col} /></Indicator>
                     }>{action.display||action.name} {action.display!==action.name&&<Text component='span' c="dimmed" >({action.name})</Text>}</Accordion.Control>
-                    <Accordion.Panel><Action action={action} /></Accordion.Panel>
+                    <Accordion.Panel><Action action={action} name={viewing?.name} /></Accordion.Panel>
                 </Accordion.Item>)
             })}
         </Accordion>
-        {error&&<Notification mt="xs" icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Execution Halted">
-            No futher conditions actions for '{viewing?.name}' were evaluated or run.
-        </Notification>}
     </Drawer>
     )
 }

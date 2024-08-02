@@ -152,12 +152,13 @@ interface xError {
     errors?: { [k: string]: string };
 }
 
-interface result {template?: object, success?: boolean, error?: xError|string, warn?: string, data?: { [k: string]: unknown }}
+interface result {template?: object, success?: boolean, error?: xError|string, noblock?: boolean, warn?: string, data?: { [k: string]: unknown }}
 interface actionResult {
     name: string;
     display?: string;
     result: result;
     checked?: boolean;
+    noblock?: boolean;
 }
 interface primaryResult { id: string, Display?: string, actions: actionResult[], columns: resultColumn[], checked?: boolean, error?: boolean, warn?: boolean }
 interface response {

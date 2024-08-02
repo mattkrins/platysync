@@ -25,21 +25,28 @@ function Join( primary: string, record: Record<string, string>,  connections: co
 }
 
 async function processActions(actions: Action[], template: template, connections: connections, execute: boolean) {
-    const todo: {name: string, display?: string, result: result }[] = [];
+    const todo: actionResult[] = [];
     let error: undefined|xError;
+    let warn: undefined|string;
     for (const action of (actions||[])) {
         if (!action.enabled) continue;
         if (!(action.name in availableActions)) throw new xError(`Unknown action '${action.name}'.`);
         const result = await availableActions[action.name]({ action, template, connections, execute, data: {} })
         if (!result)  throw new xError(`Failed to run action '${action.name}'.`);
         const name = (action.display && action.display!==action.name) ? { display: action.display||action.name } : {}
-        todo.push({name: action.name, result, ...name });
+        todo.push({name: action.name, result, ...name, noblock: action.noblock });
+        if (result.warn) warn = result.warn;
         if (result.error){
             if ((result.error as xError).message) result.error = (result.error as xError).message;
-            error = new xError(result.error, action.name);
-            if (!action.noblock) break;
+            if (!action.noblock){
+                error = new xError(result.error, action.name);
+                break;
+            }
+            result.warn = result.error.toString();
+            warn = result.warn;
+            delete result.error;
         }
-    } return {todo, template, error};
+    } return {todo, template, error, warn};
 }
 
 export default async function evaluate(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean ): Promise<response> {
@@ -47,6 +54,7 @@ export default async function evaluate(rule: Rule, schema: Schema, context?:  st
         const connections: connections = {};
         const execute = !!context;
         const {todo: initActions, template: initTemplate, error: initError } = await processActions(rule.initActions, {}, connections, execute);
+        if (initError) throw initError;
         const primaryResults: primaryResult[] = [];
         if (rule.primary) {
             await connect(schema, rule.primary, connections);
@@ -57,12 +65,12 @@ export default async function evaluate(rule: Rule, schema: Schema, context?:  st
                 const joined = Join(rule.primary, record, connections, rule.sources||[]);
                 if (!joined) continue;
                 const template = { ...initTemplate, ...joined };
-                const {todo: iterativeActions, error: initError } = await processActions(rule.iterativeActions, template, connections, execute);
+                const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await processActions(rule.iterativeActions, template, connections, execute);
                 const display = rule.display ? compile(template, rule.display) : id;
                 const output: primaryResult = { id, actions: [], error: false, columns: [ { name: 'Display', value: display } ] };
                 output.actions = iterativeActions;
-                output.error = iterativeActions.filter(t=>t.result.error).length > 0;
-                output.warn = iterativeActions.filter(t=>t.result.warn).length > 0;
+                output.error = !!iterativeError;
+                output.warn = !!iterativeWarn;
                 for (const column of rule.columns){
                     if (!column.name || !column.value) continue;
                     output.columns.push({ name: column.name, value: compile(template, column.value) });

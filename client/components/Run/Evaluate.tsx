@@ -33,25 +33,25 @@ function IconMap({ actions, size = 16, click }: { actions: actionResult[], size?
     })
 }
 
-function ActionMap({ actions, view }: { actions: actionResult[], view: (id: {name: string, open: string, actions: actionResult[]}) => void }){
-    const click = (open: string) => () => view({name: 'Init', open, actions });
+function ActionMap({ actions, view, name }: { actions: actionResult[], view: (id: {name: string, open: string, actions: actionResult[]}) => void, name: string }){
+    const click = (open: string) => () => view({name, open, actions });
     return actions.length<=0?<Divider mb="xs" />:
-    <Divider h={24} label={<Group><IconMap actions={actions} size={22} click={click} /></Group>} />
+    <Divider h={24} label={<Group gap="xs" ><IconMap actions={actions} size={22} click={click} /></Group>} />
 }
-
+//TODO - use Indeterminate state https://mantine.dev/core/checkbox/#indeterminate-state
 function TableRow({ r, c, dE, dW, t, v }: {
     r: primaryResult, c: string[], dE: boolean, dW: boolean, t: (id: string) => void,
     v: (id: {name: string, open: string, actions: actionResult[]}) => void
     }) {
     const cl = c.map(c=>(r.columns.find(rc=>rc.name===c)?.value||""));
     const disabled = (dE && r.error) || (dW && r.warn);
-    const click = (open: string) => () => v({name: 'Init', open, actions: r.actions });
+    const click = (open: string) => () => v({name: r.id, open, actions: r.actions });
     return (
     <Table.Tr>
         <Table.Td><Checkbox disabled={disabled} onClick={()=>t(r.id)} checked={r.checked} /></Table.Td>
         <Table.Td>{r.id}</Table.Td>
         {cl.map(c=><Table.Td key={c} >{c}</Table.Td>)}
-        <Table.Td><IconMap actions={r.actions} size={16} click={click} /></Table.Td>
+        <Table.Td><Group gap={2} ><IconMap actions={r.actions} size={16} click={click} /></Group></Table.Td>
     </Table.Tr>
     )
 }
@@ -146,8 +146,8 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
     const [q, Q] = useState<string>("");
     const [s, S] = useState<string|undefined>(undefined);
-    const [e, E] = useState<number>(0);
-    const [w, W] = useState<number>(1);
+    const [e, E] = useState<number>(1);
+    const [w, W] = useState<number>(2);
     const [pp, PP] = useState<number>(defaultPage);
     const [c, { toggle: C }] = useDisclosure(false);
     const [exporting, setExporting] = useState<string|undefined>(undefined);
@@ -155,7 +155,7 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     const errorCount  = useMemo(()=>primaryResults.filter(r=>r.error).length, [ primaryResults ]);
     const warnCount  = useMemo(()=>primaryResults.filter(r=>r.warn).length, [ primaryResults ]);
     const errorFilter  = useMemo(()=>e===0?primaryResults.filter(r=>!r.error):primaryResults, [ primaryResults, e ]);
-    const warnFilter  = useMemo(()=>w===0?errorFilter.filter(r=>!r.warn):errorFilter, [ errorFilter, e ]);
+    const warnFilter  = useMemo(()=>w===0?errorFilter.filter(r=>!r.warn):errorFilter, [ errorFilter, w ]);
     const searchFilter  = useMemo(()=>q?warnFilter.filter(r=>find(q, r, !c, r.columns.map(c=>c.value))):warnFilter, [ warnFilter, q, c, columns ]);
     const sortFilter = useMemo(()=>{ switch (s) {
         case undefined: return searchFilter;
@@ -180,7 +180,7 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     return (<>
     <Exporter title="Export Results" filename="export.csv" data={exporting} close={()=>setExporting(undefined)} />
     <ActionExplorer viewing={viewing} view={view} />
-    <ActionMap actions={initActions} view={view} />
+    <ActionMap actions={initActions} view={view} name="Init Actions" />
     {primaryResults.length>0&&<>
     <Header q={q} e={e} w={w} c={c} Q={Q} E={E} W={W} C={C} s={s} S={S}
     eC={errorCount} wC={warnCount} fC={filteredCount} p={{...pagination, total, perPage: pp }} PP={PP}
@@ -188,7 +188,7 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     />
     <Divider mt="xs" />
     <TableData p={paginated} c={columns} dE={e<2} dW={w<2} t={toggle} v={view} /></>}
-    <ActionMap actions={finalActions} view={view} />
+    <ActionMap actions={finalActions} view={view} name="Final Actions" />
     </>
     )
 }

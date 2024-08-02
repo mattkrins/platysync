@@ -23,10 +23,10 @@ export default function SplitButton( { children, options = [], onClick, loading,
   return (
     <Group wrap="nowrap" gap={0}>
       <Button variant={variant} disabled={disabled} loading={loading} onClick={onClick} className={classes.button}>{children}</Button>
-      <Menu disabled={loading} transitionProps={{ transition: 'pop' }} position="bottom-end" {...menu} withinPortal>
+      <Menu disabled={loading||disabled} transitionProps={{ transition: 'pop' }} position="bottom-end" {...menu} withinPortal>
         <Menu.Target>
           <ActionIcon variant={variant}
-            size={36}
+            size={36} disabled={disabled}
             className={classes.menuControl}
           >
             <IconChevronDown style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
