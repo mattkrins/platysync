@@ -75,6 +75,7 @@ interface Action {
     name: string,
     display?: string,
     enabled?: boolean,
+    noblock?: boolean,
     validate?: boolean,
     overwrite?: boolean,
     config?: string,

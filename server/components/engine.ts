@@ -37,7 +37,7 @@ async function processActions(actions: Action[], template: template, connections
         if (result.error){
             if ((result.error as xError).message) result.error = (result.error as xError).message;
             error = new xError(result.error, action.name);
-            break;
+            if (!action.noblock) break;
         }
     } return {todo, template, error};
 }

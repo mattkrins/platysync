@@ -39,19 +39,41 @@ function ActionMap({ actions, view }: { actions: actionResult[], view: (id: {nam
     <Divider h={24} label={<Group><IconMap actions={actions} size={22} click={click} /></Group>} />
 }
 
-function TableRow({ r, c, dE, dW, t }: { r: primaryResult, c: string[], dE: boolean, dW: boolean, t: (id: string) => void }) {
+function TableRow({ r, c, dE, dW, t, v }: {
+    r: primaryResult, c: string[], dE: boolean, dW: boolean, t: (id: string) => void,
+    v: (id: {name: string, open: string, actions: actionResult[]}) => void
+    }) {
     const cl = c.map(c=>(r.columns.find(rc=>rc.name===c)?.value||""));
     const disabled = (dE && r.error) || (dW && r.warn);
+    const click = (open: string) => () => v({name: 'Init', open, actions: r.actions });
     return (
     <Table.Tr>
         <Table.Td><Checkbox disabled={disabled} onClick={()=>t(r.id)} checked={r.checked} /></Table.Td>
         <Table.Td>{r.id}</Table.Td>
         {cl.map(c=><Table.Td key={c} >{c}</Table.Td>)}
-        <Table.Td><IconMap actions={r.actions} size={16} /></Table.Td>
+        <Table.Td><IconMap actions={r.actions} size={16} click={click} /></Table.Td>
     </Table.Tr>
     )
 }
 
+function TableData({ p, c, dE, dW, t, v }: {
+    p: primaryResult[], c: string[], dE: boolean, dW: boolean, t: (id: string) => void,
+    v: (id: {name: string, open: string, actions: actionResult[]}) => void
+    }) {
+    return (
+    <Table stickyHeader >
+        <Table.Thead>
+            <Table.Tr>
+                <Table.Th w={56} ><Checkbox /></Table.Th>
+                <Table.Th>ID</Table.Th>
+                {c.map((c)=><Table.Th key={c} >{c}</Table.Th>)}
+                <Table.Th>Actions</Table.Th>
+            </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={t} v={v} />)}</Table.Tbody>
+    </Table>
+    )
+}
 
 function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: {
     q: string, e: number, w: number, c: boolean, s?: string,
@@ -96,7 +118,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
                 </Menu>
             </Group>
             <Group gap="xs" >
-                <Tooltip label="Download CSV">
+                <Tooltip label="Export Results">
                     <ActionIcon variant="default" onClick={()=>exp()} ><IconDownload size={16} /></ActionIcon>
                 </Tooltip>
                 <Tooltip label={{0:`${eC} Errors Hidden`,1:`${eC} Errors Disabled`,2:`${eC} Errors Enabled`}[e]}>
@@ -118,21 +140,6 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
     );
 }
 
-function TableData({ p, c, dE, dW, t }: { p: primaryResult[], c: string[], dE: boolean, dW: boolean, t: (id: string) => void }) {
-    return (
-    <Table stickyHeader >
-        <Table.Thead>
-            <Table.Tr>
-                <Table.Th w={56} ><Checkbox /></Table.Th>
-                <Table.Th>ID</Table.Th>
-                {c.map((c)=><Table.Th key={c} >{c}</Table.Th>)}
-                <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={t} />)}</Table.Tbody>
-    </Table>
-    )
-}
 
 export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     const { primaryResults, initActions, finalActions, columns } = evaluated;
@@ -171,7 +178,7 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     const toggle = (id: string) => setEvaluated(response=>({...response, primaryResults: primaryResults.map(r=>r.id!==id?r:{...r, checked: r.checked }) }));
     
     return (<>
-    <Exporter title="Export Rule" filename="export.csv" data={exporting} close={()=>setExporting(undefined)} />
+    <Exporter title="Export Results" filename="export.csv" data={exporting} close={()=>setExporting(undefined)} />
     <ActionExplorer viewing={viewing} view={view} />
     <ActionMap actions={initActions} view={view} />
     {primaryResults.length>0&&<>
@@ -180,7 +187,7 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
     cols={columns} exp={exportCSV}
     />
     <Divider mt="xs" />
-    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} t={toggle} /></>}
+    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} t={toggle} v={view} /></>}
     <ActionMap actions={finalActions} view={view} />
     </>
     )
