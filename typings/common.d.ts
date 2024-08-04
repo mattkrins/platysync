@@ -1,3 +1,7 @@
+type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
 interface Settings {
     [k: string]: unknown;
     key?: string;
@@ -168,3 +172,18 @@ interface response {
     columns: string[];
 }
 
+interface jobStatus {
+    progress: {
+        total: number;
+        init: number|boolean;
+        connect: number|boolean;
+        iterative: number|boolean;
+        final: number|boolean;
+    };
+    iteration: {
+        current: number;
+        total: number|boolean;
+    };
+    eta: string|boolean;
+    text: string;
+}

@@ -11,8 +11,12 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:7528',
-        changeOrigin: true,
         secure: false,  
+      },
+      '/socket.io': {
+        target: 'http://localhost:7528',
+        secure: false,
+        ws: true,
       },
     },
   },

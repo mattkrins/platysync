@@ -19,6 +19,8 @@ import file from './server/routes/file';
 import connectors from './server/routes/connectors';
 import rule from './server/routes/rule';
 import action from './server/routes/action';
+import socketioServer from "fastify-socket.io";
+import { Server } from "socket.io";
 const { combine, timestamp, json, simple, errors } = winston.format;
 
 export let version = process.env.npm_package_version as string;
@@ -129,18 +131,29 @@ const initServer = async () => {
   const https = await getHTTPS();
   const server = fastify({ logger: false, https });
   const key = await getKey();
-  server.register(cookie, { secret: key, } as FastifyCookieOptions);
+  await server.register(cookie, { secret: key, } as FastifyCookieOptions);
+  await server.register(socketioServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
   addRoute(server, '/api/v1', routes, false);
   const __dirname = dirname(fileURLToPath(import.meta.url));
   await server.register(fastifyStatic, { root: pa.join(__dirname, 'client'), });
   return server;
 };
 
+declare module "fastify" {
+  interface FastifyInstance { io: Server; }
+}
+
+export let server: FastifyInstance;
 
 if (process.argv[1].endsWith('server.ts')||process.argv[1].endsWith('server.js')) {
   (async () => {
     try {
-      const server = await initServer();
+      server = await initServer();
       const settings = await Settings();
       const port = process.env.PSYC_PORT ? parseInt(process.env.PSYC_PORT) : (settings.server?.port || 7528);
       const host = process.env.PSYC_HOST ? process.env.PSYC_HOST : (settings.server?.host || '0.0.0.0');

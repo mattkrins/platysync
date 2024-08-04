@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { IconCheck, IconDots, IconDownload, IconEye, IconEyeCheck, IconEyeClosed, IconEyeX, IconFilter, IconLetterCase, IconSearch, IconX } from "@tabler/icons-react";
 import { useDisclosure, usePagination } from "@mantine/hooks";
 import Exporter from "../Exporter";
+import Status from "./Status";
 
 const defaultPage = 50
 
@@ -142,6 +143,11 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
 
 
 export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
+    return <Status/>
+    //return <Evaluate2 evaluated={evaluated} setEvaluated={setEvaluated} />
+}
+
+function Evaluate2( { evaluated, setEvaluated }: EvalProps ) {
     const { primaryResults, initActions, finalActions, columns } = evaluated;
     const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
     const [q, Q] = useState<string>("");
@@ -177,6 +183,7 @@ export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
 
     const toggle = (id: string) => setEvaluated(response=>({...response, primaryResults: primaryResults.map(r=>r.id!==id?r:{...r, checked: r.checked }) }));
     
+
     return (<>
     <Exporter title="Export Results" filename="export.csv" data={exporting} close={()=>setExporting(undefined)} />
     <ActionExplorer viewing={viewing} view={view} />

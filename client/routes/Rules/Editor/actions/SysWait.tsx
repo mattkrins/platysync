@@ -13,7 +13,7 @@ export default function SysWait( { form, path, templateProps }: actionProps ) {
         {...templateProps(form, `${path}.time`)}
     />
     <Switch label="Also wait during evaluation"
-    mt="xs" {...form.getInputProps(`${path}.eval`, { type: 'checkbox' })}
+    mt="xs" {...form.getInputProps(`${path}.evaluation`, { type: 'checkbox' })}
     />
   </>
   )

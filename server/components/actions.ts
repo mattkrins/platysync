@@ -1,4 +1,5 @@
 import FileCopy from "./actions/FileCopy";
+import SysWait from "./actions/SysWait";
 import { connections } from "./providers";
 
 export interface actionProps {
@@ -16,4 +17,5 @@ interface actionPropsExt extends actionProps {
 export type operation = (props: actionPropsExt) => Promise<result>;
 export const availableActions: { [k: string]: operation } = {
     'Copy File': FileCopy,
+    'Wait': SysWait,
 }

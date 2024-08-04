@@ -56,7 +56,13 @@ export class xError {
     }
 }
 
-export const wait = async (t = 1000) => new Promise((res)=>setTimeout(res, t));
+export const wait = async (t = 1000, from?: number): Promise<void> => new Promise((res)=>{
+  if (!from) return setTimeout(res, t);
+  const end = new Date().getTime();
+  const elapsed = end - from;
+  if (elapsed >= t) return res();
+  return setTimeout(res, t-elapsed);
+});
 
 export function validStr(string?: unknown) {
     if (!string) return false;
@@ -97,4 +103,30 @@ export function getLogs(log: winston.Logger, options: logOptions) {
           });
       } catch (e) { reject(e); }
   })
+}
+
+export class ThrottledQueue {
+  private lastRun: number;
+  private queue: (() => void)[];
+  private delay: number;
+  constructor(delay: number) {
+    this.lastRun = 0;
+    this.queue = [];
+    this.delay = delay;
+  }
+  private executeNext() {
+    if (this.queue.length === 0) return;
+    const now = Date.now();
+    const nextRunIn = this.lastRun + this.delay - now;
+    if (nextRunIn > 0) return setTimeout(() => this.executeNext(), nextRunIn);
+    const fn = this.queue.shift()!;
+    fn();
+    this.lastRun = now;
+    this.executeNext();
+  }
+  public clear() { this.queue = []; }
+  public run(fn: () => void) {
+    this.queue.push(fn);
+    this.executeNext();
+  }
 }
