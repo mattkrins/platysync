@@ -18,6 +18,7 @@ function find(query: string, r: primaryResult, caseSen: boolean, columns: string
 interface EvalProps {
     evaluated: response;
     setEvaluated: (data: React.SetStateAction<response>) => void;
+    loading?: boolean;
 }
 
 function IconMap({ actions, size = 16, click }: { actions: actionResult[], size?: number, click?: (open: string)=> () => void }){
@@ -39,7 +40,7 @@ function ActionMap({ actions, view, name }: { actions: actionResult[], view: (id
     return actions.length<=0?<Divider mb="xs" />:
     <Divider h={24} label={<Group gap="xs" ><IconMap actions={actions} size={22} click={click} /></Group>} />
 }
-//TODO - use Indeterminate state https://mantine.dev/core/checkbox/#indeterminate-state
+
 function TableRow({ r, c, dE, dW, t, v }: {
     r: primaryResult, c: string[], dE: boolean, dW: boolean, t: (id: string) => void,
     v: (id: {name: string, open: string, actions: actionResult[]}) => void
@@ -49,29 +50,37 @@ function TableRow({ r, c, dE, dW, t, v }: {
     const click = (open: string) => () => v({name: r.id, open, actions: r.actions });
     return (
     <Table.Tr>
-        <Table.Td><Checkbox disabled={disabled} onClick={()=>t(r.id)} checked={r.checked} /></Table.Td>
-        <Table.Td>{r.id}</Table.Td>
+        <Table.Td><Checkbox disabled={disabled} onChange={()=>t(r.id)} checked={!!r.checked} /></Table.Td>
+        <Table.Td>{r.id}</Table.Td> 
         {cl.map(c=><Table.Td key={c} >{c}</Table.Td>)}
         <Table.Td><Group gap={2} ><IconMap actions={r.actions} size={16} click={click} /></Group></Table.Td>
     </Table.Tr>
     )
 }
 
-function TableData({ p, c, dE, dW, t, v }: {
-    p: primaryResult[], c: string[], dE: boolean, dW: boolean, t: (id: string) => void,
-    v: (id: {name: string, open: string, actions: actionResult[]}) => void
-    }) {
+function TableData({ p, c, dE, dW, v, pR, sE }: {
+    p: primaryResult[], c: string[], dE: boolean, dW: boolean,
+    v: (id: {name: string, open: string, actions: actionResult[]}) => void,
+    pR: primaryResult[], sE: (data: React.SetStateAction<response>) => void; }) {
+    const toggle = (id: string) => sE(response=>({...response, primaryResults: pR.map(r=>r.id!==id?r:{...r, checked: !r.checked }) }));
+    const allChecked = useMemo(()=>pR.every(r => r.checked),[ pR ]);
+    const noneChecked = useMemo(()=>pR.every(r => !r.checked),[ pR ]);
+    const indeterminate = useMemo(()=>pR.some(r => r.checked) && !allChecked,[ pR, allChecked ]);
+    const toggleAll = () => {
+        if (indeterminate || noneChecked) return sE(response=>({...response, primaryResults: pR.map(r=>({...r, checked: true })) }));
+        return sE(response=>({...response, primaryResults: pR.map(r=>({...r, checked: false })) }));
+    }
     return (
     <Table stickyHeader >
         <Table.Thead>
             <Table.Tr>
-                <Table.Th w={56} ><Checkbox /></Table.Th>
+                <Table.Th w={56} ><Checkbox checked={allChecked} indeterminate={indeterminate} onChange={toggleAll} /></Table.Th>
                 <Table.Th>ID</Table.Th>
                 {c.map((c)=><Table.Th key={c} >{c}</Table.Th>)}
                 <Table.Th>Actions</Table.Th>
             </Table.Tr>
         </Table.Thead>
-        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={t} v={v} />)}</Table.Tbody>
+        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={toggle} v={v} />)}</Table.Tbody>
     </Table>
     )
 }
@@ -123,14 +132,14 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
                     <ActionIcon variant="default" onClick={()=>exp()} ><IconDownload size={16} /></ActionIcon>
                 </Tooltip>
                 <Tooltip label={{0:`${eC} Errors Hidden`,1:`${eC} Errors Disabled`,2:`${eC} Errors Enabled`}[e]}>
-                    <Indicator color="red" size={{0:5,1:7,2:9}[e]} >
+                    <Indicator color="red" size={{0:5,1:7,2:9}[e]} disabled={eC<=0} >
                         <ActionIcon disabled={eC<=0} color={{0:"gray",1:"gray",2:"red"}[e]} variant="light" onClick={()=>E(e<2?e+1:0)} >
                             {{0:<IconEyeX size={18} />,1:<IconEye size={18} />,2:<IconEyeCheck size={18} />}[e]}
                         </ActionIcon>
                     </Indicator>
                 </Tooltip>
                 <Tooltip label={{0:`${wC} Warnings Hidden`,1:`${wC} Warnings Disabled`,2:`${wC} Warnings Enabled`}[w]}>
-                    <Indicator color="orange" size={{0:5,1:7,2:9}[w]} >
+                    <Indicator color="orange" size={{0:5,1:7,2:9}[w]} disabled={wC<=0} >
                         <ActionIcon disabled={wC<=0} color={{0:"gray",1:"gray",2:"orange"}[w]} variant="light" onClick={()=>W(w<2?w+1:0)} >
                             {{0:<IconEyeX size={18} />,1:<IconEye size={18} />,2:<IconEyeCheck size={18} />}[w]}
                         </ActionIcon>
@@ -141,13 +150,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
     );
 }
 
-
-export default function Evaluate( { evaluated, setEvaluated }: EvalProps ) {
-    return <Status/>
-    //return <Evaluate2 evaluated={evaluated} setEvaluated={setEvaluated} />
-}
-
-function Evaluate2( { evaluated, setEvaluated }: EvalProps ) {
+function Results( { evaluated, setEvaluated }: EvalProps ) {
     const { primaryResults, initActions, finalActions, columns } = evaluated;
     const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
     const [q, Q] = useState<string>("");
@@ -194,8 +197,13 @@ function Evaluate2( { evaluated, setEvaluated }: EvalProps ) {
     cols={columns} exp={exportCSV}
     />
     <Divider mt="xs" />
-    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} t={toggle} v={view} /></>}
+    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} v={view} sE={setEvaluated} pR={primaryResults} /></>}
     <ActionMap actions={finalActions} view={view} name="Final Actions" />
     </>
     )
+}
+
+export default function Evaluate( { evaluated, setEvaluated, loading }: EvalProps ) {
+    if (loading) return <Status/>;
+    return <Results evaluated={evaluated} setEvaluated={setEvaluated} />
 }

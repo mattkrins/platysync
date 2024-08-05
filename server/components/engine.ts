@@ -19,21 +19,8 @@ class Engine {
     private execute: boolean;
     private initTemplate: template = {};
     private primaryResults: primaryResult[] = [];
-    private hasInitActions: boolean;
-    private hasFinalActions: boolean;
-    private iterativeTotal = 0;
-    private initIteration = 0;
-    private connectionIteration = 0;
-    private iterativeIteration = 0;
-    private finalIteration = 0;
-    private padding = 0;
-    calcLengths() {
-        const init = !this.hasInitActions ? 0 : ((15/(this.rule.initActions.length))*this.initIteration);
-        const connect = Object.keys(this.connections).length<=0 ? 0 : ((20/(this.sources.length+1))*this.connectionIteration);
-        const iterative = !this.primary ? 0 : ((50/(this.iterativeTotal))*this.iterativeIteration);
-        const final = !this.hasFinalActions ? 0 : ((15/(this.rule.finalActions.length))*this.finalIteration);
-        return { init, connect, iterative, final }
-    }
+    private progress = 0;
+    private hasInit = false;
     constructor(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean) {
         this.id = uuidv4();
         this.rule = rule;
@@ -43,65 +30,64 @@ class Engine {
         this.scheduled = scheduled;
         this.primary = this.rule.primary;
         this.sources = this.rule.sources||[];
+        this.hasInit = this.rule.initActions.length > 0;
         this.status = {
             eta: false, text: "Initialising...",
             progress: { total: 0, init: false, connect: false, iterative: false, final: false },
             iteration: { current: 0, total: false },
         };
-        this.hasInitActions = rule.initActions.length > 0;
-        this.hasFinalActions = rule.finalActions.length > 0;
     }
-    async runPrimary(){
+    async connect(){
         if (!this.primary) return;
-        let sI = 1;
         const connectStart = new Date().getTime();
+        let i = 1;
+        const x = () => (20/(this.sources.length+1))*i;
+        this.Emit({ text: `Connecting to ${this.primary}`, iteration: { total: this.sources.length+1, current: 0 }, });
         await connect(this.schema, this.primary, this.connections);
         this.Emit({
-            text: `Connecting to ${this.primary}`,
-            progress: { total: (this.hasInitActions ? 15 : 0) + ((20/(this.sources.length+1))*sI),
-            connect: (20/(this.sources.length+1))*sI }
+            progress: { total: this.progress + x(), connect: x() },
+            iteration: { current: 1 },
         });
-        for (const source of this.sources) {  sI++;
+        for (const source of this.sources) {  i++;
             await connect(this.schema, source.foreignName, this.connections);
             this.Emit({
                 text: `Connecting to ${source.foreignName}`,
-                progress: { total: (this.hasInitActions ? 15 : 0) +((20/(this.sources.length+1))*sI),
-                connect: (20/(this.sources.length+1))*sI }
+                progress: { total: this.progress + x(), connect: x() },
+                iteration: { current: i },
             });
         }
         await wait(1000, connectStart);
-        await wait(500);
+        await wait(200);
+        this.Emit({ iteration: { total: false, current: 0 } });
+    }
+    async iteratePrimary(){
+        if (!this.primary) return;
+        const start = new Date().getTime();
         const primary = this.connections[this.primary];
         let p = 0;
-        let iI = 0;
+        let i = 0;
         let speed = 0;
         let eta = "Estimating...";
         let lastCalc = 0;
+        let iterativeLength = 80;
+        if (this.hasInit) iterativeLength -= 15;
+        if (this.rule.finalActions.length > 0) iterativeLength -= 15;
         const entries = this.connections[this.primary].data;
         const entryCount = entries.length;
         this.Emit({ iteration: { total: entryCount } });
-        const iterationStart = new Date().getTime();
         const etas: number[] = [];
-        const iterativeLength = (this.hasInitActions&&this.hasFinalActions) ? 50 : (this.hasInitActions||this.hasFinalActions ? 35 : 80);
         function calculateTimeRemaining(currentWork: number, totalWork: number, speed: number, eta?: number): [string, number] {
             const timeRemainingInSeconds: number = eta || ((totalWork - currentWork) * speed) / 1000;
             const hours: number = Math.floor(timeRemainingInSeconds / 3600);
             const minutes: number = Math.floor((timeRemainingInSeconds % 3600) / 60);
             const seconds: number = Math.round(timeRemainingInSeconds % 60);
             const formattedTime: string = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            return [formattedTime, timeRemainingInSeconds];
+            return [ formattedTime, timeRemainingInSeconds ];
         }
-        const calcTotal = () => {
-            let size = 100;
-            if (Object.keys(this.connections).length>0) size -= 20;
-            if (this.hasInitActions) size -= 15;
-            if (this.hasFinalActions) size -= 15;
-            return size;
-        }
-        const emitPrimary = (start: number, id: string) => {
+        const emit = (start: number, id: string) => {
             if (lastCalc - (new Date().getTime()) <= 0){
                 lastCalc = start+1000;
-                const [ _, t ] = calculateTimeRemaining(iI, entryCount, speed===0?10:speed );
+                const [ _, t ] = calculateTimeRemaining(i, entryCount, speed===0?10:speed );
                 if (etas.length >= 5) etas.shift();
                 etas.push(t);
                 const totalMilliseconds = etas.reduce((acc, t) => acc + t, 0);
@@ -109,17 +95,18 @@ class Engine {
                 const [ remaining ] = calculateTimeRemaining(0, 0, 0, averageMilliseconds );
                 eta = remaining;
             }
-            const x = (iI/entryCount) * iterativeLength;
+            const x = (i/entryCount) * iterativeLength;
             const r = Math.round((x + Number.EPSILON) * 10) / 10;
             if (r!=p) { p = r; this.queue.run(()=>this.Emit({
-                progress: { iterative: x, total: ((this.hasInitActions||this.hasFinalActions)?35:20) + x },
-                iteration: { current: iI }, eta, text: id
+                progress: { iterative: x, total: this.progress + x },
+                iteration: { current: i }, eta, text: id
             })); }
             speed = new Date().getTime() - start;
         }
-        for (const record of entries) { iI++;
+        for (const record of entries) { i++;
             const start = new Date().getTime();
             const id = record[this.rule.primaryKey||primary.headers[0]];
+            if (!id) continue;
             const joined = this.Join(record);
             if (!joined) continue;
             const template = { ...this.initTemplate, ...joined };
@@ -134,49 +121,55 @@ class Engine {
                 output.columns.push({ name: column.name, value: compile(template, column.value) });
             }
             this.primaryResults.push(output);
-            emitPrimary(start, id);
+            emit(start, id);
         }
-        await wait(2000, iterationStart);
+        await wait(2000, start);
         this.queue.clear();
-        this.Emit({ eta: "Finalising...", progress: {
-                iterative: ((this.hasInitActions||this.hasFinalActions)?35:20) + iterativeLength,
-                total: ((this.hasInitActions||this.hasFinalActions)?35:20) + iterativeLength 
-            }
+        await wait(500);
+        this.Emit({
+            eta: "Finalising...", text: "Finalising...",
+            iteration: { total: false, current: 0 },
+            progress: { total: this.progress + iterativeLength, iterative: iterativeLength }
         });
     }
     async Run(){
         this.Emit();
         await wait(500);
-        if (this.hasInitActions) this.Emit({ text: "Processing Init Actions..." });
-        const initStart = new Date().getTime();
         const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, {}, "init");
+        if (this.hasInit) this.progress = 15;
         this.initTemplate = initTemplate;
         if (initError) throw initError;
-        await wait(1000, initStart);
         await wait(500);
-        if (this.primary) await this.runPrimary();
-        if (this.hasFinalActions) this.Emit({ text: "Processing Final Actions..." });
-        const finalStart = new Date().getTime();
+        await this.connect();
+        if (this.primary) this.progress = this.hasInit ? 35 : 20;
+        await wait(500);
+        await this.iteratePrimary();
+        if (this.primary) this.progress = 85;
         const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, {}, "final");
         this.Emit({ text: "Finalising..." });
-        await wait(1000, finalStart);
-        this.Emit({ progress: { total: 100 }, eta: "Complete"});
+        await wait(500);
+        this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
         const columns = ["Display", ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
         return { primaryResults: this.primaryResults, initActions, finalActions, columns };
     }
     Evaluate(){}
     Execute(){}
     async processActions(actions: Action[], template: template, type: string) {
+        const start = new Date().getTime();
         const todo: actionResult[] = [];
         let error: undefined|xError;
         let warn: undefined|string;
         let i = 0;
-        const iterativeLength = (this.hasInitActions&&this.hasFinalActions) ? 50 : (this.hasInitActions||this.hasFinalActions ? 35 : 80);
+        if (type!=="iterative" && actions.length > 0){
+            this.Emit({ text: `Processing ${type} actions...` });
+            this.Emit({ iteration: { total: (actions||[]).length } });
+        }
+        const length = this.primary ? 15 : 50;
         const emit = () =>{
             if (type==="iterative") return;
-            const pad2 =  {"init": 0, "final": (this.hasInitActions?35:20) + iterativeLength }[type] as number;
-            const x = (15/(actions.length))*i;
-            this.Emit({ progress: { total: pad2 + x, [type]: x } });
+            const x = (length/(actions.length))*i;
+            const total = this.progress + x;
+            this.Emit({ progress: { total, [type]: x }, iteration: { current: i } });
         }
         for (const action of (actions||[])) { i++;
             if (!action.enabled){ emit(); continue; }
@@ -197,7 +190,12 @@ class Engine {
                 delete result.error;
             }
             emit();
-        } return {todo, template, error, warn};
+        }
+        if (type!=="iterative"){
+            await wait(1000, start);
+            this.Emit({ iteration: { total: false, current: 0 } });
+        }
+        return {todo, template, error, warn};
     }
     Join(record: Record<string, string>): template|false {
         const joined: template = { [this.primary as string]: record };

@@ -10,7 +10,7 @@ const defaultStatus = {
 }
 
 export default function Status({ r }: { r?: boolean }) {
-  const [ status ] = useSocket<jobStatus>('job_status', { default: defaultStatus, then: e=>console.log(e) });
+  const [ status ] = useSocket<jobStatus>('job_status', { default: defaultStatus });
   return (
     <Paper radius="md" withBorder className={classes.card} mt={25} pt={45} >
       <RingProgress className={classes.icon} size={80} 

@@ -27,8 +27,7 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
     then: d=>console.log(d)
   });
   const close2 = () => { close(); r1(); setActive(0); if (fullscreen) toggleFS(); };
-  //const checked = useMemo(()=> (evaluated.primary).filter(r=>r.checked).map(r=>r.id), [ evaluated.primary ]);
-  //const checkedCount = checked.length;
+  const checked = useMemo(()=> (evaluated.primaryResults).filter(r=>r.checked).map(r=>r.id), [ evaluated.primaryResults ]);
   const checkedCount = 0;
 
   //const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI<response>({
@@ -56,8 +55,8 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
     </Group>
     <Stepper active={active} onStepClick={onStepClick}>
       <Stepper.Step label="Conditions" description="Modify Conditions" icon={<IconEqual />} ><Conditions form={form} label="Single-run modifications can be added here." compact /></Stepper.Step>
-      <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} ><Evaluate evaluated={evaluated} setEvaluated={setEvaluated} /></Stepper.Step>
-      <Stepper.Step label="Execute" description={`Perform ${checkedCount} Actions`} icon={<IconRun />} >
+      <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} ><Evaluate evaluated={evaluated} setEvaluated={setEvaluated} loading={l1} /></Stepper.Step>
+      <Stepper.Step label="Execute" description={`Perform ${checked.length} Actions`} icon={<IconRun />} >
       </Stepper.Step>
     </Stepper>
   </>)
