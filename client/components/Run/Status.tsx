@@ -1,4 +1,4 @@
-import { Paper, ThemeIcon, Text, RingProgress, Center, Group, Progress, Badge } from '@mantine/core';
+import { Paper, ThemeIcon, Text, RingProgress, Center, Group, Progress, Badge, Box, SimpleGrid } from '@mantine/core';
 import classes from './Status.module.css';
 import { IconListSearch, IconRun } from '@tabler/icons-react';
 import useSocket from '../../hooks/useSocket';
@@ -23,8 +23,12 @@ export default function Status({ r }: { r?: boolean }) {
           </Center>
         }
       />
-      <Text ta="center" fw={500} className={classes.title}>{r?"Running Actions":"Finding Matches"}</Text>
-      <Text c="dimmed" ta="center" fz="sm">{status.text}</Text>
+      <Center>
+        <SimpleGrid cols={1} verticalSpacing={0}>
+          <Text ta="center" fw={500} className={classes.title}>{r?"Running Actions":"Finding Matches"}</Text>
+          <Text c="dimmed" ta="center" maw={200} fz="sm" truncate="end" >{status.text}</Text>
+        </SimpleGrid>
+      </Center>
       <Group justify="space-between" mt="xs">
           <Text fz="sm" c="dimmed">Progress</Text>
           <Text fz="sm" c="dimmed">{Math.floor(status.progress.total)}%</Text>

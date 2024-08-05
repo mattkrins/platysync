@@ -16,11 +16,24 @@ class Engine {
     private scheduled?: boolean;
     private primary?: string;
     private sources: Source[];
-    private hasInitActions: boolean;
-    private hasFinalActions: boolean;
     private execute: boolean;
     private initTemplate: template = {};
     private primaryResults: primaryResult[] = [];
+    private hasInitActions: boolean;
+    private hasFinalActions: boolean;
+    private iterativeTotal = 0;
+    private initIteration = 0;
+    private connectionIteration = 0;
+    private iterativeIteration = 0;
+    private finalIteration = 0;
+    private padding = 0;
+    calcLengths() {
+        const init = !this.hasInitActions ? 0 : ((15/(this.rule.initActions.length))*this.initIteration);
+        const connect = Object.keys(this.connections).length<=0 ? 0 : ((20/(this.sources.length+1))*this.connectionIteration);
+        const iterative = !this.primary ? 0 : ((50/(this.iterativeTotal))*this.iterativeIteration);
+        const final = !this.hasFinalActions ? 0 : ((15/(this.rule.finalActions.length))*this.finalIteration);
+        return { init, connect, iterative, final }
+    }
     constructor(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean) {
         this.id = uuidv4();
         this.rule = rule;
@@ -57,6 +70,7 @@ class Engine {
             });
         }
         await wait(1000, connectStart);
+        await wait(500);
         const primary = this.connections[this.primary];
         let p = 0;
         let iI = 0;
@@ -77,6 +91,13 @@ class Engine {
             const formattedTime: string = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
             return [formattedTime, timeRemainingInSeconds];
         }
+        const calcTotal = () => {
+            let size = 100;
+            if (Object.keys(this.connections).length>0) size -= 20;
+            if (this.hasInitActions) size -= 15;
+            if (this.hasFinalActions) size -= 15;
+            return size;
+        }
         const emitPrimary = (start: number, id: string) => {
             if (lastCalc - (new Date().getTime()) <= 0){
                 lastCalc = start+1000;
@@ -91,7 +112,7 @@ class Engine {
             const x = (iI/entryCount) * iterativeLength;
             const r = Math.round((x + Number.EPSILON) * 10) / 10;
             if (r!=p) { p = r; this.queue.run(()=>this.Emit({
-                progress: { iterative: x, total: (this.hasInitActions?35:20) + x },
+                progress: { iterative: x, total: ((this.hasInitActions||this.hasFinalActions)?35:20) + x },
                 iteration: { current: iI }, eta, text: id
             })); }
             speed = new Date().getTime() - start;
@@ -102,7 +123,7 @@ class Engine {
             const joined = this.Join(record);
             if (!joined) continue;
             const template = { ...this.initTemplate, ...joined };
-            const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await this.processActions(this.rule.iterativeActions, template, "iterative", 35);
+            const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await this.processActions(this.rule.iterativeActions, template, "iterative");
             const display = this.rule.display ? compile(template, this.rule.display) : id;
             const output: primaryResult = { id, actions: [], error: false, columns: [ { name: 'Display', value: display } ] };
             output.actions = iterativeActions;
@@ -117,7 +138,11 @@ class Engine {
         }
         await wait(2000, iterationStart);
         this.queue.clear();
-        this.Emit({ eta: "Finalising..." });
+        this.Emit({ eta: "Finalising...", progress: {
+                iterative: ((this.hasInitActions||this.hasFinalActions)?35:20) + iterativeLength,
+                total: ((this.hasInitActions||this.hasFinalActions)?35:20) + iterativeLength 
+            }
+        });
     }
     async Run(){
         this.Emit();
@@ -132,7 +157,7 @@ class Engine {
         if (this.primary) await this.runPrimary();
         if (this.hasFinalActions) this.Emit({ text: "Processing Final Actions..." });
         const finalStart = new Date().getTime();
-        const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, {}, "final", 85);
+        const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, {}, "final");
         this.Emit({ text: "Finalising..." });
         await wait(1000, finalStart);
         this.Emit({ progress: { total: 100 }, eta: "Complete"});
@@ -141,7 +166,7 @@ class Engine {
     }
     Evaluate(){}
     Execute(){}
-    async processActions(actions: Action[], template: template, type: string, pad: number = 0) {
+    async processActions(actions: Action[], template: template, type: string) {
         const todo: actionResult[] = [];
         let error: undefined|xError;
         let warn: undefined|string;
