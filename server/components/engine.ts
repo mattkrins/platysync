@@ -58,7 +58,7 @@ class Engine {
         }
         await wait(1000, connectStart);
         await wait(200);
-        this.Emit({ iteration: { total: false, current: 0 } });
+        this.Emit({ iteration: { total: false, current: 0 }, text: "Preparing..." });
     }
     async iteratePrimary(){
         if (!this.primary) return;

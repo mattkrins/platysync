@@ -161,7 +161,6 @@ interface actionResult {
     name: string;
     display?: string;
     result: result;
-    checked?: boolean;
     noblock?: boolean;
 }
 interface primaryResult { id: string, Display?: string, actions: actionResult[], columns: resultColumn[], checked?: boolean, error?: boolean, warn?: boolean }

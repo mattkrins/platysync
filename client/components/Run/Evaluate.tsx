@@ -1,8 +1,8 @@
-import { ActionIcon, Checkbox, Divider, Group, Indicator, Menu, Pagination, Table, TextInput, Tooltip, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Checkbox, Divider, Group, Indicator, Menu, Pagination, Table, TextInput, Tooltip, useMantineTheme, Text, Notification } from "@mantine/core";
 import { availableActions } from "../../modules/actions";
 import ActionExplorer from "./ActionExplorer";
 import { useMemo, useState } from "react";
-import { IconCheck, IconDots, IconDownload, IconEye, IconEyeCheck, IconEyeClosed, IconEyeX, IconFilter, IconLetterCase, IconSearch, IconX } from "@tabler/icons-react";
+import { IconCheck, IconDots, IconDownload, IconEye, IconEyeCheck, IconEyeX, IconFilter, IconLetterCase, IconSearch, IconX } from "@tabler/icons-react";
 import { useDisclosure, usePagination } from "@mantine/hooks";
 import Exporter from "../Exporter";
 import Status from "./Status";
@@ -19,6 +19,8 @@ interface EvalProps {
     evaluated: response;
     setEvaluated: (data: React.SetStateAction<response>) => void;
     loading?: boolean;
+    maximized?: boolean;
+    error?: string;
 }
 
 function IconMap({ actions, size = 16, click }: { actions: actionResult[], size?: number, click?: (open: string)=> () => void }){
@@ -41,9 +43,9 @@ function ActionMap({ actions, view, name }: { actions: actionResult[], view: (id
     <Divider h={24} label={<Group gap="xs" ><IconMap actions={actions} size={22} click={click} /></Group>} />
 }
 
-function TableRow({ r, c, dE, dW, t, v }: {
+function TableRow({ r, c, dE, dW, t, v, max }: {
     r: primaryResult, c: string[], dE: boolean, dW: boolean, t: (id: string) => void,
-    v: (id: {name: string, open: string, actions: actionResult[]}) => void
+    v: (id: {name: string, open: string, actions: actionResult[]}) => void, max: boolean
     }) {
     const cl = c.map(c=>(r.columns.find(rc=>rc.name===c)?.value||""));
     const disabled = (dE && r.error) || (dW && r.warn);
@@ -51,15 +53,15 @@ function TableRow({ r, c, dE, dW, t, v }: {
     return (
     <Table.Tr>
         <Table.Td><Checkbox disabled={disabled} onChange={()=>t(r.id)} checked={!!r.checked} /></Table.Td>
-        <Table.Td>{r.id}</Table.Td> 
-        {cl.map(c=><Table.Td key={c} >{c}</Table.Td>)}
+        <Table.Td maw={max?undefined:200} ><Text size="sm" truncate={max?undefined:"end"} >{r.id}</Text></Table.Td> 
+        {cl.map(c=><Table.Td key={c} maw={max?undefined:200} ><Text size="sm" truncate={max?undefined:"end"} >{c}</Text></Table.Td>)}
         <Table.Td><Group gap={2} ><IconMap actions={r.actions} size={16} click={click} /></Group></Table.Td>
     </Table.Tr>
     )
 }
 
-function TableData({ p, c, dE, dW, v, pR, sE }: {
-    p: primaryResult[], c: string[], dE: boolean, dW: boolean,
+function TableData({ p, c, dE, dW, v, pR, sE, max }: {
+    p: primaryResult[], c: string[], dE: boolean, dW: boolean, max: boolean,
     v: (id: {name: string, open: string, actions: actionResult[]}) => void,
     pR: primaryResult[], sE: (data: React.SetStateAction<response>) => void; }) {
     const toggle = (id: string) => sE(response=>({...response, primaryResults: pR.map(r=>r.id!==id?r:{...r, checked: !r.checked }) }));
@@ -80,7 +82,7 @@ function TableData({ p, c, dE, dW, v, pR, sE }: {
                 <Table.Th>Actions</Table.Th>
             </Table.Tr>
         </Table.Thead>
-        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={toggle} v={v} />)}</Table.Tbody>
+        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={toggle} v={v} max={max} />)}</Table.Tbody>
     </Table>
     )
 }
@@ -150,7 +152,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
     );
 }
 
-function Results( { evaluated, setEvaluated }: EvalProps ) {
+function Results( { evaluated, setEvaluated, maximized }: EvalProps ) {
     const { primaryResults, initActions, finalActions, columns } = evaluated;
     const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
     const [q, Q] = useState<string>("");
@@ -197,13 +199,14 @@ function Results( { evaluated, setEvaluated }: EvalProps ) {
     cols={columns} exp={exportCSV}
     />
     <Divider mt="xs" />
-    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} v={view} sE={setEvaluated} pR={primaryResults} /></>}
+    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} v={view} sE={setEvaluated} pR={primaryResults} max={maximized||false} /></>}
     <ActionMap actions={finalActions} view={view} name="Final Actions" />
     </>
     )
 }
 
-export default function Evaluate( { evaluated, setEvaluated, loading }: EvalProps ) {
+export default function Evaluate( { evaluated, setEvaluated, loading, maximized, error }: EvalProps ) {
     if (loading) return <Status/>;
-    return <Results evaluated={evaluated} setEvaluated={setEvaluated} />
+    if (error) return <Notification mt="xs" icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error">{error}</Notification>
+    return <Results evaluated={evaluated} setEvaluated={setEvaluated} maximized={maximized} />
 }

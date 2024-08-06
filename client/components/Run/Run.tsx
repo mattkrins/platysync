@@ -24,22 +24,23 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
     url: `/rule/evaluate`, schema: true,
     default: { primaryResults: [], initActions: [], finalActions: [], columns: [] },
     data: {...rule, conditions: form.values.conditions, test},
-    then: d=>console.log(d)
   });
-  const close2 = () => { close(); r1(); setActive(0); if (fullscreen) toggleFS(); };
-  const checked = useMemo(()=> (evaluated.primaryResults).filter(r=>r.checked).map(r=>r.id), [ evaluated.primaryResults ]);
-  const checkedCount = 0;
+  const close2 = () => { close(); r1(); r2(); setActive(0); if (fullscreen) toggleFS(); };
+  const context = useMemo(()=> evaluated.primaryResults.filter(r=>r.checked).map(r=>r.id), [ evaluated.primaryResults ]);
+  const initFinalCount = useMemo(()=> [ ...evaluated.initActions, ...evaluated.finalActions ].length, [ evaluated.initActions, evaluated.finalActions ]);
+  const count = context.length + initFinalCount;
+  const canExecute = count>0;
 
-  //const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI<response>({
-  //  url: `/rule/execute`, schema: true,
-  //  default: { primary: [], initActions: [], finalActions: [] },
-  //  data: {...rule, conditions: form.values.conditions, limitTo: checked  },
-  //});
+  const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI<response>({
+    url: `/rule/execute`, schema: true,
+    default: { primaryResults: [], initActions: [], finalActions: [], columns: [] },
+    data: {...rule, conditions: form.values.conditions, test, context },
+  });
   
   const onStepClick = (step: number) => {
-    if (active==0 && step==1){ evaluate(); //r2(); 
-    }
-    //if (active==1 && step==2){ execute(); }
+    if (active==0 && step==1){ r2(); evaluate(); }
+    if (active==1 && step==2){ execute(); }
+    if (active==2 && (step==0||step==1)){ r2(); }
     setActive(step);
   }
 
@@ -55,8 +56,13 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
     </Group>
     <Stepper active={active} onStepClick={onStepClick}>
       <Stepper.Step label="Conditions" description="Modify Conditions" icon={<IconEqual />} ><Conditions form={form} label="Single-run modifications can be added here." compact /></Stepper.Step>
-      <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} ><Evaluate evaluated={evaluated} setEvaluated={setEvaluated} loading={l1} /></Stepper.Step>
-      <Stepper.Step label="Execute" description={`Perform ${checked.length} Actions`} icon={<IconRun />} >
+      <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} color={e1&&"red"} >
+        <Evaluate evaluated={evaluated} setEvaluated={setEvaluated} loading={l1} maximized={maximized} error={e1} />
+      </Stepper.Step>
+      <Stepper.Step label="Execute" description={`Perform ${count} Actions`} icon={<IconRun color={canExecute?undefined:"grey"} />} color={e2&&"red"}
+      disabled={!canExecute} styles={!canExecute?{step:{cursor:"not-allowed"}}:undefined} loading={l2}
+      >
+        <Evaluate evaluated={executed} setEvaluated={setExecuted} loading={l2} maximized={maximized} error={e2} />
       </Stepper.Step>
     </Stepper>
   </>)
