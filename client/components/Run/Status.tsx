@@ -9,23 +9,23 @@ const defaultStatus = {
   eta: false, text: "Initialising..."
 }
 
-export default function Status({ r }: { r?: boolean }) {
+export default function Status({ run }: { run?: boolean }) {
   const [ status ] = useSocket<jobStatus>('job_status', { default: defaultStatus });
   return (
     <Paper radius="md" withBorder className={classes.card} mt={25} pt={45} >
       <RingProgress className={classes.icon} size={80} 
-        sections={[{ value: status.progress.total, color: 'teal' }]}
+        sections={[{ value: status.progress.total, color: 'lime' }]}
         label={
           <Center>
             <ThemeIcon size={50} radius={60}>
-                {r?<IconRun stroke={1.5} size={28} /> :<IconListSearch stroke={1.5} size={28} />}
+                {run?<IconRun stroke={1.5} size={28} /> :<IconListSearch stroke={1.5} size={28} />}
             </ThemeIcon>
           </Center>
         }
       />
       <Center>
         <SimpleGrid cols={1} verticalSpacing={0}>
-          <Text ta="center" fw={500} className={classes.title}>{r?"Running Actions":"Finding Matches"}</Text>
+          <Text ta="center" fw={500} className={classes.title}>{run?"Running Actions":"Finding Matches"}</Text>
           <Text c="dimmed" ta="center" maw={200} fz="sm" truncate="end" >{status.text}</Text>
         </SimpleGrid>
       </Center>

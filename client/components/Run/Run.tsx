@@ -20,10 +20,10 @@ interface Content {
 function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMax }: Content ) {
   const [active, setActive] = useState(0);
   const form = useForm({ initialValues: rule, validate: {} });
-  const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI<response>({
+  const { data: evaluated, post: evaluate, loading: l1, reset: r1, error: e1, setData: setEvaluated } = useAPI<response,evalRule>({
     url: `/rule/evaluate`, schema: true,
     default: { primaryResults: [], initActions: [], finalActions: [], columns: [] },
-    data: {...rule, conditions: form.values.conditions, test},
+    data: {...rule as Rule, conditions: form.values.conditions, test},
   });
   const close2 = () => { close(); r1(); r2(); setActive(0); if (fullscreen) toggleFS(); };
   const context = useMemo(()=> evaluated.primaryResults.filter(r=>r.checked).map(r=>r.id), [ evaluated.primaryResults ]);
@@ -31,10 +31,10 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
   const count = context.length + initFinalCount;
   const canExecute = count>0;
 
-  const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI<response>({
+  const { data: executed, post: execute, loading: l2, reset: r2, error: e2, setData: setExecuted } = useAPI<response,evalRule>({
     url: `/rule/execute`, schema: true,
     default: { primaryResults: [], initActions: [], finalActions: [], columns: [] },
-    data: {...rule, conditions: form.values.conditions, test, context },
+    data: {...rule as Rule, conditions: form.values.conditions, test, context },
   });
   
   const onStepClick = (step: number) => {
@@ -56,13 +56,13 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
     </Group>
     <Stepper active={active} onStepClick={onStepClick}>
       <Stepper.Step label="Conditions" description="Modify Conditions" icon={<IconEqual />} ><Conditions form={form} label="Single-run modifications can be added here." compact /></Stepper.Step>
-      <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} color={e1&&"red"} >
-        <Evaluate evaluated={evaluated} setEvaluated={setEvaluated} loading={l1} maximized={maximized} error={e1} />
+      <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} color={e1?"red":(l1?undefined:(active==1?"lime":undefined))} >
+        <Evaluate evaluated={evaluated} setEvaluated={setEvaluated} loading={l1} maximized={maximized||fullscreen} error={e1} />
       </Stepper.Step>
-      <Stepper.Step label="Execute" description={`Perform ${count} Actions`} icon={<IconRun color={canExecute?undefined:"grey"} />} color={e2&&"red"}
+      <Stepper.Step label="Execute" description={`Perform ${count} Actions`} icon={<IconRun color={canExecute?undefined:"grey"} />} color={e2?"red":(l2?undefined:"lime")}
       disabled={!canExecute} styles={!canExecute?{step:{cursor:"not-allowed"}}:undefined} loading={l2}
       >
-        <Evaluate evaluated={executed} setEvaluated={setExecuted} loading={l2} maximized={maximized} error={e2} />
+        <Evaluate evaluated={executed} setEvaluated={setExecuted} loading={l2} maximized={maximized||fullscreen} error={e2} execute />
       </Stepper.Step>
     </Stepper>
   </>)

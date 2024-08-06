@@ -36,10 +36,19 @@ export default async function (route: FastifyInstance) {
     });
     route.post('/evaluate', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
-        const rule = request.body as Rule;
+        const { context, test, ...rule} = request.body as evalRule;
         try {
             const schema = await getSchema(schema_name);
             return await evaluate(rule, schema);
+        }
+        catch (e) { new xError(e).send(reply); }
+    });
+    route.post('/execute', async (request, reply) => {
+        const { schema_name } = request.params as { schema_name: string };
+        const { context, test, ...rule} = request.body as evalRule;
+        try {
+            const schema = await getSchema(schema_name);
+            return await evaluate(rule, schema, context||[], false);
         }
         catch (e) { new xError(e).send(reply); }
     });

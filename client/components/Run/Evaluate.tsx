@@ -2,12 +2,13 @@ import { ActionIcon, Checkbox, Divider, Group, Indicator, Menu, Pagination, Tabl
 import { availableActions } from "../../modules/actions";
 import ActionExplorer from "./ActionExplorer";
 import { useMemo, useState } from "react";
-import { IconCheck, IconDots, IconDownload, IconEye, IconEyeCheck, IconEyeX, IconFilter, IconLetterCase, IconSearch, IconX } from "@tabler/icons-react";
+import { IconCheck, IconDots, IconDownload, IconEye, IconEyeCheck, IconEyeX, IconFilter, IconLetterCase, IconQuestionMark, IconSearch, IconX } from "@tabler/icons-react";
 import { useDisclosure, usePagination } from "@mantine/hooks";
 import Exporter from "../Exporter";
 import Status from "./Status";
 
 const defaultPage = 50
+const pages = [ 10, 25, 50, 100, 1000 ];
 
 function find(query: string, r: primaryResult, caseSen: boolean, columns: string[]){
     if (caseSen?r.id.toLowerCase().includes(query.toLowerCase()):r.id.includes(query)) return true;
@@ -21,6 +22,7 @@ interface EvalProps {
     loading?: boolean;
     maximized?: boolean;
     error?: string;
+    execute?: boolean
 }
 
 function IconMap({ actions, size = 16, click }: { actions: actionResult[], size?: number, click?: (open: string)=> () => void }){
@@ -43,9 +45,9 @@ function ActionMap({ actions, view, name }: { actions: actionResult[], view: (id
     <Divider h={24} label={<Group gap="xs" ><IconMap actions={actions} size={22} click={click} /></Group>} />
 }
 
-function TableRow({ r, c, dE, dW, t, v, max }: {
+function TableRow({ r, c, dE, dW, t, v, max, aA }: {
     r: primaryResult, c: string[], dE: boolean, dW: boolean, t: (id: string) => void,
-    v: (id: {name: string, open: string, actions: actionResult[]}) => void, max: boolean
+    v: (id: {name: string, open: string, actions: actionResult[]}) => void, max: boolean, aA: boolean
     }) {
     const cl = c.map(c=>(r.columns.find(rc=>rc.name===c)?.value||""));
     const disabled = (dE && r.error) || (dW && r.warn);
@@ -55,7 +57,7 @@ function TableRow({ r, c, dE, dW, t, v, max }: {
         <Table.Td><Checkbox disabled={disabled} onChange={()=>t(r.id)} checked={!!r.checked} /></Table.Td>
         <Table.Td maw={max?undefined:200} ><Text size="sm" truncate={max?undefined:"end"} >{r.id}</Text></Table.Td> 
         {cl.map(c=><Table.Td key={c} maw={max?undefined:200} ><Text size="sm" truncate={max?undefined:"end"} >{c}</Text></Table.Td>)}
-        <Table.Td><Group gap={2} ><IconMap actions={r.actions} size={16} click={click} /></Group></Table.Td>
+        {aA&&<Table.Td><Group gap={2} ><IconMap actions={r.actions} size={16} click={click} /></Group></Table.Td>}
     </Table.Tr>
     )
 }
@@ -67,7 +69,9 @@ function TableData({ p, c, dE, dW, v, pR, sE, max }: {
     const toggle = (id: string) => sE(response=>({...response, primaryResults: pR.map(r=>r.id!==id?r:{...r, checked: !r.checked }) }));
     const allChecked = useMemo(()=>pR.every(r => r.checked),[ pR ]);
     const noneChecked = useMemo(()=>pR.every(r => !r.checked),[ pR ]);
-    const indeterminate = useMemo(()=>pR.some(r => r.checked) && !allChecked,[ pR, allChecked ]);
+    const someChecked = useMemo(()=>pR.some(r => r.checked),[ pR ]);
+    const someActions = useMemo(()=>pR.every(r => r.actions.length>0),[ pR ]);
+    const indeterminate = someChecked && !allChecked;
     const toggleAll = () => {
         if (indeterminate || noneChecked) return sE(response=>({...response, primaryResults: pR.map(r=>({...r, checked: true })) }));
         return sE(response=>({...response, primaryResults: pR.map(r=>({...r, checked: false })) }));
@@ -79,10 +83,10 @@ function TableData({ p, c, dE, dW, v, pR, sE, max }: {
                 <Table.Th w={56} ><Checkbox checked={allChecked} indeterminate={indeterminate} onChange={toggleAll} /></Table.Th>
                 <Table.Th>ID</Table.Th>
                 {c.map((c)=><Table.Th key={c} >{c}</Table.Th>)}
-                <Table.Th>Actions</Table.Th>
+                {someActions&&<Table.Th>Actions</Table.Th>}
             </Table.Tr>
         </Table.Thead>
-        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={toggle} v={v} max={max} />)}</Table.Tbody>
+        <Table.Tbody>{p.map((r,i)=><TableRow key={r.id||i} r={r} c={c} dE={dE} dW={dW} t={toggle} v={v} max={max} aA={someActions} />)}</Table.Tbody>
     </Table>
     )
 }
@@ -92,7 +96,6 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
     Q(s:string):void, E(e:number):void, W(w:number):void, C():void, S(s?:string):void,
     eC: number, wC: number, fC: number, p: { active: number, setPage: (pageNumber: number) => void, total: number, perPage: number }, PP(w:number):void,
     cols: string[], exp(): void }) {
-    const pages = [ 10, 25, 50, 100, 1000 ];
     return (
         <Group justify="space-between" miw="600px" >
             <TextInput
@@ -152,7 +155,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
     );
 }
 
-function Results( { evaluated, setEvaluated, maximized }: EvalProps ) {
+function Results( { evaluated, setEvaluated, maximized, execute }: EvalProps ) {
     const { primaryResults, initActions, finalActions, columns } = evaluated;
     const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
     const [q, Q] = useState<string>("");
@@ -181,18 +184,20 @@ function Results( { evaluated, setEvaluated, maximized }: EvalProps ) {
     const paginated = useMemo(()=>pp === 0 ? filtered : filtered.slice((pagination.active-1)*Number(pp), pagination.active*Number(pp)), [ pp, filtered, pagination ]);
 
     const exportCSV = () => {
-        const csv_data = filtered.map(e=>`${e.id},${e.columns.map(c=>c.value).join(",")}`).join("\n");
+        const someChecked = filtered.some(r => r.checked);
+        const csv_rows = someChecked ? filtered.filter(r=>r.checked) : filtered;
+        const csv_data = csv_rows.map(e=>`${e.id},${e.columns.map(c=>c.value).join(",")}`).join("\n");
         const csv = `ID,${columns.join(",")}\n${csv_data}`;
         setExporting(csv);
     }
-
-    const toggle = (id: string) => setEvaluated(response=>({...response, primaryResults: primaryResults.map(r=>r.id!==id?r:{...r, checked: r.checked }) }));
-    
 
     return (<>
     <Exporter title="Export Results" filename="export.csv" data={exporting} close={()=>setExporting(undefined)} />
     <ActionExplorer viewing={viewing} view={view} />
     <ActionMap actions={initActions} view={view} name="Init Actions" />
+    {primaryResults.length<=0&&(execute?
+    <Notification mt="xs" mb="xs" withCloseButton={false} color="blue">No iterative actions performed.</Notification>:
+    <Notification mt="xs" mb="xs" icon={<IconQuestionMark size={20} />} withCloseButton={false} color="blue" title="None Found">No entries match the set conditions.</Notification>)}
     {primaryResults.length>0&&<>
     <Header q={q} e={e} w={w} c={c} Q={Q} E={E} W={W} C={C} s={s} S={S}
     eC={errorCount} wC={warnCount} fC={filteredCount} p={{...pagination, total, perPage: pp }} PP={PP}
@@ -205,8 +210,8 @@ function Results( { evaluated, setEvaluated, maximized }: EvalProps ) {
     )
 }
 
-export default function Evaluate( { evaluated, setEvaluated, loading, maximized, error }: EvalProps ) {
-    if (loading) return <Status/>;
+export default function Evaluate( { evaluated, setEvaluated, loading, maximized, error, execute }: EvalProps ) {
+    if (loading) return <Status run={execute} />;
     if (error) return <Notification mt="xs" icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error">{error}</Notification>
-    return <Results evaluated={evaluated} setEvaluated={setEvaluated} maximized={maximized} />
+    return <Results evaluated={evaluated} setEvaluated={setEvaluated} maximized={maximized} execute={execute} />
 }

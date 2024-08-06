@@ -109,6 +109,11 @@ interface Rule {
     columns: resultColumn[];
 }
 
+interface evalRule extends Rule {
+    test?: boolean;
+    context?: string[];
+}
+
 interface psFile {
     name: string;
     path?: string;

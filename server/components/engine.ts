@@ -4,6 +4,8 @@ import { compile } from "../modules/handlebars";
 import { availableActions } from "./actions";
 import { connect, connections } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
+import dayjs from "dayjs";
+import fs from 'fs-extra';
 
 class Engine {
     public id: string;
@@ -16,28 +18,91 @@ class Engine {
     private scheduled?: boolean;
     private primary?: string;
     private sources: Source[];
-    private execute: boolean;
     private initTemplate: template = {};
     private primaryResults: primaryResult[] = [];
     private progress = 0;
     private hasInit = false;
+    private hasFinal = false;
     constructor(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean) {
         this.id = uuidv4();
         this.rule = rule;
         this.schema = schema;
         this.context = context;
-        this.execute = !!context;
         this.scheduled = scheduled;
         this.primary = this.rule.primary;
         this.sources = this.rule.sources||[];
         this.hasInit = this.rule.initActions.length > 0;
+        this.hasFinal = this.rule.finalActions.length > 0;
         this.status = {
             eta: false, text: "Initialising...",
             progress: { total: 0, init: false, connect: false, iterative: false, final: false },
             iteration: { current: 0, total: false },
         };
     }
-    async connect(){
+    public async Run(){
+        this.Emit();
+        await wait(500);
+        const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, {}, "init");
+        if (this.hasInit) this.progress = 15;
+        this.initTemplate = initTemplate;
+        if (initError) throw initError;
+        await wait(500);
+        await this.connect();
+        if (this.primary) this.progress = this.hasInit ? 35 : 20;
+        if (!this.primary) this.progress = 50;
+        await wait(500);
+        await this.iteratePrimary();
+        if (this.primary) this.progress = 85;
+        const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, {}, "final");
+        this.Emit({ text: "Finalising..." });
+        await wait(500);
+        this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
+        const columns = ["Display", ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
+        return { primaryResults: this.primaryResults, initActions, finalActions, columns };
+    }
+    private async compare(key: string, value: string, operator: string): Promise<boolean> {
+        //if (operator.substring(0, 4)==="ldap") return ldap_compare(key, value, operator.substring(5), connections, keys);
+        switch (operator) {
+            case '==': return key === value;
+            case '!=': return key !== value;
+            case '><': return key.includes(value);
+            case '<>': return !key.includes(value);
+            case '>*': return key.startsWith(value);
+            case '*<': return key.endsWith(value);
+            case '//': return (new RegExp(value, 'g')).test(key);
+            case '===': return Number(key) === Number(value);
+            case '!==': return Number(key) !== Number(value);
+            case '>': return Number(key) > Number(value);
+            case '<': return Number(key) < Number(value);
+            case '>=': return Number(key) >= Number(value);
+            case '<=': return Number(key) <= Number(value);
+            case 'file.exists': return fs.existsSync(key);
+            case 'file.notexists': return !fs.existsSync(key);
+            case 'date.==': return (dayjs(key).isSame(dayjs(value)));
+            case 'date.!=': return !(dayjs(key).isSame(dayjs(value)));
+            case 'date.>': return (dayjs(key).isAfter(dayjs(value)));
+            case 'date.<': return (dayjs(key).isBefore(dayjs(value)));
+            default: return false;
+        }
+    }
+    private async delimit(key: string, value: string, condition: Condition): Promise<boolean> {
+        const delimited = value.split(condition.delimiter as string)
+        for (const value of delimited) {
+            if ( await this.compare(key, value, condition.operator) ) return true;
+        } return false;
+    }
+    private async evaluate(condition: Condition, template: template): Promise<boolean> {
+        const key = compile(template, condition.key);
+        const value = compile(template, condition.value);
+        const delimiter = condition.delimiter !== "";
+        return delimiter ? await this.delimit(key, value, condition) : await this.compare(key, value, condition.operator);
+    }
+    public async evaluateAll(conditions: Condition[], template: template): Promise<boolean> {
+        for (const condition of conditions) {
+            if (!(await this.evaluate(condition, template))) return false;
+        } return true;
+    }
+    private async connect(){
         if (!this.primary) return;
         const connectStart = new Date().getTime();
         let i = 1;
@@ -60,7 +125,7 @@ class Engine {
         await wait(200);
         this.Emit({ iteration: { total: false, current: 0 }, text: "Preparing..." });
     }
-    async iteratePrimary(){
+    private async iteratePrimary(){
         if (!this.primary) return;
         const start = new Date().getTime();
         const primary = this.connections[this.primary];
@@ -71,7 +136,7 @@ class Engine {
         let lastCalc = 0;
         let iterativeLength = 80;
         if (this.hasInit) iterativeLength -= 15;
-        if (this.rule.finalActions.length > 0) iterativeLength -= 15;
+        if (this.hasFinal) iterativeLength -= 15;
         const entries = this.connections[this.primary].data;
         const entryCount = entries.length;
         this.Emit({ iteration: { total: entryCount } });
@@ -107,9 +172,13 @@ class Engine {
             const start = new Date().getTime();
             const id = record[this.rule.primaryKey||primary.headers[0]];
             if (!id) continue;
+            if (this.context && !this.context.includes(id)) continue;
             const joined = this.Join(record);
             if (!joined) continue;
             const template = { ...this.initTemplate, ...joined };
+            if (this.rule.conditions.length > 0 && (!this.context || this.context.length <= 0)) {
+                if (!(await this.evaluateAll(this.rule.conditions, template))) continue;
+            }
             const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await this.processActions(this.rule.iterativeActions, template, "iterative");
             const display = this.rule.display ? compile(template, this.rule.display) : id;
             const output: primaryResult = { id, actions: [], error: false, columns: [ { name: 'Display', value: display } ] };
@@ -132,29 +201,7 @@ class Engine {
             progress: { total: this.progress + iterativeLength, iterative: iterativeLength }
         });
     }
-    async Run(){
-        this.Emit();
-        await wait(500);
-        const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, {}, "init");
-        if (this.hasInit) this.progress = 15;
-        this.initTemplate = initTemplate;
-        if (initError) throw initError;
-        await wait(500);
-        await this.connect();
-        if (this.primary) this.progress = this.hasInit ? 35 : 20;
-        await wait(500);
-        await this.iteratePrimary();
-        if (this.primary) this.progress = 85;
-        const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, {}, "final");
-        this.Emit({ text: "Finalising..." });
-        await wait(500);
-        this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
-        const columns = ["Display", ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
-        return { primaryResults: this.primaryResults, initActions, finalActions, columns };
-    }
-    Evaluate(){}
-    Execute(){}
-    async processActions(actions: Action[], template: template, type: string) {
+    private async processActions(actions: Action[], template: template, type: string) {
         const start = new Date().getTime();
         const todo: actionResult[] = [];
         let error: undefined|xError;
@@ -164,8 +211,8 @@ class Engine {
             this.Emit({ text: `Processing ${type} actions...` });
             this.Emit({ iteration: { total: (actions||[]).length } });
         }
-        const length = this.primary ? 15 : 50;
-        const emit = () =>{
+        const length = this.primary ? 15 : this.hasFinal ? (this.hasInit ? 50 : 100) : this.hasFinal ? 50 : 100;
+        const emit = () => {
             if (type==="iterative") return;
             const x = (length/(actions.length))*i;
             const total = this.progress + x;
@@ -174,7 +221,7 @@ class Engine {
         for (const action of (actions||[])) { i++;
             if (!action.enabled){ emit(); continue; }
             if (!(action.name in availableActions)) throw new xError(`Unknown action '${action.name}'.`);
-            const result = await availableActions[action.name]({ action, template, connections: this.connections, execute: this.execute, data: {} })
+            const result = await availableActions[action.name]({ action, template, connections: this.connections, execute: !!this.context, data: {} })
             if (!result)  throw new xError(`Failed to run action '${action.name}'.`);
             const name = (action.display && action.display!==action.name) ? { display: action.display||action.name } : {}
             todo.push({name: action.name, result, ...name, noblock: action.noblock });
@@ -197,7 +244,7 @@ class Engine {
         }
         return {todo, template, error, warn};
     }
-    Join(record: Record<string, string>): template|false {
+    private Join(record: Record<string, string>): template|false {
         const joined: template = { [this.primary as string]: record };
         for (const source of this.sources) {
             if (!joined[source.primaryName] || !this.connections[source.foreignName]) continue;
@@ -217,7 +264,7 @@ class Engine {
             joined[source.foreignName] = foreignRecord || {};
         } return joined;
     }
-    Emit(update?: DeepPartial<jobStatus>) {
+    private Emit(update?: DeepPartial<jobStatus>) {
         this.status = { ...this.status,
             eta: update?.eta||this.status.eta, text: update?.text||this.status.text,
             progress: {...this.status.progress,  ...update?.progress},
