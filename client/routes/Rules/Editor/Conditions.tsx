@@ -271,12 +271,13 @@ function Condition({ index, condition, form, templateProps, path }: { index: num
 export default function Conditions({ form, label, compact, path = "conditions" }: { form: UseFormReturnType<Rule>, label?: string, compact?: boolean, path?: string }) {
     const theme = useMantineTheme();
     const add = (c: availableCondition) => () => form.insertListItem(path, { name: c.name, operator: c.defaultOperator, key: undefined, value: undefined, });
-    const { ruleProConnectors, sources } = useRule(form);
-    const { templateProps, explorer } = useTemplater({names:sources});
+    const { ruleProConnectors, templateSources } = useRule(form);
+    const { templateProps, explorer } = useTemplater({names:templateSources});
     const ldapAvailable = ruleProConnectors.find(c=>c.id==="ldap");
     const conditions = (form.getInputProps(path).value || []) as Condition[];
     const disabled = !form.values.primary;
     //FIXME - dragging and dropping empty conditions are populated with the target values for some reason?
+    //TODO - add case sensitivity option
     return (
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >

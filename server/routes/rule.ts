@@ -104,6 +104,32 @@ export default async function (route: FastifyInstance) {
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
+    route.put('/:name/enable', async (request, reply) => {
+        const { schema_name, name } = request.params as { schema_name: string, name: string };
+        try {
+            validate( { name }, {
+                name: isNotEmpty('Name can not be empty.'),
+            });
+            const rules = await getRules(schema_name);
+            const rule = rules.find(c=>c.name===name);
+            if (!rule) throw new xError("Rule not found.", "name", 404 );
+            rule.enabled = true;
+            return true;
+        } catch (e) { new xError(e).send(reply); }
+    });
+    route.put('/:name/disable', async (request, reply) => {
+        const { schema_name, name } = request.params as { schema_name: string, name: string };
+        try {
+            validate( { name }, {
+                name: isNotEmpty('Name can not be empty.'),
+            });
+            const rules = await getRules(schema_name);
+            const rule = rules.find(c=>c.name===name);
+            if (!rule) throw new xError("Rule not found.", "name", 404 );
+            rule.enabled = false;
+            return true;
+        } catch (e) { new xError(e).send(reply); }
+    });
     route.delete('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         const { name } = request.body as { name: string };

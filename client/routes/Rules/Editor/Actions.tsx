@@ -130,7 +130,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     const display = form.values[type as "initActions"][index].display;
     const config = form.values[type as "initActions"][index].config;
     const setConfig = (name: string) => form.setFieldValue(`${type}.${index}.config`, name);
-    const { sources, inline } = useRule(form);
+    const { templateSources, inline } = useRule(form);
     const filteredInline = useMemo(()=>{
         switch (type) {
             case "initActions": return inline.initActions;
@@ -139,7 +139,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
             default: return [];
         }
     }, [ inline, type ])
-    const { templateProps, explorer } = useTemplater({names:type==="iterativeActions"?sources:[], inline: filteredInline});
+    const { templateProps, explorer } = useTemplater({names:type==="iterativeActions"?templateSources:[], inline: filteredInline});
 
     return <>{explorer}
     <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>

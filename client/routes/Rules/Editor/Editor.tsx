@@ -1,5 +1,5 @@
-import { Container, Group, Title, Anchor, useMantineTheme, Tabs, Text } from "@mantine/core";
-import { IconFilter, IconLayoutNavbarCollapse, IconPackageExport, IconPackageImport, IconRun, IconSettings, IconTable, IconTestPipe, IconX } from "@tabler/icons-react";
+import { Container, Group, Title, Anchor, useMantineTheme, Tabs, Text, Notification, ThemeIcon, Tooltip } from "@mantine/core";
+import { IconAlertCircle, IconFilter, IconLayoutNavbarCollapse, IconPackageExport, IconPackageImport, IconRun, IconSettings, IconTable, IconTestPipe, IconX } from "@tabler/icons-react";
 import Wrapper from "../../../components/Wrapper";
 import { useLocation } from "wouter";
 import SplitButton from "../../../components/SplitButton";
@@ -9,12 +9,14 @@ import Settings from "./Settings";
 import { modals } from "@mantine/modals";
 import Conditions from "./Conditions";
 import Headers from "./Columns";
-import { useConnectors } from "../../../hooks/redux";
+import { useConnectors, useDispatch } from "../../../hooks/redux";
 import Actions from "./Actions";
 import Run from "../../../components/Run/Run";
 import Exporter from "../../../components/Exporter";
 import Importer from "../../../components/Importer";
 import { useDisclosure } from "@mantine/hooks";
+import useAPI from "../../../hooks/useAPI";
+import { loadRules } from "../../../providers/schemaSlice";
 
 const validate = {
     name: isNotEmpty('Name must not be empty.'),
@@ -42,6 +44,7 @@ export function useRule( form: UseFormReturnType<Rule> ) {
         return contextCapable.filter(c=>!sources.includes(c));
     }, [ proConnectors, sources ]);
     const ruleProConnectors = useMemo(()=>proConnectors.filter(c=>sources.includes(c.name)), [ proConnectors, sources ]);
+    const templateSources = useMemo(()=>sources.filter(s=>!usedContexts.includes(s)), [ sources, usedContexts ]);
     const primary = useMemo(()=>proConnectors.find((item) => item.name === form.values.primary), [ form.values.primary ]);
     const primaryHeaders = primary ? primary.headers : [];
     const displayExample = `{{${form.values.primary?`${form.values.primary}.`:''}${form.values.primaryKey ? form.values.primaryKey :  (primaryHeaders[0] ? primaryHeaders[0] : 'id')}}}`;
@@ -61,7 +64,7 @@ export function useRule( form: UseFormReturnType<Rule> ) {
             } map[type] = array;
         } return map;
     }, [ form.values.initActions, form.values.iterativeActions, form.values.finalActions ])
-    return { used: usedSources, sources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample, inline };
+    return { used: usedSources, sources, templateSources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample, inline };
 }
 
 export default function Editor({ editing, close }: { editing: [Rule,boolean], close(): void }) {
@@ -90,14 +93,25 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
 
     const canTest = (form.values.initActions.length + form.values.iterativeActions.length + form.values.finalActions.length) > 0;
 
+    const dispatch = useDispatch();
+    const { post, put, error, loading } = useAPI({
+      url: `/rule${adding?'':`/${editing[0].name}`}`, form, schema: true,
+      then: () => { dispatch(loadRules()); cancel();  }
+    });
+
     return (
     <Container size="lg">
         <Importer title="Import Schema" opened={importOpen} close={closeImporter} onImport={onImport} json accept={['application/json']} />
         <Exporter title="Export Rule" filename={exporting?`${exporting.name||"rule"}.json`:''} data={exporting?JSON.stringify(exporting, null, 2):''} json close={()=>setExporting(undefined)} />
-        <Run rule={rule} close={()=>setRule(undefined)} />
+        <Run rule={rule} close={()=>setRule(undefined)} test />
         <Group justify="space-between">
             <Title mb="xs" ><Title mb="xs" onClick={safeCancel} component={Anchor} >Rules</Title> / Rule - {adding?'New':'Edit'}</Title>
-            <ActionButton save={()=>{}} test={()=>setRule(form.values)} cancel={safeCancel} clickExport={clickExport} openImporter={openImporter} canTest={canTest} />
+            <Group>
+            {error&&<Tooltip color="red" position="bottom-end" label={error} multiline >
+                <ThemeIcon color="red" radius="xl"><IconAlertCircle/></ThemeIcon>
+            </Tooltip>}
+            <ActionButton loading={loading} save={()=>adding?post():put()} test={()=>setRule(form.values)} cancel={safeCancel} clickExport={clickExport} openImporter={openImporter} canTest={canTest} />
+            </Group>
         </Group>
         <Wrapper>
             <Tabs value={activeTab} onChange={setActiveTab}>

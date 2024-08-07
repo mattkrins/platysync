@@ -65,9 +65,9 @@ export default function Headers( { form }: { form: UseFormReturnType<Rule> } ) {
     const templatePath = `columns`;
     const columns = form.getInputProps(templatePath).value as resultColumn[];
     const add = () => form.insertListItem(templatePath, { name: undefined, value: undefined, });
-    const { sources, inline } = useRule(form);
+    const { templateSources, inline } = useRule(form);
     const filteredInline = [ ...inline.initActions, ...inline.iterativeActions, ...inline.finalActions ];
-    const { templateProps, explorer } = useTemplater({names:sources, inline: filteredInline});
+    const { templateProps, explorer } = useTemplater({names:templateSources, inline: filteredInline});
     return (
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >

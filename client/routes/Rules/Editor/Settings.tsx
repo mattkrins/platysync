@@ -178,7 +178,7 @@ function ContextModal({ join, index, adding, rule, close }: { join: Context, ind
     }, initialValues: structuredClone(join) });
     const { proConnectors } = useConnectors();
     const provider = proConnectors.find(c=>c.name===form.values.name);
-    const { sources, contextSources } = useRule(rule);
+    const { templateSources, contextSources } = useRule(rule);
     const add = () => {
         form.validate(); if (!form.isValid()) return;
         rule.insertListItem('contexts', form.values);
@@ -205,7 +205,7 @@ function ContextModal({ join, index, adding, rule, close }: { join: Context, ind
             form.getInputProps(`name`).onChange(v);
         }}
         />
-        {(provider&&provider.Context)&&<provider.Context form={form} sources={sources} rule={rule} />}
+        {(provider&&provider.Context)&&<provider.Context form={form} sources={templateSources} rule={rule} />}
         <Group justify={adding?"flex-end":"space-between"} mt="md">
           {!adding&&<Button color="red" onClick={remove} >Remove</Button>}
           <Button onClick={adding?add:edit} >{adding ? "Add" : "Save"}</Button>
@@ -223,8 +223,8 @@ function ContextEditor({ editing, close, form }: { editing?: [Context,number|und
 }
 
 export default function Settings( { form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void } ) {
-    const { sources, primaryHeaders, displayExample, contextSources } = useRule(form);
-    const { templateProps, explorer } = useTemplater({names:sources});
+    const { sources, templateSources, primaryHeaders, displayExample, contextSources } = useRule(form);
+    const { templateProps, explorer } = useTemplater({names:templateSources});
     const [ editingSource, setEditingSource ] = useState<[Source,number|undefined,boolean]|undefined>(undefined);
     const [ editingContext, setEditingContext ] = useState<[Context,number|undefined,boolean]|undefined>(undefined);
     const { proConnectors } = useConnectors();
@@ -314,12 +314,11 @@ export default function Settings( { form, setActiveTab }: { form: UseFormReturnT
             placeholder={displayExample}
             {...templateProps(form, 'display', { disabled: !form.values.primary } )}
         />
-        <Switch label="Rule Enabled" description="Enables execution through scheduling" mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} />
-        <Switch label="Logging Enabled" description="Records execution results accessible via the log browser" mt="xs" {...form.getInputProps('log', { type: 'checkbox' })} />
+        <Switch label="Enabled Schedules" description="Enables execution through scheduling" mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} />
+        <Switch label="Logging Enabled" description="Execution results become accessible via the log browser" mt="xs" {...form.getInputProps('log', { type: 'checkbox' })} />
         <Textarea
-            label="Rule Description"
+            label="Rule Description" mt="xs"
             placeholder="Describe what this rule does. Displayed on the rules overview page."
-            mt="xs"
             {...form.getInputProps('description')}
         />
     </Box>)

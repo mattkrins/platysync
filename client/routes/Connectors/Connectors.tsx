@@ -66,9 +66,7 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
         )}
         </Draggable>)
 }
-//REVIEW - potential names:
-// connector, provider, integration, adapter, interface
-// connectors can be a provider or adapter, provider provide data, adapters do not
+
 export default function Connectors() {
     const { loadingConnectors } = useLoader();
     const dispatch = useDispatch();

@@ -59,11 +59,11 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
       <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} color={e1?"red":(l1?undefined:(active==1?"lime":undefined))} >
         <Evaluate evaluated={evaluated} setEvaluated={setEvaluated} loading={l1} maximized={maximized||fullscreen} error={e1} />
       </Stepper.Step>
-      <Stepper.Step label="Execute" description={`Perform ${count} Actions`} icon={<IconRun color={canExecute?undefined:"grey"} />} color={e2?"red":(l2?undefined:"lime")}
+      {!test&&<Stepper.Step label="Execute" description={`Perform ${count} Actions`} icon={<IconRun color={canExecute?undefined:"grey"} />} color={e2?"red":(l2?undefined:"lime")}
       disabled={!canExecute} styles={!canExecute?{step:{cursor:"not-allowed"}}:undefined} loading={l2}
       >
         <Evaluate evaluated={executed} setEvaluated={setExecuted} loading={l2} maximized={maximized||fullscreen} error={e2} execute />
-      </Stepper.Step>
+      </Stepper.Step>}
     </Stepper>
   </>)
 }
