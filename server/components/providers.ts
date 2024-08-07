@@ -6,9 +6,10 @@ import { base_provider } from "./providers/base";
 
 export interface connections { [name: string]: base_provider }
 
-export async function connect(schema: Schema, name: string, connectors: connections) {
+export async function connect(schema: Schema, name: string, connectors: connections, key?: string) {
     const { id, ...options} = schema.connectors.find(c=>c.name===name) as Connector;
-    const provider = new providers[id]({ id, ...options, schema });
+    if (!key) key = options.headers[0];
+    const provider = new providers[id]({ id, ...options, schema, key });
     await provider.initialize();
     await provider.configure();
     await provider.connect();

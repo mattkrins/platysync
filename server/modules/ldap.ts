@@ -1,5 +1,7 @@
 import { default as ldapjs } from "ldapjs";
 
+export const collator = new Intl.Collator(undefined, { sensitivity: "accent" });
+
 export class ldap {
     public client: ldapjs.Client|undefined;
     public connected: boolean = false;
@@ -154,14 +156,15 @@ export class ldap {
     /**
      * Return all objects matching the filter.
      * @param {string[]} attributes Array of specific attributes to get (optional)
-     * @param {string} id attribute to build object keys from (optional)
+     * @param {string} key attribute to build object keys from (optional)
      * @param {boolean} caseSen should object keys be lowercased (optional)
      * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
-    public search(attributes?: string[]): Promise<{users: {[k: string]: string}[]}> {
+    public search(attributes?: string[], key?: string): Promise<{ users: {[k: string]: string}[], keyedUsers: {[key: string]: User} }> {
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             const users: {[k: string]: string}[] = [];
+            const keyedUsers: {[key: string]: User} = {};
             const opts: ldapjs.SearchOptions = {
                 filter: this.filter,
                 scope: 'sub',
@@ -175,12 +178,13 @@ export class ldap {
                     const user: {[k: string]: string} = {};
                     for (const attribute of entry.attributes) {
                         user[attribute.type] = ((attribute.values||[]) as string[]).join();
+                        if (key && collator.compare(key, attribute.type) === 0) keyedUsers[key] = new User(entry, this.client );
                     } users.push(user);
                 });
                 res.on('error', (err) => reject(err));
                 res.on('end', (result) => {
                     if (!result || result.status !== 0) return reject(Error("Nothing found."));
-                    resolve({users})
+                    resolve({ users, keyedUsers })
                 });
             });
         });

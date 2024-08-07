@@ -12,7 +12,6 @@ import { modals } from "@mantine/modals";
 import MenuTip from "../../components/MenuTip";
 import Run from "../../components/Run/Run";
 import { availableActions } from "../../modules/actions";
-import { providers } from "../../modules/providers";
 
 function IconMap({ actions }: { actions: Action[] }){
     const theme = useMantineTheme();
@@ -21,7 +20,7 @@ function IconMap({ actions }: { actions: Action[] }){
         const act = availableActions.find(a=>a.name===action.name);
         if (!act) return <></>;
         return <Tooltip key={key} fz="xs" withArrow label={action.display||action.name}>
-            <act.Icon color={act.color?theme.colors[act.color][6]:undefined} size={15} stroke={2} />
+            <act.Icon color={act.color?theme.colors[act.color][6]:undefined} size={16} stroke={2} />
         </Tooltip>
     })}
     </Group>
@@ -35,7 +34,7 @@ function SourcesMap({ sources }: { sources: string[] }){
         const con = proConnectors.find(a=>a.name===source);
         if (!con) return <></>;
         return <Tooltip key={key} fz="xs" withArrow label={con.name}>
-            <con.Icon color={con.color?theme.colors[con.color][6]:undefined} size={15} stroke={2} />
+            <con.Icon color={con.color?theme.colors[con.color][6]:undefined} size={16} stroke={2} />
         </Tooltip>
     })}
     </Group>
@@ -99,7 +98,7 @@ function Rule({ index, rule: { name, enabled, ...rule }, edit, refresh, run }: {
                 <Grid.Col span={4} miw={160}>
                     <Group gap="xs" justify="flex-end">
                         {(loading||switching)&&<Loader size="xs" />}
-                        <Tooltip style={{zIndex:100}} label={sError||(enabled?'Disable Schedules':'Enable Schedules')} refProp="rootRef" opened={!!sError ? true : undefined} color={sError ? "red" : undefined } zIndex={100} >
+                        <Tooltip style={{zIndex:100}} label={sError||(enabled?'Disable Scheduling':'Enable Scheduling')} refProp="rootRef" opened={!!sError ? true : undefined} color={sError ? "red" : undefined } zIndex={100} >
                             <Switch onChange={()=>toggle()} checked={(switching||success)?!enabled:enabled} onMouseEnter={!!sError?sReset:undefined} />
                         </Tooltip>
                         <MenuTip label="Run" Icon={IconPlayerPlay} error={cError} reset={cReset} onClick={()=>run({...rule, name, enabled})} loading={copying} color="lime" variant="subtle" />
@@ -145,7 +144,7 @@ function RulesList({ add, setEditing }: { add(): void, setEditing: (r: [Rule,boo
             <Droppable droppableId="dnd-list" direction="vertical">
                 {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {rules.map((rule, index) =><Rule index={index} key={rule.name} rule={rule} edit={edit(rule)} refresh={refresh} run={run} />)}
+                    {rules.map((rule, index) =><Rule index={index} key={index} rule={rule} edit={edit(rule)} refresh={refresh} run={run} />)}
                     {provided.placeholder}
                 </div>
                 )}

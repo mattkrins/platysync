@@ -1,5 +1,5 @@
 import { TextInput, SimpleGrid, Anchor, Text } from "@mantine/core";
-import { IconSearch, IconServer, IconTableColumn, IconUser, IconWorld } from "@tabler/icons-react";
+import { IconFolder, IconSearch, IconServer, IconTableColumn, IconUser, IconWorld } from "@tabler/icons-react";
 import { UseFormReturnType } from "@mantine/form";
 import SecurePasswordInput from "../../../components/SecurePasswordInput";
 import { ldap_options } from "../../../../server/components/providers/LDAP";
@@ -40,14 +40,21 @@ export default function LDAP( { form }: { form: UseFormReturnType<Connector|ldap
             {...form.getInputProps('target')}
         />
         <Concealer>
-            <TextInput
+            <TextInput mt="xs"
                 label="Root DSE"
                 description="All distinguished names, including the Base Organizational Unit, will be appended by this path."
                 placeholder="dc=sub,dc=domain,dc=com"
                 leftSection={<IconServer size={16} style={{ display: 'block', opacity: 0.5 }} />}
                 {...form.getInputProps('dse')}
             />
-            <TextInput mt="sm"
+            <TextInput mt="xs"
+                label="Base OU"
+                description="All search paths will be prepended by this path."
+                placeholder="ou=staff,ou=users"
+                leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.5 }} />}
+                {...form.getInputProps('ou')}
+            />
+            <TextInput mt="xs"
             label="Search Filter"
             description={<>All searches will be refined using this <Anchor href='https://ldap.com/ldap-filters/' size="xs" target='_blank' >filter</Anchor>.</>}
             placeholder="(objectclass=person)"

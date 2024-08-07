@@ -56,6 +56,8 @@ export class xError {
     }
 }
 
+export const notCaseSen = new Intl.Collator(undefined, { sensitivity: "accent" });
+
 export const wait = async (t = 1000, from?: number): Promise<void> => new Promise((res)=>{
   if (!from) return setTimeout(res, t);
   const end = new Date().getTime();

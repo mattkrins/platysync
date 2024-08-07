@@ -1,6 +1,6 @@
 import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common";
 import { base_provider, base_provider_options } from "./base";
-import ldap from "../../modules/ldap";
+import ldap, { User } from "../../modules/ldap";
 
 export interface ldap_options extends base_provider_options {
     url: string;
@@ -21,6 +21,7 @@ export default class LDAP extends base_provider {
     private ou?: string;
     private filter?: string;
     private target?: string;
+    private users: {[id: string]: User} = {};
     constructor(options: ldap_options) {
         super(options);
         for (const key of Object.keys(options)) this[key] = options[key];
@@ -47,6 +48,7 @@ export default class LDAP extends base_provider {
         await this.client.connect(this.url);
         await this.client.login(this.username, this.password as string);
         this.client.base = this.dse || await this.client.getRoot();
+        if (this.ou) this.client.base = `${this.ou},${this.client.base}`
     }
     public async getHeaders(): Promise<string[]> {
         if (!this.target) throw new xError("Specify a target to autodetect headers.", null, 400);
@@ -54,7 +56,7 @@ export default class LDAP extends base_provider {
         return entry.attributes.map(a=>a.type);
     }
     public async connect(): Promise<{ [k: string]: string }[]> {
-        const { users } = await this.client.search(this.headers);
+        const { users, keyedUsers } = await this.client.search(this.headers, this.key);
         this.data = users;
         return users;
     }

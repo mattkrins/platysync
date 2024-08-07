@@ -4,6 +4,7 @@ export interface base_provider_options extends Connector {
     id: string;
     name: string;
     schema: Schema;
+    key: string;
     [name: string]: unknown;
 }
 
@@ -11,6 +12,7 @@ export class base_provider implements base_provider_options {
     id: string;
     name: string;
     schema: Schema;
+    key: string;
     data: {[k: string]: string}[] = [];
     headers:  string[] = [];
     [k: string]: unknown;
@@ -18,6 +20,7 @@ export class base_provider implements base_provider_options {
         this.id = options.id;
         this.name = options.name;
         this.schema = options.schema;
+        this.key = options.key;
         this.headers = options.headers || [];
     }
     public async validate(): Promise<void> {}

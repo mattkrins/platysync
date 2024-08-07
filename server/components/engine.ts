@@ -1,5 +1,5 @@
 import { server } from "../../server";
-import { ThrottledQueue, wait, xError } from "../modules/common";
+import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
 import { availableActions } from "./actions";
 import { connect, connections } from "./providers";
@@ -23,6 +23,7 @@ class Engine {
     private progress = 0;
     private hasInit = false;
     private hasFinal = false;
+    private display = "Display";
     constructor(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean) {
         this.id = uuidv4();
         this.rule = rule;
@@ -33,6 +34,7 @@ class Engine {
         this.sources = this.rule.sources||[];
         this.hasInit = this.rule.initActions.length > 0;
         this.hasFinal = this.rule.finalActions.length > 0;
+        this.display = this.rule.displayKey || "Display";
         this.status = {
             eta: false, text: "Initialising...",
             progress: { total: 0, init: false, connect: false, iterative: false, final: false },
@@ -57,11 +59,31 @@ class Engine {
         this.Emit({ text: "Finalising..." });
         await wait(500);
         this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
-        const columns = ["Display", ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
+        const columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
         return { primaryResults: this.primaryResults, initActions, finalActions, columns };
     }
+    private async ldap_compare(key: string, value: string, operator: string ) {
+        
+        this.connections
+        
+        //if (!(key in connections)) return false;
+        //const id = keys[key];
+        //const user: User|undefined = connections[key].objects[id] as User||undefined;
+        //switch (operator) {
+        //    case 'exists': return !!user;
+        //    case 'notexists': return !user;
+        //    case 'enabled': return user && user.enabled();
+        //    case 'disabled': return user && user.disabled();
+        //    case 'member': return user && user.hasGroup(value);
+        //    case 'notmember': return user && !user.hasGroup(value);
+        //    case 'child': return user && user.childOf(value);
+        //    case 'notchild': return user && !user.childOf(value);
+        //    default: return false;
+        //}
+        return false
+    }
     private async compare(key: string, value: string, operator: string): Promise<boolean> {
-        //if (operator.substring(0, 4)==="ldap") return ldap_compare(key, value, operator.substring(5), connections, keys);
+        if (operator.substring(0, 4)==="ldap") return this.ldap_compare(key, value, operator.substring(5));
         switch (operator) {
             case '==': return key === value;
             case '!=': return key !== value;
@@ -108,13 +130,13 @@ class Engine {
         let i = 1;
         const x = () => (20/(this.sources.length+1))*i;
         this.Emit({ text: `Connecting to ${this.primary}`, iteration: { total: this.sources.length+1, current: 0 }, });
-        await connect(this.schema, this.primary, this.connections);
+        await connect(this.schema, this.primary, this.connections, this.rule.primaryKey);
         this.Emit({
             progress: { total: this.progress + x(), connect: x() },
             iteration: { current: 1 },
         });
         for (const source of this.sources) {  i++;
-            await connect(this.schema, source.foreignName, this.connections);
+            await connect(this.schema, source.foreignName, this.connections, source.foreignKey);
             this.Emit({
                 text: `Connecting to ${source.foreignName}`,
                 progress: { total: this.progress + x(), connect: x() },
@@ -181,7 +203,7 @@ class Engine {
             }
             const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await this.processActions(this.rule.iterativeActions, template, "iterative");
             const display = this.rule.display ? compile(template, this.rule.display) : id;
-            const output: primaryResult = { id, actions: [], error: false, columns: [ { name: 'Display', value: display } ] };
+            const output: primaryResult = { id, actions: [], error: false, columns: [ { name: this.display, value: display } ] };
             output.actions = iterativeActions;
             output.error = !!iterativeError;
             output.warn = !!iterativeWarn;
@@ -257,7 +279,7 @@ class Engine {
             if (!foreignKey || !primaryKey || !primary[primaryKey]) continue;
             const foreignRecord = foreignData.find( foreign => {
                 if (!foreign[foreignKey]) return false;
-                if (source.inCase) return foreign[foreignKey].toLowerCase() === primary[primaryKey].toLowerCase();
+                if (source.inCase) return notCaseSen.compare(foreign[foreignKey], primary[primaryKey]) === 0;
                 return foreign[foreignKey] === primary[primaryKey];
             } )
             if (source.require&&!foreignRecord) return false;

@@ -314,7 +314,7 @@ export default function Settings( { form, setActiveTab }: { form: UseFormReturnT
             placeholder={displayExample}
             {...templateProps(form, 'display', { disabled: !form.values.primary } )}
         />
-        <Switch label="Enabled Schedules" description="Enables execution through scheduling" mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} />
+        <Switch label="Enable Scheduling" description="Enables execution through scheduling" mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} />
         <Switch label="Logging Enabled" description="Execution results become accessible via the log browser" mt="xs" {...form.getInputProps('log', { type: 'checkbox' })} />
         <Textarea
             label="Rule Description" mt="xs"
