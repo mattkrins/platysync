@@ -4,7 +4,7 @@ export interface base_provider_options extends Connector {
     id: string;
     name: string;
     schema: Schema;
-    key: string;
+    key?: string;
     [name: string]: unknown;
 }
 
@@ -12,7 +12,7 @@ export class base_provider implements base_provider_options {
     id: string;
     name: string;
     schema: Schema;
-    key: string;
+    key?: string;
     data: {[k: string]: string}[] = [];
     headers:  string[] = [];
     [k: string]: unknown;

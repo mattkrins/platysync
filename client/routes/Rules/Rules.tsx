@@ -82,7 +82,7 @@ function Rule({ index, rule: { name, enabled, ...rule }, edit, refresh, run }: {
                     </Tooltip>
                 </Grid.Col>
                 <Grid.Col span={2}>
-                    <Group justify="start" gap={5} >
+                    <Group justify="end" gap={5} >
                         {rule.primary&&<SourcesMap sources={[rule.primary as string,  ...rule.sources.map(s=>s.foreignName)]} />}
                     </Group>
                 </Grid.Col>
@@ -135,7 +135,7 @@ function RulesList({ add, setEditing }: { add(): void, setEditing: (r: [Rule,boo
                 <Grid columns={17} justify="space-between">
                     <Grid.Col span={1}/>
                     <Grid.Col span={3}>Name</Grid.Col>
-                    <Grid.Col span={2}>Connectors</Grid.Col>
+                    <Grid.Col ta="end" span={2}>Connectors</Grid.Col>
                     <Grid.Col span={7}>Actions</Grid.Col>
                     <Grid.Col span={4}/>
                 </Grid>

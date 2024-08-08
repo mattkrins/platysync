@@ -5,15 +5,26 @@ import STMC from "./providers/STMC";
 import { base_provider } from "./providers/base";
 
 export interface connections { [name: string]: base_provider }
+export interface contexts {[name: string]: base_provider}
 
 export async function connect(schema: Schema, name: string, connectors: connections, key?: string) {
     const { id, ...options} = schema.connectors.find(c=>c.name===name) as Connector;
     if (!key) key = options.headers[0];
+    //TODO - add inline connector option overrides to UI and here
     const provider = new providers[id]({ id, ...options, schema, key });
     await provider.initialize();
     await provider.configure();
     await provider.connect();
     connectors[name] = provider;
+    return provider;
+}
+
+export async function addContext(schema: Schema, { name, ...context}: Context, contexts: contexts) {
+    const { id, ...options} = schema.connectors.find(c=>c.name===name) as Connector;
+    const provider = new providers[id]({ id, ...options, ...context, schema });
+    await provider.initialize();
+    await provider.configure();
+    contexts[name] = provider;
     return provider;
 }
 

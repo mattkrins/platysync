@@ -2,19 +2,21 @@ import { server } from "../../server";
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
 import { availableActions } from "./actions";
-import { connect, connections } from "./providers";
+import { addContext, connect, connections, contexts } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import fs from 'fs-extra';
+import LDAP from "./providers/LDAP";
 
 class Engine {
     public id: string;
     private connections: connections = {};
+    private contexts:  contexts = {};
     private status: jobStatus;
     private queue = new ThrottledQueue(10);
-    private rule;
-    private schema;
-    private context?:  string[];
+    private rule: Rule;
+    private schema: Schema;
+    private filter?:  string[];
     private scheduled?: boolean;
     private primary?: string;
     private sources: Source[];
@@ -24,11 +26,11 @@ class Engine {
     private hasInit = false;
     private hasFinal = false;
     private display = "Display";
-    constructor(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean) {
+    constructor(rule: Rule, schema: Schema, filter?:  string[], scheduled?: boolean) {
         this.id = uuidv4();
         this.rule = rule;
         this.schema = schema;
-        this.context = context;
+        this.filter = filter;
         this.scheduled = scheduled;
         this.primary = this.rule.primary;
         this.sources = this.rule.sources||[];
@@ -50,6 +52,8 @@ class Engine {
         if (initError) throw initError;
         await wait(500);
         await this.connect();
+        //TODO - fix progress for contexts
+        for (const context of (this.rule.contexts||[])) await addContext(this.schema, context, this.contexts );
         if (this.primary) this.progress = this.hasInit ? 35 : 20;
         if (!this.primary) this.progress = 50;
         await wait(500);
@@ -62,28 +66,33 @@ class Engine {
         const columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
         return { primaryResults: this.primaryResults, initActions, finalActions, columns };
     }
-    private async ldap_compare(key: string, value: string, operator: string ) {
-        
-        this.connections
-        
-        //if (!(key in connections)) return false;
-        //const id = keys[key];
-        //const user: User|undefined = connections[key].objects[id] as User||undefined;
-        //switch (operator) {
-        //    case 'exists': return !!user;
-        //    case 'notexists': return !user;
-        //    case 'enabled': return user && user.enabled();
-        //    case 'disabled': return user && user.disabled();
-        //    case 'member': return user && user.hasGroup(value);
-        //    case 'notmember': return user && !user.hasGroup(value);
-        //    case 'child': return user && user.childOf(value);
-        //    case 'notchild': return user && !user.childOf(value);
-        //    default: return false;
-        //}
-        return false
+    private async ldap_getUser(key: string, template: template, id: string) {
+        const ldap = this.connections[key] as LDAP|undefined;
+        if (ldap && ldap.users[id]) return ldap.users[id];
+        const context = this.contexts[key] as LDAP|undefined;
+        if (!context) return false;
+        const user = await context.getUser(template, id);
+        return user || false;
     }
-    private async compare(key: string, value: string, operator: string): Promise<boolean> {
-        if (operator.substring(0, 4)==="ldap") return this.ldap_compare(key, value, operator.substring(5));
+    private async ldap_compare(key: string, value: string, operator: string, template: template, id: string ) {
+        if (!key) return false;
+        const user = await this.ldap_getUser(key, template, id);
+        if (operator==="notexists") return !user;
+        if (!user) return false;
+        switch (operator) {
+            case 'exists': return true;
+            case 'enabled': return user && user.enabled();
+            case 'disabled': return user && user.disabled();
+            case 'member': return user && user.hasGroup(value);
+            case 'notmember': return user && !user.hasGroup(value);
+            case 'child': return user && user.childOf(value);
+            case 'notchild': return user && !user.childOf(value);
+            default: return false;
+        }
+        return true
+    }
+    private async compare(key: string, value: string, operator: string, template: template, id: string): Promise<boolean> {
+        if (operator.substring(0, 4)==="ldap") return await this.ldap_compare(key, value, operator.substring(5), template, id);
         switch (operator) {
             case '==': return key === value;
             case '!=': return key !== value;
@@ -107,21 +116,21 @@ class Engine {
             default: return false;
         }
     }
-    private async delimit(key: string, value: string, condition: Condition): Promise<boolean> {
+    private async delimit(key: string, value: string, condition: Condition, template: template, id: string): Promise<boolean> {
         const delimited = value.split(condition.delimiter as string)
         for (const value of delimited) {
-            if ( await this.compare(key, value, condition.operator) ) return true;
+            if ( await this.compare(key, value, condition.operator, template, id) ) return true;
         } return false;
     }
-    private async evaluate(condition: Condition, template: template): Promise<boolean> {
+    private async evaluate(condition: Condition, template: template, id: string): Promise<boolean> {
         const key = compile(template, condition.key);
         const value = compile(template, condition.value);
         const delimiter = condition.delimiter !== "";
-        return delimiter ? await this.delimit(key, value, condition) : await this.compare(key, value, condition.operator);
+        return delimiter ? await this.delimit(key, value, condition, template, id) : await this.compare(key, value, condition.operator, template, id);
     }
-    public async evaluateAll(conditions: Condition[], template: template): Promise<boolean> {
+    public async evaluateAll(conditions: Condition[], template: template, id: string): Promise<boolean> {
         for (const condition of conditions) {
-            if (!(await this.evaluate(condition, template))) return false;
+            if (!(await this.evaluate(condition, template, id))) return false;
         } return true;
     }
     private async connect(){
@@ -194,12 +203,12 @@ class Engine {
             const start = new Date().getTime();
             const id = record[this.rule.primaryKey||primary.headers[0]];
             if (!id) continue;
-            if (this.context && !this.context.includes(id)) continue;
+            if (this.filter && !this.filter.includes(id)) continue;
             const joined = this.Join(record);
             if (!joined) continue;
-            const template = { ...this.initTemplate, ...joined };
-            if (this.rule.conditions.length > 0 && (!this.context || this.context.length <= 0)) {
-                if (!(await this.evaluateAll(this.rule.conditions, template))) continue;
+            const template: template = { ...this.initTemplate, ...joined };
+            if (this.rule.conditions.length > 0 && (!this.filter || this.filter.length <= 0)) {
+                if (!(await this.evaluateAll(this.rule.conditions, template, id))) continue;
             }
             const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await this.processActions(this.rule.iterativeActions, template, "iterative");
             const display = this.rule.display ? compile(template, this.rule.display) : id;
@@ -243,7 +252,7 @@ class Engine {
         for (const action of (actions||[])) { i++;
             if (!action.enabled){ emit(); continue; }
             if (!(action.name in availableActions)) throw new xError(`Unknown action '${action.name}'.`);
-            const result = await availableActions[action.name]({ action, template, connections: this.connections, execute: !!this.context, data: {} })
+            const result = await availableActions[action.name]({ action, template, connections: this.connections, execute: !!this.filter, data: {} })
             if (!result)  throw new xError(`Failed to run action '${action.name}'.`);
             const name = (action.display && action.display!==action.name) ? { display: action.display||action.name } : {}
             todo.push({name: action.name, result, ...name, noblock: action.noblock });
@@ -296,9 +305,9 @@ class Engine {
     }
 }
 
-export default async function evaluate(rule: Rule, schema: Schema, context?:  string[], scheduled?: boolean ): Promise<response> {
+export default async function evaluate(rule: Rule, schema: Schema, filter?:  string[], scheduled?: boolean ): Promise<response> {
     try {
-        const engine = new Engine(rule, schema, context, scheduled);
+        const engine = new Engine(rule, schema, filter, scheduled);
         return await engine.Run();
     } catch (e) {
         const error = e as { schema: string, rule: string, scheduled?: boolean };

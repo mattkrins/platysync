@@ -1,8 +1,13 @@
 import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common";
 import { base_provider, base_provider_options } from "./base";
 import ldap, { User } from "../../modules/ldap";
+import { compile } from "../../modules/handlebars";
 
-export interface ldap_options extends base_provider_options {
+export interface ldap_context {
+    userFilter?: string;
+}
+
+export interface ldap_options extends base_provider_options, ldap_context {
     url: string;
     username: string;
     password: string|Hash;
@@ -21,13 +26,15 @@ export default class LDAP extends base_provider {
     private ou?: string;
     private filter?: string;
     private target?: string;
-    private users: {[id: string]: User} = {};
+    private userFilter?: string;
+    public users: {[id: string]: User} = {};
     constructor(options: ldap_options) {
         super(options);
         for (const key of Object.keys(options)) this[key] = options[key];
         this.url = options.url;
         this.username = options.username;
         this.password = options.password;
+        this.userFilter = options.userFilter;
     }
     public async validate() {
        validate( this, {
@@ -52,12 +59,25 @@ export default class LDAP extends base_provider {
     }
     public async getHeaders(): Promise<string[]> {
         if (!this.target) throw new xError("Specify a target to autodetect headers.", null, 400);
-        const entry = await this.client.searchOne({ scope: 'sub' }, this.target);
+        const { entry } = await this.client.searchOne({ scope: 'sub' }, this.target);
         return entry.attributes.map(a=>a.type);
     }
     public async connect(): Promise<{ [k: string]: string }[]> {
         const { users, keyedUsers } = await this.client.search(this.headers, this.key);
         this.data = users;
+        this.users = keyedUsers;
         return users;
+    }
+    public async getUser(template: template, id: string): Promise<User|false> {
+        const filter = compile(template, this.userFilter || `(&(objectclass=person)(sAMAccountName=${id}))`);
+        try {
+            const { user } = await this.client.searchOne({
+                filter,
+                scope: 'sub',
+                sizeLimit: 1000,
+                paged: true,
+                attributes: this.headers
+            }); return user || false;
+        } catch { return false; }
     }
 }

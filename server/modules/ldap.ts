@@ -85,7 +85,7 @@ export class ldap {
     **/
     public getRoot(): Promise<string> {
         return new Promise(async (resolve, reject) => {
-            const entry = await this.searchOne({ attributes: ['rootDomainNamingContext'] });
+            const { entry } = await this.searchOne({ attributes: ['rootDomainNamingContext'] });
             if (!entry.attributes || !entry.attributes[0] || !entry.attributes[0].values || !entry.attributes[0].values[0]) {
                 return reject(Error("Root DSE could not be autoresolved: rootDomainNamingContext not found."));
             } resolve(entry.attributes[0].values[0]);
@@ -96,11 +96,11 @@ export class ldap {
     **/
     public getAttributes(): Promise<string[]> {
         return new Promise(async (resolve, reject) => {
-            const e1 = await this.searchOne({ attributes: ['subschemaSubentry'] });
+            const { entry: e1 } = await this.searchOne({ attributes: ['subschemaSubentry'] });
             if (!e1.attributes || !e1.attributes[0] || !e1.attributes[0].values || !e1.attributes[0].values[0]) {
                 return reject(Error("Attributes could not be autoresolved: subschemaSubentry not found."));
             }
-            const e2 = await this.searchOne({ attributes: ['attributeTypes'] }, e1.attributes[0].values[0]);
+            const { entry: e2 } = await this.searchOne({ attributes: ['attributeTypes'] }, e1.attributes[0].values[0]);
             if (!e2.attributes || !e2.attributes[0] || !e2.attributes[0].values || !e2.attributes[0].values[0]) {
                 return reject(Error("Attributes could not be autoresolved: attributeTypes not found."));
             }
@@ -139,17 +139,17 @@ export class ldap {
         });
     }
     /**
-     * Return a single object.
+     * Returns a single user as an ldap entry and User object.
      * @param {object} options SearchOptions
      * @param {string} base Base DN search path (optional)
     **/
-    public searchOne(options: ldapjs.SearchOptions, base?: string): Promise<ldapjs.SearchEntry> {
+    public searchOne(options: ldapjs.SearchOptions, base?: string): Promise<{entry: ldapjs.SearchEntry, user: User}> {
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             this.client.search(base||this.base, options, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
                 if (err) return reject( err );
                 res.on('error', (err) => reject(err));
-                res.on('searchEntry', (entry) =>  resolve(entry) );
+                res.on('searchEntry', (entry) =>  resolve({entry, user: new User(entry)}) );
             });
         });
     }
@@ -178,7 +178,9 @@ export class ldap {
                     const user: {[k: string]: string} = {};
                     for (const attribute of entry.attributes) {
                         user[attribute.type] = ((attribute.values||[]) as string[]).join();
-                        if (key && collator.compare(key, attribute.type) === 0) keyedUsers[key] = new User(entry, this.client );
+                        if (key && collator.compare(key, attribute.type) === 0 && attribute.values[0]) {
+                            keyedUsers[attribute.values[0]] = new User(entry, this.client )
+                        }
                     } users.push(user);
                 });
                 res.on('error', (err) => reject(err));
@@ -246,7 +248,7 @@ export class ldap {
             this.client.add(`${dn},${this.base}`, attributes, async (err: ldapjs.Error | null) => {
                 if (err) return reject( err );
                 if (!this.client) return reject(Error("Not connected."));
-                const found = await this.searchOne({ attributes: returnAttributes || 'dn', sizeLimit: 1000, paged: true }, `${dn},${this.base}`);
+                const { entry: found } = await this.searchOne({ attributes: returnAttributes || 'dn', sizeLimit: 1000, paged: true }, `${dn},${this.base}`);
                 if (found) return resolve(found);
                 reject(Error("Could not locate object after creation."));
             });

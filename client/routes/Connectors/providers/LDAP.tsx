@@ -75,7 +75,7 @@ export function LDAPContext( { form, sources, rule }: ContextProps ) {
         description={<>The <Anchor href='https://ldap.com/ldap-filters/' size="xs" target='_blank' >filter</Anchor> used to search for / target individual users.</>}
         placeholder={`(&(objectclass=person)(sAMAccountName=${displayExample}))`}
         leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }} />}
-        {...templateProps(form, 'filter')}
+        {...templateProps(form, 'userFilter')}
         />
     </>);
 }
