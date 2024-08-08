@@ -70,6 +70,7 @@ export default class LDAP extends base_provider {
     }
     public async getUser(template: template, id: string): Promise<User|false> {
         const filter = compile(template, this.userFilter || `(&(objectclass=person)(sAMAccountName=${id}))`);
+        if (this.users[id]) return this.users[id];
         try {
             const { user } = await this.client.searchOne({
                 filter,
@@ -77,7 +78,10 @@ export default class LDAP extends base_provider {
                 sizeLimit: 1000,
                 paged: true,
                 attributes: this.headers
-            }); return user || false;
+            });
+            if (!user) return false;
+            this.users[id] = user;
+            return user;
         } catch { return false; }
     }
 }

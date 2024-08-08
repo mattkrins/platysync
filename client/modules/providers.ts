@@ -1,11 +1,12 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { UseFormReturnType, hasLength, isNotEmpty } from "@mantine/form";
-import { Icon, IconBinaryTree2, IconFolder, IconProps } from "@tabler/icons-react";
+import { Icon, IconBinaryTree2, IconFolder, IconProps, IconSchool } from "@tabler/icons-react";
 import { fileIcons, isAlphanumeric } from "./common";
 
 import CSV from "../routes/Connectors/providers/CSV";
 import LDAP, { LDAPContext } from "../routes/Connectors/providers/LDAP";
 import FOLDER from "../routes/Connectors/providers/FOLDER";
+import STMC from "../routes/Connectors/providers/STMC";
 
 export interface ContextProps {
     form: UseFormReturnType<any>;
@@ -71,4 +72,25 @@ export const providers: provider[] = [
             path: hasLength({ min: 2 }, 'Path must be at least 2 characters long.'),
         },
     },
+    {
+        id: 'stmc',
+        name: "eduSTAR Management Centre (STMC)",
+        color: 'yellow',
+        Icon: IconSchool,
+        Options: STMC,
+        initialValues: {
+            name: 'MySchool',
+            username: '',
+            password: '',
+            school: '',
+            cache: 1440,
+        },
+        validate: {
+            name: isNotEmpty('Name can not be empty.'),
+            username: isNotEmpty('Name can not be empty.'),
+            password: isNotEmpty('Name can not be empty.'),
+            school: hasLength({ min: 4 }, 'School ID must be at least 4 characters long.'),
+        },
+    },
+
 ];

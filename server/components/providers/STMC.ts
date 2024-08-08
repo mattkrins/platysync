@@ -67,6 +67,7 @@ export default class STMC extends base_provider {
         '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer', '_eduhub' ];
     }
     public async connect(): Promise<{ [k: string]: string }[]> {
-        return []
+        const students = await this.client.getStudents();
+        return students
     }
 }

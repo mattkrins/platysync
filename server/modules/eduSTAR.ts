@@ -1,13 +1,16 @@
 import axios, { AxiosInstance } from "axios";
 import { createCookieAgent } from 'http-cookie-agent/http';
-import { HttpProxyAgent, HttpProxyAgentOptions } from 'http-proxy-agent';
+import { HttpProxyAgent } from 'http-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { CookieJar } from 'tough-cookie';
 import { JSDOM } from 'jsdom';
+import * as fs from 'node:fs';
+import { paths } from "../../server";
+import { decrypt, encrypt } from "./cryptography";
 
-interface Cache {
-    date: string;
-    data: Record<string, string>;
+interface cache {
+    date: Date;
+    data: Hash;
 }
 
 interface Options {
@@ -23,6 +26,7 @@ export default class eduSTAR {
     private cachePolicy: number = 1440;
     private includeInactive: boolean;
     private jar = new CookieJar();
+    private students: { [k: string]: string }[] = [];
     constructor(options: Options) {
         this.school = options.school;
         this.cachePolicy = options.cache || 1440;
@@ -84,6 +88,38 @@ export default class eduSTAR {
         } catch (e) {
             const { message } = e as { response: {status: number}, message: string }
             throw Error(message);
+        }
+    }
+    public async getStudents(): Promise<{ [k: string]: string }[]> {
+        if (this.students) return this.students;
+        if (!fs.existsSync(`${paths.cache}/${this.school}.students.json`)) return await this.downloadStudents();
+        const file: string = fs.readFileSync(`${paths.cache}/${this.school}.users.json`, 'utf8');
+        const cache = JSON.parse(file) as cache;
+        if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) return await this.downloadStudents();
+        const students = JSON.parse(await decrypt(cache.data as Hash)) as { [k: string]: string }[];
+        this.students = students;
+        return students;
+    }
+    private async downloadStudents(): Promise<{ [k: string]: string }[]> {
+        try {
+            const response = await this.client.get(`/edustarmc/api/MC/GetStudents/${this.school}/FULL`);
+            if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
+            const encrypted = await encrypt(JSON.stringify(response.data));
+            const cache: cache = { date: new Date(), data: encrypted };
+            fs.writeFileSync(`${paths.cache}/${this.school}.users.json`, JSON.stringify(cache));
+            return response.data as { [k: string]: string }[];
+        } catch (e) {
+            const { message } = e as { response: {status: number}, message: string };
+            if (message.includes("Object reference")) throw Error("Incorrect School ID.");
+            throw Error(message);
+        }
+    }
+    public async joinToEduHUB(): Promise<void> {
+        const students = await this.getStudents();
+        for (const i in students) {
+            const student = students[i];
+            //for (const hubUser of this.eduhub||[]) {
+            //}
         }
     }
 }

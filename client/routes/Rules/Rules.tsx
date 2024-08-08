@@ -123,7 +123,7 @@ function RulesList({ add, setEditing }: { add(): void, setEditing: (r: [Rule,boo
     const [rule, setRule] = useState<Rule | undefined>(undefined);
     const run = (rule: Rule) => setRule(rule);
     return (
-    <Container size="lg">
+    <Container size="xl">
         <Run rule={rule} close={()=>setRule(undefined)} />
         <Group justify="space-between">
             <Title mb="xs" >Rules</Title>

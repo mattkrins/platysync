@@ -45,12 +45,10 @@ class Engine {
     }
     public async Run(){
         this.Emit();
-        await wait(500);
         const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, {}, "init");
         if (this.hasInit) this.progress = 15;
         this.initTemplate = initTemplate;
         if (initError) throw initError;
-        await wait(500);
         await this.connect();
         //TODO - fix progress for contexts
         for (const context of (this.rule.contexts||[])) await addContext(this.schema, context, this.contexts );
@@ -64,6 +62,7 @@ class Engine {
         await wait(500);
         this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
         const columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
+        //TODO - santitizeData for log
         return { primaryResults: this.primaryResults, initActions, finalActions, columns };
     }
     private async ldap_getUser(key: string, template: template, id: string) {
