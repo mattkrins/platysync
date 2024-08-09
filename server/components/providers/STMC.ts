@@ -1,6 +1,7 @@
 import { isNotEmpty, validate, xError } from "../../modules/common";
 import eduSTAR from "../../modules/eduSTAR";
 import { Settings } from "../database";
+import { Engine } from "../engine";
 import { connect, connections } from "../providers";
 import { base_provider, base_provider_options } from "./base";
 import CSV from "./CSV";
@@ -73,10 +74,11 @@ export default class STMC extends base_provider {
         '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer' ];
         return this.eduhub ? [ '_login', '_stkey', ...headers, '_score' ] : [ '_login', ...headers ];
     }
-    public async connect(connectors: connections): Promise<{ [k: string]: string }[]> {
+    public async connect(connectors: connections, engine: Engine): Promise<{ [k: string]: string }[]> {
+        this.client.alert = (text: string) => engine.Emit({ text });
         const students = await this.client.getStudents();
         if (this.eduhub) {
-            const eduhub = await connect(this.schema, this.eduhub, connectors ) as CSV;
+            const eduhub = await connect(this.schema, this.eduhub, connectors, engine ) as CSV;
             const matched = await this.client.getStudentsMatchSTKEY(eduhub.data||[]);
             this.data = matched;
             return matched;

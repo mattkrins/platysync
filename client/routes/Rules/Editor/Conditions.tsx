@@ -1,6 +1,6 @@
-import { ActionIcon, Autocomplete, Box, Button, Grid, Group, Menu, Popover, Select, Text, TextInput, Tooltip, useMantineTheme } from '@mantine/core';
+import { ActionIcon, Autocomplete, Box, Button, Grid, Group, Menu, Popover, Select, Switch, Text, TextInput, Tooltip, useMantineTheme } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
-import { Icon, IconCalendar, IconChevronDown, IconCirclesRelation, IconCodeAsterix, IconCopy, IconDots, IconFile, IconFolder, IconGripVertical, IconLock, IconLockOff, IconMathFunction, IconProps, IconQuestionMark, IconSearch, IconTrash, IconUserQuestion, IconUsersGroup, IconX } from '@tabler/icons-react';
+import { Icon, IconCalendar, IconChevronDown, IconCircle, IconCirclesRelation, IconCodeAsterix, IconCopy, IconDots, IconFile, IconFolder, IconGripVertical, IconLock, IconLockOff, IconMathFunction, IconProps, IconQuestionMark, IconSearch, IconTrash, IconUserQuestion, IconUsersGroup, IconX } from '@tabler/icons-react';
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from 'react'
 import { useRule } from './Editor';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
@@ -64,15 +64,28 @@ interface ValueInput {
 }
 
 function ValueInput( { form, index, templateProps, path }: ValueInput ) {
-    const noDelimiter = form.getInputProps(`${path}.${index}.delimiter`).value;
+    const delimiter = form.getInputProps(`${path}.${index}.delimiter`).value;
+    const and = form.getInputProps(`${path}.${index}.and`).value;
+    const label = `${!delimiter?"Add":(and?"AND":"OR")} Delimite${delimiter?'d':'r'}`;
     const icon =
-    noDelimiter ? <IconDots size={16} style={{ display: 'block', opacity: 0.8 }} />:
+    delimiter ? <IconCircle size={16} style={{ display: 'block', opacity: 0.8 }} />:
     <IconCodeAsterix size={16} style={{ display: 'block', opacity: 0.8 }} />;
     const buttons =
-    <Popover width={85} trapFocus position="left" shadow="md">
-        <Popover.Target><Tooltip label="OR Delimiter" ><ActionIcon variant="subtle" >{icon}</ActionIcon></Tooltip></Popover.Target>
+    <Popover width={140} trapFocus position="left" shadow="md">
+        <Popover.Target>
+            <Tooltip label={label} ><ActionIcon variant="subtle" >{icon}</ActionIcon></Tooltip>
+        </Popover.Target>
         <Popover.Dropdown pt={2} >
-            <Autocomplete label="Delimiter" placeholder="," size="xs" {...form.getInputProps(`${path}.${index}.delimiter`)}
+            <Autocomplete label={
+            <Group mb={4} >
+                <Text size="xs">Delimiter</Text>
+                <Tooltip label={and?"AND":"OR"} refProp="rootRef" >
+                <Switch labelPosition="left" onLabel="AND" offLabel="OR"
+                {...form.getInputProps(`${path}.${index}.and`, { type: 'checkbox' })}
+                /></Tooltip>
+            </Group>
+            }
+            placeholder="," size="xs" {...form.getInputProps(`${path}.${index}.delimiter`)}
             data={[',',';', ':', '|', '-', '_', '/' ]}
             />
         </Popover.Dropdown>

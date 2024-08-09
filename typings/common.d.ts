@@ -56,6 +56,7 @@ interface Condition {
     operator: string,
     value: string,
     delimiter?: string,
+    and?: boolean,
 }
 
 interface FormDataValue {

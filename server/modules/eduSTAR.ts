@@ -7,6 +7,7 @@ import { JSDOM } from 'jsdom';
 import * as fs from 'node:fs';
 import { paths } from "../../server";
 import { decrypt, encrypt } from "./cryptography";
+import { Engine } from "../components/engine";
 
 export interface starAttributes {
   [k: string]: string;
@@ -53,6 +54,7 @@ export default class eduSTAR {
     private includeInactive: boolean;
     private jar = new CookieJar();
     private students: starAttributes[] = [];
+    public alert?: (status: string) => unknown;
     constructor(options: Options) {
         this.school = options.school;
         this.cachePolicy = options.cache || 1440;
@@ -129,6 +131,7 @@ export default class eduSTAR {
     }
     private async downloadStudents(): Promise<starAttributes[]> {
         try {
+            if (this.alert) this.alert('Downloading students...');
             const response = await this.client.get(`/edustarmc/api/MC/GetStudents/${this.school}/FULL`);
             if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
             const encrypted = await encrypt(JSON.stringify(response.data));
@@ -143,6 +146,7 @@ export default class eduSTAR {
     }
     public async getStudentsMatchSTKEY(eduhub: { [k: string]: string }[]): Promise<starAttributes[]> {
         //TODO - add option to specify eduhub column and skip scoring
+        if (this.alert) this.alert('Matching eduhub data...');
         const collator = new Intl.Collator(undefined, { sensitivity: "base" });
         const calculateScore = (star: starAttributes, hub: { [k: string]: string }) => {
             let score = 0;
@@ -156,6 +160,7 @@ export default class eduSTAR {
             if (score < 3) return -1;
             const stkey_slice = hub.STKEY.slice(0, 3);
             if (collator.compare(star._lastName.slice(0, 3), stkey_slice) === 0) score += 3;
+            if (score < 3) return -1;
             if (collator.compare(star._login[0], hub.FIRST_NAME[0]) === 0) score += 2;
             if (collator.compare(star._login[2], hub.SURNAME[0]) === 0) score += 1;
             if (collator.compare(star._login[1], hub.SURNAME[0]) === 0) score += 1;
@@ -163,17 +168,19 @@ export default class eduSTAR {
             if (collator.compare(star._desc, hub.SCHOOL_YEAR) === 0) score += 1;
             if (star._login.includes(stkey_slice)) score += 1;
             if (star._lastLogon) score += 1;
-            if (hub.STATUS==="ACTV") score += 1;
+            if (this.includeInactive && hub.STATUS==="ACTV") score += 1;
             if (!star._disabled) score += 1;
             return score;
         }
-        const inactive = ["LEFT","LVNG","DEL"];
         const students = await this.getStudents();
+        console.log('this.includeInactive', this.includeInactive)
+        const filtered = this.includeInactive ? eduhub :
+        eduhub.filter(hub=>hub.STATUS==="ACTV"||hub.STATUS==="FUT");
+        console.log('filtered')
         return students.map(star => {
             let bestMatch;
             let bestScore = -1;
-            for (const hub of eduhub) {
-                if (!this.includeInactive && inactive.includes(hub.STATUS)) continue;
+            for (const hub of filtered) {
                 const score = calculateScore(star, hub);
                 if (score<=0) continue;
                 if (score > bestScore) {

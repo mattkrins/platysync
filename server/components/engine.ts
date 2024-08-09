@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import fs from 'fs-extra';
 import LDAP from "./providers/LDAP";
 
-class Engine { //TODO - add way to cancel
+export class Engine { //TODO - add way to cancel
     public id: string;
     private connections: connections = {};
     private contexts:  contexts = {};
@@ -88,7 +88,6 @@ class Engine { //TODO - add way to cancel
             case 'notchild': return user && !user.childOf(value);
             default: return false;
         }
-        return true
     }
     private async compare(key: string, value: string, operator: string, template: template, id: string): Promise<boolean> {
         if (operator.substring(0, 4)==="ldap") return await this.ldap_compare(key, value, operator.substring(5), template, id);
@@ -116,10 +115,12 @@ class Engine { //TODO - add way to cancel
         }
     }
     private async delimit(key: string, value: string, condition: Condition, template: template, id: string): Promise<boolean> {
-        const delimited = value.split(condition.delimiter as string)
+        const delimited = value.split(condition.delimiter as string);
         for (const value of delimited) {
-            if ( await this.compare(key, value, condition.operator, template, id) ) return true;
-        } return false;
+            const result = await this.compare(key, value, condition.operator, template, id);
+            if (!condition.and && result) return true;
+            if (condition.and && !result) return false;
+        } return condition.and||false;
     }
     private async evaluate(condition: Condition, template: template, id: string): Promise<boolean> {
         const key = compile(template, condition.key);
@@ -137,16 +138,15 @@ class Engine { //TODO - add way to cancel
         const connectStart = new Date().getTime();
         let i = 1;
         const x = () => (20/(this.sources.length+1))*i;
-        this.Emit({ text: `Connecting to ${this.primary}`, iteration: { total: this.sources.length+1, current: 0 }, });
-        await connect(this.schema, this.primary, this.connections, this.rule.primaryKey);
+        this.Emit({ iteration: { total: this.sources.length+1, current: 0 }, });
+        await connect(this.schema, this.primary, this.connections, this, this.rule.primaryKey);
         this.Emit({
             progress: { total: this.progress + x(), connect: x() },
             iteration: { current: 1 },
         });
         for (const source of this.sources) {  i++;
-            await connect(this.schema, source.foreignName, this.connections, source.foreignKey);
+            await connect(this.schema, source.foreignName, this.connections, this, source.foreignKey);
             this.Emit({
-                text: `Connecting to ${source.foreignName}`,
                 progress: { total: this.progress + x(), connect: x() },
                 iteration: { current: i },
             });
@@ -294,7 +294,7 @@ class Engine { //TODO - add way to cancel
             joined[source.foreignName] = foreignRecord || {};
         } return joined;
     }
-    private Emit(update?: DeepPartial<jobStatus>) {
+    public Emit(update?: DeepPartial<jobStatus>, id?: string) {
         this.status = { ...this.status,
             eta: update?.eta||this.status.eta, text: update?.text||this.status.text,
             progress: {...this.status.progress,  ...update?.progress},
