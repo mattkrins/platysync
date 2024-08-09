@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import fs from 'fs-extra';
 import LDAP from "./providers/LDAP";
 
-class Engine {
+class Engine { //TODO - add way to cancel
     public id: string;
     private connections: connections = {};
     private contexts:  contexts = {};

@@ -118,7 +118,7 @@ export default class eduSTAR {
         }
     }
     public async getStudents(): Promise<starAttributes[]> {
-        if (this.students) return this.students;
+        if (this.students && this.students.length > 0) return this.students;
         if (!fs.existsSync(`${paths.cache}/${this.school}.students.json`)) return await this.downloadStudents();
         const file: string = fs.readFileSync(`${paths.cache}/${this.school}.users.json`, 'utf8');
         const cache = JSON.parse(file) as cache;
@@ -133,7 +133,7 @@ export default class eduSTAR {
             if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
             const encrypted = await encrypt(JSON.stringify(response.data));
             const cache: cache = { date: new Date(), data: encrypted };
-            fs.writeFileSync(`${paths.cache}/${this.school}.users.json`, JSON.stringify(cache));
+            fs.writeFileSync(`${paths.cache}/${this.school}.students.json`, JSON.stringify(cache));
             return response.data as starAttributes[];
         } catch (e) {
             const { message } = e as { response: {status: number}, message: string };
