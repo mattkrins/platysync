@@ -146,6 +146,7 @@ export class Engine { //TODO - add way to cancel
         });
         for (const source of this.sources) {  i++;
             await connect(this.schema, source.foreignName, this.connections, this, source.foreignKey);
+            //TODO - add condition filter to add source GUI, run evaluateAll against connector data to filter on a source basis and speed up later joins
             this.Emit({
                 progress: { total: this.progress + x(), connect: x() },
                 iteration: { current: i },

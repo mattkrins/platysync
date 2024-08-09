@@ -22,11 +22,11 @@ const validate = {
     name: isNotEmpty('Name must not be empty.'),
 }
 
-function ActionButton( { loading, save, test, cancel, clickExport, openImporter, canTest }: { loading?: boolean, save(): void, test(): void, cancel(): void, clickExport(): void, openImporter(): void, canTest: boolean } ) {
+function ActionButton( { loading, save, test, cancel, clickExport, openImporter }: { loading?: boolean, save(): void, test(): void, cancel(): void, clickExport(): void, openImporter(): void } ) {
   const theme = useMantineTheme();
   return (
     <SplitButton loading={loading} onClick={save} options={[
-      {  onClick:()=>test(), label: 'Test', leftSection: <IconTestPipe size={16} color={theme.colors.grape[5]}  />, disabled: !canTest },
+      {  onClick:()=>test(), label: 'Test', leftSection: <IconTestPipe size={16} color={theme.colors.grape[5]}  /> },
       {  onClick:()=>clickExport(), label: 'Export', leftSection: <IconPackageExport size={16} color={theme.colors.green[5]}  /> },
       {  onClick:()=>openImporter(), label: 'Import', leftSection: <IconPackageImport size={16} color={theme.colors.orange[5]}  /> },
       {  onClick:()=>cancel(), label: 'Cancel', leftSection: <IconX size={16} color={theme.colors.red[5]}  /> },
@@ -110,7 +110,7 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
             {error&&<Tooltip color="red" position="bottom-end" label={error} multiline >
                 <ThemeIcon color="red" radius="xl"><IconAlertCircle/></ThemeIcon>
             </Tooltip>}
-            <ActionButton loading={loading} save={()=>adding?post():put()} test={()=>setRule(form.values)} cancel={safeCancel} clickExport={clickExport} openImporter={openImporter} canTest={canTest} />
+            <ActionButton loading={loading} save={()=>adding?post():put()} test={()=>setRule(form.values)} cancel={safeCancel} clickExport={clickExport} openImporter={openImporter} />
             </Group>
         </Group>
         <Wrapper>
