@@ -10,6 +10,7 @@ export interface stmc_options extends base_provider_options {
     password: string|Hash;
     school: string;
     cache?: string;
+    eduhub?: string;
     includeInactive?: boolean;
 }
 
@@ -26,6 +27,7 @@ export default class STMC extends base_provider {
         this.username = options.username;
         this.password = options.password;
         this.school = options.school;
+        this.eduhub = options.eduhub;
         this.cache = Number(options.cache||"1440");
         this.client = new eduSTAR({
            school: this.school,
@@ -65,11 +67,11 @@ export default class STMC extends base_provider {
         await this.client.login(this.username, this.password as string);
     }
     public async getHeaders(): Promise<string[]> {
-        const headers = ['_login', '_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
+        const headers = ['_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
         '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
         '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
         '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer' ];
-        return this.eduhub ? [...headers, '_stkey' ] : headers;
+        return this.eduhub ? [ '_login', '_stkey', ...headers ] : [ '_login', ...headers ];
     }
     public async connect(connectors: connections): Promise<{ [k: string]: string }[]> {
         const students = await this.client.getStudents();
