@@ -47,6 +47,7 @@ export default class STMC extends base_provider {
         }
     }
     public async initialize() {
+        await this.decrypt();
         const settings = await Settings();
         if (settings.proxy_url) {
             const url = new URL(settings.proxy_url);
