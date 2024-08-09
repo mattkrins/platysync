@@ -8,13 +8,14 @@ export interface connections { [name: string]: base_provider }
 export interface contexts {[name: string]: base_provider}
 
 export async function connect(schema: Schema, name: string, connectors: connections, key?: string) {
+    if (connectors[name]) return connectors[name];
     const { id, ...options} = schema.connectors.find(c=>c.name===name) as Connector;
     if (!key) key = options.headers[0];
     //TODO - add inline connector option overrides to UI and here
     const provider = new providers[id]({ id, ...options, schema, key });
     await provider.initialize();
     await provider.configure();
-    await provider.connect();
+    await provider.connect(connectors);
     connectors[name] = provider;
     return provider;
 }

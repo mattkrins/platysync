@@ -1,4 +1,5 @@
 import { decrypt } from "../../modules/cryptography";
+import { connections } from "../providers";
 
 export interface base_provider_options extends Connector {
     id: string;
@@ -25,7 +26,7 @@ export class base_provider implements base_provider_options {
     }
     public async validate(): Promise<void> {}
     public async configure(): Promise<void> {}
-    public async connect(): Promise<{ [k: string]: string }[]> { return []; }
+    public async connect(connectors: connections): Promise<{ [k: string]: string }[]> { return []; }
     public async initialize(): Promise<void> {}
     public async getHeaders(): Promise<string[]> { return []; }
     public async decrypt() {

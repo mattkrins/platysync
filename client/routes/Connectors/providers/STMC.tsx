@@ -4,6 +4,7 @@ import { UseFormReturnType } from "@mantine/form";
 import SecurePasswordInput from "../../../components/SecurePasswordInput";
 import { ldap_options } from "../../../../server/components/providers/LDAP";
 import Concealer from "../../../components/Concealer";
+import SelectConnector from "../../../components/SelectConnector";
 
 export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap_options> } ) {
     return (
@@ -23,21 +24,23 @@ export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap
             {...form.getInputProps('password')}
             />
         </SimpleGrid>
-        <TextInput
+        <TextInput mt="sm"
             label="School Identification Number"
             leftSection={<IconSchool size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="1234"
             withAsterisk {...form.getInputProps('school')}
-            mt="sm"
+        />
+        <SelectConnector mt="sm"
+        {...form.getInputProps('eduhub')} ids={["csv"]} clearable
+        label="Match Eduhub" description="Match against eduhub making the _stkey header available."
         />
         <Concealer>
-            <NumberInput
+            <NumberInput mt="sm"
                 label="Caching Policy"
                 description="Minutes to wait before invalidating downloaded cache."
                 leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                 placeholder="1440 (1 day)"
                 {...form.getInputProps('cache')}
-                mt="md"
             />
         </Concealer>
     </>);

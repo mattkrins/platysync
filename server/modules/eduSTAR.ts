@@ -8,6 +8,32 @@ import * as fs from 'node:fs';
 import { paths } from "../../server";
 import { decrypt, encrypt } from "./cryptography";
 
+export interface starAttributes {
+  [k: string]: string;
+  _login: string;
+  _class: string;
+  _cn: string;
+  _desc: string;
+  _disabled: string;
+  _displayName: string;
+  _dn: string;
+  _firstName: string;
+  _google: string;
+  _intune: string;
+  _lastLogon: string;
+  _lastName: string;
+  _lastPwdResetViaMC: string;
+  _lockedOut: string;
+  _o365: string;
+  _pwdExpired: string;
+  _pwdExpires: string;
+  _pwdLastSet: string;
+  _pwdNeverExpires: string;
+  _pwdResetAction: string;
+  _pwdResetTech: string;
+  _yammer: string;
+}
+
 interface cache {
     date: Date;
     data: Hash;
@@ -26,7 +52,7 @@ export default class eduSTAR {
     private cachePolicy: number = 1440;
     private includeInactive: boolean;
     private jar = new CookieJar();
-    private students: { [k: string]: string }[] = [];
+    private students: starAttributes[] = [];
     constructor(options: Options) {
         this.school = options.school;
         this.cachePolicy = options.cache || 1440;
@@ -91,36 +117,68 @@ export default class eduSTAR {
             throw Error(message);
         }
     }
-    public async getStudents(): Promise<{ [k: string]: string }[]> {
+    public async getStudents(): Promise<starAttributes[]> {
         if (this.students) return this.students;
         if (!fs.existsSync(`${paths.cache}/${this.school}.students.json`)) return await this.downloadStudents();
         const file: string = fs.readFileSync(`${paths.cache}/${this.school}.users.json`, 'utf8');
         const cache = JSON.parse(file) as cache;
         if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) return await this.downloadStudents();
-        const students = JSON.parse(await decrypt(cache.data as Hash)) as { [k: string]: string }[];
+        const students = JSON.parse(await decrypt(cache.data as Hash)) as starAttributes[];
         this.students = students;
         return students;
     }
-    private async downloadStudents(): Promise<{ [k: string]: string }[]> {
+    private async downloadStudents(): Promise<starAttributes[]> {
         try {
             const response = await this.client.get(`/edustarmc/api/MC/GetStudents/${this.school}/FULL`);
             if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
             const encrypted = await encrypt(JSON.stringify(response.data));
             const cache: cache = { date: new Date(), data: encrypted };
             fs.writeFileSync(`${paths.cache}/${this.school}.users.json`, JSON.stringify(cache));
-            return response.data as { [k: string]: string }[];
+            return response.data as starAttributes[];
         } catch (e) {
             const { message } = e as { response: {status: number}, message: string };
             if (message.includes("Object reference")) throw Error("Incorrect School ID.");
             throw Error(message);
         }
     }
-    public async joinToEduHUB(): Promise<void> {
-        const students = await this.getStudents();
-        for (const i in students) {
-            const student = students[i];
-            //for (const hubUser of this.eduhub||[]) {
-            //}
+    public async getStudentsMatchSTKEY(eduhub: { [k: string]: string }[]): Promise<starAttributes[]> {
+        const collator = new Intl.Collator(undefined, { sensitivity: "accent" });
+        const calculateScore = (star: starAttributes, hub: { [k: string]: string }) => {
+            let score = 0;
+            const PREF_DISPLAY_NAME = `${hub.PREF_NAME} ${hub.SURNAME}`;
+            const DISPLAY_NAME = `${hub.FIRST_NAME} ${hub.SURNAME}`;
+            if (collator.compare(star._displayName, PREF_DISPLAY_NAME) === 0) score += 5;
+            if (collator.compare(star._displayName, DISPLAY_NAME) === 0) score += 4;
+            if (collator.compare(star._firstName, hub.FIRST_NAME) === 0) score += 3;
+            if (collator.compare(star._lastName, hub.SURNAME) === 0) score += 3;
+            if (score < 4) return 0;
+            if (collator.compare(star._login[0], hub.FIRST_NAME[0]) === 0) score += 2;
+            if (collator.compare(star._login[2], hub.SURNAME[0]) === 0) score += 1;
+            if (collator.compare(star._login[1], hub.SURNAME[0]) === 0) score += 1;
+            if (collator.compare(star._class, hub.HOME_GROUP) === 0) score += 1;
+            if (collator.compare(star._desc, hub.SCHOOL_YEAR) === 0) score += 1;
+            if (hub.STATUS==="ACTV") score += 1;
+            if (!star._disabled) score += 1;
+            return score;
         }
+        const inactive = ["LEFT","LVNG","DEL"];
+        const students = await this.getStudents();
+        return students.map(star => {
+            let bestMatch;
+            let bestScore = -1;
+            for (const hub of eduhub) {
+                if (!this.includeInactive && inactive.includes(hub.STATUS)) continue;
+                const score = calculateScore(star, hub);
+                if (score===0) continue;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = hub;
+                } else if (score === bestScore) { //REVIEW - Multiple matches found; maybe a UI option to decide what to do
+                    bestMatch = hub;
+                }
+            }
+            return { ...star, _stkey: bestMatch ? bestMatch.STKEY : "" };
+        });
+
     }
 }

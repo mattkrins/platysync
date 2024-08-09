@@ -1,6 +1,6 @@
 import { default as ldapjs } from "ldapjs";
 
-export const collator = new Intl.Collator(undefined, { sensitivity: "accent" });
+const collator = new Intl.Collator(undefined, { sensitivity: "accent" });
 
 export class ldap {
     public client: ldapjs.Client|undefined;

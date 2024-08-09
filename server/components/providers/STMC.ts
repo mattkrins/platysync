@@ -1,7 +1,9 @@
 import { isNotEmpty, validate, xError } from "../../modules/common";
 import eduSTAR from "../../modules/eduSTAR";
 import { Settings } from "../database";
+import { connect, connections } from "../providers";
 import { base_provider, base_provider_options } from "./base";
+import CSV from "./CSV";
 
 export interface stmc_options extends base_provider_options {
     username: string;
@@ -17,6 +19,7 @@ export default class STMC extends base_provider {
     private school: string;
     private cache?: number = 1440;
     private client: eduSTAR;
+    private eduhub?: string;
     private includeInactive: boolean = false;
     constructor(options: stmc_options) {
         super(options);
@@ -61,15 +64,18 @@ export default class STMC extends base_provider {
         await this.client.login(this.username, this.password as string);
     }
     public async getHeaders(): Promise<string[]> {
-        return ['_login', '_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
+        const headers = ['_login', '_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
         '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
         '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
-        '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer', '_eduhub' ];
+        '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer' ];
+        return this.eduhub ? [...headers, '_stkey' ] : headers;
     }
-    public async connect(): Promise<{ [k: string]: string }[]> {
+    public async connect(connectors: connections): Promise<{ [k: string]: string }[]> {
         const students = await this.client.getStudents();
-        console.log(students)
-        //return students
-        return []
+        if (this.eduhub) {
+            const eduhub = await connect(this.schema, this.eduhub, connectors ) as CSV;
+            return await this.client.getStudentsMatchSTKEY(eduhub.data||[]);
+        }
+        return students;
     }
 }
