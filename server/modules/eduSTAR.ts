@@ -82,8 +82,9 @@ export default class eduSTAR {
             if (!cookies || cookies.length <= 0){
                 const dom = new JSDOM(response.data);
                 const error = dom.window.document.querySelector('.wrng');
-                if (error&&error.textContent){ throw Error(error.textContent as string);}
-                throw Error("Unknown Error.");
+                if (!error||!error.textContent) throw Error("Unknown Error.");
+                if (error.textContent.includes("You could not be logged on to Forefront TMG")) throw Error("Username or Password incorrect.");
+                throw Error(error.textContent as string);
             }
         } catch (e) {
             const { message } = e as { response: {status: number}, message: string }

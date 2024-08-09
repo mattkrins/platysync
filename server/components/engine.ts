@@ -309,11 +309,11 @@ export default async function evaluate(rule: Rule, schema: Schema, filter?:  str
         const engine = new Engine(rule, schema, filter, scheduled);
         return await engine.Run();
     } catch (e) {
-        const error = e as { schema: string, rule: string, scheduled?: boolean };
-        error.schema = schema.name||'unknown';
-        error.rule = rule.name||'unknown';
-        error.scheduled = scheduled;
-        throw error;
+        const error = e as { schema: string, rule: string, scheduled?: boolean, message: string };
+        //error.schema = schema.name||'unknown';
+        //error.rule = rule.name||'unknown';
+        //error.scheduled = scheduled;
+        throw error.message;
     }
 }
 

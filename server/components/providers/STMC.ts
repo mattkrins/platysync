@@ -61,13 +61,15 @@ export default class STMC extends base_provider {
         await this.client.login(this.username, this.password as string);
     }
     public async getHeaders(): Promise<string[]> {
-        return ['_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
+        return ['_login', '_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
         '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
-        '_login', '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
+        '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
         '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer', '_eduhub' ];
     }
     public async connect(): Promise<{ [k: string]: string }[]> {
         const students = await this.client.getStudents();
-        return students
+        console.log(students)
+        //return students
+        return []
     }
 }
