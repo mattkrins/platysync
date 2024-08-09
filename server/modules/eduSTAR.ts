@@ -157,6 +157,8 @@ export default class eduSTAR {
             if (collator.compare(star._login[1], hub.SURNAME[0]) === 0) score += 1;
             if (collator.compare(star._class, hub.HOME_GROUP) === 0) score += 1;
             if (collator.compare(star._desc, hub.SCHOOL_YEAR) === 0) score += 1;
+            if (star._login.includes(hub.STKEY.slice(0, 3))) score += 1;
+            if (star._lastLogon) score += 1;
             if (hub.STATUS==="ACTV") score += 1;
             if (!star._disabled) score += 1;
             return score;
@@ -177,7 +179,7 @@ export default class eduSTAR {
                     bestMatch = hub;
                 }
             }
-            return { ...star, _stkey: bestMatch ? bestMatch.STKEY : "" };
+            return { ...star, _stkey: bestMatch ? bestMatch.STKEY : "", _score: String(bestScore) };
         });
 
     }
