@@ -120,7 +120,7 @@ export default class eduSTAR {
     public async getStudents(): Promise<starAttributes[]> {
         if (this.students && this.students.length > 0) return this.students;
         if (!fs.existsSync(`${paths.cache}/${this.school}.students.json`)) return await this.downloadStudents();
-        const file: string = fs.readFileSync(`${paths.cache}/${this.school}.users.json`, 'utf8');
+        const file: string = fs.readFileSync(`${paths.cache}/${this.school}.students.json`, 'utf8');
         const cache = JSON.parse(file) as cache;
         if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) return await this.downloadStudents();
         const students = JSON.parse(await decrypt(cache.data as Hash)) as starAttributes[];

@@ -77,6 +77,7 @@ export default class STMC extends base_provider {
             const eduhub = await connect(this.schema, this.eduhub, connectors ) as CSV;
             return await this.client.getStudentsMatchSTKEY(eduhub.data||[]);
         }
+        this.data = students;
         return students;
     }
 }
