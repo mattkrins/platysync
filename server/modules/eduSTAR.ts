@@ -142,22 +142,26 @@ export default class eduSTAR {
         }
     }
     public async getStudentsMatchSTKEY(eduhub: { [k: string]: string }[]): Promise<starAttributes[]> {
-        const collator = new Intl.Collator(undefined, { sensitivity: "accent" });
+        //TODO - add option to specify eduhub column and skip scoring
+        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
         const calculateScore = (star: starAttributes, hub: { [k: string]: string }) => {
             let score = 0;
             const PREF_DISPLAY_NAME = `${hub.PREF_NAME} ${hub.SURNAME}`;
             const DISPLAY_NAME = `${hub.FIRST_NAME} ${hub.SURNAME}`;
+            if ((hub.E_MAIL.toLowerCase()).includes(star._login.toLowerCase())) score += 5;
             if (collator.compare(star._displayName, PREF_DISPLAY_NAME) === 0) score += 5;
             if (collator.compare(star._displayName, DISPLAY_NAME) === 0) score += 4;
             if (collator.compare(star._firstName, hub.FIRST_NAME) === 0) score += 3;
             if (collator.compare(star._lastName, hub.SURNAME) === 0) score += 3;
-            if (score < 4) return 0;
+            if (score < 3) return -1;
+            const stkey_slice = hub.STKEY.slice(0, 3);
+            if (collator.compare(star._lastName.slice(0, 3), stkey_slice) === 0) score += 3;
             if (collator.compare(star._login[0], hub.FIRST_NAME[0]) === 0) score += 2;
             if (collator.compare(star._login[2], hub.SURNAME[0]) === 0) score += 1;
             if (collator.compare(star._login[1], hub.SURNAME[0]) === 0) score += 1;
             if (collator.compare(star._class, hub.HOME_GROUP) === 0) score += 1;
             if (collator.compare(star._desc, hub.SCHOOL_YEAR) === 0) score += 1;
-            if (star._login.includes(hub.STKEY.slice(0, 3))) score += 1;
+            if (star._login.includes(stkey_slice)) score += 1;
             if (star._lastLogon) score += 1;
             if (hub.STATUS==="ACTV") score += 1;
             if (!star._disabled) score += 1;
@@ -171,7 +175,7 @@ export default class eduSTAR {
             for (const hub of eduhub) {
                 if (!this.includeInactive && inactive.includes(hub.STATUS)) continue;
                 const score = calculateScore(star, hub);
-                if (score===0) continue;
+                if (score<=0) continue;
                 if (score > bestScore) {
                     bestScore = score;
                     bestMatch = hub;
