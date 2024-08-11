@@ -44,7 +44,7 @@ function Category({ category, add, form }: { category: availableCategory, add(c:
     const theme = useMantineTheme();
     const [opened, { toggle }] = useDisclosure(false);
     const { ruleProConnectors } = useRule(form);
-    const settings = useSettings();
+    const settings = useSettings(); 
     const filtered = useMemo(()=>availableActions.
     filter(a=>settings.enableRun?true:(a.name!=="Run Command")).
     filter(a=>a.category===category.id).
@@ -61,7 +61,7 @@ function Category({ category, add, form }: { category: availableCategory, add(c:
                     <Box style={{ display: 'flex', alignItems: 'center' }} >
                         <action.Icon size={17} color={action.color?theme.colors[action.color][6]:undefined} />
                     </Box>
-                    <div style={{ flex: 1 }}><Text size="sm">{action.name}</Text></div>
+                    <div style={{ flex: 1 }}><Text size="sm">{action.label||action.name}</Text></div>
                 </Group>
             </UnstyledButton>)}
         </Collapse>
@@ -124,22 +124,25 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
         open();
     }
     const theme = useMantineTheme();
-    const { Icon, color, name, validator, overwriter, Options, Config } = availableActions.find(a=>a.name===action.name) as availableAction;
     const remove = () => form.removeListItem(type, index);
     const copy = () => form.insertListItem(type, structuredClone(form.values[type as "initActions"][index]), index+1);
     const display = form.values[type as "initActions"][index].display;
     const config = form.values[type as "initActions"][index].config;
     const setConfig = (name: string) => form.setFieldValue(`${type}.${index}.config`, name);
-    const { templateSources, inline } = useRule(form);
-    const filteredInline = useMemo(()=>{
-        switch (type) {
-            case "initActions": return inline.initActions;
-            case "iterativeActions": return [ ...inline.initActions, ...inline.iterativeActions ];
-            case "finalActions": return [ ...inline.initActions, ...inline.finalActions ];
-            default: return [];
-        }
-    }, [ inline, type ])
-    const { templateProps, explorer } = useTemplater({names:type==="iterativeActions"?templateSources:[], inline: filteredInline});
+    const { templateSources, inline } = useRule(form, type);
+    const iterative = type === "iterativeActions";
+    //const filteredInline = useMemo(()=>{
+    //    switch (type) {
+    //        case "initActions": return inline.initActions;
+    //        case "iterativeActions": return [ ...inline.initActions, ...inline.iterativeActions ];
+    //        case "finalActions": return [ ...inline.initActions, ...inline.finalActions ];
+    //        default: return [];
+    //    }
+    //}, [ inline, type ])
+    const actionConfig = availableActions.find(a=>a.name===action.name) as availableAction;
+    const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline});
+    if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;
+    const { Icon, color, name, label, validator, overwriter, Options, Config } = actionConfig;
 
     return <>{explorer}
     <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
@@ -160,7 +163,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
             </Grid.Col>
             <Grid.Col span={12}>
                 <TextInput variant="filled" {...form.getInputProps(`${type}.${index}.display`)}
-                value={display?display:(config||action.name)}
+                value={display?display:(config||label||name)}
                 />
             </Grid.Col>
             <Grid.Col span={6} miw={120}>
@@ -187,7 +190,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
             <Box p="xs" pt={0} >
                 {(Config&&!config)&&<Config form={form as unknown as UseFormReturnType<ActionConfig>} />}
                 {Config&&<Divider mt="md" label={config?`config - ${config}`:undefined} labelPosition="center" />}
-                {Options&&<Options form={form} path={`${type}.${index}`} templateProps={templateProps} />}
+                {Options&&<Options form={form} path={`${type}.${index}`} templateProps={templateProps} iterative={iterative} />}
             </Box>
             </>}
         </Collapse>

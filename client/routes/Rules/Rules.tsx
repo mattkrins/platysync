@@ -1,7 +1,7 @@
 import { Anchor, Button, Container, Grid, Group, Paper, Title, Text, useMantineTheme, Loader, Switch, Tooltip, Divider } from "@mantine/core";
 import { useConnectors, useDispatch, useLoader, useSelector } from "../../hooks/redux";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { IconCopy, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconCopy, IconExclamationCircle, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import Wrapper from "../../components/Wrapper";
 import { getRules, loadRules, reorder } from "../../providers/schemaSlice";
@@ -18,8 +18,8 @@ function IconMap({ actions }: { actions: Action[] }){
     return <Group gap={5}>
     {actions.map((action,key)=>{
         const act = availableActions.find(a=>a.name===action.name);
-        if (!act) return <></>;
-        return <Tooltip key={key} fz="xs" withArrow label={action.display||action.name}>
+        if (!act) return <><IconExclamationCircle color="red" size={16}/></>;
+        return <Tooltip key={`${key}${action.name}`} fz="xs" withArrow label={action.display||action.name}>
             <act.Icon color={act.color?theme.colors[act.color][6]:undefined} size={16} stroke={2} />
         </Tooltip>
     })}
@@ -32,8 +32,8 @@ function SourcesMap({ sources }: { sources: string[] }){
     return <Group gap={5} >
     {sources.map((source,key)=>{
         const con = proConnectors.find(a=>a.name===source);
-        if (!con) return <></>;
-        return <Tooltip key={key} fz="xs" withArrow label={con.name}>
+        if (!con) return <><IconExclamationCircle color="red" size={16}/></>;
+        return <Tooltip key={`${key}${con.name}`} fz="xs" withArrow label={con.name}>
             <con.Icon color={con.color?theme.colors[con.color][6]:undefined} size={16} stroke={2} />
         </Tooltip>
     })}

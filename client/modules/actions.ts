@@ -3,7 +3,7 @@ import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
 import { UseFormReturnType, isNotEmpty } from "@mantine/form";
 import DocWritePDF from "../routes/Rules/Editor/actions/DocWritePDF";
-import DocPDFPrint from "../routes/Rules/Editor/actions/DocPDFPrint";
+import DocPrintPDF from "../routes/Rules/Editor/actions/DocPrintPDF";
 import FileCopy from "../routes/Rules/Editor/actions/FileCopy";
 import FileDelete from "../routes/Rules/Editor/actions/FileDelete";
 import FileMove from "../routes/Rules/Editor/actions/FileMove";
@@ -78,6 +78,7 @@ export const availableCategories: availableCategory[] = [
 export interface actionProps {
     form: UseFormReturnType<Rule>;
     path: string;
+    iterative: boolean;
     templateProps: templateProps;
 }
 
@@ -145,7 +146,7 @@ export const availableActions: availableAction[] = [
         initialValues: {
             attributes: []
         },
-    },
+    },  
     {
         name: "Update Groups",
         category: 'directory',
@@ -172,9 +173,10 @@ export const availableActions: availableAction[] = [
         Icon: IconFolderShare,
         color: 'grape',
         // MoveOU,
-    },
+    }, //TODO - everything above this ----------------------------------------------------------------------
     {
-        name: "Write PDF",
+        name: "DocWritePDF",
+        label: "Write PDF",
         category: 'document',
         Icon: IconFileTypePdf,
         color: 'red',
@@ -183,15 +185,17 @@ export const availableActions: availableAction[] = [
         Options: DocWritePDF,
     },
     {
-        name: "Print PDF",
+        name: "DocPrintPDF",
+        label: "Print PDF",
         category: 'document',
         Icon: IconPrinter,
         color: 'lime',
         validator: true,
-        Options: DocPDFPrint,
+        Options: DocPrintPDF,
     },
     {
-        name: "Copy File",
+        name: "FileCopy",
+        label: "Copy File",
         category: 'file',
         Icon: IconCopy,
         color: 'blue',
@@ -200,7 +204,8 @@ export const availableActions: availableAction[] = [
         Options: FileCopy,
     },
     {
-        name: "Delete File",
+        name: "FileDelete",
+        label: "Delete File",
         category: 'file',
         Icon: IconTrash,
         color: 'red',
@@ -208,7 +213,8 @@ export const availableActions: availableAction[] = [
         Options: FileDelete,
     },
     {
-        name: "Move File",
+        name: "FileMove",
+        label: "Move File",
         category: 'file',
         Icon: IconArrowBarToRight,
         color: 'orange',
@@ -217,7 +223,8 @@ export const availableActions: availableAction[] = [
         Options: FileMove,
     },
     {
-        name: "Write To File",
+        name: "FileWriteTxt",
+        label: "Write To File",
         category: 'file',
         Icon: IconPencil,
         color: 'lime',
@@ -226,7 +233,8 @@ export const availableActions: availableAction[] = [
         Options: FileWriteTxt,
     },
     {
-        name: "Copy Folder",
+        name: "FolderCopy",
+        label: "Copy Folder",
         category: 'folder',
         Icon: IconCopy,
         color: 'blue',
@@ -235,16 +243,17 @@ export const availableActions: availableAction[] = [
         Options: FolderCopy,
     },
     {
-        name: "Create Folder",
+        name: "FolderCreate",
+        label: "Create Folder",
         category: 'folder',
         Icon: IconPlus,
         color: 'lime',
-        validator: true,
         overwriter: true,
         Options: FolderCreate,
     },
     {
-        name: "Delete Folder",
+        name: "FolderDelete",
+        label: "Delete Folder",
         category: 'folder',
         Icon: IconTrash,
         color: 'red',
@@ -252,7 +261,8 @@ export const availableActions: availableAction[] = [
         Options: FolderDelete,
     },
     {
-        name: "Move Folder",
+        name: "FolderMove",
+        label: "Move Folder",
         category: 'folder',
         Icon: IconArrowBarToRight,
         color: 'orange',
@@ -261,47 +271,53 @@ export const availableActions: availableAction[] = [
         Options: FolderMove,
     },
     {
-        name: "Comparator",
+        name: "SysComparator",
+        label: "Comparator",
         category: 'system',
         Icon: IconEqualNot,
         Options: SysComparator,
         initialValues: { conditions: [] },
     },
     {
-        name: "Encrypt String",
+        name: "SysEncryptString",
+        label: "Encrypt String",
         category: 'system',
         Icon: IconKey,
         Options: SysEncryptString,
     },
     {
-        name: "Run Command",
+        name: "SysRunCommand",
+        label: "Run Command",
         category: 'system',
         Icon: IconTerminal,
         Options: SysRunCommand,
     },
     {
-        name: "Template",
-        label: "Build Data Template",
+        name: "SysTemplate",
+        label: "Template",
         category: 'system',
         Icon: IconTemplate,
         Options: SysTemplate,
         initialValues: { templates: [] },
     },
     {
-        name: "Wait",
+        name: "SysWait",
+        label: "Wait",
         category: 'system',
         Icon: IconClock,
         Options: SysWait,
     },
     {
-        name: "Upload Student Passwords",
+        name: "StmcUpload",
+        label: "Upload Student Passwords",
         category: 'edustar',
         Icon: IconCloudUpload,
         color: 'yellow',
         // Component: StmcUpload
     },
     {
-        name: "Send Email",
+        name: "TransEmailSend",
+        label: "Send Email",
         category: 'transmission',
         Icon: IconMailForward,
         color: 'grape',
@@ -314,7 +330,8 @@ export const availableActions: availableAction[] = [
         },
     },
     {
-        name: "API Request",
+        name: "TransAPIRequest",
+        label: "API Request",
         category: 'transmission',
         Icon: IconCloudUp,
         color: 'red',

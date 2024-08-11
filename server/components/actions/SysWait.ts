@@ -1,16 +1,14 @@
 import { wait, xError } from "../../modules/common.js";
-import { actionProps } from "../actions.js";
+import { props } from "../actions.js";
 
-interface props extends actionProps {
-    action: Action & {
-        time: number;
-        evaluation: boolean;
-    }
+interface SysWait {
+    time: number;
+    evaluation: boolean;
 }
 
-export default async function SysWait({ action, execute, data }: props) {
+export default async function SysWait({ action, execute, data }: props<SysWait>) {
     try {
-        data.waitFor = `${action.time||1000}ms`;
+        data.time = `${action.time||1000}ms`;
         if (action.evaluation) await wait(action.time||1000);
         if (!execute) return { data };
         if (!action.evaluation) await wait(action.time||1000);

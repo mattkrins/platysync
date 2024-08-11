@@ -223,8 +223,8 @@ function ContextEditor({ editing, close, form }: { editing?: [Context,number|und
 }
 
 export default function Settings( { form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void } ) {
-    const { sources, templateSources, primaryHeaders, displayExample, contextSources } = useRule(form);
-    const { templateProps, explorer } = useTemplater({names:templateSources});
+    const { sources, templateSources, primaryHeaders, displayExample, contextSources, inline } = useRule(form, "iterativeActions");
+    const { templateProps, explorer } = useTemplater({names:templateSources, inline});
     const [ editingSource, setEditingSource ] = useState<[Source,number|undefined,boolean]|undefined>(undefined);
     const [ editingContext, setEditingContext ] = useState<[Context,number|undefined,boolean]|undefined>(undefined);
     const { proConnectors } = useConnectors();

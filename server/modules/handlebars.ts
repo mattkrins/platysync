@@ -37,7 +37,8 @@ Handlebars.compile = function(input: string, options?: CompileOptions | undefine
  * @param {object} template Template object
  * @param {string} input String to parse with template
 **/
-export function compile(template={}, input='') {
+export function compile(template={}, input='', def?: string) {
+    if (!input) return def||'';
     return Handlebars.compile(input)(template);
 }
 

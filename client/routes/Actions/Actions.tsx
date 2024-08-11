@@ -22,7 +22,9 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
         url: `/action/${name}/copy`, schema: true,
         then: () => refresh(),
     });
-    const { Icon, color } = availableActions.find(a=>a.name===id) as availableAction;
+    const action = availableActions.find(a=>a.name===id) as availableAction;
+    if (!action) return <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={async () => await del()} loading={deleting} color="red" variant="subtle" />;
+    const { Icon, color } = action;
     return (
     <Draggable index={index} draggableId={name}>
     {(provided, snapshot) => (

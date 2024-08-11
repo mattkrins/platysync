@@ -1,16 +1,19 @@
 import { server } from "../../server";
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
-import { availableActions } from "./actions";
+import { availableActions, handles } from "./actions";
 import { addContext, connect, connections, contexts } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import fs from 'fs-extra';
 import LDAP from "./providers/LDAP";
+import { defaultData, Settings } from "./database";
 
 export class Engine { //TODO - add way to cancel
     public id: string;
+    private settings: Settings = defaultData.settings;
     private connections: connections = {};
+    private handles: handles = {};
     private contexts:  contexts = {};
     private status: jobStatus;
     private queue = new ThrottledQueue(10);
@@ -44,6 +47,7 @@ export class Engine { //TODO - add way to cancel
         };
     }
     public async Run(){
+        this.settings = await Settings();
         this.Emit();
         const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, {}, "init");
         if (this.hasInit) this.progress = 15;
@@ -73,8 +77,8 @@ export class Engine { //TODO - add way to cancel
         const user = await context.getUser(template, id);
         return user || false;
     }
-    private async ldap_compare(key: string, value: string, operator: string, template: template, id: string ) {
-        if (!key) return false;
+    private async ldap_compare(key: string, value: string, operator: string, template: template, id?: string ) {
+        if (!key || !id) return false;
         const user = await this.ldap_getUser(key, template, id);
         if (operator==="notexists") return !user;
         if (!user) return false;
@@ -89,7 +93,7 @@ export class Engine { //TODO - add way to cancel
             default: return false;
         }
     }
-    private async compare(key: string, value: string, operator: string, template: template, id: string): Promise<boolean> {
+    private async compare(key: string, value: string, operator: string, template: template, id?: string): Promise<boolean> {
         if (operator.substring(0, 4)==="ldap") return await this.ldap_compare(key, value, operator.substring(5), template, id);
         switch (operator) {
             case '==': return key === value;
@@ -114,7 +118,7 @@ export class Engine { //TODO - add way to cancel
             default: return false;
         }
     }
-    private async delimit(key: string, value: string, condition: Condition, template: template, id: string): Promise<boolean> {
+    private async delimit(key: string, value: string, condition: Condition, template: template, id?: string): Promise<boolean> {
         const delimited = value.split(condition.delimiter as string);
         for (const value of delimited) {
             const result = await this.compare(key, value, condition.operator, template, id);
@@ -122,13 +126,13 @@ export class Engine { //TODO - add way to cancel
             if (condition.and && !result) return false;
         } return condition.and||false;
     }
-    private async evaluate(condition: Condition, template: template, id: string): Promise<boolean> {
+    private async evaluate(condition: Condition, template: template, id?: string): Promise<boolean> {
         const key = compile(template, condition.key);
         const value = compile(template, condition.value);
         const delimiter = condition.delimiter !== "";
         return delimiter ? await this.delimit(key, value, condition, template, id) : await this.compare(key, value, condition.operator, template, id);
     }
-    public async evaluateAll(conditions: Condition[], template: template, id: string): Promise<boolean> {
+    public async evaluateAll(conditions: Condition[], template: template, id?: string): Promise<boolean> {
         for (const condition of conditions) {
             if (!(await this.evaluate(condition, template, id))) return false;
         } return true;
@@ -210,7 +214,7 @@ export class Engine { //TODO - add way to cancel
             if (this.rule.conditions.length > 0 && (!this.filter || this.filter.length <= 0)) {
                 if (!(await this.evaluateAll(this.rule.conditions, template, id))) continue;
             }
-            const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await this.processActions(this.rule.iterativeActions, template, "iterative");
+            const {todo: iterativeActions, error: iterativeError, warn: iterativeWarn } = await this.processActions(this.rule.iterativeActions, template, "iterative", id);
             const display = this.rule.display ? compile(template, this.rule.display) : id;
             const output: primaryResult = { id, actions: [], error: false, columns: [ { name: this.display, value: display } ] };
             output.actions = iterativeActions;
@@ -232,7 +236,7 @@ export class Engine { //TODO - add way to cancel
             progress: { total: this.progress + iterativeLength, iterative: iterativeLength }
         });
     }
-    private async processActions(actions: Action[], template: template, type: string) {
+    private async processActions(actions: Action[], template: template, type: string, id?: string) {
         const start = new Date().getTime();
         const todo: actionResult[] = [];
         let error: undefined|xError;
@@ -252,7 +256,11 @@ export class Engine { //TODO - add way to cancel
         for (const action of (actions||[])) { i++;
             if (!action.enabled){ emit(); continue; }
             if (!(action.name in availableActions)) throw new xError(`Unknown action '${action.name}'.`);
-            const result = await availableActions[action.name]({ action, template, connections: this.connections, execute: !!this.filter, data: {} })
+            const result = await availableActions[action.name]({
+                action, template, connections: this.connections,
+                handles: this.handles, execute: !!this.filter,
+                engine: this, data: {}, id, settings: this.settings
+            })
             if (!result)  throw new xError(`Failed to run action '${action.name}'.`);
             const name = (action.display && action.display!==action.name) ? { display: action.display||action.name } : {}
             todo.push({name: action.name, result, ...name, noblock: action.noblock });

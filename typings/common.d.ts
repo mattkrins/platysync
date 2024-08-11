@@ -2,6 +2,9 @@ type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
 
+/** Replace all properties with strings. */
+type rString<T> = { [K in keyof T]: string; };
+
 interface Settings {
     [k: string]: unknown;
     key?: string;

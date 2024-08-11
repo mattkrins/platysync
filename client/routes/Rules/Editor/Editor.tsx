@@ -34,7 +34,7 @@ function ActionButton( { loading, save, test, cancel, clickExport, openImporter 
   )
 }
 
-export function useRule( form: UseFormReturnType<Rule> ) {
+export function useRule( form: UseFormReturnType<Rule>, type?: string ) {
     const usedSources = (form.values.sources||[]).map(s=>s.foreignName);
     const usedContexts = (form.values.contexts||[]).map(s=>s.name); 
     const sources = form.values.primary ? [form.values.primary, ...usedSources, ...usedContexts] : [];
@@ -49,21 +49,26 @@ export function useRule( form: UseFormReturnType<Rule> ) {
     const primaryHeaders = primary ? primary.headers : [];
     const displayExample = `{{${form.values.primary?`${form.values.primary}.`:''}${form.values.primaryKey ? form.values.primaryKey :  (primaryHeaders[0] ? primaryHeaders[0] : 'id')}}}`;
     const inline = useMemo(()=>{
-        let map: {[k: string]: string[]} = {};
-        for (const type of ['initActions', 'iterativeActions', 'finalActions']){
-            let array: string[] = [];
+        if (!type) return [];
+        let array: string[] = [];
+        const types = {
+            "initActions" : ['initActions'],
+            "iterativeActions" : ['initActions', 'iterativeActions'],
+            "finalActions" : ['initActions', 'finalActions'],
+        }[type]||[];
+        for (const type of types){
             for (const action of (form.values[type as 'initActions']||[])){
                 switch (action.name) {
-                    case "Encrypt String":{ if (action.key) array.push(action.key as string); break; }
-                    case "Comparator":{ if (action.key) array.push(action.key as string); break; }
-                    case "Template":{
+                    case "SysEncryptString":{ if (action.key) array.push(action.key as string); break; }
+                    case "SysComparator":{ if (action.output) array.push((action.key||"result") as string); break; }
+                    case "SysTemplate":{
                         array = [...array, ...((action.templates||[]) as SysTemplate[]).filter(s=>s.key).map(s=>s.key) ]; break;
                     }
                     default: break;
                 }
-            } map[type] = array;
-        } return map;
-    }, [ form.values.initActions, form.values.iterativeActions, form.values.finalActions ])
+            }
+        } return array;
+    }, [ form.values.initActions, form.values.iterativeActions, form.values.finalActions, type ]);
     return { used: usedSources, sources, templateSources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample, inline };
 }
 
@@ -122,7 +127,7 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
                     <Tabs.Tab value="columns" disabled={!form.values.primary} leftSection={<IconTable size="1rem" />}>Columns</Tabs.Tab>
                 </Tabs.List>
                 <Tabs.Panel value="settings" pt="xs" >{activeTab==="settings"&&<Settings form={form} setActiveTab={setActiveTab} />}</Tabs.Panel>
-                <Tabs.Panel value="conditions" pt="xs" >{activeTab==="conditions"&&<Conditions form={form} />}</Tabs.Panel>
+                <Tabs.Panel value="conditions" pt="xs" >{activeTab==="conditions"&&<Conditions form={form} iterative />}</Tabs.Panel>
                 <Tabs.Panel value="actions" pt="xs" >{activeTab==="actions"&&<Actions form={form} setActiveTab={setActiveTab} />}</Tabs.Panel>
                 <Tabs.Panel value="columns" pt="xs" >{activeTab==="columns"&&<Headers form={form} />}</Tabs.Panel>
             </Tabs>
