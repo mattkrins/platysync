@@ -59,8 +59,8 @@ export default async function (route: FastifyInstance) {
             validate( { name }, {
                 name: isNotEmpty('Name can not be empty.'),
             });
-            const actionsLength = options.initActions.length+ options.iterativeActions.length + options.finalActions.length;
-            if (actionsLength <= 0) throw new xError("Rules must have an action.", null, 406);
+            //const actionsLength = options.initActions.length+ options.iterativeActions.length + options.finalActions.length;
+            //if (actionsLength <= 0) throw new xError("Rules must have an action.", null, 406);
             const rules = await getRules(schema_name);
             if (rules.find(c=>c.name===name)) throw new xError("Rule name taken.", "name", 409);
             rules.push({ name, ...options });

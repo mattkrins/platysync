@@ -173,10 +173,8 @@ export default class eduSTAR {
             return score;
         }
         const students = await this.getStudents();
-        console.log('this.includeInactive', this.includeInactive)
         const filtered = this.includeInactive ? eduhub :
         eduhub.filter(hub=>hub.STATUS==="ACTV"||hub.STATUS==="FUT");
-        console.log('filtered')
         return students.map(star => {
             let bestMatch;
             let bestScore = -1;

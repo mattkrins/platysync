@@ -102,6 +102,7 @@ interface Rule {
     description?: string;
     primary?: string;
     primaryKey?: string;
+    idName?: string;
     display?: string;
     displayKey?: string;
     sources: Source[];
@@ -178,6 +179,7 @@ interface response {
     finalActions: actionResult[];
     initActions: actionResult[];
     columns: string[];
+    id?: string;
 }
 
 interface jobStatus {

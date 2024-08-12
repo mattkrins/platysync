@@ -67,7 +67,7 @@ export class Engine { //TODO - add way to cancel
         this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
         const columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
         //TODO - santitizeData for log
-        return { primaryResults: this.primaryResults, initActions, finalActions, columns };
+        return { primaryResults: this.primaryResults, initActions, finalActions, columns, id: this.rule.idName };
     }
     private async ldap_getUser(key: string, template: template, id: string) {
         const ldap = this.connections[key] as LDAP|undefined;

@@ -48,6 +48,7 @@ export function useRule( form: UseFormReturnType<Rule>, type?: string ) {
     const primary = useMemo(()=>proConnectors.find((item) => item.name === form.values.primary), [ form.values.primary ]);
     const primaryHeaders = primary ? primary.headers : [];
     const displayExample = `{{${form.values.primary?`${form.values.primary}.`:''}${form.values.primaryKey ? form.values.primaryKey :  (primaryHeaders[0] ? primaryHeaders[0] : 'id')}}}`;
+    const id = form.values.primaryKey ? form.values.primaryKey : (primaryHeaders[0] ? primaryHeaders[0] : 'id');
     const inline = useMemo(()=>{
         if (!type) return [];
         let array: string[] = [];
@@ -69,7 +70,7 @@ export function useRule( form: UseFormReturnType<Rule>, type?: string ) {
             }
         } return array;
     }, [ form.values.initActions, form.values.iterativeActions, form.values.finalActions, type ]);
-    return { used: usedSources, sources, templateSources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample, inline };
+    return { used: usedSources, sources, templateSources, usedContexts, contextSources, ruleProConnectors, primary, primaryHeaders, displayExample, inline, id };
 }
 
 export default function Editor({ editing, close }: { editing: [Rule,boolean], close(): void }) {
@@ -95,8 +96,6 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
     const onImport = ({name, ...rule}: Rule) => { form.setValues(rule); closeImporter(); };
 
     const clickExport = () => setExporting(form.values);
-
-    const canTest = (form.values.initActions.length + form.values.iterativeActions.length + form.values.finalActions.length) > 0;
 
     const dispatch = useDispatch();
     const { post, put, error, loading } = useAPI({

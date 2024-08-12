@@ -62,10 +62,10 @@ function TableRow({ r, c, dE, dW, t, v, max, aA }: {
     )
 }
 
-function TableData({ p, c, dE, dW, v, pR, sE, max }: {
+function TableData({ p, c, dE, dW, v, pR, sE, max, id }: {
     p: primaryResult[], c: string[], dE: boolean, dW: boolean, max: boolean,
     v: (id: {name: string, open: string, actions: actionResult[]}) => void,
-    pR: primaryResult[], sE: (data: React.SetStateAction<response>) => void; }) {
+    pR: primaryResult[], sE: (data: React.SetStateAction<response>) => void, id?: string }) {
     const toggle = (id: string) => sE(response=>({...response, primaryResults: pR.map(r=>r.id!==id?r:{...r, checked: !r.checked }) }));
     const allChecked = useMemo(()=>pR.every(r => r.checked),[ pR ]);
     const noneChecked = useMemo(()=>pR.every(r => !r.checked),[ pR ]);
@@ -81,7 +81,7 @@ function TableData({ p, c, dE, dW, v, pR, sE, max }: {
         <Table.Thead>
             <Table.Tr>
                 <Table.Th w={56} ><Checkbox checked={allChecked} indeterminate={indeterminate} onChange={toggleAll} /></Table.Th>
-                <Table.Th>ID</Table.Th>
+                <Table.Th>{id||'ID'}</Table.Th>
                 {c.map((c)=><Table.Th key={c} >{c}</Table.Th>)}
                 {someActions&&<Table.Th>Actions</Table.Th>}
             </Table.Tr>
@@ -91,11 +91,11 @@ function TableData({ p, c, dE, dW, v, pR, sE, max }: {
     )
 }
 
-function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: {
+function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp, id }: {
     q: string, e: number, w: number, c: boolean, s?: string,
     Q(s:string):void, E(e:number):void, W(w:number):void, C():void, S(s?:string):void,
     eC: number, wC: number, fC: number, p: { active: number, setPage: (pageNumber: number) => void, total: number, perPage: number }, PP(w:number):void,
-    cols: string[], exp(): void }) {
+    cols: string[], exp(): void, id?: string }) {
     return (
         <Group justify="space-between" miw="600px" >
             <TextInput
@@ -125,7 +125,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
                     </Menu.Target>
                     <Menu.Dropdown>
                         <Menu.Label>Sort by column</Menu.Label>
-                        <Menu.Item leftSection={s===undefined&&<IconCheck size={16} />} onClick={()=>S(undefined)} >By ID</Menu.Item>
+                        <Menu.Item leftSection={s===undefined&&<IconCheck size={16} />} onClick={()=>S(undefined)} >By {id||'ID'}</Menu.Item>
                         {cols.map(c=><Menu.Item leftSection={s===c&&<IconCheck size={16} />} onClick={()=>S(c)} >By {c}</Menu.Item>)}
                         <Menu.Divider/>
                         <Menu.Item leftSection={s==="Actions"&&<IconCheck size={16} />} onClick={()=>S("Actions")} >By Action Count</Menu.Item>
@@ -156,7 +156,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp }: 
 }
 
 function Results( { evaluated, setEvaluated, maximized, execute }: EvalProps ) {
-    const { primaryResults, initActions, finalActions, columns } = evaluated;
+    const { primaryResults, initActions, finalActions, columns, id } = evaluated;
     const [viewing, view] = useState<{name: string, open: string, actions: actionResult[]}|undefined>();
     const [q, Q] = useState<string>("");
     const [s, S] = useState<string|undefined>(undefined);
@@ -187,7 +187,7 @@ function Results( { evaluated, setEvaluated, maximized, execute }: EvalProps ) {
         const someChecked = filtered.some(r => r.checked);
         const csv_rows = someChecked ? filtered.filter(r=>r.checked) : filtered;
         const csv_data = csv_rows.map(e=>`${e.id},${e.columns.map(c=>c.value).join(",")}`).join("\n");
-        const csv = `ID,${columns.join(",")}\n${csv_data}`;
+        const csv = `${id||'ID'},${columns.join(",")}\n${csv_data}`;
         setExporting(csv);
     }
 
@@ -201,10 +201,10 @@ function Results( { evaluated, setEvaluated, maximized, execute }: EvalProps ) {
     {primaryResults.length>0&&<>
     <Header q={q} e={e} w={w} c={c} Q={Q} E={E} W={W} C={C} s={s} S={S}
     eC={errorCount} wC={warnCount} fC={filteredCount} p={{...pagination, total, perPage: pp }} PP={PP}
-    cols={columns} exp={exportCSV}
+    cols={columns} exp={exportCSV} id={id}
     />
     <Divider mt="xs" />
-    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} v={view} sE={setEvaluated} pR={primaryResults} max={maximized||false} /></>}
+    <TableData p={paginated} c={columns} dE={e<2} dW={w<2} v={view} sE={setEvaluated} pR={primaryResults} max={maximized||false} id={id} /></>}
     <ActionMap actions={finalActions} view={view} name="Final Actions" />
     </>
     )

@@ -307,14 +307,15 @@ export const availableActions: availableAction[] = [
         Icon: IconClock,
         Options: SysWait,
     },
-    {
-        name: "StmcUpload",
-        label: "Upload Student Passwords",
-        category: 'edustar',
-        Icon: IconCloudUpload,
-        color: 'yellow',
-        // Component: StmcUpload
-    },
+    //{
+    //    name: "StmcUpload",
+    //    label: "Upload Student Passwords",
+    //    category: 'edustar',
+    //    Icon: IconCloudUpload,
+    //    color: 'yellow',
+    //    //provider: 'stmc',
+    //    //Options: SysWait,
+    //},
     {
         name: "TransEmailSend",
         label: "Send Email",

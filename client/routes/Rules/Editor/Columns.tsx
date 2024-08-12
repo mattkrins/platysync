@@ -39,21 +39,21 @@ function Template({ index, column, form, templateProps, path }: { index: number,
     </Draggable>)
 }
 
-function FirstHeader({ form, templateProps }: { form: UseFormReturnType<Rule>, templateProps: templateProps }) {
-    const { displayExample } = useRule(form);
+function IDHeader({ form, templateProps }: { form: UseFormReturnType<Rule>, templateProps: templateProps }) {
+    const { id } = useRule(form);
     return (
     <Grid align="center" mt="xs" gutter="xs" columns={25} >
         <Grid.Col span={1}/>
         <Grid.Col span="auto" >
             <TextInput label="Name" description="Header name, also used in csv export."
             leftSection={<IconChevronUp size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="Entry Display Name" {...form.getInputProps('displayKey')}
+            placeholder="ID" {...form.getInputProps('IDName')}
             />
         </Grid.Col>
         <Grid.Col span="auto" >
             <TextInput label="Value" description="Value used for the row, entry, user, etc."
             leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder={displayExample} {...templateProps(form, 'display', { disabled: !form.values.primary } )}
+            placeholder={id} value={id} disabled
             />
         </Grid.Col>
         <Grid.Col span={2}/>
@@ -61,12 +61,49 @@ function FirstHeader({ form, templateProps }: { form: UseFormReturnType<Rule>, t
     )
 }
 
+function RequiredHeaders({ form, templateProps }: { form: UseFormReturnType<Rule>, templateProps: templateProps }) {
+    const { displayExample } = useRule(form);
+    return (<>
+    <Grid align="center" mt="xs" gutter="xs" columns={25} >
+        <Grid.Col span={1}/>
+        <Grid.Col span="auto" >
+            <TextInput label="Name" description="Header name, also used in csv export."
+            leftSection={<IconChevronUp size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            placeholder="ID" {...form.getInputProps('idName')}
+            />
+        </Grid.Col>
+        <Grid.Col span="auto" >
+            <TextInput label="Value" description="Value used for the row, entry, user, etc."
+            leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            value={displayExample} disabled
+            />
+        </Grid.Col>
+        <Grid.Col span={2}/>
+    </Grid>
+    <Grid align="center" mt="xs" gutter="xs" columns={25} >
+        <Grid.Col span={1}/>
+        <Grid.Col span="auto" >
+            <TextInput
+            leftSection={<IconChevronUp size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            placeholder="Display" {...form.getInputProps('displayKey')}
+            />
+        </Grid.Col>
+        <Grid.Col span="auto" >
+            <TextInput
+            leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            placeholder={displayExample} {...templateProps(form, 'display', { disabled: !form.values.primary } )}
+            />
+        </Grid.Col>
+        <Grid.Col span={2}/>
+    </Grid>
+    </>)
+}
+
 export default function Headers( { form }: { form: UseFormReturnType<Rule> } ) {
     const templatePath = `columns`;
     const columns = form.getInputProps(templatePath).value as resultColumn[];
     const add = () => form.insertListItem(templatePath, { name: undefined, value: undefined, });
     const { templateSources, inline } = useRule(form, 'iterativeActions');
-    //const filteredInline = [ ...inline.initActions, ...inline.iterativeActions, ...inline.finalActions ];
     const { templateProps, explorer } = useTemplater({names:templateSources, inline});
     return (
     <Box> {explorer}
@@ -78,7 +115,7 @@ export default function Headers( { form }: { form: UseFormReturnType<Rule> } ) {
                 <Button size="sm" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} onClick={add}>Add Header</Button>
             </Grid.Col>
         </Grid>
-        <FirstHeader form={form} templateProps={templateProps} />
+        <RequiredHeaders form={form} templateProps={templateProps} />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
