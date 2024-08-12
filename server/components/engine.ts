@@ -259,7 +259,8 @@ export class Engine { //TODO - add way to cancel
             const result = await availableActions[action.name]({
                 action, template, connections: this.connections,
                 handles: this.handles, execute: !!this.filter,
-                engine: this, data: {}, id, settings: this.settings
+                engine: this, data: {}, id, settings: this.settings,
+                contexts: this.contexts
             })
             if (!result)  throw new xError(`Failed to run action '${action.name}'.`);
             const name = (action.display && action.display!==action.name) ? { display: action.display||action.name } : {}

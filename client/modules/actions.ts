@@ -19,6 +19,7 @@ import SysTemplate from "../routes/Rules/Editor/actions/SysTemplate";
 import SysWait from "../routes/Rules/Editor/actions/SysWait";
 import TransEmailSend, { TransEmailSendConfig } from "../routes/Rules/Editor/actions/TransEmailSend";
 import TransAPIRequest, { TransAPIRequestConfig } from "../routes/Rules/Editor/actions/TransAPIRequest";
+import StmcUpStuPass from "../routes/Rules/Editor/actions/StmcUpStuPass";
 
 export interface availableCategory {
     id: string,
@@ -306,6 +307,15 @@ export const availableActions: availableAction[] = [
         category: 'system',
         Icon: IconClock,
         Options: SysWait,
+    },
+    {
+        name: "StmcUpStuPass",
+        label: "Upload Student Password",
+        category: 'edustar',
+        Icon: IconCloudUpload,
+        color: 'yellow',
+        //provider: 'stmc',
+        Options: StmcUpStuPass,
     },
     //{
     //    name: "StmcUpload",

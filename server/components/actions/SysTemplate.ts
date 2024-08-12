@@ -7,7 +7,7 @@ interface SysTemplate {
     [k: string]: unknown;
 }
 
-export default async function SysTemplate({ action, template, data }: props<SysTemplate>, copy = false) {
+export default async function SysTemplate({ action, template, data }: props<SysTemplate>) {
     try {
         for (const t of action.templates||[]) {
             const key = compile(template, t.key);

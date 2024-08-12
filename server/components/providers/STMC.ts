@@ -1,5 +1,6 @@
 import { isNotEmpty, validate, xError } from "../../modules/common";
 import eduSTAR from "../../modules/eduSTAR";
+import { compile } from "../../modules/handlebars";
 import { Settings } from "../database";
 import { Engine } from "../engine";
 import { connect, connections } from "../providers";
@@ -20,9 +21,9 @@ export default class STMC extends base_provider {
     private password: string|Hash;
     private school: string;
     private cache?: number = 1440;
-    private client: eduSTAR;
     private eduhub?: string;
     private includeInactive: boolean = false;
+    public client: eduSTAR;
     constructor(options: stmc_options) {
         super(options);
         this.username = options.username;

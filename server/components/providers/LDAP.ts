@@ -69,9 +69,9 @@ export default class LDAP extends base_provider {
         return users;
     }
     public async getUser(template: template, id: string): Promise<User|false> {
-        const filter = compile(template, this.userFilter || `(&(objectclass=person)(sAMAccountName=${id}))`);
         if (this.users[id]) return this.users[id];
         try {
+            const filter = compile(template, this.userFilter, `(&(objectclass=person)(sAMAccountName=${id}))`);
             const { user } = await this.client.searchOne({
                 filter,
                 scope: 'sub',

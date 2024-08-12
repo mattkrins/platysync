@@ -46,11 +46,11 @@ function Category({ category, add, form }: { category: availableCategory, add(c:
     const { ruleProConnectors } = useRule(form);
     const settings = useSettings(); 
     const filtered = useMemo(()=>availableActions.
-    filter(a=>settings.enableRun?true:(a.name!=="Run Command")).
+    filter(a=> a.name==="SysRunCommand"?settings.enableRun:true ).
     filter(a=>a.category===category.id).
     filter(a=>a.provider?ruleProConnectors.
     find(c=>c.id===a.provider):true)
-    , [ ruleProConnectors ]);
+    , [ ruleProConnectors, settings ]);
     return (
     <>
         <Section open={opened} label={category.name} Icon={category.Icon} onClick={toggle} color={category.color?theme.colors[category.color][6]:undefined} />
@@ -131,14 +131,6 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     const setConfig = (name: string) => form.setFieldValue(`${type}.${index}.config`, name);
     const { templateSources, inline } = useRule(form, type);
     const iterative = type === "iterativeActions";
-    //const filteredInline = useMemo(()=>{
-    //    switch (type) {
-    //        case "initActions": return inline.initActions;
-    //        case "iterativeActions": return [ ...inline.initActions, ...inline.iterativeActions ];
-    //        case "finalActions": return [ ...inline.initActions, ...inline.finalActions ];
-    //        default: return [];
-    //    }
-    //}, [ inline, type ])
     const actionConfig = availableActions.find(a=>a.name===action.name) as availableAction;
     const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline});
     if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;

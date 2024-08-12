@@ -6,7 +6,7 @@ export class ldap {
     public client: ldapjs.Client|undefined;
     public connected: boolean = false;
     public base: string = '';
-    public filter: string = '(objectclass=person)'
+    public filter: string = '(objectclass=person)';
     constructor() { }
     /**
      * Connects to an LDAP server.
@@ -157,8 +157,6 @@ export class ldap {
      * Return all objects matching the filter.
      * @param {string[]} attributes Array of specific attributes to get (optional)
      * @param {string} key attribute to build object keys from (optional)
-     * @param {boolean} caseSen should object keys be lowercased (optional)
-     * @param {string} filter Search filter. (optional, default: (objectclass=person) )
     **/
     public search(attributes?: string[], key?: string): Promise<{ users: {[k: string]: string}[], keyedUsers: {[key: string]: User} }> {
         return new Promise((resolve, reject) => {
@@ -179,7 +177,7 @@ export class ldap {
                     for (const attribute of entry.attributes) {
                         user[attribute.type] = ((attribute.values||[]) as string[]).join();
                         if (key && collator.compare(key, attribute.type) === 0 && attribute.values[0]) {
-                            keyedUsers[attribute.values[0]] = new User(entry, this.client )
+                            keyedUsers[attribute.values[0]] = new User(entry, this);
                         }
                     } users.push(user);
                 });
@@ -191,51 +189,6 @@ export class ldap {
             });
         });
     }
-    //public search(attributes?: string[], id?: string, caseSen = false): Promise<{users: {[k: string]: string}[], keyed: {[k: string]: {[k: string]: string}}, keyedUsers: {[k: string]: User}}> {
-    //    return new Promise((resolve, reject) => {
-    //        if (!this.client) return reject(Error("Not connected."));
-    //        const users: {[k: string]: string}[] = [];
-    //        const keyedUsers: {[k: string]: User} = {};
-    //        const keyed: {[k: string]: {[k: string]: string}} = {};
-    //        const opts: ldapjs.SearchOptions = {
-    //            filter: this.filter,
-    //            scope: 'sub',
-    //            sizeLimit: 1000,
-    //            paged: true,
-    //            attributes
-    //        };
-    //        this.client.search(this.base, opts, (err: ldapjs.Error | null, res: ldapjs.SearchCallbackResponse ) => {
-    //            if (err) return reject( err );
-    //            let startTime = performance.now();
-    //            let counter = 0;
-    //            res.on('searchEntry', (entry) => {
-    //                const endTime = performance.now();
-    //                const elapsedTime = endTime - startTime;
-    //                if (elapsedTime>5000) counter++; //REVIEW - might be worth adding timeout settings to GUI
-    //                if (counter>3 && users.length<200) return reject(Error(`Requests taking longer than ${Math.round(elapsedTime)} milliseconds. Abandoned after ${users.length} rows.`));
-    //                const user: {[k: string]: string} = {};
-    //                let IDfound = false;
-    //                for (const attribute of entry.attributes) {
-    //                    user[attribute.type] = ((attribute.values||[]) as string[]).join();
-    //                    if (id&&attribute.type===id){
-    //                        IDfound = true;
-    //                        const usr = new User(entry, this.client );
-    //                        const key = caseSen?user[attribute.type]:(user[attribute.type]).toLowerCase();
-    //                        keyed[key] = usr.plain_attributes;
-    //                        keyedUsers[key] = usr;
-    //                    }
-    //                }
-    //                if (id && IDfound) users.push(user);
-    //                startTime = performance.now();
-    //            });
-    //            res.on('error', (err) => reject(err));
-    //            res.on('end', (result) => {
-    //                if (!result || result.status !== 0) return reject(Error("Nothing found."));
-    //                resolve({users, keyed, keyedUsers})
-    //            });
-    //        });
-    //    });
-    //}
     /**
      * Create a new ldap object.
      * @param {string} dn DN path to create. Gets prepended to base path.
@@ -318,7 +271,7 @@ export const FLAGS: { [control: string]: number } = {
  * @param {ldapjs.Client} client ldap client to bind to. Required to perform actions on user. (Optional)
 **/
 export class User {
-    private client: ldapjs.Client|undefined;
+    private ldap: ldap|undefined;
     public plain_attributes: { [attribute: string]: string } = {};
     public attributes: {
         distinguishedName: string,
@@ -332,7 +285,7 @@ export class User {
     };
     public ou: string|undefined;
     public groups: string[] = [];
-    constructor(object: ldapjs.SearchEntry, client?: ldapjs.Client) {
+    constructor(object: ldapjs.SearchEntry, client?: ldap) {
         if (!object) throw Error("Failed to build class User: entry not defined");
         for (const attribute of object.attributes) {
             this.plain_attributes[attribute.type] = ((attribute.values||[]) as string[]).join();
@@ -340,7 +293,7 @@ export class User {
             Array.isArray(attribute.values) && attribute.values.length === 1 ? attribute.values[0] : attribute.values;
         }
         if (this.attributes.distinguishedName) this.ou = ldap.ouFromDn(this.attributes.distinguishedName).toLowerCase();
-        this.client = client;
+        this.ldap = client;
         for (const dn of this.attributes.memberOf){
             this.groups.push(ldap.dnTopName(dn));
         }
@@ -364,7 +317,7 @@ export class User {
     enable(disable: boolean = false): Promise<true> {
         return new Promise((resolve, reject) => {
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
-            if (!this.client) return reject("No client found.");
+            if (!this.ldap?.client) return reject("No client found.");
             if (!disable) if ( this.enabled() ) return reject("Already enabled.");
             if (disable) if ( !this.enabled() ) return reject("Already disabled.");
             const userAccountControl = disable ?
@@ -377,7 +330,7 @@ export class User {
                     values: String(userAccountControl)
                 })
             });
-            this.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
+            this.ldap.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
                 if (err) return reject(err);
                 this.attributes.userAccountControl = userAccountControl;
                 resolve(true);
@@ -396,7 +349,7 @@ export class User {
                 if (controls[control] && FLAGS[control]) userAccountControl = userAccountControl | (FLAGS[control]);
             }
             if (calculateOnly) return resolve(userAccountControl);
-            if (!this.client) return reject("No client found.");
+            if (!this.ldap?.client) return reject("No client found.");
             const change = new ldapjs.Change({
                 operation: 'replace',
                 modification: new ldapjs.Attribute({
@@ -404,7 +357,7 @@ export class User {
                     values: String(userAccountControl)
                 })
             });
-            this.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
+            this.ldap.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
                 if (err) return reject(err);
                 this.attributes.userAccountControl = userAccountControl;
                 resolve(userAccountControl);
@@ -419,8 +372,8 @@ export class User {
     change(change: ldapjs.Change): Promise<true> {
         return new Promise((resolve, reject) => {
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
-            if (!this.client) return reject("No client found.");
-                this.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
+            if (!this.ldap?.client) return reject("No client found.");
+                this.ldap.client.modify(this.attributes.distinguishedName, change, (err: Error) => {
                 if (err) return reject(err);
                 resolve(true);
             } );
@@ -432,8 +385,8 @@ export class User {
     delete(): Promise<true> {
         return new Promise((resolve, reject) => {
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
-            if (!this.client) return reject("No client found.");
-            this.client.del(this.attributes.distinguishedName, (err: Error) => {
+            if (!this.ldap?.client) return reject("No client found.");
+            this.ldap.client.del(this.attributes.distinguishedName, (err: Error) => {
                 if (err) return reject(err);
                 resolve(true);
             } );
@@ -446,8 +399,8 @@ export class User {
     modifyDN(dn: string): Promise<true> {
         return new Promise((resolve, reject) => {
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
-            if (!this.client) return reject("No client found.");
-            this.client.modifyDN(this.attributes.distinguishedName, dn, (err: Error) => {
+            if (!this.ldap?.client) return reject("No client found.");
+            this.ldap.client.modifyDN(this.attributes.distinguishedName, dn, (err: Error) => {
                 if (err) return reject(err);
                 resolve(true);
             } );
@@ -500,7 +453,7 @@ export class User {
     addGroup = (dn: string = '', remove = false): Promise<true> => {
         return new Promise((resolve, reject) => {
             if (!this.attributes.distinguishedName) return reject(`Data malformed. ${JSON.stringify(this.attributes)} `);
-            if (!this.client) return reject("No client found.");
+            if (!this.ldap?.client) return reject("No client found.");
             const change = new ldapjs.Change({
                 operation: remove ? 'delete' : 'add',
                 modification: new ldapjs.Attribute({
@@ -508,7 +461,7 @@ export class User {
                     values: this.attributes.distinguishedName
                 })
             });
-            this.client.modify(dn, change, (err: Error) => {
+            this.ldap.client.modify(dn, change, (err: Error) => {
                 if (err){
                     if ((String(err)).includes('OperationsError')) return reject(`Path Not Found: '${dn}' (OperationsError) `);
                     return reject(err);

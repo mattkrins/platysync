@@ -3,7 +3,7 @@ import { IconFolderSymlink, IconFolderX } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 import SelectConnector from '../../../../components/SelectConnector'
 
-export default function FolderMove( { form, path, templateProps }: actionProps ) {
+export default function StmcUpStuPass( { form, path, templateProps }: actionProps ) {
   return (
   <>
     <SelectConnector mt="sm"

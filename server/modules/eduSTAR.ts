@@ -48,8 +48,8 @@ interface Options {
 }
 
 export default class eduSTAR {
-    private client: AxiosInstance;
-    private school: string;
+    public client: AxiosInstance;
+    public school: string;
     private cachePolicy: number = 1440;
     private includeInactive: boolean;
     private jar = new CookieJar();
@@ -144,6 +144,33 @@ export default class eduSTAR {
             throw Error(message);
         }
     }
+    private async downloadStaff(): Promise<starAttributes[]> { //TODO - find response schema
+        try {
+            if (this.alert) this.alert('Downloading staff...');
+            const response = await this.client.get(`/edustarmc/api/MC/GetSchoolTechs/${this.school}/true`);
+            if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
+            const encrypted = await encrypt(JSON.stringify(response.data));
+            const cache: cache = { date: new Date(), data: encrypted };
+            fs.writeFileSync(`${paths.cache}/${this.school}.staff.json`, JSON.stringify(cache));
+            return response.data as starAttributes[];
+        } catch (e) {
+            const { message } = e as { response: {status: number}, message: string };
+            if (message.includes("Object reference")) throw Error("Incorrect School ID.");
+            throw Error(message);
+        }
+    }
+    public async setStudentPassword(dn: string, newPass: string): Promise<true> {
+        try {
+            const data = { dn, newPass, schoolId: this.school };
+            const response = await this.client.post(`/edustarmc/api/MC/ResetStudentPwd`, data);
+            if (response.status !== 200) throw Error(`${response.statusText} - Failed to set password`);
+            return true;
+        } catch (e) {
+            const { message } = e as { response: {status: number}, message: string };
+            if (message.includes("Object reference")) throw Error("Incorrect School ID.");
+            throw Error(message);
+        }
+    }
     public async getStudentsMatchSTKEY(eduhub: { [k: string]: string }[]): Promise<starAttributes[]> {
         //TODO - add option to specify eduhub column and skip scoring
         if (this.alert) this.alert('Matching eduhub data...');
@@ -193,3 +220,21 @@ export default class eduSTAR {
 
     }
 }
+
+
+// add wireless cert
+// https://apps.edustar.vic.edu.au/edustarmc/api/MC/AddManagedComputer?schoolId=8827&computerName=8827-test&password=eduSTAR.NETx
+
+// enable intune
+// POST https://apps.edustar.vic.edu.au/edustarmc/api/MC/SetO365 :
+// {"_dns":["CN=name,OU=Accounts,DC=services,DC=education,DC=vic,DC=gov,DC=au"],"_accountType":"student","_schoolId":"8827","_property":"intune","_value":null}
+// response: ["OK-CN=name,OU=Accounts,DC=services,DC=education,DC=vic,DC=gov,DC=au"]
+// enable google
+// POST https://apps.edustar.vic.edu.au/edustarmc/api/MC/SetO365 :
+// {"_dns":["CN=name,OU=Accounts,DC=services,DC=education,DC=vic,DC=gov,DC=au"],"_accountType":"student","_schoolId":"8827","_property":"add_google_ws","_value":null}
+// disable google
+// POST https://apps.edustar.vic.edu.au/edustarmc/api/MC/SetO365 :
+// {"_dns":["CN=name,OU=Accounts,DC=services,DC=education,DC=vic,DC=gov,DC=au"],"_accountType":"student","_schoolId":"8827","_property":"remove_google_ws","_value":null}
+// disable intune
+// POST https://apps.edustar.vic.edu.au/edustarmc/api/MC/UnsetO365 :
+// {"_dns":["CN=name,OU=Accounts,DC=services,DC=education,DC=vic,DC=gov,DC=au"],"_accountType":"student","_schoolId":"8827","_property":"intune","_value":null}

@@ -14,7 +14,7 @@ import SysRunCommand from "./actions/SysRunCommand";
 import SysTemplate from "./actions/SysTemplate";
 import SysWait from "./actions/SysWait";
 import { Engine } from "./engine";
-import { connections } from "./providers";
+import { connections, contexts } from "./providers";
 
 interface handle<type=unknown> {
   handle: type;
@@ -26,6 +26,7 @@ export interface props<type> {
   action: Action & type;
   template: template;
   connections: connections;
+  contexts: contexts;
   execute: boolean;
   engine: Engine;
   handles: handles
