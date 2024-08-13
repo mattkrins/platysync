@@ -162,12 +162,14 @@ export default class eduSTAR {
     public async setStudentPassword(dn: string, newPass: string): Promise<true> {
         try {
             const data = { dn, newPass, schoolId: this.school };
-            const response = await this.client.post(`/edustarmc/api/MC/ResetStudentPwd`, data);
-            if (response.status !== 200) throw Error(`${response.statusText} - Failed to set password`);
+            await this.client.post(`/edustarmc/api/MC/ResetStudentPwd`, data);
             return true;
         } catch (e) {
-            const { message } = e as { response: {status: number}, message: string };
-            if (message.includes("Object reference")) throw Error("Incorrect School ID.");
+            const { message : defMess, response } = e as { response: { status: number, data?: { Message?: string  } }, message: string };
+            const message = response.data?.Message||defMess;
+            if (message.includes("reference not set")) throw Error("Incorrect School ID.");
+            if (message.includes("target of an invocation")) throw Error("Password does not meet complexity requirements.");
+            if (message.includes("no such object")) throw Error("DN incorrect / not found.");
             throw Error(message);
         }
     }

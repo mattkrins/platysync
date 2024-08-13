@@ -24,6 +24,8 @@ Handlebars.registerHelper("$grad", function(str: string, year: string) {
     if (typeof year !== "string") year = "12";
     return (parseInt(year) - Number(str)) + (new Date()).getFullYear();
 });
+//TODO - add dayjs date converter
+//TODO - add string splitter
 
 Handlebars.registerHelper("$dir", function() { return paths.base; });
 

@@ -8,6 +8,7 @@ import FolderCopy from "./actions/FolderCopy";
 import FolderCreate from "./actions/FolderCreate";
 import FolderDelete from "./actions/FolderDelete";
 import FolderMove from "./actions/FolderMove";
+import StmcUpStuPass from "./actions/StmcUpStuPass";
 import SysComparator from "./actions/SysComparator";
 import SysEncryptString from "./actions/SysEncryptString";
 import SysRunCommand from "./actions/SysRunCommand";
@@ -47,6 +48,7 @@ export const availableActions: { [k: string]: operation } = {
   'FolderCreate': FolderCreate,
   'FolderDelete': FolderDelete,
   'FolderMove': FolderMove,
+  'StmcUpStuPass': StmcUpStuPass,
   'SysComparator': SysComparator,
   'SysEncryptString': SysEncryptString,
   'SysRunCommand': SysRunCommand,
