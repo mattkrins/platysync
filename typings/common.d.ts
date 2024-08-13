@@ -60,6 +60,7 @@ interface Condition {
     value: string,
     delimiter?: string,
     and?: boolean,
+    case?: boolean,
 }
 
 interface FormDataValue {

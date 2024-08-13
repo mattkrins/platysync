@@ -1,6 +1,6 @@
 import { ActionIcon, Autocomplete, Box, Button, Grid, Group, Menu, Popover, Select, Switch, Text, TextInput, Tooltip, useMantineTheme } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
-import { Icon, IconCalendar, IconChevronDown, IconCircle, IconCirclesRelation, IconCodeAsterix, IconCopy, IconDots, IconFile, IconFolder, IconGripVertical, IconLock, IconLockOff, IconMathFunction, IconProps, IconQuestionMark, IconSearch, IconTrash, IconUserQuestion, IconUsersGroup, IconX } from '@tabler/icons-react';
+import { Icon, IconCalendar, IconChevronDown, IconCircle, IconCirclesRelation, IconCodeAsterix, IconCopy, IconDots, IconFile, IconFolder, IconGripVertical, IconLetterCase, IconLock, IconLockOff, IconMathFunction, IconProps, IconQuestionMark, IconSearch, IconTrash, IconUserQuestion, IconUsersGroup, IconX } from '@tabler/icons-react';
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from 'react'
 import { useRule } from './Editor';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
@@ -105,6 +105,8 @@ function General({ form, templateProps, index, c, path }: { form: UseFormReturnT
         case 'date': return dateOperators;
         default: return [];
     } }, [ c.id ]);
+    const ignore = form.getInputProps(`${path}.${index}.case`).value || false;
+    const toggleCase = () => form.setFieldValue(`${path}.${index}.case`, !ignore);
     return (
     <>
         <Grid.Col span="auto" >
@@ -121,6 +123,11 @@ function General({ form, templateProps, index, c, path }: { form: UseFormReturnT
         <Grid.Col span="auto" >
             <ValueInput form={form} index={index} templateProps={templateProps} path={path} />
         </Grid.Col>
+        {c.id==="string"&&
+        <Grid.Col span="content" >
+            <Tooltip label="Ignore Case" ><ActionIcon onClick={toggleCase} variant={ignore?"outline":"default"} size="lg"><IconLetterCase size={15}/></ActionIcon></Tooltip>
+        </Grid.Col>}
+
     </>)
 }
 
@@ -269,7 +276,7 @@ function Condition({ index, condition, form, templateProps, path }: { index: num
                 <Grid.Col span="content" >
                     <Group><Tooltip label={condition.name}><c.Icon color={c.color?theme.colors[c.color][6]:undefined} size="1.2rem" /></Tooltip></Group>
                 </Grid.Col>
-                {c.Options&&<c.Options index={index} form={form} templateProps={templateProps} c={c} path={path} />}
+                {c.Options&&<c.Options index={index} form={form} templateProps={templateProps} c={c} path={path} />} 
                 <Grid.Col span="content">
                     <Group justify="right" gap="xs">
                         <Tooltip label="Remove" ><ActionIcon onClick={remove(index)} variant="default" size="lg"><IconTrash size={15}/></ActionIcon></Tooltip>
@@ -279,7 +286,7 @@ function Condition({ index, condition, form, templateProps, path }: { index: num
             </Grid>
         )}
         </Draggable>)
-}
+}//TODO make caseSen option
 
 export default function Conditions({ form, label, compact, path = "conditions", iterative }: { form: UseFormReturnType<Rule>, label?: string, compact?: boolean, path?: string, iterative?: boolean }) {
     const theme = useMantineTheme();

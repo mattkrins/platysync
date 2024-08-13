@@ -129,8 +129,10 @@ export class Engine { //TODO - add way to cancel
     private async evaluate(condition: Condition, template: template, id?: string): Promise<boolean> {
         const key = compile(template, condition.key);
         const value = compile(template, condition.value);
+        const k = condition.case ? key.toLocaleLowerCase() : key;
+        const v = condition.case ? value.toLocaleLowerCase() : value;
         const delimiter = condition.delimiter !== "";
-        return delimiter ? await this.delimit(key, value, condition, template, id) : await this.compare(key, value, condition.operator, template, id);
+        return delimiter ? await this.delimit(k, v, condition, template, id) : await this.compare(k, v, condition.operator, template, id);
     }
     public async evaluateAll(conditions: Condition[], template: template, id?: string): Promise<boolean> {
         for (const condition of conditions) {
