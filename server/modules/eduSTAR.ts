@@ -35,6 +35,8 @@ export interface starAttributes {
   _yammer: string;
 }
 
+export type passwordPayload = { _login: string, _pass: string }[];
+
 interface cache {
     date: Date;
     data: Hash;
@@ -173,6 +175,23 @@ export default class eduSTAR {
             throw Error(message);
         }
     }
+    public async setStudentPasswords(payload: passwordPayload): Promise<{ [id: string]: string }[]> {
+        try {
+            const data: { _schoolId: string, _rows: passwordPayload } = { "_schoolId" : this.school, "_rows" : payload };
+            const response = await this.client.post(`/edustarmc/api/MC/BulkSetPasswordCSV`, data);
+            if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
+            const results = (response.data || []) as {_outcome: string}[];
+            if (results.length <= 0) throw Error("Invalid response.");
+            const errors = results.filter(r=>r._outcome!=="OK");
+            if (errors.length > 0) throw new Error(`Error setting passwords: ${JSON.stringify(errors)}`);
+            return response.data;
+        } catch (e) {
+            const { message : defMess, response } = e as { response: { status: number, data?: { Message?: string  } }, message: string };
+            const message = response.data?.Message||defMess;
+            if (message.includes("reference not set")) throw Error("Incorrect School ID.");
+            throw Error(message);
+        }
+    }
     public async getStudentsMatchSTKEY(eduhub: { [k: string]: string }[]): Promise<starAttributes[]> {
         //TODO - add option to specify eduhub column and skip scoring
         if (this.alert) this.alert('Matching eduhub data...');
@@ -240,3 +259,6 @@ export default class eduSTAR {
 // disable intune
 // POST https://apps.edustar.vic.edu.au/edustarmc/api/MC/UnsetO365 :
 // {"_dns":["CN=name,OU=Accounts,DC=services,DC=education,DC=vic,DC=gov,DC=au"],"_accountType":"student","_schoolId":"8827","_property":"intune","_value":null}
+// get group members
+// https://apps.edustar.vic.edu.au/edustarmc/api/MC/GetGroupMembers?schoolId=8827
+// &groupDn=CN%3D8827-gs-Specialist%20Technician%2COU%3DSchool%20Groups%2COU%3DCentral%2CDC%3Dservices%2CDC%3Deducation%2CDC%3Dvic%2CDC%3Dgov%2CDC%3Dau&groupName=8827-gs-Specialist%20Technician
