@@ -1,4 +1,4 @@
-import { server } from "../../server";
+import { paths, server } from "../../server";
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
 import { availableActions, handles } from "./actions";
@@ -49,7 +49,13 @@ export class Engine { //TODO - add way to cancel
     public async Run(){
         this.settings = await Settings();
         this.Emit();
-        const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, {}, "init");
+        const docsTemplate: template = { $file: {} };
+        for (const file of this.schema.files) {
+            const folder = `${paths.storage}/${this.schema.name}`;
+            const path = `${folder}/${file.path}`;
+            (docsTemplate.$file as { [k: string]: string })[file.key||file.name] = path;
+        }
+        const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, docsTemplate, "init");
         if (this.hasInit) this.progress = 15;
         this.initTemplate = initTemplate;
         if (initError) throw initError;
@@ -61,7 +67,7 @@ export class Engine { //TODO - add way to cancel
         await wait(500);
         await this.iteratePrimary();
         if (this.primary) this.progress = 85;
-        const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, {}, "final");
+        const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, initTemplate, "final");
         this.Emit({ text: "Finalising..." });
         await wait(500);
         this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});

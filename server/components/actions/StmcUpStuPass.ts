@@ -17,7 +17,7 @@ export default async function StmcUpStuPass({ action, template, execute, data, c
         if (!data.dn) throw new xError("DN not provided.");
         if (!data.connector) throw new xError("Connector not provided.");
         const ldap = connections[data.connector] as STMC|undefined;
-        if (!ldap) throw new xError(`Provider '${data.connector}' not connected.`);
+        if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
         if (!execute) return { data };
         await ldap.client.setStudentPassword(data.dn, data.password);
         return { success: true, data };

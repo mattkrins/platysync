@@ -6,7 +6,7 @@ import { fileIcons, isAlphanumeric } from "./common";
 import CSV from "../routes/Connectors/providers/CSV";
 import LDAP, { LDAPContext } from "../routes/Connectors/providers/LDAP";
 import FOLDER from "../routes/Connectors/providers/FOLDER";
-import STMC from "../routes/Connectors/providers/STMC";
+import STMC, { STMCContext } from "../routes/Connectors/providers/STMC";
 
 export interface ContextProps {
     form: UseFormReturnType<any>;
@@ -78,6 +78,7 @@ export const providers: provider[] = [
         color: 'yellow',
         Icon: IconSchool,
         Options: STMC,
+        Context: STMCContext,
         initialValues: {
             name: 'MySchool',
             username: '',

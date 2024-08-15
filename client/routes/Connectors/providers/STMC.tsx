@@ -45,3 +45,8 @@ export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap
         </Concealer>
     </>);
 }
+
+
+export function STMCContext() {
+    return <></>
+}

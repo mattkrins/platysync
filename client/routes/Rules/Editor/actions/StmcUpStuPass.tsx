@@ -16,7 +16,7 @@ export default function StmcUpStuPass( { form, path, templateProps }: actionProp
     <>
         <SelectConnector mt="sm" defaultValue={''}
         {...form.getInputProps(`${path}.connector`)} ids={["stmc"]} names={sources} clearable
-        label="Target Connector"
+        label="Target Endpoint"
         />
         <TextInput
             label="DN Path" withAsterisk

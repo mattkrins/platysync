@@ -1,4 +1,4 @@
-import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate } from "@tabler/icons-react";
+import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
 import { UseFormReturnType, isNotEmpty } from "@mantine/form";
@@ -20,6 +20,7 @@ import SysWait from "../routes/Rules/Editor/actions/SysWait";
 import TransEmailSend, { TransEmailSendConfig } from "../routes/Rules/Editor/actions/TransEmailSend";
 import TransAPIRequest, { TransAPIRequestConfig } from "../routes/Rules/Editor/actions/TransAPIRequest";
 import StmcUpStuPass from "../routes/Rules/Editor/actions/StmcUpStuPass";
+import StmcUpStuPassBulk from "../routes/Rules/Editor/actions/StmcUpStuPassBulk";
 
 export interface availableCategory {
     id: string,
@@ -314,18 +315,19 @@ export const availableActions: availableAction[] = [
         category: 'edustar',
         Icon: IconCloudUpload,
         color: 'yellow',
-        //provider: 'stmc',
+        provider: 'stmc',
         Options: StmcUpStuPass,
     },
-    //{
-    //    name: "StmcUpload",
-    //    label: "Upload Student Passwords",
-    //    category: 'edustar',
-    //    Icon: IconCloudUpload,
-    //    color: 'yellow',
-    //    //provider: 'stmc',
-    //    //Options: SysWait,
-    //},
+    {
+        name: "StmcUpStuPassBulk",
+        label: "Upload Student Password CSV",
+        category: 'edustar',
+        Icon: IconCsv,
+        color: 'orange',
+        provider: 'stmc',
+        Options: StmcUpStuPassBulk,
+        validator: true,
+    },
     {
         name: "TransEmailSend",
         label: "Send Email",
