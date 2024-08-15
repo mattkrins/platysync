@@ -6,8 +6,8 @@ import { UseFormReturnType } from '@mantine/form'
 import { templateProps } from '../../../../hooks/useTemplater';
 import MenuTip from '../../../../components/MenuTip'
 
-function Template({ index, template, form, templateProps, path }: { index: number, template: SysTemplate, form: UseFormReturnType<Rule>, templateProps: templateProps, path: string } ) {
-    const copy = () => form.insertListItem(path, structuredClone(template));
+function Template({ index, entry, form, templateProps, path }: { index: number, entry: SysTemplate, form: UseFormReturnType<Rule>, templateProps: templateProps, path: string } ) {
+    const copy = () => form.insertListItem(path, structuredClone(entry));
     const remove = () => form.removeListItem(path, index);
     return (
     <Draggable index={index} draggableId={String(index)}>
@@ -41,17 +41,17 @@ function Template({ index, template, form, templateProps, path }: { index: numbe
 
 export default function SysTemplate( { form, path, templateProps }: actionProps ) {
     const templatePath = `${path}.templates`;
-    const templates = form.getInputProps(templatePath).value as SysTemplate[];
+    const entries = form.getInputProps(templatePath).value as SysTemplate[];
     const add = () => form.insertListItem(templatePath, { key: undefined, value: undefined, });
     return (
     <>
     <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Template</Button></Group>
-    {templates.length===0&&<Center c="dimmed" fz="xs" >No templates configured.</Center>}
+    {entries.length===0&&<Center c="dimmed" fz="xs" >No templates configured.</Center>}
     <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
         <Droppable droppableId="dnd-list" direction="vertical">
         {(provided) => (
         <div {...provided.droppableProps} ref={provided.innerRef}>
-            {templates.map((template, index) => <Template key={index} index={index} template={template} form={form} templateProps={templateProps} path={templatePath} />)}
+            {entries.map((entry, index) => <Template key={index} index={index} entry={entry} form={form} templateProps={templateProps} path={templatePath} />)}
             {provided.placeholder}
         </div>
         )}

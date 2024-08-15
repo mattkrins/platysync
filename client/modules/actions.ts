@@ -21,6 +21,7 @@ import TransEmailSend, { TransEmailSendConfig } from "../routes/Rules/Editor/act
 import TransAPIRequest, { TransAPIRequestConfig } from "../routes/Rules/Editor/actions/TransAPIRequest";
 import StmcUpStuPass from "../routes/Rules/Editor/actions/StmcUpStuPass";
 import StmcUpStuPassBulk from "../routes/Rules/Editor/actions/StmcUpStuPassBulk";
+import LdapCreateUser from "../routes/Rules/Editor/actions/LdapCreateUser";
 
 export interface availableCategory {
     id: string,
@@ -28,7 +29,7 @@ export interface availableCategory {
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
     color?: string,
     provider?: string,
-    iterative?: boolean,
+    iterativeOnly?: boolean,
 }
 
 export const availableCategories: availableCategory[] = [
@@ -80,7 +81,7 @@ export const availableCategories: availableCategory[] = [
 export interface actionProps {
     form: UseFormReturnType<Rule>;
     path: string;
-    iterative: boolean;
+    iterative?: boolean;
     templateProps: templateProps;
 }
 
@@ -102,16 +103,20 @@ export interface availableAction {
     overwriter?: boolean;
     provider?: string;
     validate?: {[value: string]: (...v: unknown[]) => unknown};
+    iterativeOnly?: boolean;
 }
 
 export const availableActions: availableAction[] = [
     //TODO - save results as csv
     {
-        name: "Create User",
+        name: "LdapCreateUser",
+        label: "Create User",
         category: 'directory',
         provider: 'ldap',
         Icon: IconUserPlus,
         color: 'blue',
+        Options: LdapCreateUser,
+        initialValues: { attributes: [], groups: [] },
     },
 
     {
@@ -120,7 +125,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconLockOpen,
         color: 'green',
-        // EnableUser,
+        iterativeOnly: true
     },
     {
         name: "Disable User",
@@ -128,7 +133,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconLock,
         color: 'pink',
-        // EnableUser,
+        iterativeOnly: true
     },
     {
         name: "Delete User",
@@ -136,7 +141,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconTrash,
         color: 'red',
-        // EnableUser,
+        iterativeOnly: true
     },
     {
         name: "Update Attributes",
@@ -144,7 +149,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconPencil,
         color: 'orange',
-        // UpdateAttributes,
+        iterativeOnly: true,
         initialValues: {
             attributes: []
         },
@@ -155,7 +160,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconUsersGroup,
         color: 'yellow',
-        // DirUpdateSec,
+        iterativeOnly: true,
         initialValues: {
             groups: []
         },
@@ -166,7 +171,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconShieldCog,
         color: 'orange',
-        // DirAccountControl,
+        iterativeOnly: true
     },
     {
         name: "Move Organisational Unit",
@@ -174,8 +179,8 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconFolderShare,
         color: 'grape',
-        // MoveOU,
-    }, //TODO - everything above this ----------------------------------------------------------------------
+        iterativeOnly: true
+    },
     {
         name: "DocWritePDF",
         label: "Write PDF",

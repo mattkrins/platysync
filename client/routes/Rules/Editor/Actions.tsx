@@ -11,6 +11,7 @@ import { useRule } from "./Editor";
 import useTemplater, { templateProps } from "../../../hooks/useTemplater";
 import { useSelector, useSettings } from "../../../hooks/redux";
 import { getActions } from "../../../providers/schemaSlice";
+import SelectActionConnector from "../../../components/SelectActionConnector";
 //LINK - https://github.com/hello-pangea/dnd/blob/main/docs/api/droppable.md#conditionally-dropping
 
 //NOTE - do not make target connector avalible if only 1 of type in context
@@ -40,17 +41,18 @@ function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
     )
 }
 
-function Category({ category, add, form }: { category: availableCategory, add(c: availableAction): void, form: UseFormReturnType<Rule> }) {
+function Category({ category, add, form, type }: { category: availableCategory, add(c: availableAction): void, form: UseFormReturnType<Rule>, type: string }) {
     const theme = useMantineTheme();
     const [opened, { toggle }] = useDisclosure(false);
     const { ruleProConnectors } = useRule(form);
     const settings = useSettings(); 
     const filtered = useMemo(()=>availableActions.
     filter(a=> a.name==="SysRunCommand"?settings.enableRun:true ).
+    filter(a=> a.iterativeOnly?type==="iterativeActions":true ).
     filter(a=>a.category===category.id).
     filter(a=>a.provider?ruleProConnectors.
     find(c=>c.id===a.provider):true)
-    , [ ruleProConnectors, settings ]);
+    , [ ruleProConnectors, settings, type ]);
     return (
     <>
         <Section open={opened} label={category.name} Icon={category.Icon} onClick={toggle} color={category.color?theme.colors[category.color][6]:undefined} />
@@ -84,7 +86,7 @@ function ActionButton({ label, add, type, form, disabled }: { label: string, typ
             <Button disabled={disabled} size="sm" onClick={open} rightSection={<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12}>{label}</Button>
         </Popover.Target>
         <Popover.Dropdown ref={ref} >
-            {filtered.map(category=><Category key={category.name} category={category} add={addClose} form={form} />)}
+            {filtered.map(category=><Category key={category.name} type={type} category={category} add={addClose} form={form} />)}
         </Popover.Dropdown>
     </Popover>
     );
@@ -129,12 +131,12 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     const display = form.values[type as "initActions"][index].display;
     const config = form.values[type as "initActions"][index].config;
     const setConfig = (name: string) => form.setFieldValue(`${type}.${index}.config`, name);
-    const { templateSources, inline } = useRule(form, type);
+    const { templateSources, inline, sources } = useRule(form, type);
     const iterative = type === "iterativeActions";
     const actionConfig = availableActions.find(a=>a.name===action.name) as availableAction;
     const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline});
     if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;
-    const { Icon, color, name, label, validator, overwriter, Options, Config } = actionConfig;
+    const { Icon, color, name, label, validator, overwriter, Options, Config, provider } = actionConfig;
 
     return <>{explorer}
     <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
@@ -147,16 +149,24 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                     <IconGripVertical size="1.2rem" />
                     <Group visibleFrom="xl" >{(index+1).toString()}.</Group>
                     <Group visibleFrom="xl" >
-                        <Tooltip label={name} color={color?theme.colors[color][6]:undefined} >
+                        <Tooltip label={label} color={color?theme.colors[color][6]:undefined} >
                             <Icon size={20} color={color?theme.colors[color][6]:undefined} />
                         </Tooltip>
                     </Group>
                 </Group>
             </Grid.Col>
-            <Grid.Col span={12}>
+            <Grid.Col span={7}>
                 <TextInput variant="filled" {...form.getInputProps(`${type}.${index}.display`)}
                 value={display?display:(config||label||name)}
                 />
+            </Grid.Col>
+            <Grid.Col span={5}>
+                <Divider orientation="vertical" />
+                <SelectActionConnector {...form.getInputProps(`${`${type}.${index}`}.connector`)}
+                form={form} path={`${`${type}.${index}`}.connector`} width={'auto'} position="bottom-start"
+                ids={provider?[provider]:undefined} names={sources} variant="unstyled"
+                />
+                <Divider orientation="vertical" />
             </Grid.Col>
             <Grid.Col span={6} miw={120}>
                 <Group gap="xs" justify="flex-end">
@@ -170,7 +180,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                     <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
                     onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
                     <Divider orientation="vertical" />
-                    <MenuTip label="Edit" Icon={IconPencil} onClick={toggle} color="orange" variant={opened?"default":"subtle"} />
+                    {Options&&<MenuTip label="Edit" Icon={IconPencil} onClick={toggle} color="orange" variant={opened?"default":"subtle"} />}
                     <MenuTip label="Copy" Icon={IconCopy} onClick={copy} color="indigo" variant="subtle" />
                     <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />
                 </Group>

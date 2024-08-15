@@ -1,4 +1,4 @@
-import { useCombobox, Combobox, InputBase, Input, Group, Text, InputBaseProps, useMantineTheme, CloseButton } from '@mantine/core';
+import { useCombobox, Combobox, InputBase, Input, Group, Text, InputBaseProps, useMantineTheme, CloseButton, FloatingPosition } from '@mantine/core';
 import { useSelector } from '../hooks/redux';
 import { getConnectors } from '../providers/schemaSlice';
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from 'react';
@@ -8,7 +8,7 @@ import { Icon, IconPlug, IconProps } from '@tabler/icons-react';
 
 interface Item extends Connector, provider {}
 
-interface Props extends InputBaseProps {
+export interface SelectConnectorProps extends InputBaseProps {
     value?: string;
     onChange(value: string|null): void;
     Icon?: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>
@@ -21,6 +21,8 @@ interface Props extends InputBaseProps {
     ids?: string[];
     removeNames?: string[];
     removeIds?: string[];
+    width?: number|string;
+    position?: FloatingPosition;
 }
 
 function SelectOption({ name, cName, Icon, color, inactive }: Item&{ inactive?: boolean, cName?: string }  ) {
@@ -40,7 +42,7 @@ function SelectOption({ name, cName, Icon, color, inactive }: Item&{ inactive?: 
     );
 }
 
-export default function SelectConnector( { value, onChange, Icon, placeholder, clearable, provider, names, ids, removeNames, removeIds, ...props }: Props ) {
+export default function SelectConnector( { value, width, position, onChange, Icon, placeholder, clearable, provider, names, ids, removeNames, removeIds, ...props }: SelectConnectorProps ) {
     const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption(), });
     const connectors = useSelector(getConnectors);
     const proConnectors = useMemo(()=>connectors.map(({name, ...c})=>({ ...(providers.find(p=>p.id===c.id) as provider), ...c, cName: name })),[ connectors ]);
@@ -58,10 +60,13 @@ export default function SelectConnector( { value, onChange, Icon, placeholder, c
             <SelectOption {...item} inactive />
         </Combobox.Option>
     ));
+
+
+    
     return (
     <Combobox
         disabled={props.disabled||options.length<=0}
-        store={combobox}
+        store={combobox} width={width} position={position}
         withinPortal={props.withinPortal||false}
         onOptionSubmit={(val) => {
             onChange(val);
