@@ -48,7 +48,7 @@ function Category({ category, add, form, type }: { category: availableCategory, 
     const settings = useSettings(); 
     const filtered = useMemo(()=>availableActions.
     filter(a=> a.name==="SysRunCommand"?settings.enableRun:true ).
-    filter(a=> a.iterativeOnly?type==="iterativeActions":true ).
+    filter(a=> a.iterative?( typeof(a.iterative)==="boolean" ? (type==="iterativeActions") : true ) : true ).
     filter(a=>a.category===category.id).
     filter(a=>a.provider?ruleProConnectors.
     find(c=>c.id===a.provider):true)
@@ -136,8 +136,8 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     const actionConfig = availableActions.find(a=>a.name===action.name) as availableAction;
     const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline});
     if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;
-    const { Icon, color, name, label, validator, overwriter, Options, Config, provider } = actionConfig;
-
+    const { Icon, color, name, label, validator, overwriter, Options, Config, provider, iterative: Context } = actionConfig;
+    const useContext = !iterative && Context && (typeof Context === "function");
     return <>{explorer}
     <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
     {(provided) => (
@@ -180,7 +180,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                     <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
                     onClick={()=>form.setFieldValue(`${type}.${index}.enabled`, !action.enabled)} />
                     <Divider orientation="vertical" />
-                    {Options&&<MenuTip label="Edit" Icon={IconPencil} onClick={toggle} color="orange" variant={opened?"default":"subtle"} />}
+                    {(Options||useContext)&&<MenuTip label="Edit" Icon={IconPencil} onClick={toggle} color="orange" variant={opened?"default":"subtle"} />}
                     <MenuTip label="Copy" Icon={IconCopy} onClick={copy} color="indigo" variant="subtle" />
                     <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />
                 </Group>
@@ -189,6 +189,9 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
         <Collapse in={opened} >
             {render&&<>
             <Divider mb="xs" mt={4} />
+            { useContext && <Box p="xs" pt={0} pb={0} >
+                <Context form={form} sources={templateSources} rule={form} path={`${type}.${index}`}  />
+            </Box>}
             <Box p="xs" pt={0} >
                 {(Config&&!config)&&<Config form={form as unknown as UseFormReturnType<ActionConfig>} />}
                 {Config&&<Divider mt="md" label={config?`config - ${config}`:undefined} labelPosition="center" />}

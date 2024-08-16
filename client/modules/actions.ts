@@ -26,6 +26,8 @@ import LdapUpdateAttributes from "../routes/Rules/Editor/actions/LdapUpdateAttri
 import LdapUpdateGroups from "../routes/Rules/Editor/actions/LdapUpdateGroups";
 import LdapUpdateAccount from "../routes/Rules/Editor/actions/LdapUpdateAccount";
 import LdapMoveOU from "../routes/Rules/Editor/actions/LdapMoveOU";
+import { ContextProps } from "./providers";
+import { LDAPContext } from "../routes/Connectors/providers/LDAP";
 
 export interface availableCategory {
     id: string,
@@ -107,7 +109,7 @@ export interface availableAction {
     overwriter?: boolean;
     provider?: string;
     validate?: {[value: string]: (...v: unknown[]) => unknown};
-    iterativeOnly?: boolean;
+    iterative?: true|((props: ContextProps) => JSX.Element);
 }
 
 export const availableActions: availableAction[] = [
@@ -132,7 +134,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconLockOpen,
         color: 'green',
-        iterativeOnly: true
+        iterative: LDAPContext,
     },
     {
         name: "Disable User",
@@ -140,7 +142,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconLock,
         color: 'pink',
-        iterativeOnly: true
+        iterative: LDAPContext,
     },
     {
         name: "Delete User",
@@ -148,7 +150,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconTrash,
         color: 'red',
-        iterativeOnly: true
+        iterative: LDAPContext,
     },
     {
         name: "Update Attributes",
@@ -157,7 +159,7 @@ export const availableActions: availableAction[] = [
         Icon: IconPencil,
         color: 'orange',
         Options: LdapUpdateAttributes,
-        iterativeOnly: true,
+        iterative: LDAPContext,
         initialValues: {
             attributes: []
         },
@@ -169,7 +171,7 @@ export const availableActions: availableAction[] = [
         Icon: IconUsersGroup,
         color: 'yellow',
         Options: LdapUpdateGroups,
-        iterativeOnly: true,
+        iterative: LDAPContext,
         initialValues: {
             groups: []
         },
@@ -181,7 +183,7 @@ export const availableActions: availableAction[] = [
         Icon: IconShieldCog,
         color: 'orange',
         Options: LdapUpdateAccount,
-        iterativeOnly: true
+        iterative: LDAPContext,
     },
     {
         name: "Move Organisational Unit",
@@ -190,7 +192,7 @@ export const availableActions: availableAction[] = [
         Icon: IconFolderShare,
         color: 'grape',
         Options: LdapMoveOU,
-        iterativeOnly: true
+        iterative: LDAPContext,
     },
     {
         name: "DocWritePDF",

@@ -13,6 +13,7 @@ export interface ContextProps {
     rule: UseFormReturnType<Rule>;
     editing?: boolean;
     sources: string[];
+    path?: string;
 }
 
 export interface provider {

@@ -7,6 +7,7 @@ import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import useTemplater, { templateProps } from '../../../hooks/useTemplater';
 import SelectConnector from '../../../components/SelectConnector';
 import { useDisclosure } from '@mantine/hooks';
+import SelectActionConnector from '../../../components/SelectActionConnector';
 
 const stringOperators = [
     { label: '== Equal To', value: '==' },
@@ -159,7 +160,10 @@ function Ldap({ form, templateProps, index, c, path }: { form: UseFormReturnType
     return (
     <>
         <Grid.Col span="auto" >
-            <SelectConnector {...form.getInputProps(`${path}.${index}.key`)} ids={["ldap"]} names={sources} clearable />
+            <SelectActionConnector
+            {...form.getInputProps(`${path}.${index}.key`)} ids={["ldap"]} names={sources}
+            form={form} path={`${path}.${index}.key`}
+            />
         </Grid.Col>
         <Grid.Col span="content" >
             <Select
@@ -267,7 +271,7 @@ function Condition({ index, condition, form, templateProps, path }: { index: num
     const copy = (c: Condition) => () => form.insertListItem(path, structuredClone(c));
     const remove  = (index: number) => () => form.removeListItem(path, index);
     return (
-        <Draggable index={index} draggableId={String(index)}>
+    <Draggable index={index} draggableId={String(index)}>
         {provided => (
             <Grid align="center" mt="xs" gutter="xs" {...provided.draggableProps} ref={provided.innerRef} >
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
@@ -285,8 +289,8 @@ function Condition({ index, condition, form, templateProps, path }: { index: num
                 </Grid.Col>
             </Grid>
         )}
-        </Draggable>)
-}//TODO make caseSen option
+    </Draggable>)
+}
 
 export default function Conditions({ form, label, compact, path = "conditions", iterative }: { form: UseFormReturnType<Rule>, label?: string, compact?: boolean, path?: string, iterative?: boolean }) {
     const theme = useMantineTheme();
