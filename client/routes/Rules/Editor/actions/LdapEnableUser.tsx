@@ -1,5 +1,3 @@
-import { TextInput } from '@mantine/core'
-import { IconFileUpload } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 import { useRule } from '../Editor';
 import SelectActionConnector from '../../../../components/SelectActionConnector';

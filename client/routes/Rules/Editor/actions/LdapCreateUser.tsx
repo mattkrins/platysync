@@ -1,5 +1,5 @@
 import { ActionIcon, Autocomplete, Button, Center, Grid, Group, PasswordInput, Switch, TextInput } from '@mantine/core'
-import { IconAt, IconBraces, IconCopy, IconEye, IconEyeOff, IconFolder, IconGripVertical, IconHierarchy, IconKey, IconPencil, IconPlus, IconTrash, IconUser } from '@tabler/icons-react'
+import { IconAt, IconBraces, IconCopy, IconEye, IconEyeOff, IconFolder, IconGripVertical, IconHierarchy, IconKey, IconPencil, IconPlus, IconTag, IconTrash, IconUser, IconUsersGroup } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { UseFormReturnType } from '@mantine/form';
@@ -9,7 +9,7 @@ import { ldapAttributes } from '../../../../modules/ldap';
 import { useDisclosure } from '@mantine/hooks';
 
 function Attribute({ index, entry, form, templateProps, path }:
-    { index: number, entry: { key: string,value: string }, form: UseFormReturnType<Rule>, templateProps: actionProps['templateProps'], path: string }
+    { index: number, entry: { name: string,value: string }, form: UseFormReturnType<Rule>, templateProps: actionProps['templateProps'], path: string }
 ) {
     const copy = () => form.insertListItem(path, structuredClone(entry));
     const remove = () => form.removeListItem(path, index);
@@ -21,8 +21,8 @@ function Attribute({ index, entry, form, templateProps, path }:
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
                 <Grid.Col span="auto" >
-                    <Autocomplete {...templateProps(form, `${path}.${index}.key`)}
-                    leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                    <Autocomplete {...templateProps(form, `${path}.${index}.name`)}
+                    leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="Name" data={ldapAttributes}
                     />
                 </Grid.Col>
@@ -45,8 +45,8 @@ function Attribute({ index, entry, form, templateProps, path }:
 
 function Attributes( { form, path, templateProps }: actionProps ) {
     const templatePath = `${path}.attributes`;
-    const entries = form.getInputProps(templatePath).value as { key: string,value: string }[];
-    const add = () => form.insertListItem(templatePath, { key: undefined, value: undefined, });
+    const entries = form.getInputProps(templatePath).value as { name: string,value: string }[];
+    const add = () => form.insertListItem(templatePath, { name: undefined, value: undefined, });
     return (
     <Concealer label='Attributes' open rightSection={
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Attribute</Button></Group> } >
@@ -79,7 +79,7 @@ function SecurityGroup({ index, entry, form, templateProps, path }:
                 </Grid.Col>
                 <Grid.Col span="auto" >
                     <TextInput {...templateProps(form, `${path}.${index}`)}
-                    leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                    leftSection={<IconUsersGroup size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="CN={{name}},OU={{faculty}},OU=Child,OU=Parent"
                     />
                 </Grid.Col>
@@ -128,7 +128,7 @@ export default function LdapCreateUser( { form, path, templateProps }: actionPro
         <TextInput
             label="Canonical Name" withAsterisk
             leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="{{username}}"
+            placeholder="{{first_name}} {{family_name}}"
             {...templateProps(form, `${path}.cn`)}
         />
         <TextInput

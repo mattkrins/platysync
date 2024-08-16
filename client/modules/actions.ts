@@ -22,6 +22,10 @@ import TransAPIRequest, { TransAPIRequestConfig } from "../routes/Rules/Editor/a
 import StmcUpStuPass from "../routes/Rules/Editor/actions/StmcUpStuPass";
 import StmcUpStuPassBulk from "../routes/Rules/Editor/actions/StmcUpStuPassBulk";
 import LdapCreateUser from "../routes/Rules/Editor/actions/LdapCreateUser";
+import LdapUpdateAttributes from "../routes/Rules/Editor/actions/LdapUpdateAttributes";
+import LdapUpdateGroups from "../routes/Rules/Editor/actions/LdapUpdateGroups";
+import LdapUpdateAccount from "../routes/Rules/Editor/actions/LdapUpdateAccount";
+import LdapMoveOU from "../routes/Rules/Editor/actions/LdapMoveOU";
 
 export interface availableCategory {
     id: string,
@@ -116,7 +120,10 @@ export const availableActions: availableAction[] = [
         Icon: IconUserPlus,
         color: 'blue',
         Options: LdapCreateUser,
-        initialValues: { attributes: [], groups: [] },
+        initialValues: {
+            attributes: [],
+            groups: []
+        },
     },
 
     {
@@ -149,6 +156,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconPencil,
         color: 'orange',
+        Options: LdapUpdateAttributes,
         iterativeOnly: true,
         initialValues: {
             attributes: []
@@ -160,6 +168,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconUsersGroup,
         color: 'yellow',
+        Options: LdapUpdateGroups,
         iterativeOnly: true,
         initialValues: {
             groups: []
@@ -171,6 +180,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconShieldCog,
         color: 'orange',
+        Options: LdapUpdateAccount,
         iterativeOnly: true
     },
     {
@@ -179,6 +189,7 @@ export const availableActions: availableAction[] = [
         provider: 'ldap',
         Icon: IconFolderShare,
         color: 'grape',
+        Options: LdapMoveOU,
         iterativeOnly: true
     },
     {
