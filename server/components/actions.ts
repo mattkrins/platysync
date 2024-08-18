@@ -18,9 +18,10 @@ import SysRunCommand from "./actions/SysRunCommand";
 import SysTemplate from "./actions/SysTemplate";
 import SysWait from "./actions/SysWait";
 import { Engine } from "./engine";
-import { connections, contexts } from "./providers";
+import { configs, connections, contexts } from "./providers";
 import LDAPProvider from "./providers/LDAP.js";
 import { User } from "../modules/ldap.js";
+import { decrypt } from "../modules/cryptography";
 
 interface handle<type=unknown> {
   handle: type;
@@ -33,11 +34,13 @@ export interface props<type> {
   template: template;
   connections: connections;
   contexts: contexts;
+  configs: configs;
   execute: boolean;
   engine: Engine;
   handles: handles
   data: rString<type>;
   settings: Settings;
+  schema: Schema;
   id?: string;
 }
 
@@ -77,4 +80,13 @@ export async function getUser({ action, template, data, connections, contexts, e
   const user = await engine.ldap_getUser( data.connector, template, id, undefined, data.userFilter );
   if (!canBeFalse && !user) throw new xError("User not found.");
   return user as User;
+}
+
+export async function useConfig(configs: configs, name: string, schema: Schema) {
+  if (configs[name]) return configs[name];
+  const config = schema.actions.find(c=>c.name===name);
+  if (!config) throw new xError(`Config '${name}' does not exist.`);
+  if (config.password) config.password = await decrypt(config.password as Hash);
+  configs[name] = config;
+  return config;
 }

@@ -11,7 +11,7 @@ export default function TransEmailSend( { form, path, templateProps }: actionPro
         description="Comma separated list or an array of recipients email addresses that will appear on the To: field."
         placeholder="smith@domain.com"
         leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-        {...templateProps(form, `${path}.target`)}
+        {...templateProps(form, `${path}.to`)}
     />
     <TextInput mt="xs"
         label="Subject" withAsterisk
@@ -31,6 +31,13 @@ export default function TransEmailSend( { form, path, templateProps }: actionPro
         description="HTML version of the message to send."
         placeholder="<p>HTML body.</p>"
         {...templateProps(form, `${path}.html`)}
+    />
+    <TextInput mt="xs"
+        label="From"
+        description="The email address of the sender."
+        placeholder="jane@domain.com"
+        leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+        {...templateProps(form, `${path}.from`)}
     />
   </>
   )
@@ -72,6 +79,13 @@ export function TransEmailSendConfig({ form }: actionConfigProps) {
         {...form.getInputProps('password')}
         />
     </SimpleGrid>
+    <TextInput mt="xs"
+        label="From"
+        description="The email address of the sender."
+        placeholder="jane@domain.com"
+        leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+        {...form.getInputProps('from')}
+    />
   </>
   )
 }

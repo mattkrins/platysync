@@ -7,6 +7,7 @@ import { base_provider } from "./providers/base";
 
 export interface connections { [name: string]: base_provider }
 export interface contexts {[name: string]: base_provider}
+export interface configs {[name: string]: ActionConfig  }
 
 export async function connect(schema: Schema, name: string, connectors: connections, engine: Engine, key?: string) {
     if (connectors[name]) return connectors[name];

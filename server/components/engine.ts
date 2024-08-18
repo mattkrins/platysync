@@ -2,7 +2,7 @@ import { paths, server } from "../../server";
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
 import { availableActions, handles } from "./actions";
-import { addContext, connect, connections, contexts } from "./providers";
+import { addContext, configs, connect, connections, contexts } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import fs from 'fs-extra';
@@ -15,6 +15,7 @@ export class Engine { //TODO - add way to cancel
     private connections: connections = {};
     private handles: handles = {};
     private contexts:  contexts = {};
+    private configs:  configs = {};
     private status: jobStatus;
     private queue = new ThrottledQueue(10);
     private rule: Rule;
@@ -269,7 +270,7 @@ export class Engine { //TODO - add way to cancel
                 action, template, connections: this.connections,
                 handles: this.handles, execute: !!this.filter,
                 engine: this, data: {}, id, settings: this.settings,
-                contexts: this.contexts
+                contexts: this.contexts, configs: this.configs, schema: this.schema
             })
             if (!result)  throw new xError(`Failed to run action '${action.name}'.`);
             const name = (action.display && action.display!==action.name) ? { display: action.display||action.name } : {}

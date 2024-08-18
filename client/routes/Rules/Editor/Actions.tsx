@@ -160,15 +160,15 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                 value={display?display:(config||label||name)}
                 />
             </Grid.Col>
-            <Grid.Col span={5}>
+            {provider&&<Grid.Col span={5}>
                 <Divider orientation="vertical" />
                 <SelectActionConnector {...form.getInputProps(`${`${type}.${index}`}.connector`)}
                 form={form} path={`${`${type}.${index}`}.connector`} width={'auto'} position="bottom-start"
                 ids={provider?[provider]:undefined} names={sources} variant="unstyled"
                 />
                 <Divider orientation="vertical" />
-            </Grid.Col>
-            <Grid.Col span={6} miw={120}>
+            </Grid.Col>}
+            <Grid.Col span={"auto"} miw={120}>
                 <Group gap="xs" justify="flex-end">
                     {overwriter&&<MenuTip label="Should Overwrite" Icon={IconEraser} color="grape" variant={action.overwrite?"light":"subtle"}
                     onClick={()=>form.setFieldValue(`${type}.${index}.overwrite`, !action.overwrite)} />}
