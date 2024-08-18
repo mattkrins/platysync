@@ -75,12 +75,13 @@ export class Engine { //TODO - add way to cancel
         //TODO - santitizeData for log
         return { primaryResults: this.primaryResults, initActions, finalActions, columns, id: this.rule.idName };
     }
-    private async ldap_getUser(key: string, template: template, id: string) {
+    public async ldap_getUser(key: string, template: template, id?: string, userFilter?: string, compiledFilter?: string) {
+        if (!id) return false;
         const ldap = this.connections[key] as LDAP|undefined;
         if (ldap && ldap.users[id]) return ldap.users[id];
         const context = this.contexts[key] as LDAP|undefined;
         if (!context) return false;
-        const user = await context.getUser(template, id);
+        const user = await context.getUser(template, id, userFilter, compiledFilter);
         return user || false;
     }
     private async ldap_compare(key: string, value: string, operator: string, template: template, id?: string ) {

@@ -1,12 +1,11 @@
-import { ActionIcon, Autocomplete, Button, Center, Grid, Group, Select, TextInput } from '@mantine/core'
-import { IconCopy, IconEye, IconEyeOff, IconGripVertical, IconPencil, IconPlus, IconTag, IconTrash, IconUser } from '@tabler/icons-react'
+import { Autocomplete, Button, Center, Grid, Group, Select, TextInput } from '@mantine/core'
+import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTag, IconTrash } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { UseFormReturnType } from '@mantine/form';
 import MenuTip from '../../../../components/MenuTip';
 import Concealer from '../../../../components/Concealer';
 import { ldapAttributes } from '../../../../modules/ldap';
-import { useDisclosure } from '@mantine/hooks';
 
 function Attribute({ index, entry, form, templateProps, path }:
     { index: number, entry: { method: string, name: string, value: string }, form: UseFormReturnType<Rule>, templateProps: actionProps['templateProps'], path: string }

@@ -18,7 +18,7 @@ export interface ldap_options extends base_provider_options, ldap_context {
 }
 
 export default class LDAP extends base_provider {
-    private client = new ldap();
+    public client = new ldap();
     private url: string;
     private username: string;
     private password: string|Hash;
@@ -68,10 +68,10 @@ export default class LDAP extends base_provider {
         this.users = keyedUsers;
         return users;
     }
-    public async getUser(template: template, id: string): Promise<User|false> {
+    public async getUser(template: template, id: string, userFilter?: string, compiledFilter?: string): Promise<User|false> {
         if (this.users[id]) return this.users[id];
         try {
-            const filter = compile(template, this.userFilter, `(&(objectclass=person)(sAMAccountName=${id}))`);
+            const filter = compiledFilter || compile(template, userFilter || this.userFilter, `(&(objectclass=person)(sAMAccountName=${id}))`);
             const { user } = await this.client.searchOne({
                 filter,
                 scope: 'sub',

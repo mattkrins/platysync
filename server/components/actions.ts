@@ -1,3 +1,5 @@
+import { xError } from "../modules/common";
+import { compile } from "../modules/handlebars";
 import DocPrintPDF from "./actions/DocPrint";
 import DocWritePDF from "./actions/DocWritePDF";
 import FileCopy from "./actions/FileCopy";
@@ -17,6 +19,8 @@ import SysTemplate from "./actions/SysTemplate";
 import SysWait from "./actions/SysWait";
 import { Engine } from "./engine";
 import { connections, contexts } from "./providers";
+import LDAPProvider from "./providers/LDAP.js";
+import { User } from "../modules/ldap.js";
 
 interface handle<type=unknown> {
   handle: type;
@@ -56,4 +60,21 @@ export const availableActions: { [k: string]: operation } = {
   'SysRunCommand': SysRunCommand,
   'SysTemplate': SysTemplate,
   'SysWait': SysWait,
+}
+
+export interface LdapProps {
+  connector: string;
+  userFilter?: string;
+}
+
+export async function getUser({ action, template, data, connections, contexts, engine, id }: props<LdapProps>, canBeFalse = false): Promise<User> {
+  data.connector = String(action.connector);
+  data.userFilter = compile(template, action.userFilter);
+  if (!data.connector) throw new xError("Connector not provided.");
+  let ldap = connections[data.connector] as LDAPProvider|undefined;
+  if (!ldap) ldap = contexts[data.connector] as LDAPProvider|undefined;
+  if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
+  const user = await engine.ldap_getUser( data.connector, template, id, undefined, data.userFilter );
+  if (!canBeFalse && !user) throw new xError("User not found.");
+  return user as User;
 }

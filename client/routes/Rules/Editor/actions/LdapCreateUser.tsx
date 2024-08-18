@@ -126,10 +126,10 @@ export default function LdapCreateUser( { form, path, templateProps }: actionPro
     return (
     <>
         <TextInput
-            label="Canonical Name" withAsterisk
-            leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="{{first_name}} {{family_name}}"
-            {...templateProps(form, `${path}.cn`)}
+            label="SAM Account Name" withAsterisk
+            leftSection={<IconHierarchy size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            placeholder="{{username}}"
+            {...templateProps(form, `${path}.sam`)}
         />
         <TextInput
             label="User Principal Name" withAsterisk
@@ -138,13 +138,13 @@ export default function LdapCreateUser( { form, path, templateProps }: actionPro
             {...templateProps(form, `${path}.upn`)}
         />
         <TextInput
-            label="SAM Account Name" withAsterisk
-            leftSection={<IconHierarchy size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="{{username}}"
-            {...templateProps(form, `${path}.sam`)}
+            label="Canonical Name"
+            leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            placeholder="{{first_name}} {{family_name}}"
+            {...templateProps(form, `${path}.cn`)}
         />
         <TextInput
-            label="Organizational Unit" withAsterisk
+            label="Organizational Unit"
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="ou={{faculty}},ou=child,ou=parent"
             {...templateProps(form, `${path}.ou`)}

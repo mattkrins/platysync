@@ -122,6 +122,7 @@ export const availableActions: availableAction[] = [
         Icon: IconUserPlus,
         color: 'blue',
         Options: LdapCreateUser,
+        iterative: LDAPContext,
         initialValues: {
             attributes: [],
             groups: []
@@ -129,7 +130,8 @@ export const availableActions: availableAction[] = [
     },
 
     {
-        name: "Enable User",
+        name: "LdapEnableUser",
+        label: "Enable User",
         category: 'directory',
         provider: 'ldap',
         Icon: IconLockOpen,
@@ -137,7 +139,8 @@ export const availableActions: availableAction[] = [
         iterative: LDAPContext,
     },
     {
-        name: "Disable User",
+        name: "LdapDisableUser",
+        label: "Disable User",
         category: 'directory',
         provider: 'ldap',
         Icon: IconLock,
@@ -145,7 +148,8 @@ export const availableActions: availableAction[] = [
         iterative: LDAPContext,
     },
     {
-        name: "Delete User",
+        name: "LdapDeleteUser",
+        label: "Delete User",
         category: 'directory',
         provider: 'ldap',
         Icon: IconTrash,
@@ -153,7 +157,8 @@ export const availableActions: availableAction[] = [
         iterative: LDAPContext,
     },
     {
-        name: "Update Attributes",
+        name: "LdapUpdateAttributes",
+        label: "Update Attributes",
         category: 'directory',
         provider: 'ldap',
         Icon: IconPencil,
@@ -165,7 +170,8 @@ export const availableActions: availableAction[] = [
         },
     },  
     {
-        name: "Update Groups",
+        name: "LdapUpdateGroups",
+        label: "Update Groups",
         category: 'directory',
         provider: 'ldap',
         Icon: IconUsersGroup,
@@ -177,7 +183,8 @@ export const availableActions: availableAction[] = [
         },
     },
     {
-        name: "Update Account Controls",
+        name: "LdapUpdateAccount",
+        label: "Update Account Controls",
         category: 'directory',
         provider: 'ldap',
         Icon: IconShieldCog,
@@ -186,7 +193,8 @@ export const availableActions: availableAction[] = [
         iterative: LDAPContext,
     },
     {
-        name: "Move Organisational Unit",
+        name: "LdapMoveOU",
+        label: "Move Organisational Unit",
         category: 'directory',
         provider: 'ldap',
         Icon: IconFolderShare,

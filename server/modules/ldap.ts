@@ -195,14 +195,14 @@ export class ldap {
      * @param {object} attributes Key/Value object of attributes for ldap object.
      * @param {string[]|string} returnAttributes Array/String of attributes to return. (Optional)
     **/
-    public create(dn: string = '', attributes: { [k: string]: string|string[] } = {}, returnAttributes?: string|string[] ): Promise<ldapjs.SearchEntry> {
+    public create(dn: string = '', attributes: { [k: string]: string|string[] } = {}, returnAttributes?: string|string[] ): Promise<{ user: ldapjs.SearchEntry, User: User }> {
         return new Promise((resolve, reject) => {
             if (!this.client) return reject(Error("Not connected."));
             this.client.add(`${dn},${this.base}`, attributes, async (err: ldapjs.Error | null) => {
                 if (err) return reject( err );
                 if (!this.client) return reject(Error("Not connected."));
                 const { entry: found } = await this.searchOne({ attributes: returnAttributes || 'dn', sizeLimit: 1000, paged: true }, `${dn},${this.base}`);
-                if (found) return resolve(found);
+                if (found) return resolve({ user: found, User: new User(found, this) });
                 reject(Error("Could not locate object after creation."));
             });
         });

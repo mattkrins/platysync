@@ -1,4 +1,4 @@
-import { Grid, Group, Select, TextInput, Button, Center } from '@mantine/core';
+import { Grid, Group, Select, TextInput, Button, Center, Switch } from '@mantine/core';
 import { IconCopy, IconGripVertical, IconPlus, IconTrash, IconUsersGroup } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
@@ -64,5 +64,10 @@ function SecurityGroups( { form, path, templateProps }: actionProps ) {
 }
 
 export default function LdapUpdateGroups( { form, path, templateProps }: actionProps ) {
-    return <SecurityGroups form={form} path={path} templateProps={templateProps} />
+    return (<>
+        <SecurityGroups form={form} path={path} templateProps={templateProps} />
+        <Switch label="Sanitize" description="Remove any existing groups not listed above"
+        mt="xs" {...form.getInputProps(`${path}.sanitize`, { type: 'checkbox' })}
+        />
+    </>)
 }

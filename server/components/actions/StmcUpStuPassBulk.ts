@@ -37,9 +37,9 @@ export default async function StmcUpStuPassBulk({ action, template, execute, dat
         if (!data.connector) throw new xError("Connector not provided.");
         if (!data.source) throw new xError("No source provided.");
         if (action.validate) if (!fs.existsSync(data.source)) throw new xError("Source path does not exist.");
-        let ldap = connections[data.connector] as STMC|undefined;
-        if (!ldap) ldap = contexts[data.connector] as STMC|undefined;
-        if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
+        let stmc = connections[data.connector] as STMC|undefined;
+        if (!stmc) stmc = contexts[data.connector] as STMC|undefined;
+        if (!stmc || !stmc.client) throw new xError(`Provider '${data.connector}' not connected.`);
         const source = await open(data.source);
         if (!source.data || source.data.length<=0) throw new xError('No rows found.');
         if (source.meta.delimiter !== ",") throw new xError('Invalid delimiter.');
@@ -51,7 +51,7 @@ export default async function StmcUpStuPassBulk({ action, template, execute, dat
         const payload = csv.map(row=>({ _login:row.login, _pass: row.password }));
         if (payload.length<=0) throw new xError('Payload empty.');
         engine.Emit({ text: `Uploading ${payload.length} rows to STMC` });
-        await ldap.client.setStudentPasswords(payload);
+        await stmc.client.setStudentPasswords(payload);
         return { success: true, data };
     } catch (e){
         return { error: new xError(e), data };
