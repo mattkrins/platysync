@@ -18,10 +18,11 @@ import SysRunCommand from "./actions/SysRunCommand";
 import SysTemplate from "./actions/SysTemplate";
 import SysWait from "./actions/SysWait";
 import { Engine } from "./engine";
-import { configs, connections, contexts } from "./providers";
+import { connections, contexts } from "./providers";
 import LDAPProvider from "./providers/LDAP.js";
 import { User } from "../modules/ldap.js";
 import { decrypt } from "../modules/cryptography";
+import { configs } from "./configs/base";
 
 interface handle<type=unknown> {
   handle: type;
@@ -82,11 +83,11 @@ export async function getUser({ action, template, data, connections, contexts, e
   return user as User;
 }
 
-export async function useConfig(configs: configs, name: string, schema: Schema) {
-  if (configs[name]) return configs[name];
-  const config = schema.actions.find(c=>c.name===name);
-  if (!config) throw new xError(`Config '${name}' does not exist.`);
-  if (config.password) config.password = await decrypt(config.password as Hash);
-  configs[name] = config;
-  return config;
-}
+//export async function useConfig(configs: configs, name: string, schema: Schema) {
+//  if (configs[name]) return configs[name];
+//  const config = schema.actions.find(c=>c.name===name);
+//  if (!config) throw new xError(`Config '${name}' does not exist.`);
+//  if (config.password) config.password = await decrypt(config.password as Hash);
+//  configs[name] = config;
+//  return config;
+//}

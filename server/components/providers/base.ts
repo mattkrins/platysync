@@ -25,10 +25,10 @@ export class base_provider implements base_provider_options {
         this.key = options.key;
         this.headers = options.headers || [];
     }
+    public async initialize(): Promise<void> {}
     public async validate(): Promise<void> {}
     public async configure(): Promise<void> {}
     public async connect(connectors: connections, engine: Engine): Promise<{ [k: string]: string }[]> { return []; }
-    public async initialize(): Promise<void> {}
     public async getHeaders(): Promise<string[]> { return []; }
     public async decrypt() {
         if (this.password && typeof this.password !== 'string') this.password = await decrypt(this.password as Hash);

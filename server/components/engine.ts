@@ -2,12 +2,13 @@ import { paths, server } from "../../server";
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
 import { availableActions, handles } from "./actions";
-import { addContext, configs, connect, connections, contexts } from "./providers";
+import { addContext, connect, connections, contexts } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import fs from 'fs-extra';
 import LDAP from "./providers/LDAP";
 import { defaultData, Settings } from "./database";
+import { configs } from "./configs/base";
 
 export class Engine { //TODO - add way to cancel
     public id: string;
