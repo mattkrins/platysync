@@ -1,36 +1,19 @@
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { Settings } from "../database";
-import { base_config } from "./base";
+import { base_config, configs } from "./base";
 import nodemailer from "nodemailer";
 import SMTPConnection from "nodemailer/lib/smtp-connection";
 
-export interface email_options {
-    host: string;
-    port: string;
-    username: string;
-    password: string;
-}
-
 export default class EMAIL extends base_config {
-    private host: string;
-    private port: string;
-    private username: string;
-    private password: string;
     private client?: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
-    constructor(schema: Schema, options: email_options, name?: string) {
-        super(schema, name);
-        this.host = options.host;
-        this.port = options.port;
-        this.username = options.username;
-        this.password = options.password;
-        if (!this.config) return;
-        if (this.config.host) this.host = this.config.host as string;
-        if (this.config.port) this.port = this.config.port as string;
-        if (this.config.username) this.username = this.config.username as string;
-        if (this.config.password) this.password = this.config.password as string;
-
+    public dataKeys: string[] = ['host', 'port', 'username'];
+    public compiledDataKeys: string[] = ['from', 'to', 'subject', 'text', 'html'];
+    [k: string]: unknown;
+    constructor(schema: Schema, options: Partial<base_config>, name?: string) {
+        super(schema, options, name);
     }
-    public async configure(): Promise<void> {
+    public async initialize(configs: configs): Promise<void> {
+        await super.initialize(configs);
         let proxy: URL|undefined;
         const settings = await Settings();
         if (settings.proxy_url) {
@@ -48,6 +31,5 @@ export default class EMAIL extends base_config {
               pass: this.password,
             },
         } as SMTPConnection.Options);
-
     }
 }

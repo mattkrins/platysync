@@ -1,6 +1,7 @@
 import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
-import { getUser, LdapProps, props } from "../actions.js";
+import { props } from "../actions.js";
+import LDAP, { LdapProps } from "../providers/LDAP.js";
 
 interface Group {
     method: 'Add'|'Delete';
@@ -22,7 +23,7 @@ export default async function LdapUpdateGroups(props: props<LdapUpdateGroups>) {
     const { action, template, execute, data } = props;
     try {
         data.sanitize = String(action.sanitize);
-        const user = await getUser(props);
+        const user = await LDAP.getUser(props);
         data.groups = user.groups as unknown as string;
         const changes: update[] = [];
         const adding = action.groups.filter((g:{method: string})=>g.method==="Add").map(g=>g.value);

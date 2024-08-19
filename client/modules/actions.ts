@@ -93,6 +93,9 @@ export interface actionProps {
 
 export interface actionConfigProps {
     form: UseFormReturnType<ActionConfig>;
+    path?: string;
+    name?: string;
+    configProps: (name: string, rightSection?: boolean, leftSection?: boolean, placeholder?: string) => object
 }
 
 export interface availableAction {

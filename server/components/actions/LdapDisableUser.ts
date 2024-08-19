@@ -1,12 +1,13 @@
 import { xError } from "../../modules/common.js";
-import { getUser, LdapProps, props } from "../actions.js";
+import { props } from "../actions.js";
+import LDAP, { LdapProps } from "../providers/LDAP.js";
 
 export type LdapDisableUserProps = props<LdapProps>;
 
 export default async function LdapDisableUser(props: props<LdapProps>, enable = false) {
     const { execute, data } = props;
     try {
-        const user = await getUser(props);
+        const user = await LDAP.getUser(props);
         if (enable && user.enabled()) return { warn: `User is already enabled.`, data };
         if (!enable && user.disabled()) return { warn: `User is already disabled.`, data };
         if (!execute) return { data };

@@ -2,6 +2,12 @@ import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../../m
 import { base_provider, base_provider_options } from "./base";
 import ldap, { User } from "../../modules/ldap";
 import { compile } from "../../modules/handlebars";
+import { props } from "../actions";
+
+export interface LdapProps {
+    connector: string;
+    userFilter?: string;
+  }
 
 export interface ldap_context {
     userFilter?: string;
@@ -84,4 +90,15 @@ export default class LDAP extends base_provider {
             return user;
         } catch { return false; }
     }
+    static async getUser({ action, template, data, connections, contexts, engine, id }: props<LdapProps>, canBeFalse = false): Promise<User> {
+        data.connector = String(action.connector);
+        data.userFilter = compile(template, action.userFilter);
+        if (!data.connector) throw new xError("Connector not provided.");
+        let ldap = connections[data.connector] as LDAP|undefined;
+        if (!ldap) ldap = contexts[data.connector] as LDAP|undefined;
+        if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
+        const user = await engine.ldap_getUser( data.connector, template, id, undefined, data.userFilter );
+        if (!canBeFalse && !user) throw new xError("User not found.");
+        return user as User;
+      }
 }

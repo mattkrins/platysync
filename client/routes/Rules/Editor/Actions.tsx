@@ -3,7 +3,7 @@ import { UseFormReturnType } from "@mantine/form";
 import { useClickOutside, useDisclosure } from "@mantine/hooks";
 import classes from './Actions.module.css';
 import { IconProps, Icon, IconChevronRight, IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconX, IconFolderSearch, IconEraser, IconSettings2, IconCheck, IconExclamationCircle } from "@tabler/icons-react";
-import { ForwardRefExoticComponent, RefAttributes, useMemo } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useCallback, useMemo } from "react";
 import { availableAction, availableActions, availableCategories, availableCategory } from "../../../modules/actions";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import MenuTip from "../../../components/MenuTip";
@@ -12,6 +12,7 @@ import useTemplater, { templateProps } from "../../../hooks/useTemplater";
 import { useSelector, useSettings } from "../../../hooks/redux";
 import { getActions } from "../../../providers/schemaSlice";
 import SelectActionConnector from "../../../components/SelectActionConnector";
+import Concealer from "../../../components/Concealer";
 //LINK - https://github.com/hello-pangea/dnd/blob/main/docs/api/droppable.md#conditionally-dropping
 
 //NOTE - do not make target connector avalible if only 1 of type in context
@@ -116,6 +117,26 @@ function SelectConfig({ id, onClick, active }: { id: string, onClick(name?: stri
     )
 }
 
+function SelectConfig2({ id, onClick, active }: { id: string, onClick(name?: string): void, active?: string }) {
+    const actions = useSelector(getActions);
+    const filtered = actions.filter(a=>a.id===id);
+    return (
+    <Menu shadow="md" >
+        <Menu.Target>
+            <Button size="compact-xs" rightSection={<IconSettings2 size={14} stroke={1.5} />} >{active?`Using ${active}`:'Select Config'}</Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+            {filtered.map(a=>
+            <Menu.Item key={a.name}
+            leftSection={active===a.name?<IconCheck size={14} stroke={1.5} />:undefined}
+            onClick={()=>active===a.name?onClick(undefined):onClick(a.name)} >
+            {a.name}
+            </Menu.Item>)}
+        </Menu.Dropdown>
+    </Menu>
+    )
+}
+
 function Action({ index, action, type, form }: { index: number, action: Action, form: UseFormReturnType<Rule>, type: string }) {
     const [opened, { toggle: t1 }] = useDisclosure(false);
     const [render, { close, open }] = useDisclosure(false);
@@ -138,6 +159,21 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;
     const { Icon, color, name, label, validator, overwriter, Options, Config, provider, iterative: Context } = actionConfig;
     const useContext = !iterative && Context && (typeof Context === "function");
+    const actions = useSelector(getActions);
+    const configProps = useCallback((name: string, rightSection = true, leftSection = false, placeholder?: string ) => {
+        const props = form.getInputProps(`${type}.${index}.${name}`);
+        if (!config) return props;
+        const action = actions.find(f=>f.name===config);
+        const Section = (!rightSection && !leftSection) ? undefined : (action &&
+        <Tooltip label={props.value?`${config} ${name} overridden`:`Using ${config} ${name}`} >
+            <IconSettings2 size={16} style={{ display: 'block', opacity: props.value?0.2:1 }} />
+        </Tooltip> );
+        const options: { rightSection?: JSX.Element, placeholder?: string, leftSection?: JSX.Element } = {};
+        if (rightSection) options.rightSection = Section;
+        if (leftSection) options.leftSection = Section;
+        if (action) options.placeholder = placeholder || action[name] as string;
+        return ({ ...props, ...options });
+    }, [ form, type, index, config, actions ]);
     return <>{explorer}
     <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
     {(provided) => (
@@ -192,9 +228,11 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
             { useContext && <Box p="xs" pt={0} pb={0} >
                 <Context form={form} sources={templateSources} rule={form} path={`${type}.${index}`}  />
             </Box>}
-            <Box p="xs" pt={0} >
-                {(Config&&!config)&&<Config form={form as unknown as UseFormReturnType<ActionConfig>} />}
-                {Config&&<Divider mt="md" label={config?`config - ${config}`:undefined} labelPosition="center" />}
+            <Box p="xs" pt={0} > {Config&&
+                <Concealer label={`Configuration ${config?`(${config})`:''}`} open={!config} rightSection={
+                    <Group justify="end" ><SelectConfig2 id={name} onClick={setConfig} active={config} /></Group> } >
+                    <Config form={form as unknown as UseFormReturnType<ActionConfig>} configProps={configProps} />
+                </Concealer>}
                 {Options&&<Options form={form} path={`${type}.${index}`} templateProps={templateProps} iterative={iterative} />}
             </Box>
             </>}

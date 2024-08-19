@@ -1,10 +1,11 @@
 import { xError } from "../../modules/common.js";
-import { getUser, LdapProps, props } from "../actions.js";
+import { props } from "../actions.js";
+import LDAP, { LdapProps } from "../providers/LDAP.js";
 
 export default async function LdapDeleteUser(props: props<LdapProps>) {
     const { execute, data } = props;
     try {
-        const user = await getUser(props, true);
+        const user = await LDAP.getUser(props, true);
         if (!user) return { warning: `User not found.`, data };
         if (!execute) return { data };
         await user.delete();

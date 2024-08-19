@@ -1,6 +1,7 @@
 import { xError } from "../../modules/common.js";
 import LDAP from "../../modules/ldap.js";
-import { getUser, LdapProps, props } from "../actions.js";
+import { props } from "../actions.js";
+import LDAPprovider, { LdapProps } from "../providers/LDAP.js";
 
 interface LdapMoveOU extends LdapProps {
     ou: string;
@@ -10,7 +11,7 @@ interface LdapMoveOU extends LdapProps {
 export default async function LdapMoveOU(props: props<LdapMoveOU>) {
     const { execute, data } = props;
     try {
-        const user = await getUser(props);
+        const user = await LDAPprovider.getUser(props);
         data.currentOu = LDAP.ouFromDn(user.attributes.distinguishedName).toLowerCase();
         if (data.ou.toLowerCase() === data.currentOu) return { warn: `User already resides in target OU.`, data };
         if (!execute) return { data };

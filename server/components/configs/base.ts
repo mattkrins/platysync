@@ -1,34 +1,42 @@
 import { xError } from "../../modules/common";
 import { decrypt } from "../../modules/cryptography";
+import { compile } from "../../modules/handlebars";
 
 export interface configs {[name: string]: base_config  }
 
 export class base_config {
-    id?: string;
-    name?: string;
-    schema: Schema;
-    config?: ActionConfig;
+    private id: string;
+    private options: Partial<base_config>;
+    private name?: string;
+    public dataKeys: string[] = [];
+    public compiledDataKeys: string[] = [];
+    private schema: Schema;
     [k: string]: unknown;
-    constructor(schema: Schema, name?: string) {
+    constructor(schema: Schema, options: Partial<base_config>, configName?: string) {
         this.schema = schema;
-        if (!name) return;
-        this.name = name;
-        this.config = this.schema.actions.find(c=>c.name===name);
-        if (!this.config) return;
-        if (this.config.id) this.id = this.config.id;
+        const { name, ...extraConfig} = options;
+        this.id = name as string;
+        this.options = options;
+        if (configName) {
+            this.name = configName;
+            const preConfig = this.schema.actions.find(c=>c.name===configName);
+            if (!preConfig) throw new xError(`Config '${configName}' does not exist.`);
+            const { id, name, ...config } = preConfig;
+            //Object.assign(this, config);
+            for (const key of Object.keys(config)) if (config[key]) this[key] = config[key];
+        }
+        //Object.assign(this, extraConfig);
+        for (const key of Object.keys(extraConfig)) if (extraConfig[key]) this[key] = extraConfig[key];
     }
-    public async initialize(configs: configs, name: string): Promise<base_config> {
-        if (configs[name]) return configs[name];
-        const config = this.schema.actions.find(c=>c.name===name);
-        if (!config) throw new xError(`Config '${name}' does not exist.`);
-        await this.decrypt();
-        await this.configure();
-        configs[name] = this;
-        return this;
-    }
-    public async validate(): Promise<void> {}
-    public async configure(): Promise<void> {}
-    public async decrypt() {
+    private async decrypt() {
         if (this.password && typeof this.password !== 'string') this.password = await decrypt(this.password as Hash);
+    }
+    public async initialize(configs: configs): Promise<void> {
+        await this.decrypt();
+        if (this.name) configs[this.name] = this;
+    }
+    public writeData(data: rString<any>, template: template): void {
+        for (const key of this.dataKeys) data[key] = this[key] as string;
+        for (const key of this.compiledDataKeys) data[key] = compile(template, this[key] as string);
     }
 }

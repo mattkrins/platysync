@@ -1,6 +1,7 @@
 import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
-import { getUser, LdapProps, props } from "../actions.js";
+import { props } from "../actions.js";
+import LDAPprovider, { LdapProps } from "../providers/LDAP.js";
 import LDAP from "../../modules/ldap.js";
 import { default as ldapjs } from "ldapjs";
 
@@ -24,7 +25,7 @@ interface LdapUpdateAttributes extends LdapProps {
 export default async function LdapUpdateAttributes(props: props<LdapUpdateAttributes>) {
     const { action, template, execute, data } = props;
     try {
-        const user = await getUser(props);
+        const user = await LDAPprovider.getUser(props);
         data.attributes = user.attributes as unknown as string;
         const changes: update[] = [];
         for (const a of action.attributes) {

@@ -1,7 +1,10 @@
-import { Grid, SimpleGrid, TextInput, Textarea } from '@mantine/core'
-import { IconAt, IconTextCaption, IconUser, IconWorld } from '@tabler/icons-react'
-import { actionConfigProps, actionProps } from '../../../../modules/actions'
+import { ActionIcon, Grid, SimpleGrid, TextInput, Textarea } from '@mantine/core'
+import { Icon, IconAt, IconEdit, IconProps, IconSettings2, IconTextCaption, IconUser, IconWorld } from '@tabler/icons-react'
+import { actionConfigProps, actionProps, availableActions } from '../../../../modules/actions'
 import SecurePasswordInput from '../../../../components/SecurePasswordInput'
+import { ForwardRefExoticComponent, RefAttributes } from 'react'
+import { useSelector } from '../../../../hooks/redux'
+import { getActions } from '../../../../providers/schemaSlice'
 
 export default function TransEmailSend( { form, path, templateProps }: actionProps ) {
   return (
@@ -43,48 +46,50 @@ export default function TransEmailSend( { form, path, templateProps }: actionPro
   )
 }
 
-export function TransEmailSendConfig({ form }: actionConfigProps) {
+export function TransEmailSendConfig({ form, configProps }: actionConfigProps) {
+
   return (
   <>
     <Grid>
       <Grid.Col span={9}>
         <TextInput
-            label="Host"
-            leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            placeholder="smtp-mail.domain.com"
-            withAsterisk {...form.getInputProps('host')}
+          label="Host"
+          leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+          placeholder="smtp-mail.domain.com"
+          withAsterisk
+          {...configProps('host')}
         />
       </Grid.Col>
       <Grid.Col span={3}>
         <TextInput
-            label="Port"
-            leftSection={<>:</>}
-            placeholder="25"
-            {...form.getInputProps('port')}
+          label="Port"
+          leftSection={<>:</>}
+          placeholder="25"
+          {...configProps('port')}
         />
       </Grid.Col>
     </Grid>
     <SimpleGrid mt="sm" cols={{ base: 1, sm: 2 }} >
         <TextInput withAsterisk
-            label="Username"
-            placeholder="username"
-            leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            {...form.getInputProps('username')}
+          label="Username"
+          placeholder="username"
+          leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+          {...configProps('username')}
         />
         <SecurePasswordInput withAsterisk
-        label="Password"
-        placeholder="password"
-        secure={!!form.values.password&&typeof form.values.password !== 'string'}
-        unlock={()=>form.setFieldValue("password", "")}
-        {...form.getInputProps('password')}
+          label="Password"
+          placeholder="password"
+          secure={!!form.values.password&&typeof form.values.password !== 'string'}
+          unlock={()=>form.setFieldValue("password", "")}
+          {...configProps('password', false, true, "**************")}
         />
     </SimpleGrid>
     <TextInput mt="xs"
-        label="From"
-        description="The email address of the sender."
-        placeholder="jane@domain.com"
-        leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-        {...form.getInputProps('from')}
+      label="From"
+      description="The email address of the sender."
+      placeholder="jane@domain.com"
+      leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+      {...configProps('from')}
     />
   </>
   )

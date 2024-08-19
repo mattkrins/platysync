@@ -1,5 +1,3 @@
-import { xError } from "../modules/common";
-import { compile } from "../modules/handlebars";
 import DocPrintPDF from "./actions/DocPrint";
 import DocWritePDF from "./actions/DocWritePDF";
 import FileCopy from "./actions/FileCopy";
@@ -19,10 +17,8 @@ import SysTemplate from "./actions/SysTemplate";
 import SysWait from "./actions/SysWait";
 import { Engine } from "./engine";
 import { connections, contexts } from "./providers";
-import LDAPProvider from "./providers/LDAP.js";
-import { User } from "../modules/ldap.js";
-import { decrypt } from "../modules/cryptography";
 import { configs } from "./configs/base";
+import TransEmailSend from "./actions/TransEmailSend";
 
 interface handle<type=unknown> {
   handle: type;
@@ -64,30 +60,5 @@ export const availableActions: { [k: string]: operation } = {
   'SysRunCommand': SysRunCommand,
   'SysTemplate': SysTemplate,
   'SysWait': SysWait,
+  'TransEmailSend': TransEmailSend,
 }
-
-export interface LdapProps {
-  connector: string;
-  userFilter?: string;
-}
-
-export async function getUser({ action, template, data, connections, contexts, engine, id }: props<LdapProps>, canBeFalse = false): Promise<User> {
-  data.connector = String(action.connector);
-  data.userFilter = compile(template, action.userFilter);
-  if (!data.connector) throw new xError("Connector not provided.");
-  let ldap = connections[data.connector] as LDAPProvider|undefined;
-  if (!ldap) ldap = contexts[data.connector] as LDAPProvider|undefined;
-  if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
-  const user = await engine.ldap_getUser( data.connector, template, id, undefined, data.userFilter );
-  if (!canBeFalse && !user) throw new xError("User not found.");
-  return user as User;
-}
-
-//export async function useConfig(configs: configs, name: string, schema: Schema) {
-//  if (configs[name]) return configs[name];
-//  const config = schema.actions.find(c=>c.name===name);
-//  if (!config) throw new xError(`Config '${name}' does not exist.`);
-//  if (config.password) config.password = await decrypt(config.password as Hash);
-//  configs[name] = config;
-//  return config;
-//}

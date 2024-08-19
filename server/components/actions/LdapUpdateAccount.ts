@@ -1,5 +1,6 @@
 import { xError } from "../../modules/common.js";
-import { getUser, LdapProps, props } from "../actions.js";
+import { props } from "../actions.js";
+import LDAP, { LdapProps } from "../providers/LDAP.js";
 
 interface LdapUpdateAccount extends LdapProps {
     ACCOUNTDISABLE: boolean;
@@ -26,7 +27,7 @@ export default async function LdapUpdateAccount(props: props<LdapUpdateAccount>)
         TRUSTED_TO_AUTH_FOR_DELEGATION: Boolean(action.TRUSTED_TO_AUTH_FOR_DELEGATION),
     };
     try {
-        const user = await getUser(props);
+        const user = await LDAP.getUser(props);
         data.userAccountControl = await user.setAccountControl(flags, true) as unknown as string;
         data.flags = flags as unknown as string;
         if (!execute) return { data };

@@ -153,7 +153,7 @@ export default function TransAPIRequest( { form, path, templateProps }: actionPr
     )
 }
 
-export function TransAPIRequestConfig({ form }: actionConfigProps) {
+export function TransAPIRequestConfig({ form, configProps }: actionConfigProps) {
   return (
   <>
         <TextInput
@@ -162,11 +162,11 @@ export function TransAPIRequestConfig({ form }: actionConfigProps) {
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="https://service.com/api/v1"
             withAsterisk
-            {...form.getInputProps('endpoint')}
+            {...configProps('endpoint')}
         />
         <Input.Wrapper mt="xs" mb="xs" withAsterisk label="Authentication" >
         <SegmentedControl fullWidth 
-        {...form.getInputProps('auth')}
+        {...configProps('auth')}
         defaultValue="none"
         data={[
             { label: 'None', value: 'none' },
@@ -180,14 +180,14 @@ export function TransAPIRequestConfig({ form }: actionConfigProps) {
         placeholder={form.values.auth==="basic"?"username:password":"secret"}
         secure={!!form.values.password&&typeof form.values.password !== 'string'}
         unlock={()=>form.setFieldValue("password", "")}
-        {...form.getInputProps('password')}
+        {...configProps('password', false, true, "**************")}
         />}
         <TextInput
             label="Append Query"
             description="Appended to all API target URLs (added to query string)."
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="access_token=secret"
-            {...form.getInputProps('append')}
+            {...configProps('append')}
         />
   </>
   )
