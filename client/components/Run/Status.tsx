@@ -36,8 +36,8 @@ export default function Status({ run }: { run?: boolean }) {
       <Progress mt={5} value={status.progress.total} animated size="sm" />
 
       <Progress.Root mt={5} size="xl">
-        {status.progress.init&&<Progress.Section value={status.progress.init as number} color="green"><Progress.Label>Init Actions</Progress.Label></Progress.Section>}
         {status.progress.connect&&<Progress.Section value={status.progress.connect as number} color="cyan"><Progress.Label>Connect Providers</Progress.Label></Progress.Section>}
+        {status.progress.init&&<Progress.Section value={status.progress.init as number} color="green"><Progress.Label>Init Actions</Progress.Label></Progress.Section>}
         {status.progress.iterative&&<Progress.Section value={status.progress.iterative as number} color="pink"><Progress.Label>Iterative Actions</Progress.Label></Progress.Section>}
         {status.progress.final&&<Progress.Section value={status.progress.final as number} color="orange"><Progress.Label>Final Actions</Progress.Label></Progress.Section>}
       </Progress.Root>

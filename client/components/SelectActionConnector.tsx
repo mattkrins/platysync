@@ -12,7 +12,7 @@ export default function SelectActionConnector( { form, path, ...props}: SelectAc
     const { proConnectors } = useConnectors();
     const ruleProConnectors = useMemo(()=>{
         let context = proConnectors;
-        if (props.names) context.filter(c=>props.names&&props.names.includes(c.name));
+        if (props.names) context = context.filter(c=>props.names&&props.names.includes(c.name));
         if (props.ids) context = context.filter(c=>props.ids&&props.ids.includes(c.id));
         return context;
     }, [ proConnectors, props.names, props.ids ]);

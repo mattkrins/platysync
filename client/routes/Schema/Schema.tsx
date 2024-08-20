@@ -46,7 +46,7 @@ export default function Schema() {
       dispatch(mutate(form.values));
     },
   });
-  const onImport = ({name, ...schema}: Schema) => { form.setValues(schema); closeImporter(); };
+  const onImport = ({name, ...schema}: Schema) => { form.setValues({...initialValues, ...schema}); closeImporter(); };
   const clickExport = () => setExporting(initialValues);
 
   const clickDel = () =>

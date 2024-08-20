@@ -74,8 +74,8 @@ export default class LDAP extends base_provider {
         this.users = keyedUsers;
         return users;
     }
-    public async getUser(template: template, id: string, userFilter?: string, compiledFilter?: string): Promise<User|false> {
-        if (this.users[id]) return this.users[id];
+    public async getUser(template: template, id?: string, userFilter?: string, compiledFilter?: string): Promise<User|false> {
+        if (id && this.users[id]) return this.users[id];
         try {
             const filter = compiledFilter || compile(template, userFilter || this.userFilter, `(&(objectclass=person)(sAMAccountName=${id}))`);
             const { user } = await this.client.searchOne({
@@ -86,18 +86,19 @@ export default class LDAP extends base_provider {
                 attributes: this.headers
             });
             if (!user) return false;
-            this.users[id] = user;
+            if (id) this.users[id] = user;
             return user;
         } catch { return false; }
     }
-    static async getUser({ action, template, data, connections, contexts, engine, id }: props<LdapProps>, canBeFalse = false): Promise<User> {
+    static async getUser({ action, template, data, connections, contexts, id }: props<LdapProps>, canBeFalse = false): Promise<User> {
         data.connector = String(action.connector);
-        data.userFilter = compile(template, action.userFilter);
+        if (!action.userFilter && !id) throw new xError("Search filter required.");
+        data.userFilter = compile(template, action.userFilter, `(&(objectclass=person)(sAMAccountName=${id}))`);
         if (!data.connector) throw new xError("Connector not provided.");
         let ldap = connections[data.connector] as LDAP|undefined;
         if (!ldap) ldap = contexts[data.connector] as LDAP|undefined;
         if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
-        const user = await engine.ldap_getUser( data.connector, template, id, undefined, data.userFilter );
+        const user = await ldap.getUser(template, id, undefined, data.userFilter );
         if (!canBeFalse && !user) throw new xError("User not found.");
         return user as User;
       }

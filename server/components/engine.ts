@@ -57,11 +57,11 @@ export class Engine { //TODO - add way to cancel
             const path = `${folder}/${file.path}`;
             (docsTemplate.$file as { [k: string]: string })[file.key||file.name] = path;
         }
+        await this.connect();
         const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, docsTemplate, "init");
         if (this.hasInit) this.progress = 15;
         this.initTemplate = initTemplate;
         if (initError) throw initError;
-        await this.connect();
         //TODO - fix progress for contexts
         for (const context of (this.rule.contexts||[])) await addContext(this.schema, context, this.contexts );
         if (this.primary) this.progress = this.hasInit ? 35 : 20;
