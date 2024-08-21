@@ -8,7 +8,7 @@ import Editor from "./Editor";
 import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
 import MenuTip from "../../components/MenuTip";
-import { availableAction, availableActions } from "../../modules/actions";
+import { availableConfigs } from "../../modules/configs";
 
 function Action({ index, action: { name, id }, edit, refresh }: { index: number, action: ActionConfig, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
@@ -22,7 +22,7 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
         url: `/action/${name}/copy`, schema: true,
         then: () => refresh(),
     });
-    const action = availableActions.find(a=>a.name===id) as availableAction;
+    const action = availableConfigs.find(a=>a.name===id);
     if (!action) return <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={async () => await del()} loading={deleting} color="red" variant="subtle" />;
     const { Icon, color } = action;
     return (

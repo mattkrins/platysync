@@ -1,4 +1,4 @@
-import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv } from "@tabler/icons-react";
+import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv, IconCloudDownload } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
 import { UseFormReturnType, isNotEmpty } from "@mantine/form";
@@ -28,6 +28,7 @@ import LdapUpdateAccount from "../routes/Rules/Editor/actions/LdapUpdateAccount"
 import LdapMoveOU from "../routes/Rules/Editor/actions/LdapMoveOU";
 import { ContextProps } from "./providers";
 import { LDAPContext } from "../routes/Connectors/providers/LDAP";
+import TransAPIGet from "../routes/Rules/Editor/actions/TransAPIGet";
 
 export interface availableCategory {
     id: string,
@@ -105,13 +106,10 @@ export interface availableAction {
     color?: string;
     category: string;
     Options?(props: actionProps): JSX.Element;
-    Config?(props: actionConfigProps): JSX.Element;
     initialValues?: Record<string, unknown>;
-    initialConfig?: Record<string, unknown>;
     validator?: boolean;
     overwriter?: boolean;
     provider?: string;
-    validate?: {[value: string]: (...v: unknown[]) => unknown};
     iterative?: true|((props: ContextProps) => JSX.Element);
 }
 
@@ -363,13 +361,7 @@ export const availableActions: availableAction[] = [
         category: 'transmission',
         Icon: IconMailForward,
         color: 'grape',
-        Options: TransEmailSend,
-        Config: TransEmailSendConfig,
-        validate: {
-            host: isNotEmpty('Host can not be empty.'),
-            username: isNotEmpty('Username can not be empty.'),
-            password: isNotEmpty('Password can not be empty.'),
-        },
+        Options: TransEmailSend
     },
     {
         name: "TransAPIRequest",
@@ -378,17 +370,22 @@ export const availableActions: availableAction[] = [
         Icon: IconCloudUp,
         color: 'red',
         Options: TransAPIRequest,
-        Config: TransAPIRequestConfig,
         initialValues: {
             method: 'get',
             mime: 'json',
             form: [],
-        },
-        initialConfig: {
-            auth: 'none',
-        },
-        validate: {
-            endpoint: isNotEmpty('Endpoint can not be empty.'),
-        },
+        }
+    },
+    {
+        name: "TransAPIGet",
+        label: "API GET Request",
+        category: 'transmission',
+        Icon: IconCloudDownload,
+        color: 'red',
+        Options: TransAPIGet,
+        initialValues: {
+            method: 'get',
+            mime: 'json'
+        }
     },
 ]

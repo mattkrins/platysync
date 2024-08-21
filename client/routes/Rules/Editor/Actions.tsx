@@ -13,6 +13,7 @@ import { useSelector, useSettings } from "../../../hooks/redux";
 import { getActions } from "../../../providers/schemaSlice";
 import SelectActionConnector from "../../../components/SelectActionConnector";
 import Concealer from "../../../components/Concealer";
+import { availableConfigs } from "../../../modules/configs";
 //LINK - https://github.com/hello-pangea/dnd/blob/main/docs/api/droppable.md#conditionally-dropping
 
 //NOTE - do not make target connector avalible if only 1 of type in context
@@ -123,7 +124,7 @@ function SelectConfig2({ id, onClick, active }: { id: string, onClick(name?: str
     return (
     <Menu shadow="md" >
         <Menu.Target>
-            <Button size="compact-xs" rightSection={<IconSettings2 size={14} stroke={1.5} />} >{active?`Using ${active}`:'Select Config'}</Button>
+            <Button disabled={filtered.length<=0} size="compact-xs" rightSection={<IconSettings2 size={14} stroke={1.5} />} >{active?`Using ${active}`:'Select Config'}</Button>
         </Menu.Target>
         <Menu.Dropdown>
             {filtered.map(a=>
@@ -157,7 +158,8 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     const actionConfig = availableActions.find(a=>a.name===action.name) as availableAction;
     const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline});
     if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;
-    const { Icon, color, name, label, validator, overwriter, Options, Config, provider, iterative: Context } = actionConfig;
+    const { Icon, color, name, label, validator, overwriter, Options, provider, iterative: Context } = actionConfig;
+    const Config = availableConfigs.find(c=>c.name===name)?.Options;
     const useContext = !iterative && Context && (typeof Context === "function");
     const actions = useSelector(getActions);
     const configProps = useCallback((name: string, rightSection = true, leftSection = false, placeholder?: string ) => {

@@ -6,6 +6,7 @@ import Wrapper from "../../components/Wrapper";
 import { IconAlertCircle, IconCheck, IconTag } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
 import { useState } from "react";
+import { availableConfigs, availableConfig } from "../../modules/configs";
 
 const base_validation = {
   name: isNotEmpty('Name can not be empty.'),
@@ -13,8 +14,8 @@ const base_validation = {
 
 function Configuration({ form, editing }: { form: UseFormReturnType<ActionConfig>, editing: boolean }) {
     const theme = useMantineTheme();
-    const { Config, Icon, color, name } = availableActions.find(a=>a.name===form.values.id) as availableAction;
-    if (!Config) return <></>;
+    const { Options, Icon, color, name } = availableConfigs.find(a=>a.name===form.values.id) as availableConfig;
+    if (!Options) return <></>;
     const reset = () => { form.reset(); form.setFieldValue('id',''); }
     const configProps = ( name: string ) => form.getInputProps(name);
     return (
@@ -31,14 +32,14 @@ function Configuration({ form, editing }: { form: UseFormReturnType<ActionConfig
             leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             {...form.getInputProps('name')}
         />
-        <Config form={form} configProps={configProps} />
+        <Options form={form} configProps={configProps} />
     </>
     )
 }
 
 function Content({ action, refresh, adding, close }: { action: ActionConfig, refresh(): void, adding: boolean, close(): void }) {
     const editing = action.name;
-    const act = (availableActions.find(a=>a.name===action.id) || {}) as availableAction;
+    const act = (availableConfigs.find(a=>a.name===action.id) || {}) as availableConfig;
     const theme = useMantineTheme();
     const [ validate, setValidation ] = useState<{[value: string]: (...v: unknown[]) => unknown}>({...base_validation, ...act.validate});
     const form = useForm<ActionConfig>({ validate, initialValues: structuredClone(action) });
@@ -46,18 +47,18 @@ function Content({ action, refresh, adding, close }: { action: ActionConfig, ref
         url: `/action${adding?'':`/${editing}`}`, schema: true, form: form,
         then: () => { refresh(); close(); },
     });
-    const select = (a: availableAction) => {
+    const select = (a: availableConfig) => {
         form.setFieldValue('id',a.name);
         setValidation({...base_validation, ...a.validate});
-        if (!a.initialConfig) return;
-        for (const key of Object.keys(a.initialConfig)) form.setFieldValue(key,a.initialConfig[key]);
+        if (!a.initialValues) return;
+        for (const key of Object.keys(a.initialValues)) form.setFieldValue(key,a.initialValues[key]);
     }
     return (
         <>
             {!!success&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Action config {adding ? "added" : "updated"} successfully.</Alert>}
             {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
             {form.values.id ? <Configuration form={form} editing={!!editing} /> :
-            <SimpleGrid cols={2} mt="md">{availableActions.filter(a=>a.Config).map(a=>
+            <SimpleGrid cols={2} mt="md">{availableConfigs.filter(a=>a.Options).map(a=>
                 <UnstyledButton onClick={()=>select(a)} key={a.name} className={classes.item} >
                     <a.Icon size={32} color={a.color?theme.colors[a.color][6]:undefined} />
                     <Text size="xs" mt={5} >{a.name}</Text>
