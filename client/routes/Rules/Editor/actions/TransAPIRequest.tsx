@@ -77,7 +77,6 @@ function Form({ form, templateProps, path }: { form: UseFormReturnType<Rule>, te
 export default function TransAPIRequest( { form, path, templateProps }: actionProps ) {
     const method = form.getInputProps(`${path}.method`).value;
     const mime = form.getInputProps(`${path}.mime`).value;
-    const formPath = `${path}.form`;
     return (
     <>
     <TextInput

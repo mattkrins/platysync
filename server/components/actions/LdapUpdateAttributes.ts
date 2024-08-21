@@ -6,7 +6,7 @@ import LDAP from "../../modules/ldap.js";
 import { default as ldapjs } from "ldapjs";
 
 interface Attribute {
-    method: 'Add'|'Replace'|'Delete';
+    method: 'add'|'replace'|'delete';
     name: string;
     value: string;
 }
@@ -30,11 +30,11 @@ export default async function LdapUpdateAttributes(props: props<LdapUpdateAttrib
         const changes: update[] = [];
         for (const a of action.attributes) {
             switch (a.method) {
-                case 'Add': {
+                case 'add': {
                     const value = compile(template, a.value||"");
                     if (!(a.name in user.attributes)) changes.push({...a, value, currentValue: '' }); break;
                 }
-                case 'Replace': {
+                case 'replace': {
                     const value = compile(template, a.value||"");
                     if (a.name==="password"){
                         const unicodePwd = LDAP.encodePassword(value);
@@ -46,7 +46,7 @@ export default async function LdapUpdateAttributes(props: props<LdapUpdateAttrib
                     changes.push({...a, value, currentValue });
                     break;
                 }
-                case 'Delete': {
+                case 'delete': {
                     if (!(a.name in user.attributes)) break;
                     changes.push({...a, currentValue: '' }); break;
                 }
@@ -60,7 +60,7 @@ export default async function LdapUpdateAttributes(props: props<LdapUpdateAttrib
             const a = changes[i];
             let change: ldapjs.Change|undefined;
             switch (a.method) {
-                case 'Add': {
+                case 'add': {
                     change = new ldapjs.Change({
                         operation: 'add',
                         modification: new ldapjs.Attribute({
@@ -69,7 +69,7 @@ export default async function LdapUpdateAttributes(props: props<LdapUpdateAttrib
                         })
                     }); break;
                 }
-                case 'Delete': {
+                case 'delete': {
                     change = new ldapjs.Change({
                         operation: 'delete',
                         modification: new ldapjs.Attribute({

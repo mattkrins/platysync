@@ -4,7 +4,7 @@ import { props } from "../actions.js";
 import LDAP, { LdapProps } from "../providers/LDAP.js";
 
 interface Group {
-    method: 'Add'|'Delete';
+    method: 'add'|'delete';
     value: string;
 }
 
@@ -31,17 +31,17 @@ export default async function LdapUpdateGroups(props: props<LdapUpdateGroups>) {
             for (const v of user.attributes.memberOf) {
                 const value = compile(template, v||"");
                 if (adding.includes(value)) continue;
-                changes.push({ method: 'Delete', value });
+                changes.push({ method: 'delete', value });
             }
         }
         for (const {method, value: v} of action.groups) {
             const value = compile(template, v||"");
             switch (method) {
-                case 'Add': {
+                case 'add': {
                     if (user.hasGroup(value)) break;
                     changes.push({ method, value }); break;
                 }
-                case 'Delete': {
+                case 'delete': {
                     if (!user.hasGroup(value)) break;
                     changes.push({ method, value }); break;
                 }
@@ -54,8 +54,8 @@ export default async function LdapUpdateGroups(props: props<LdapUpdateGroups>) {
         for (const i in changes) {
             const { method, value } = changes[i];
             try {
-                if (method==="Add") await user.addGroup(value);
-                if (method==="Delete") await user.removeGroup(value);
+                if (method==="add") await user.addGroup(value);
+                if (method==="delete") await user.removeGroup(value);
                 changes[i].success = true;
             } catch (e) {
                 changes[i].error = String(e);

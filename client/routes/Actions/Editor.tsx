@@ -16,6 +16,7 @@ function Configuration({ form, editing }: { form: UseFormReturnType<ActionConfig
     const { Config, Icon, color, name } = availableActions.find(a=>a.name===form.values.id) as availableAction;
     if (!Config) return <></>;
     const reset = () => { form.reset(); form.setFieldValue('id',''); }
+    const configProps = ( name: string ) => form.getInputProps(name);
     return (
     <>
         {!editing&&<Group>
@@ -30,7 +31,7 @@ function Configuration({ form, editing }: { form: UseFormReturnType<ActionConfig
             leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             {...form.getInputProps('name')}
         />
-        <Config form={form} />
+        <Config form={form} configProps={configProps} />
     </>
     )
 }

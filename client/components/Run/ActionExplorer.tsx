@@ -74,7 +74,7 @@ export default function ActionExplorer( { viewing, view }: { viewing?: {name: st
                 <Accordion.Item key={i} value={i.toString()} >
                     <Accordion.Control icon={
                     <Indicator processing={!!action.result.error} disabled={!problem} size={12} color={action.result.warn?'orange':'red'} inline><act.Icon color={col} /></Indicator>
-                    }>{action.display||action.name} {action.display!==action.name&&<Text component='span' c="dimmed" >({action.name})</Text>}</Accordion.Control>
+                    }>{action.display||act.label||act.name} {(action.display&&action.display!==act.name)&&<Text component='span' c="dimmed" >({act.name})</Text>}</Accordion.Control>
                     <Accordion.Panel><Action action={action} name={viewing?.name} /></Accordion.Panel>
                 </Accordion.Item>)
             })}

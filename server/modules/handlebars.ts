@@ -37,8 +37,6 @@ Handlebars.registerHelper("$split", function(str: string, part?: string, separat
     return str.split(separator)[parseInt(part)];
 });
 
-//TODO - add string splitter
-
 Handlebars.registerHelper("$dir", function() { return paths.base; });
 
 const compiler = Handlebars.compile;

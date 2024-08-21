@@ -15,7 +15,7 @@ interface TransEmailSend {
     config?: string;
 }
 
-export default async function TransEmailSend({ action, template, execute, data, configs, schema, ...props }: props<TransEmailSend>) {
+export default async function TransEmailSend({ action, template, execute, data, configs, schema }: props<TransEmailSend>) {
     try {
         let email = action.config ? configs[action.config] as EMAIL : undefined;
         if (!email){
@@ -23,7 +23,6 @@ export default async function TransEmailSend({ action, template, execute, data, 
             await email.initialize(configs);
         }
         email.writeData(data, template);
-        console.log(email.host)
         if (!execute) return { data };
 
         return { success: true, data };

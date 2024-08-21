@@ -22,10 +22,8 @@ export class base_config {
             const preConfig = this.schema.actions.find(c=>c.name===configName);
             if (!preConfig) throw new xError(`Config '${configName}' does not exist.`);
             const { id, name, ...config } = preConfig;
-            //Object.assign(this, config);
             for (const key of Object.keys(config)) if (config[key]) this[key] = config[key];
         }
-        //Object.assign(this, extraConfig);
         for (const key of Object.keys(extraConfig)) if (extraConfig[key]) this[key] = extraConfig[key];
     }
     private async decrypt() {
