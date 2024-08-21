@@ -24,7 +24,7 @@ export default async function TransEmailSend({ action, template, execute, data, 
         }
         email.writeData(data, template);
         if (!execute) return { data };
-
+        await email.send();
         return { success: true, data };
     } catch (e){
         return { error: new xError(e), data };
