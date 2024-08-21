@@ -1,7 +1,10 @@
 import Handlebars from "handlebars";
 import dictionary from './dictionary.js'
 import { paths } from "../../server.js";
-//import ldap from "./ldap.js";
+import ldap from "./ldap.js";
+import dayjs from "dayjs";
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+dayjs.extend(localizedFormat);
 
 function toTitleCase(str: string) { return str.replace(/\w\S*/g, function(txt){ return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); }); }
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -19,12 +22,21 @@ Handlebars.registerHelper("$find", function(haystack: string, needle: string) { 
 Handlebars.registerHelper("$count", function(str: string) { return String(str.length); });
 Handlebars.registerHelper("$inc", function(str: string) { return String(parseInt(str) + 1); });
 Handlebars.registerHelper("$escape", function(str: string) { return Handlebars.escapeExpression(str); });
-//Handlebars.registerHelper("$ouFromDn", function(str: string) { return ldap.ouFromDn(str); });
-Handlebars.registerHelper("$grad", function(str: string, year: string) {
-    if (typeof year !== "string") year = "12";
+Handlebars.registerHelper("$ouFromDn", function(str: string) { return ldap.ouFromDn(str); });
+Handlebars.registerHelper("$grad", function(str: string, year?: string) {
+    if (!year || typeof year !== "string") year = "12";
     return (parseInt(year) - Number(str)) + (new Date()).getFullYear();
 });
-//TODO - add dayjs date converter
+Handlebars.registerHelper("$formatDate", function(str: string, format?: string) {
+    if (!format || typeof format !== "string") format = "LLL";
+    return dayjs(str).format(format);
+});
+Handlebars.registerHelper("$split", function(str: string, part?: string, separator?: string) {
+    if (!part || typeof part !== "string") part = "0";
+    if (!separator || typeof separator !== "string") separator = ",";
+    return str.split(separator)[parseInt(part)];
+});
+
 //TODO - add string splitter
 
 Handlebars.registerHelper("$dir", function() { return paths.base; });
