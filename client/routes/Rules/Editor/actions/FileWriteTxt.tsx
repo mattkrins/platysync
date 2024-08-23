@@ -18,8 +18,11 @@ export default function FileWriteTxt( { form, path, templateProps }: actionProps
         placeholder="{{id}},false,0"
         {...templateProps(form, `${path}.data`)}
     />
-    <Switch label="Append New Line"
+    <Switch label="Append New Line" description="Adds a newline/return after writing data."
     mt="xs" {...form.getInputProps(`${path}.newline`, { type: 'checkbox' })}
+    />
+    <Switch label="Close File" description="Releases file handle after writing instead of rule finalization."
+    mt="xs" {...form.getInputProps(`${path}.close`, { type: 'checkbox' })}
     />
   </>
   )
