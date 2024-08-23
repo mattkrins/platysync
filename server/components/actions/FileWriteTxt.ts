@@ -23,17 +23,14 @@ function openStream(path: string, flags = "a"): Promise<fs.WriteStream> {
 function closeStream(stream: fs.WriteStream): Promise<void> {
     return new Promise((resolve, reject) => {
         if (!stream) return resolve();
-        stream.close((e)=>e?reject(e):resolve());
+        stream.close(e=>e?reject(e):resolve());
     });
 }
 
 function writeStream(stream: fs.WriteStream, data: any): Promise<void> {
     return new Promise((resolve, reject) => {
         if (!stream) return resolve();
-        stream.write(data, e => {
-            if (e) return reject(e);
-            resolve();
-        });
+        stream.write(data,e=>e?reject(e):resolve());
     });
 }
 

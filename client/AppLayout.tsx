@@ -18,6 +18,7 @@ import Files from "./routes/Files/Files";
 import Connectors from "./routes/Connectors/Connectors";
 import Rules from "./routes/Rules/Rules";
 import Actions from "./routes/Actions/Actions";
+import Schedules from "./routes/Schedules/Schedules";
 
 const links = [
     { label: "Home", link: "/home", icon: <IconHome size={15} />, page: Home },
@@ -26,7 +27,7 @@ const links = [
     { label: "Connectors", link: "/connectors", icon: <IconPlug size={15} />, page: Connectors  },
     { label: "Actions", link: "/actions", icon: <IconSettings2 size={15} />, page: Actions },
     { label: "Rules", link: "/rules", icon: <IconCheckbox size={15} />, page: Rules, match: "/rules/*?" },
-    { label: "Schedules", link: "/schedules", icon: <IconClock size={15} /> },
+    { label: "Schedules", link: "/schedules", icon: <IconClock size={15} />, page: Schedules },
 ];
 
 function Link({ link, label, icon, disabled, match }: { link: string, match?: string, label: string, icon?: JSX.Element, disabled?: boolean }) {

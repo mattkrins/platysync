@@ -10,6 +10,7 @@ const initialState: Schema = {
   connectors: [],
   rules: [],
   actions: [],
+  schedules: [],
 };
 
 function getNested(obj: {[k: string]: any}, path: string): unknown {
@@ -40,11 +41,12 @@ const schemaSlice = createSlice({
     getActions: state => state.actions,
     getConnectors: state => state.connectors,
     getRules: state => state.rules,
+    getSchedules: state => state.schedules,
   },
 });
 
 export const { init, mutate } = schemaSlice.actions;
-export const { getName, getVersion, getFiles, getConnectors, getRules, getActions } = schemaSlice.selectors;
+export const { getName, getVersion, getFiles, getConnectors, getRules, getActions, getSchedules, } = schemaSlice.selectors;
 
 export default schemaSlice;
 
@@ -89,3 +91,4 @@ export const loadFiles = () => load("Files");
 export const loadActions = () => load("Actions");
 export const loadRules = () => load("Rules");
 export const loadConnectors = () => load("Connectors");
+export const loadSchedules = () => load("Schedules");

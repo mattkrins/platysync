@@ -15,6 +15,7 @@ const defaultSchema: Schema = {
     connectors: [],
     rules: [],
     actions: [],
+    schedules: [],
 }
 
 export default async function (route: FastifyInstance) {

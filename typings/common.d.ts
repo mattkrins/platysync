@@ -127,6 +127,16 @@ interface psFile {
     format?: string;
 }
 
+interface Schedule {
+    name: string;
+    enabled: boolean;
+    disableOnFailure?: boolean;
+    failAfter?: number;
+    retry?: number;
+    triggers: [];
+    actions: [];
+}
+
 interface Schema {
     name: string;
     version: string;
@@ -134,6 +144,7 @@ interface Schema {
     connectors: Connector[];
     rules: Rule[];
     actions: ActionConfig[];
+    schedules: Schedule[];
 }
 
 interface User {
