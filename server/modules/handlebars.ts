@@ -27,6 +27,7 @@ Handlebars.registerHelper("$grad", function(str: string, year?: string) {
     if (!year || typeof year !== "string") year = "12";
     return (parseInt(year) - Number(str)) + (new Date()).getFullYear();
 });
+Handlebars.registerHelper("$date", function() { return dayjs().toString(); });
 Handlebars.registerHelper("$formatDate", function(str: string, format?: string) {
     if (!format || typeof format !== "string") format = "LLL";
     return dayjs(str).format(format);

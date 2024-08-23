@@ -15,6 +15,7 @@ Handlebars.registerHelper("$inc", function(_str: string) { return ""; });
 Handlebars.registerHelper("$escape", function(_str: string) { return ""; });
 Handlebars.registerHelper("$ouFromDn", function(_str: string) { return ""; });
 Handlebars.registerHelper("$dir", function() { return ""; });
+Handlebars.registerHelper("$date", function() { return ""; });
 Handlebars.registerHelper("$formatDate", function(_str: string, _format = "LLL") { return ""; });
 Handlebars.registerHelper("$split", function(_str: string, _part = "0", _separator = ",") { return ""; });
 
@@ -35,6 +36,7 @@ export const genericHelpers = [
     { key: "$special", description: "Generates a random special character from '!?$%&*)>'.", example: "{{$special}} > %" },
     { key: "$word", description: "Retrieves a random word from the dictionary.", example: "{{$word}} > bread" },
     { key: "$grad", description: "Converts a numeric value to a graduation year.", example: "{{$grad '7'}} > 2029 (if run in 2024)" },
+    { key: "$date", description: "Retrieves the current datetime.", example: "{{$date}} > Fri, 25 Jan 2024 02:00:00 GMT'" },
     { key: "$formatDate", description: "Format a date using day.js.", example: "{{$formatDate '2019-01-25', 'YY'}} > 25" },
     { key: "$split", description: "Return a substring given an index and/or separator.", example: "{{$split 'Hello world', '1', ' '}} > world" },
 ];
