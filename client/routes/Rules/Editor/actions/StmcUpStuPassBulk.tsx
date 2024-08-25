@@ -2,7 +2,7 @@ import { TextInput } from '@mantine/core'
 import { IconFileUpload } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 
-export default function StmcUpStuPassBulk( { form, path, templateProps }: actionProps ) {
+export default function StmcUpStuPassBulk( { form, path, templateProps, config }: actionProps ) {
     return (
     <>
         <TextInput mt="sm"

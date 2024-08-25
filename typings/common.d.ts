@@ -77,7 +77,7 @@ interface SysTemplate {
 interface ActionConfig {
     id: string,
     name: string,
-    [k: string]: unknown;
+    config: Action;
 }
 
 interface Action {

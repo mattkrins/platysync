@@ -6,8 +6,7 @@ import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 
 export default class API extends base_config {
-    public dataKeys: string[] = ['endpoint', 'auth', 'append', 'method', 'mime'];
-    public compiledDataKeys: string[] = ['target', 'data', 'response', 'path'];
+    public dataKeys: string[] = ['endpoint', 'auth', 'append', 'method', 'mime', 'target', 'data', 'response', 'path'];
     public client?: AxiosInstance;
     [k: string]: unknown;
     constructor(schema: Schema, options: Partial<base_config>, name?: string) {

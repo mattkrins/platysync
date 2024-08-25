@@ -31,7 +31,7 @@ export default async function (route: FastifyInstance) {
                 id: isNotEmpty('ID can not be empty.'),
                 name: isNotEmpty('Name can not be empty.'),
             });
-            if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
+            if (options.config.password && typeof options.config.password === 'string' ) options.config.password = await encrypt(options.config.password as string);
             const actions = await getActions(schema_name);
             if (actions.find(c=>c.name===name)) throw new xError("Action name taken.", "name", 409);
             actions.push({ id, name, ...options });
@@ -54,7 +54,7 @@ export default async function (route: FastifyInstance) {
             if (editing!==name){
                 if (schema.actions.find(c=>c.name===name)) throw new xError("Action name taken.", "name", 409);
             }
-            if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
+            if (options.config.password && typeof options.config.password === 'string' ) options.config.password = await encrypt(options.config.password as string);
             schema.actions = schema.actions.map(c=>c.name!==editing?c:{...c, name, ...options })
             await sync();
             return true;

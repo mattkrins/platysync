@@ -6,40 +6,40 @@ import Wrapper from "../../components/Wrapper";
 import { IconAlertCircle, IconCheck, IconTag } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
 import { useState } from "react";
-import { availableConfigs, availableConfig } from "../../modules/configs";
 
 const base_validation = {
   name: isNotEmpty('Name can not be empty.'),
 }
 
 function Configuration({ form, editing }: { form: UseFormReturnType<ActionConfig>, editing: boolean }) {
-    const theme = useMantineTheme();
-    const { Options, Icon, color, name } = availableConfigs.find(a=>a.name===form.values.id) as availableConfig;
-    if (!Options) return <></>;
-    const reset = () => { form.reset(); form.setFieldValue('id',''); }
-    const configProps = ( name: string ) => form.getInputProps(name);
+    const { Options, label } = availableActions.find(a=>a.name===form.values.id) as availableAction;
+    const templateProps = (form: UseFormReturnType<any>, path: string) => form.getInputProps(path);
     return (
     <>
-        {!editing&&<Group>
-            <Text><Anchor onClick={reset} >Actions</Anchor></Text>
-            <Divider orientation="vertical" />
-            <Icon size={20} color={color?theme.colors[color][6]:undefined} />
-            <Text>{name}</Text>
-        </Group>}
-        <TextInput withAsterisk mt="xs"
+        <TextInput withAsterisk
             label="Config Name"
-            placeholder="name"
+            placeholder={label}
             leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             {...form.getInputProps('name')}
         />
-        <Options form={form} configProps={configProps} />
+        {Options&&<Options path="config" form={form as UseFormReturnType<any>} templateProps={templateProps} config />}
     </>
     )
 }
 
+function AvailableActionList({ select } : { select(a: availableAction): void } ) {
+    const theme = useMantineTheme();
+    return <SimpleGrid cols={4} mt="md">{availableActions.filter(a=>a.Options).map(a=>
+        <UnstyledButton onClick={()=>select(a)} key={a.name} className={classes.item} >
+            <a.Icon size={32} color={a.color?theme.colors[a.color][6]:undefined} />
+            <Text size="xs" mt={5} >{a.label}</Text>
+        </UnstyledButton>)}
+    </SimpleGrid>
+}
+
 function Content({ action, refresh, adding, close }: { action: ActionConfig, refresh(): void, adding: boolean, close(): void }) {
     const editing = action.name;
-    const act = (availableConfigs.find(a=>a.name===action.id) || {}) as availableConfig;
+    const act = (availableActions.find(a=>a.name===action.id) || {}) as availableAction;
     const theme = useMantineTheme();
     const [ validate, setValidation ] = useState<{[value: string]: (...v: unknown[]) => unknown}>({...base_validation, ...act.validate});
     const form = useForm<ActionConfig>({ validate, initialValues: structuredClone(action) });
@@ -47,7 +47,7 @@ function Content({ action, refresh, adding, close }: { action: ActionConfig, ref
         url: `/action${adding?'':`/${editing}`}`, schema: true, form: form,
         then: () => { refresh(); close(); },
     });
-    const select = (a: availableConfig) => {
+    const select = (a: availableAction) => {
         form.setFieldValue('id',a.name);
         setValidation({...base_validation, ...a.validate});
         if (!a.initialValues) return;
@@ -57,13 +57,7 @@ function Content({ action, refresh, adding, close }: { action: ActionConfig, ref
         <>
             {!!success&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Action config {adding ? "added" : "updated"} successfully.</Alert>}
             {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
-            {form.values.id ? <Configuration form={form} editing={!!editing} /> :
-            <SimpleGrid cols={2} mt="md">{availableConfigs.filter(a=>a.Options).map(a=>
-                <UnstyledButton onClick={()=>select(a)} key={a.name} className={classes.item} >
-                    <a.Icon size={32} color={a.color?theme.colors[a.color][6]:undefined} />
-                    <Text size="xs" mt={5} >{a.name}</Text>
-                </UnstyledButton>)}
-            </SimpleGrid>}
+            {form.values.id ? <Configuration form={form} editing={!!editing} /> : <AvailableActionList select={select} />}
             <Group mt="xs" justify="flex-end"><Button loading={loading} onClick={()=>adding?post():put()}>{adding ? "Add" : "Save"}</Button></Group>
         </>
     )

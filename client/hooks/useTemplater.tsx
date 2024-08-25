@@ -54,20 +54,22 @@ function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
     )
 }
 
-interface TemplateOptions {
+export interface TemplateOptions {
     buttons?: JSX.Element;
     disabled?: boolean;
+    placeholder?: string;
+    value?: string;
 }
 
 export type templateProps = (form: UseFormReturnType<any>, path: string, options?: TemplateOptions) => {
-    error: boolean;
+    error?: boolean;
     onChange: any;
     value?: any;
     defaultValue?: any;
     checked?: any;
     onFocus?: any;
     onBlur?: any;
-    rightSection: JSX.Element;
+    rightSection?: JSX.Element;
 }
 
 export default function useTemplater( { names, inline }: { names?: string[], inline?: string[] } = {} ) {
@@ -104,7 +106,7 @@ export default function useTemplater( { names, inline }: { names?: string[], inl
     const templateProps: templateProps = useCallback((form: UseFormReturnType<any>, path: string, options: TemplateOptions = {}) => {
         const inputProps = form.getInputProps(path);
         let error: string|undefined = inputProps?.error||undefined;
-        try { compile(inputProps?.value||"")(template); }
+        try { compile(inputProps?.value||options.value||"")(template); }
         catch (e) { error = (e as {message: string}).message; }
         const exploreButton = <ActionIcon disabled={options.disabled} onClick={()=>{
             setClick(() => (value: string) => form.setFieldValue(path, `${inputProps?.value||""}{{${value}}}`) );

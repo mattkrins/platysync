@@ -6,8 +6,7 @@ import SMTPConnection from "nodemailer/lib/smtp-connection";
 import { xError } from "../../modules/common";
 
 export default class EMAIL extends base_config {
-    public dataKeys: string[] = ['host', 'port', 'username'];
-    public compiledDataKeys: string[] = ['from', 'to', 'subject', 'text', 'html'];
+    public dataKeys: string[] = ['host', 'port', 'username', 'from', 'to', 'subject', 'text', 'html'];
     private client?: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
     [k: string]: unknown;
     constructor(schema: Schema, options: Partial<base_config>, name?: string) {

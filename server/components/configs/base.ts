@@ -9,7 +9,6 @@ export class base_config {
     private options: Partial<base_config>;
     private name?: string;
     public dataKeys: string[] = [];
-    public compiledDataKeys: string[] = [];
     private schema: Schema;
     [k: string]: unknown;
     constructor(schema: Schema, options: Partial<base_config>, configName?: string) {
@@ -21,7 +20,7 @@ export class base_config {
             this.name = configName;
             const preConfig = this.schema.actions.find(c=>c.name===configName);
             if (!preConfig) throw new xError(`Config '${configName}' does not exist.`);
-            const { id, name, ...config } = preConfig;
+            const { config } = preConfig;
             for (const key of Object.keys(config)) if (config[key]) this[key] = config[key];
         }
         for (const key of Object.keys(extraConfig)) if (extraConfig[key]) this[key] = extraConfig[key];
@@ -34,7 +33,6 @@ export class base_config {
         if (this.name) configs[this.name] = this;
     }
     public writeData(data: rString<any>, template: template): void {
-        for (const key of this.dataKeys) data[key] = this[key] as string;
-        for (const key of this.compiledDataKeys) data[key] = compile(template, this[key] as string);
+        for (const key of this.dataKeys) data[key] = compile(template, this[key] as string);
     }
 }

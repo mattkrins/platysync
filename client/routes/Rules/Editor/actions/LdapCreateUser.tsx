@@ -117,7 +117,7 @@ function SecurityGroups( { form, path, templateProps }: actionProps ) {
 }
 
 
-export default function LdapCreateUser( { form, path, templateProps }: actionProps ) {
+export default function LdapCreateUser( { form, path, templateProps, config }: actionProps ) {
     const [visible, { toggle }] = useDisclosure(false);
     const EyeIcon = <ActionIcon onClick={toggle} variant="subtle">{!visible ?
         <IconEye style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} /> :
@@ -126,13 +126,13 @@ export default function LdapCreateUser( { form, path, templateProps }: actionPro
     return (
     <>
         <TextInput
-            label="SAM Account Name" withAsterisk
+            label="SAM Account Name" withAsterisk={!config}
             leftSection={<IconHierarchy size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}"
             {...templateProps(form, `${path}.sam`)}
         />
         <TextInput
-            label="User Principal Name" withAsterisk
+            label="User Principal Name" withAsterisk={!config}
             leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             placeholder="{{username}}@domain.com"
             {...templateProps(form, `${path}.upn`)}

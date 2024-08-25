@@ -2,12 +2,12 @@ import { NumberInput, Switch, TextInput } from '@mantine/core'
 import { IconBraces, IconClock, IconTerminal } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 
-export default function SysRunCommand( { form, path, templateProps }: actionProps ) {
+export default function SysRunCommand( { form, path, templateProps, config }: actionProps ) {
   const detached = form.getInputProps(`${path}.detached`, { type: 'checkbox' }).checked||false;
   return (
   <>
     <TextInput
-        label="Command" withAsterisk
+        label="Command" withAsterisk={!config}
         description="Arbitrary system command. Result of execution will be placed in {{stdout}} template."
         placeholder="/bin/echo {{username}}"
         leftSection={<IconTerminal size={16} style={{ display: 'block', opacity: 0.8 }}/>}

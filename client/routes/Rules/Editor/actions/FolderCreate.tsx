@@ -2,11 +2,11 @@ import { Switch, TextInput } from '@mantine/core'
 import { IconFolderPlus } from '@tabler/icons-react'
 import { actionProps } from '../../../../modules/actions'
 
-export default function FolderCreate( { form, path, templateProps }: actionProps ) {
+export default function FolderCreate( { form, path, templateProps, config }: actionProps ) {
   return (
   <>
     <TextInput
-        label="Target Folder" withAsterisk
+        label="Target Folder" withAsterisk={!config}
         description="Path of folder to be created."
         placeholder="D:/source/{{username}}/"
         leftSection={<IconFolderPlus size={16} style={{ display: 'block', opacity: 0.8 }}/>}

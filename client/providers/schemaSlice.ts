@@ -24,7 +24,7 @@ const schemaSlice = createSlice({
   initialState,
   reducers: {
     init() { return initialState; },
-    setSchema(_, { payload }: PayloadAction<Schema>) { return { ...payload }; },
+    setSchema(_, { payload }: PayloadAction<Schema>) { return { ...initialState, ...payload }; },
     mutate(state, { payload }: PayloadAction<Partial<Schema>>) { return { ...state, ...payload }; },
     reorder(state, { payload: { name, to, from } }: PayloadAction<{name: string, to: number, from: number}>) {
       const array = state[name as keyof Schema] as unknown[];

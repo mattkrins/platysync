@@ -3,7 +3,7 @@ import { IconBraces, IconCheck, IconX } from '@tabler/icons-react';
 import { actionProps } from '../../../../modules/actions'
 import Conditions from '../Conditions'
 
-export default function SysComparator( { form, path, templateProps, iterative }: actionProps ) {
+export default function SysComparator( { form, path, templateProps, iterative, config }: actionProps ) {
     const output = form.getInputProps(`${path}.output`).value;
     return (
     <>
@@ -14,7 +14,7 @@ export default function SysComparator( { form, path, templateProps, iterative }:
         /> {output&&
         <>
             <TextInput
-                label="Template Key" withAsterisk
+                label="Template Key" withAsterisk={!config}
                 description="Template key will contain output string based on conditions evaluating."
                 placeholder="result"
                 leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}

@@ -3,22 +3,15 @@ import { UseFormReturnType } from "@mantine/form";
 import { useClickOutside, useDisclosure } from "@mantine/hooks";
 import classes from './Actions.module.css';
 import { IconProps, Icon, IconChevronRight, IconChevronDown, IconGripVertical, IconTrash, IconCopy, IconPencil, IconX, IconFolderSearch, IconEraser, IconSettings2, IconCheck, IconExclamationCircle } from "@tabler/icons-react";
-import { ForwardRefExoticComponent, RefAttributes, useCallback, useMemo } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useMemo } from "react";
 import { availableAction, availableActions, availableCategories, availableCategory } from "../../../modules/actions";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import MenuTip from "../../../components/MenuTip";
 import { useRule } from "./Editor";
-import useTemplater, { templateProps } from "../../../hooks/useTemplater";
+import useTemplater, { TemplateOptions } from "../../../hooks/useTemplater";
 import { useSelector, useSettings } from "../../../hooks/redux";
 import { getActions } from "../../../providers/schemaSlice";
 import SelectActionConnector from "../../../components/SelectActionConnector";
-import Concealer from "../../../components/Concealer";
-import { availableConfigs } from "../../../modules/configs";
-//LINK - https://github.com/hello-pangea/dnd/blob/main/docs/api/droppable.md#conditionally-dropping
-
-//NOTE - do not make target connector avalible if only 1 of type in context
-//NOTE - unlock context, enable selecting any connector but additional field target user appears with filter
-//NOTE - on server-side, if no target specified, use user in context
 
 interface SectionProps {
     onClick(): void;
@@ -100,31 +93,11 @@ function SelectConfig({ id, onClick, active }: { id: string, onClick(name?: stri
     return (
     <Menu shadow="md" position="left" width={200} >
         <Menu.Target>
-            <Tooltip label="Select Config" color="green" >
+            <Tooltip label={active?`Using Config '${active}'`:"Select Config"} color="green" >
                 <ActionIcon disabled={filtered.length<=0} color="green" variant={active?"light":"subtle"} >
                     <IconSettings2 size={16} stroke={1.5} />
                 </ActionIcon>
             </Tooltip>
-        </Menu.Target>
-        <Menu.Dropdown>
-            {filtered.map(a=>
-            <Menu.Item key={a.name}
-            leftSection={active===a.name?<IconCheck size={14} stroke={1.5} />:undefined}
-            onClick={()=>active===a.name?onClick(undefined):onClick(a.name)} >
-            {a.name}
-            </Menu.Item>)}
-        </Menu.Dropdown>
-    </Menu>
-    )
-}
-
-function SelectConfig2({ id, onClick, active }: { id: string, onClick(name?: string): void, active?: string }) {
-    const actions = useSelector(getActions);
-    const filtered = actions.filter(a=>a.id===id);
-    return (
-    <Menu shadow="md" >
-        <Menu.Target>
-            <Button disabled={filtered.length<=0} size="compact-xs" rightSection={<IconSettings2 size={14} stroke={1.5} />} >{active?`Using ${active}`:'Select Config'}</Button>
         </Menu.Target>
         <Menu.Dropdown>
             {filtered.map(a=>
@@ -159,26 +132,27 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline});
     if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;
     const { Icon, color, name, label, validator, overwriter, Options, provider, iterative: Context } = actionConfig;
-    const Config = availableConfigs.find(c=>c.name===name)?.Options;
     const useContext = !iterative && Context && (typeof Context === "function");
     const actions = useSelector(getActions);
-    const configProps = useCallback((name: string, rightSection = true, leftSection = false, placeholder?: string ) => {
-        const props = form.getInputProps(`${type}.${index}.${name}`);
-        if (!config) return props;
-        const action = actions.find(f=>f.name===config);
-        const Section = (!rightSection && !leftSection) ? undefined : (action &&
-        <Tooltip label={props.value?`${config} ${name} overridden`:`Using ${config} ${name}`} >
-            <IconSettings2 size={16} style={{ display: 'block', opacity: props.value?0.2:1 }} />
-        </Tooltip> );
-        const options: { rightSection?: JSX.Element, placeholder?: string, leftSection?: JSX.Element } = {};
-        if (rightSection) options.rightSection = Section;
-        if (leftSection) options.leftSection = Section;
-        if (action) options.placeholder = placeholder || action[name] as string;
-        return ({ ...props, ...options });
-    }, [ form, type, index, config, actions ]);
+    const configProps = useMemo(()=>{
+        if (!config) return templateProps;
+        return (form: UseFormReturnType<any>, path: string, options: TemplateOptions = {}) => {
+            const props = templateProps(form, path, options);
+            const action = actions.find(f=>f.name===config);
+            if (!action) return props;
+            const name = path.split(".").at(-1) as string;
+            if (!action.config[name]) return props;
+            const props2 = templateProps(form, path, {...options, value: String(action.config[name]) });
+            const styles = props2.error ? undefined : { input: { borderColor: theme.colors[form.getInputProps(path).value ? "violet" : "green"][9] } };
+            const placeholder = typeof action.config[name] === "string" ? action.config[name] : options.placeholder;
+            return {...props2, styles, placeholder, withAsterisk: false };
+        }
+    },[ config, actions, templateProps ]);
     return <>{explorer}
     <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
     {(provided) => (
+        //TODO - add validate button
+        //TODO - indicate when validation not satisfied
     <Indicator disabled={!!action.enabled&&!action.noblock} color={!action.enabled?"red":"orange"}  {...provided.draggableProps} ref={provided.innerRef} >
     <Paper mb="xs" p={4} withBorder>
         <Grid columns={20} justify="space-between"  align="center" >
@@ -193,9 +167,9 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                     </Group>
                 </Group>
             </Grid.Col>
-            <Grid.Col span={7}>
+            <Grid.Col span="auto">
                 <TextInput variant="filled" {...form.getInputProps(`${type}.${index}.display`)}
-                value={display?display:(config||label||name)}
+                value={display?display:(label||name)}
                 />
             </Grid.Col>
             {provider&&<Grid.Col span={5}>
@@ -206,13 +180,14 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                 />
                 <Divider orientation="vertical" />
             </Grid.Col>}
-            <Grid.Col span={"auto"} miw={120}>
+            <Grid.Col span="auto" miw={120}>
                 <Group gap="xs" justify="flex-end">
+                    {config&&<Text size="xs" c="dimmed">{config}</Text>}
+                    <SelectConfig id={name} onClick={setConfig} active={config} />
                     {overwriter&&<MenuTip label="Should Overwrite" Icon={IconEraser} color="grape" variant={action.overwrite?"light":"subtle"}
                     onClick={()=>form.setFieldValue(`${type}.${index}.overwrite`, !action.overwrite)} />}
                     {validator&&<MenuTip label="Validate Paths" Icon={IconFolderSearch} color="lime" variant={action.validate?"light":"subtle"}
                     onClick={()=>form.setFieldValue(`${type}.${index}.validate`, !action.validate)} />}
-                    {Config&&<SelectConfig id={name} onClick={setConfig} active={config} />}
                     <MenuTip label="Continue On Error" Icon={IconExclamationCircle} color="orange" variant={action.noblock?"light":"subtle"}
                     onClick={()=>form.setFieldValue(`${type}.${index}.noblock`, !action.noblock)} />
                     <MenuTip label="Disable" Icon={IconX} color="pink" variant={!action.enabled?"light":"subtle"}
@@ -230,12 +205,8 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
             { useContext && <Box p="xs" pt={0} pb={0} >
                 <Context form={form} sources={templateSources} rule={form} path={`${type}.${index}`}  />
             </Box>}
-            <Box p="xs" pt={0} > {Config&&
-                <Concealer label={`Configuration ${config?`(${config})`:''}`} open={!config} rightSection={
-                    <Group justify="end" ><SelectConfig2 id={name} onClick={setConfig} active={config} /></Group> } >
-                    <Config form={form as unknown as UseFormReturnType<ActionConfig>} configProps={configProps} />
-                </Concealer>}
-                {Options&&<Options form={form} path={`${type}.${index}`} templateProps={templateProps} iterative={iterative} />}
+            <Box p="xs" pt={0} >
+                {Options&&<Options form={form} path={`${type}.${index}`} templateProps={configProps} iterative={iterative} />}
             </Box>
             </>}
         </Collapse>

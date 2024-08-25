@@ -1,7 +1,7 @@
 import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv, IconCloudDownload } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
-import { UseFormReturnType, isNotEmpty } from "@mantine/form";
+import { UseFormReturnType } from "@mantine/form";
 import DocWritePDF from "../routes/Rules/Editor/actions/DocWritePDF";
 import DocPrintPDF from "../routes/Rules/Editor/actions/DocPrintPDF";
 import FileCopy from "../routes/Rules/Editor/actions/FileCopy";
@@ -17,8 +17,8 @@ import SysEncryptString from "../routes/Rules/Editor/actions/SysEncryptString";
 import SysRunCommand from "../routes/Rules/Editor/actions/SysRunCommand";
 import SysTemplate from "../routes/Rules/Editor/actions/SysTemplate";
 import SysWait from "../routes/Rules/Editor/actions/SysWait";
-import TransEmailSend, { TransEmailSendConfig } from "../routes/Rules/Editor/actions/TransEmailSend";
-import TransAPIRequest, { TransAPIRequestConfig } from "../routes/Rules/Editor/actions/TransAPIRequest";
+import TransEmailSend from "../routes/Rules/Editor/actions/TransEmailSend";
+import TransAPIRequest from "../routes/Rules/Editor/actions/TransAPIRequest";
 import StmcUpStuPass from "../routes/Rules/Editor/actions/StmcUpStuPass";
 import StmcUpStuPassBulk from "../routes/Rules/Editor/actions/StmcUpStuPassBulk";
 import LdapCreateUser from "../routes/Rules/Editor/actions/LdapCreateUser";
@@ -89,6 +89,7 @@ export interface actionProps {
     form: UseFormReturnType<Rule>;
     path: string;
     iterative?: boolean;
+    config?: boolean;
     templateProps: templateProps;
 }
 
@@ -111,6 +112,8 @@ export interface availableAction {
     overwriter?: boolean;
     provider?: string;
     iterative?: true|((props: ContextProps) => JSX.Element);
+    validate?: {[value: string]: (...v: unknown[]) => unknown};
+    noPreConfig?: boolean;
 }
 
 export const availableActions: availableAction[] = [
@@ -306,6 +309,7 @@ export const availableActions: availableAction[] = [
         Icon: IconEqualNot,
         Options: SysComparator,
         initialValues: { conditions: [] },
+        noPreConfig: true
     },
     {
         name: "SysEncryptString",
@@ -378,7 +382,7 @@ export const availableActions: availableAction[] = [
     },
     {
         name: "TransAPIGet",
-        label: "API GET Request",
+        label: "GET Request",
         category: 'transmission',
         Icon: IconCloudDownload,
         color: 'red',

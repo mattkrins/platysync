@@ -3,7 +3,7 @@ import { IconBraces, IconEye, IconEyeOff, IconKey, IconLock, IconPencil } from '
 import { actionProps } from '../../../../modules/actions'
 import { useDisclosure } from '@mantine/hooks';
 
-export default function SysEncryptString( { form, path, templateProps }: actionProps ) {
+export default function SysEncryptString( { form, path, templateProps, config }: actionProps ) {
   const [visible, { toggle }] = useDisclosure(false);
   const EyeIcon = <ActionIcon onClick={toggle} variant="subtle">{!visible ?
       <IconEye style={{ width: 'var(--psi-icon-size)', height: 'var(--psi-icon-size)' }} /> :
@@ -12,14 +12,14 @@ export default function SysEncryptString( { form, path, templateProps }: actionP
   return (
   <>
     <TextInput
-        label="Secret" withAsterisk
+        label="Secret" withAsterisk={!config}
         description="String to be encrypted."
         placeholder="My very important secret"
         leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
         {...templateProps(form, `${path}.secret`)}
     />
     <PasswordInput
-        label="Encryption Key" withAsterisk mt="xs"
+        label="Encryption Key" withAsterisk={!config} mt="xs"
         description={<>String to encrypt the secret with. <b>Warning: this is stored in clear text</b></>}
         placeholder="password"
         visible={visible}
@@ -35,7 +35,7 @@ export default function SysEncryptString( { form, path, templateProps }: actionP
         {...form.getInputProps(`${path}.strength`)}
     />
     <TextInput
-        label="Template Key" withAsterisk mt="xs"
+        label="Template Key" withAsterisk={!config} mt="xs"
         description="Encrypted string will be stored in this template key."
         placeholder="encrypted"
         leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}

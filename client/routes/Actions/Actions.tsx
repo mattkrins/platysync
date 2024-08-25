@@ -1,14 +1,16 @@
-import { Container, Group, Title, Paper, Grid, Text, Button, Anchor, useMantineTheme, Loader } from "@mantine/core";
+import { Container, Group, Title, Paper, Grid, Text, Button, useMantineTheme, Loader, Popover, Box, Collapse, UnstyledButton } from "@mantine/core";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { useState } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import Wrapper from "../../components/Wrapper";
-import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
+import { useDispatch, useLoader, useSelector, useSettings } from "../../hooks/redux";
 import { getActions, loadActions, reorder } from "../../providers/schemaSlice";
 import Editor from "./Editor";
-import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import { Icon, IconChevronRight, IconCopy, IconGripVertical, IconPencil, IconPlus, IconProps, IconTrash } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
 import MenuTip from "../../components/MenuTip";
-import { availableConfigs } from "../../modules/configs";
+import { availableAction, availableActions, availableCategories, availableCategory } from "../../modules/actions";
+import { useClickOutside, useDisclosure } from "@mantine/hooks";
+import classes from './Editor.module.css';
 
 function Action({ index, action: { name, id }, edit, refresh }: { index: number, action: ActionConfig, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
@@ -22,9 +24,9 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
         url: `/action/${name}/copy`, schema: true,
         then: () => refresh(),
     });
-    const action = availableConfigs.find(a=>a.name===id);
+    const action = availableActions.find(a=>a.name===id);
     if (!action) return <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={async () => await del()} loading={deleting} color="red" variant="subtle" />;
-    const { Icon, color } = action;
+    const { Icon, color, label } = action;
     return (
     <Draggable index={index} draggableId={name}>
     {(provided, snapshot) => (
@@ -37,7 +39,7 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
                 </Group>
             </Grid.Col>
             <Grid.Col span={4}>{name}</Grid.Col>
-            <Grid.Col span={4}>{id}</Grid.Col>
+            <Grid.Col span={4}>{label}</Grid.Col>
             <Grid.Col span={3} miw={120}>
                     <Group gap="xs" justify="flex-end">
                         {loading&&<Loader size="xs" />}
@@ -52,6 +54,71 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
     </Draggable>)
 }
 
+interface SectionProps {
+    onClick(): void;
+    open?: boolean;
+    label: string;
+    color?: string;
+    Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
+    Ricon?: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
+}
+function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
+    return (
+    <UnstyledButton onClick={onClick} className={classes.connector} p="xs" mt={0} >
+        <Group>
+            <Box style={{ display: 'flex', alignItems: 'center' }} >
+                <Icon size={17} color={color||"grey"} />
+            </Box>
+            <div style={{ flex: 1 }}><Text size="sm">{label}</Text></div>
+            {open!==undefined&&<IconChevronRight size={17} stroke={1.5} style={{transform: open ? `rotate(${90}deg)` : 'none',}} />}
+            {Ricon&&<Ricon size={17} stroke={1.5}/>}
+        </Group>
+    </UnstyledButton>
+    )
+}
+
+function Category({ category, add }: { category: availableCategory, add(c: availableAction): void }) {
+    const theme = useMantineTheme();
+    const [opened, { toggle }] = useDisclosure(false);
+    const settings = useSettings(); 
+    const filtered = availableActions.
+    filter(a=> a.name==="SysRunCommand"?settings.enableRun:true ).
+    filter(a=>a.category===category.id).
+    filter(a=>!a.noPreConfig).
+    filter(a=>a.Options);
+    return (
+    <>
+        <Section open={opened} label={category.name} Icon={category.Icon} onClick={toggle} color={category.color?theme.colors[category.color][6]:undefined} />
+        <Collapse in={opened} >
+            {filtered.map(action=>
+            <UnstyledButton onClick={()=>add(action)} p="xs" pt={5} pb={5} pl="md" key={action.name} className={classes.connector}>
+                <Group>
+                    <Box style={{ display: 'flex', alignItems: 'center' }} >
+                        <action.Icon size={17} color={action.color?theme.colors[action.color][6]:undefined} />
+                    </Box>
+                    <div style={{ flex: 1 }}><Text size="sm">{action.label||action.name}</Text></div>
+                </Group>
+            </UnstyledButton>)}
+        </Collapse>
+    </>
+    );
+}
+
+function AddButton({ add }: { add(c: availableAction): void }) {
+    const [opened, { open, close }] = useDisclosure(false);
+    const ref = useClickOutside(() => close());
+    const addClose = (c: availableAction) => { add(c); close(); }
+    return (
+    <Popover opened={opened} width={300} position="left-start" shadow="md" clickOutsideEvents={['mouseup', 'touchend']}>
+        <Popover.Target>
+            <Button onClick={open} leftSection={<IconPlus size={18} />}>Add</Button>
+        </Popover.Target>
+        <Popover.Dropdown ref={ref} >
+            {availableCategories.map(category=><Category key={category.name} category={category} add={addClose} />)}
+        </Popover.Dropdown>
+    </Popover>
+    );
+}
 
 export default function Actions() {
     const { loadingFiles } = useLoader();
@@ -59,17 +126,17 @@ export default function Actions() {
     const actions = useSelector(getActions);
     const [ editing, setEditing ] = useState<[ActionConfig,boolean]|undefined>(undefined);
     const close = () => setEditing(undefined);
-    const add = () => setEditing([{ name: "", id: "" },false]);
+    const add = (c: availableAction) => setEditing([{ name: "", id: c.name, config: { name: c.name, ...c.initialValues } },false]);
     const refresh = () => dispatch(loadActions());
     return (
     <Container>
         <Editor editing={editing} close={close} refresh={refresh} />
         <Group justify="space-between">
             <Title mb="xs" >Actions</Title>
-            <Button onClick={add} loading={loadingFiles} leftSection={<IconPlus size={18} />} >Add</Button>
+            <AddButton add={add} />
         </Group>
         <Wrapper loading={loadingFiles} >
-            {(actions||[]).length<=0?<Text c="dimmed" >No actions configured. <Anchor onClick={add} >Add</Anchor> pre-configurations to use specific actions in rules.</Text>:
+            {(actions||[]).length<=0?<Text c="dimmed" >No actions configured. Add pre-configurations to pre-fill actions in rules.</Text>:
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
                     <Grid.Col span={1}/>

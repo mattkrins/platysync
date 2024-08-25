@@ -3,7 +3,7 @@ import { IconFile, IconPrinter } from "@tabler/icons-react";
 import { actionProps } from "../../../../modules/actions";
 import useAPI from "../../../../hooks/useAPI";
 
-export default function DocPrintPDF( { form, path, templateProps }: actionProps ) {
+export default function DocPrintPDF( { form, path, templateProps, config }: actionProps ) {
     const { data: printers, loading } = useAPI<string[]>({
         url: `/rule/getPrinters`, schema: true,
         fetch: true, default: [],
@@ -14,14 +14,14 @@ export default function DocPrintPDF( { form, path, templateProps }: actionProps 
     return (
     <>
         <TextInput
-            label="Source File" withAsterisk
+            label="Source File" withAsterisk={!config}
             description="Path of the PDF to print"
             placeholder="D:/templates/ouput/{{username}}.pdf"
             leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.8 }}/>}
             {...templateProps(form, `${path}.source`)}
         />
         <Select
-            label="Target Printer" withAsterisk clearable
+            label="Target Printer" withAsterisk={!config} clearable
             description="Leave blank to use the system's default printer."
             leftSection={loading?<Loader size="xs" />:<IconPrinter size={16} style={{ display: 'block', opacity: 0.8 }} />}
             placeholder="Select Printer"

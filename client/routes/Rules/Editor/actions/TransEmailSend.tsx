@@ -1,23 +1,70 @@
-import { ActionIcon, Grid, SimpleGrid, TextInput, Textarea } from '@mantine/core'
-import { Icon, IconAt, IconEdit, IconProps, IconSettings2, IconTextCaption, IconUser, IconWorld } from '@tabler/icons-react'
-import { actionConfigProps, actionProps, availableActions } from '../../../../modules/actions'
+import { Grid, SimpleGrid, TextInput, Textarea } from '@mantine/core'
+import { IconAt, IconTextCaption, IconUser, IconWorld } from '@tabler/icons-react'
+import { actionConfigProps, actionProps } from '../../../../modules/actions'
 import SecurePasswordInput from '../../../../components/SecurePasswordInput'
-import { ForwardRefExoticComponent, RefAttributes } from 'react'
-import { useSelector } from '../../../../hooks/redux'
-import { getActions } from '../../../../providers/schemaSlice'
+import Concealer from '../../../../components/Concealer'
+import usePassword from '../../../../hooks/usePassword'
 
-export default function TransEmailSend( { form, path, templateProps }: actionProps ) {
+export default function TransEmailSend( { form, path, templateProps, config }: actionProps ) {
+  const { visible, options, secure, unlock } = usePassword(form, `${path}.password`);
   return (
   <>
+    <Concealer label='Nodemailer Configuration' open >
+    <Grid>
+      <Grid.Col span={9}>
+        <TextInput
+          label="Host"
+          leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+          placeholder="smtp-mail.domain.com"
+          withAsterisk={!config}
+          {...templateProps(form, `${path}.host`)}
+        />
+      </Grid.Col>
+      <Grid.Col span={3}>
+        <TextInput
+          label="Port"
+          leftSection={<>:</>}
+          placeholder="25"
+          {...templateProps(form, `${path}.port`)}
+        />
+      </Grid.Col>
+    </Grid>
+    
+    <SimpleGrid mt="sm" cols={{ base: 1, sm: 2 }} >
+        <TextInput withAsterisk={!config}
+          label="Username"
+          placeholder="username"
+          leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+          {...templateProps(form, `${path}.username`)}
+        />
+        <SecurePasswordInput withAsterisk={!config}
+          label="Password" 
+          placeholder="password"
+          visible={visible}
+          secure={secure}
+          unlock={unlock}
+          rightSectionX={options.buttons}
+          {...templateProps(form, `${path}.password`, options)}
+        />
+    </SimpleGrid>
+    
+    </Concealer>
     <TextInput mt="xs"
-        label="To" withAsterisk
+        label="To" withAsterisk={!config}
         description="Comma separated list or an array of recipients email addresses that will appear on the To: field."
         placeholder="smith@domain.com"
         leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
         {...templateProps(form, `${path}.to`)}
     />
     <TextInput mt="xs"
-        label="Subject" withAsterisk
+        label="From"
+        description="The email address of the sender."
+        placeholder="jane@domain.com"
+        leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+        {...templateProps(form, `${path}.from`)}
+    />
+    <TextInput mt="xs"
+        label="Subject" withAsterisk={!config}
         description="The subject of the email."
         placeholder="RE: Subject"
         leftSection={<IconTextCaption size={16} style={{ display: 'block', opacity: 0.8 }}/>}
@@ -35,13 +82,6 @@ export default function TransEmailSend( { form, path, templateProps }: actionPro
         placeholder="<p>HTML body.</p>"
         {...templateProps(form, `${path}.html`)}
     />
-    <TextInput mt="xs"
-        label="From"
-        description="The email address of the sender."
-        placeholder="jane@domain.com"
-        leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-        {...templateProps(form, `${path}.from`)}
-    />
   </>
   )
 }
@@ -50,47 +90,7 @@ export function TransEmailSendConfig({ form, configProps }: actionConfigProps) {
 
   return (
   <>
-    <Grid>
-      <Grid.Col span={9}>
-        <TextInput
-          label="Host"
-          leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-          placeholder="smtp-mail.domain.com"
-          withAsterisk
-          {...configProps('host')}
-        />
-      </Grid.Col>
-      <Grid.Col span={3}>
-        <TextInput
-          label="Port"
-          leftSection={<>:</>}
-          placeholder="25"
-          {...configProps('port')}
-        />
-      </Grid.Col>
-    </Grid>
-    <SimpleGrid mt="sm" cols={{ base: 1, sm: 2 }} >
-        <TextInput withAsterisk
-          label="Username"
-          placeholder="username"
-          leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-          {...configProps('username')}
-        />
-        <SecurePasswordInput withAsterisk
-          label="Password"
-          placeholder="password"
-          secure={!!form.values.password&&typeof form.values.password !== 'string'}
-          unlock={()=>form.setFieldValue("password", "")}
-          {...configProps('password', false, true, "**************")}
-        />
-    </SimpleGrid>
-    <TextInput mt="xs"
-      label="From"
-      description="The email address of the sender."
-      placeholder="jane@domain.com"
-      leftSection={<IconAt size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-      {...configProps('from')}
-    />
+
   </>
   )
 }
