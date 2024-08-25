@@ -206,7 +206,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
                 <Context form={form} sources={templateSources} rule={form} path={`${type}.${index}`}  />
             </Box>}
             <Box p="xs" pt={0} >
-                {Options&&<Options form={form} path={`${type}.${index}`} templateProps={configProps} iterative={iterative} />}
+                {Options&&<Options form={form} path={`${type}.${index}`} configured={config} templateProps={configProps} iterative={iterative} />}
             </Box>
             </>}
         </Collapse>

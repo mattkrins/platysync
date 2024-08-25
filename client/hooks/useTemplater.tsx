@@ -70,6 +70,7 @@ export type templateProps = (form: UseFormReturnType<any>, path: string, options
     onFocus?: any;
     onBlur?: any;
     rightSection?: JSX.Element;
+    placeholder?: string;
 }
 
 export default function useTemplater( { names, inline }: { names?: string[], inline?: string[] } = {} ) {

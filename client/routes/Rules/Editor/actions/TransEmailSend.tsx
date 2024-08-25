@@ -1,15 +1,15 @@
 import { Grid, SimpleGrid, TextInput, Textarea } from '@mantine/core'
 import { IconAt, IconTextCaption, IconUser, IconWorld } from '@tabler/icons-react'
-import { actionConfigProps, actionProps } from '../../../../modules/actions'
+import { actionProps } from '../../../../modules/actions'
 import SecurePasswordInput from '../../../../components/SecurePasswordInput'
 import Concealer from '../../../../components/Concealer'
 import usePassword from '../../../../hooks/usePassword'
 
-export default function TransEmailSend( { form, path, templateProps, config }: actionProps ) {
+export default function TransEmailSend( { form, path, templateProps, config, configured }: actionProps ) {
   const { visible, options, secure, unlock } = usePassword(form, `${path}.password`);
   return (
   <>
-    <Concealer label='Nodemailer Configuration' open >
+    <Concealer label={configured?`Config (${configured})`:"Config"} open >
     <Grid>
       <Grid.Col span={9}>
         <TextInput
@@ -82,15 +82,6 @@ export default function TransEmailSend( { form, path, templateProps, config }: a
         placeholder="<p>HTML body.</p>"
         {...templateProps(form, `${path}.html`)}
     />
-  </>
-  )
-}
-
-export function TransEmailSendConfig({ form, configProps }: actionConfigProps) {
-
-  return (
-  <>
-
   </>
   )
 }

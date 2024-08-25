@@ -30,6 +30,7 @@ const theme = createTheme({
       PasswordInput: PasswordInput.extend(inputTheme),
       Select: Select.extend(inputTheme),
       Textarea: Textarea.extend(inputTheme),
+      JsonInput: Textarea.extend(inputTheme),
       Autocomplete: Textarea.extend(inputTheme),
   },
 });

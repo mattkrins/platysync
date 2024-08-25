@@ -1,4 +1,4 @@
-import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv, IconCloudDownload } from "@tabler/icons-react";
+import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv, IconCloudDownload } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
 import { UseFormReturnType } from "@mantine/form";
@@ -18,7 +18,6 @@ import SysRunCommand from "../routes/Rules/Editor/actions/SysRunCommand";
 import SysTemplate from "../routes/Rules/Editor/actions/SysTemplate";
 import SysWait from "../routes/Rules/Editor/actions/SysWait";
 import TransEmailSend from "../routes/Rules/Editor/actions/TransEmailSend";
-import TransAPIRequest from "../routes/Rules/Editor/actions/TransAPIRequest";
 import StmcUpStuPass from "../routes/Rules/Editor/actions/StmcUpStuPass";
 import StmcUpStuPassBulk from "../routes/Rules/Editor/actions/StmcUpStuPassBulk";
 import LdapCreateUser from "../routes/Rules/Editor/actions/LdapCreateUser";
@@ -90,6 +89,7 @@ export interface actionProps {
     path: string;
     iterative?: boolean;
     config?: boolean;
+    configured?: string;
     templateProps: templateProps;
 }
 
@@ -367,19 +367,19 @@ export const availableActions: availableAction[] = [
         color: 'grape',
         Options: TransEmailSend
     },
-    {
-        name: "TransAPIRequest",
-        label: "API Request",
-        category: 'transmission',
-        Icon: IconCloudUp,
-        color: 'red',
-        Options: TransAPIRequest,
-        initialValues: {
-            method: 'get',
-            mime: 'json',
-            form: [],
-        }
-    },
+    //{
+    //    name: "TransAPIRequest",
+    //    label: "API Request",
+    //    category: 'transmission',
+    //    Icon: IconCloudUp,
+    //    color: 'red',
+    //    Options: TransAPIRequest,
+    //    initialValues: {
+    //        method: 'get',
+    //        mime: 'json',
+    //        form: [],
+    //    }
+    //},
     {
         name: "TransAPIGet",
         label: "GET Request",
@@ -388,8 +388,7 @@ export const availableActions: availableAction[] = [
         color: 'red',
         Options: TransAPIGet,
         initialValues: {
-            method: 'get',
-            mime: 'json'
+            form: [],
         }
     },
 ]
