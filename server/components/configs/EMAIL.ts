@@ -11,7 +11,7 @@ export default class EMAIL extends base_config {
     [k: string]: unknown;
     constructor(schema: Schema, options: Partial<base_config>, name?: string) {
         super(schema, options, name);
-        if (!this.port) this.port = 25;
+        if (!this.port) this.port = "25";
         if (!this.from) this.from = this.username;
         if (!this.text) this.text = undefined;
         if (!this.html) this.html = undefined;

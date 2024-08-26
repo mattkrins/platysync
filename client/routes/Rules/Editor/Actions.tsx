@@ -153,6 +153,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     {(provided) => (
         //TODO - add validate button
         //TODO - indicate when validation not satisfied
+        //REVIEW - action configs which have conditional elements and lists currently not shown in the GUI.
     <Indicator disabled={!!action.enabled&&!action.noblock} color={!action.enabled?"red":"orange"}  {...provided.draggableProps} ref={provided.innerRef} >
     <Paper mb="xs" p={4} withBorder>
         <Grid columns={20} justify="space-between"  align="center" >

@@ -23,7 +23,6 @@ export default async function TransEmailSend({ action, template, execute, data, 
             await email.initialize(configs);
         }
         email.writeData(data, template);
-        console.log(data)
         if (!execute) return { data };
         await email.send();
         return { success: true, data };
