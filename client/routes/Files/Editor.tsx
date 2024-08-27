@@ -41,7 +41,7 @@ function Content({ file, refresh, adding, close }: { file: psFile, refresh(): vo
     {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
     <TextInput
     label="Name" pb="xs"
-    placeholder="name" required
+    placeholder="File Name" required
     {...form.getInputProps('name')}
     leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     />

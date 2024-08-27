@@ -5,6 +5,7 @@ import { useState } from "react";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
 import { getSchedules, loadSchedules, reorder } from "../../providers/schemaSlice";
+import Editor from "./Editor";
 
 export default function Schedules() {
     const { loadingSchedules } = useLoader();
@@ -12,16 +13,17 @@ export default function Schedules() {
     const schedules = useSelector(getSchedules);
     const [ editing, setEditing ] = useState<[Schedule,boolean]|undefined>(undefined);
     const close = () => setEditing(undefined);
-    const add = () => setEditing([{ name: "", enabled: false, triggers: [], actions: [] },false]);
+    const add = () => setEditing([{ name: "", enabled: false, triggers: [], tasks: [] },false]);
     const refresh = () => dispatch(loadSchedules());
     return (
     <Container>
+        <Editor editing={editing} close={close} refresh={refresh} />
         <Group justify="space-between">
-            <Title mb="xs" >Files</Title>
+            <Title mb="xs" >Schedules</Title>
             <Button onClick={add} loading={loadingSchedules} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
         <Wrapper loading={loadingSchedules} >
-            {schedules.length<=0?<Text c="dimmed" >No files in schema. <Anchor onClick={add} >Add</Anchor> static files for use in templating.</Text>:
+            {schedules.length<=0?<Text c="dimmed" >No schedules in schema. <Anchor onClick={add} >Add</Anchor> schedules to automate rules.</Text>:
             <Paper mb="xs" p="xs" >
                 <Grid justify="space-between">
                     <Grid.Col span={1}/>

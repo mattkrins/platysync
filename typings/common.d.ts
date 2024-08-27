@@ -130,11 +130,11 @@ interface psFile {
 interface Schedule {
     name: string;
     enabled: boolean;
-    disableOnFailure?: boolean;
+    description?: string;
     failAfter?: number;
-    retry?: number;
+    disableAfter?: number;
     triggers: [];
-    actions: [];
+    tasks: [];
 }
 
 interface Schema {
