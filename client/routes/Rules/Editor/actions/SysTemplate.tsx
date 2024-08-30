@@ -12,7 +12,9 @@ function Template({ index, entry, form, templateProps, path }: { index: number, 
     return (
     <Draggable index={index} draggableId={String(index)}>
         {provided => (
-            <Grid align="center" mt="xs" gutter="xs" {...provided.draggableProps} ref={provided.innerRef} >
+            <Grid align="center" mt="xs" gutter="xs" {...provided.draggableProps}
+            style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }} ref={provided.innerRef}
+            >
                 <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                     <Group><IconGripVertical size="1.2rem" /></Group>
                 </Grid.Col>
@@ -50,7 +52,7 @@ export default function SysTemplate( { form, path, templateProps }: actionProps 
     <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
         <Droppable droppableId="dnd-list" direction="vertical">
         {(provided) => (
-        <div {...provided.droppableProps} ref={provided.innerRef}>
+        <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
             {entries.map((entry, index) => <Template key={index} index={index} entry={entry} form={form} templateProps={templateProps} path={templatePath} />)}
             {provided.placeholder}
         </div>

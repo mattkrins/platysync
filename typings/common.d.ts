@@ -127,6 +127,11 @@ interface psFile {
     format?: string;
 }
 
+interface Task {
+    name: string;
+    rules?: string[];
+}
+
 interface Schedule {
     name: string;
     enabled: boolean;
@@ -134,7 +139,7 @@ interface Schedule {
     failAfter?: number;
     disableAfter?: number;
     triggers: [];
-    tasks: [];
+    tasks: Task[];
 }
 
 interface Schema {

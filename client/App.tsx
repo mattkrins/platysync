@@ -1,4 +1,4 @@
-import { createTheme, MantineProvider, PasswordInput, Select, TextInput, Textarea } from "@mantine/core";
+import { createTheme, MantineProvider, PasswordInput, Select, TextInput, Textarea, MultiSelect } from "@mantine/core";
 import { ModalsProvider } from '@mantine/modals';
 import { Route, Switch, useLocation } from "wouter";
 import { Provider } from 'react-redux';
@@ -32,6 +32,7 @@ const theme = createTheme({
       Textarea: Textarea.extend(inputTheme),
       JsonInput: Textarea.extend(inputTheme),
       Autocomplete: Textarea.extend(inputTheme),
+      MultiSelect: MultiSelect.extend({ classNames: { pill: themeClasses.pill, ...inputTheme.classNames } }),
   },
 });
 
