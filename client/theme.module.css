@@ -18,7 +18,10 @@ body {
 
 .input {
   background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7));
-  background-color: var(--mantine-color-body);
+}
+
+.pill {
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-8));
 }
 
 .overflow {
