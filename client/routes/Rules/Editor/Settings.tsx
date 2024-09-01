@@ -232,7 +232,7 @@ export default function Settings( { form, setActiveTab }: { form: UseFormReturnT
     const addContext = () => setEditingContext([{ name: null } as unknown as Context,undefined,false]);
     const editSource = (source: Source, index: number) => setEditingSource([source,index,true]);
     const editContext = (context: Context, index: number) => setEditingContext([context,index,true]);
-    
+    //TODO - https://mantine.dev/form/uncontrolled/
     const changePrimary = () => {
         form.setFieldValue("primaryKey", null as unknown as string);
         form.setFieldValue("sources", []);
