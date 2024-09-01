@@ -50,7 +50,7 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
                 </Grid.Col>
                 <Grid.Col span={9}>{name}</Grid.Col>
                 <Grid.Col span={2}>
-                    <Group justify="flex-end" visibleFrom="md"><Badge color={provider.color?theme.colors[provider.color][6]:undefined} variant="light">{provider.id}</Badge></Group>
+                    <Group justify="flex-start" visibleFrom="md"><Badge color={provider.color?theme.colors[provider.color][6]:undefined} variant="light">{provider.id}</Badge></Group>
                 </Grid.Col>
                 <Grid.Col span={4} miw={160}>
                     <Group gap="xs" justify="flex-end">
@@ -88,7 +88,7 @@ export default function Connectors() {
                 <Grid columns={17} justify="space-between">
                     <Grid.Col span={2}/>
                     <Grid.Col span={9}>Name</Grid.Col>
-                    <Grid.Col span={1}>Provider</Grid.Col>
+                    <Grid.Col span={2}>Provider</Grid.Col>
                     <Grid.Col span={4}/>
                 </Grid>
             </Paper>}

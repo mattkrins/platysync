@@ -1,12 +1,13 @@
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { Button, Center, Grid, Group, Modal, MultiSelect, NumberInput, Select, Switch, Tabs, Textarea, TextInput } from "@mantine/core";
+import { Button, Center, Grid, Group, Modal, MultiSelect, NumberInput, Paper, Select, Switch, Tabs, Textarea, TextInput, Text } from "@mantine/core";
 import { isNotEmpty, useForm, UseFormReturnType } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { IconBraces, IconCheckbox, IconCopy, IconGripVertical, IconPencil, IconPlus, IconTag, IconTrash } from "@tabler/icons-react";
+import { IconBraces, IconCheckbox, IconCopy, IconEdit, IconGripVertical, IconPencil, IconPlus, IconTag, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import MenuTip from "../../components/MenuTip";
 import { useSelector } from "../../hooks/redux";
 import { getRules } from "../../providers/schemaSlice";
+import useEditor from "../../hooks/useEditor";
 
 const validate = {
   name: isNotEmpty('Name can not be empty.'),
@@ -16,42 +17,6 @@ function TriggerTab({ form }: { form: UseFormReturnType<Schedule> } ) {
   const triggers = form.getInputProps("triggers").value as [];
   return <>Triggers</>
 }
-
-function Task({ form, index, entry, path }: { form: UseFormReturnType<Schedule>, index: number, entry: Schedule, path: string } ) {
-  const copy = () => form.insertListItem(path, structuredClone(entry));
-  const remove = () => form.removeListItem(path, index);
-  return (
-  <Draggable index={index} draggableId={String(index)}>
-      {provided => (
-          <Grid align="center" mt="xs" gutter="xs" {...provided.draggableProps}
-          style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }}
-          ref={provided.innerRef} >
-              <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
-                  <Group><IconGripVertical size="1.2rem" /></Group>
-              </Grid.Col>
-              <Grid.Col span="auto" >
-                  <TextInput {...form.getInputProps(`${path}.${index}.key`)}
-                  leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                  placeholder="Key"
-                  />
-              </Grid.Col>
-              <Grid.Col span="auto" >
-                  <TextInput {...form.getInputProps(`${path}.${index}.value`)}
-                  leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                  placeholder="Value"
-                  />
-              </Grid.Col>
-              <Grid.Col span="content">
-                  <Group justify="right" gap="xs">
-                      <MenuTip label="Copy" Icon={IconCopy} onClick={copy} variant="default" />
-                      <MenuTip label="Delete" Icon={IconTrash} onClick={remove} variant="default" />
-                  </Group>
-              </Grid.Col>
-          </Grid>
-      )}
-  </Draggable>)
-}
-
 
 function TaskEditor({ open, adding, close, task_form, index }: { open: Task, adding?: boolean, close(): void, task_form: UseFormReturnType<Schedule>, index?: number } ) {
   const form = useForm<Task>({ validate: {
@@ -72,7 +37,7 @@ function TaskEditor({ open, adding, close, task_form, index }: { open: Task, add
       {...form.getInputProps("name")}
     />
     {name==="Run Rules"&&<MultiSelect
-      label="Rules" leftSection={<IconCheckbox size={15} />}
+      label="Rules" leftSection={<IconCheckbox size={16} />}
       placeholder={ (Array.isArray(selected_rules) && selected_rules.length > 0) ? "Pick rules":"All rules"}
       data={rules.map(r=>r.name)}
       {...form.getInputProps("rules")}
@@ -83,24 +48,57 @@ function TaskEditor({ open, adding, close, task_form, index }: { open: Task, add
   </>)
 }
 
+function Task({ form, index, entry, path, edit }: { form: UseFormReturnType<Schedule>, index: number, entry: Task, path: string, edit(task: Task, i: number): void } ) {
+  const copy = () => form.insertListItem(path, structuredClone(entry));
+  const remove = () => form.removeListItem(path, index);
+  const details = (entry.rules||[]).length > 0 ? `${(entry.rules||[]).join(', ')}` : `[ All ]`;
+  return (
+  <Draggable index={index} draggableId={String(index)}>
+      {provided => (
+        <Paper withBorder mb="xs" {...provided.draggableProps} style={{ ...provided.draggableProps.style, left: "auto !important", top: "auto !important", }} ref={provided.innerRef}>
+          <Grid align="center" gutter="xs" p="xs" >
+              <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
+                  <Group><IconGripVertical size="1.2rem" /></Group>
+              </Grid.Col>
+              <Grid.Col span={4} >{entry.name}</Grid.Col>
+              <Grid.Col span={4} ><Text truncate="end">{details}</Text></Grid.Col>
+              <Grid.Col span={3}>
+                  <Group justify="right" gap="xs">
+                      <MenuTip label="Copy" Icon={IconEdit} onClick={()=>edit(entry, index)} variant="default" />
+                      <MenuTip label="Copy" Icon={IconCopy} onClick={copy} variant="default" />
+                      <MenuTip label="Delete" Icon={IconTrash} onClick={remove} variant="default" />
+                  </Group>
+              </Grid.Col>
+          </Grid>
+        </Paper>
+      )}
+  </Draggable>)
+}
+
 function TaskTab({ form }: { form: UseFormReturnType<Schedule> } ) {
-  const [ editing, setEditing ] = useState<number>();
-  const [ task, setTask ] = useState<Task>();
   const entries = form.getInputProps("tasks").value as Schedule[];
-  const close = () => { setTask(undefined); setEditing(undefined); }
-  const add = () => setTask({ name: "", rules: [] });
+  const [ task, isEditing, { editing, add, close, edit } ] =  useEditor<Task, number>({ name: "", rules: [] });
   return (
   <>
-    <Modal opened={!!task} onClose={close} size="md" title={editing ? "Edit Task" : "New Task"}>
-      {task&&<TaskEditor open={task} close={close} task_form={form}  adding={!editing} />}
+    <Modal opened={!!task} onClose={close} size="md" title={isEditing ? "Edit Task" : "New Task"}>
+      {task&&<TaskEditor open={task} close={close} task_form={form} adding={!isEditing} index={editing} />}
     </Modal>
-    <Group justify="end" mt="xs" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Task</Button></Group>
-    {entries.length===0&&<Center c="dimmed" fz="xs" >No tasks configured.</Center>}
+    <Paper mb="xs" p="xs" mt="xs" withBorder >
+        <Grid justify="space-between" align="center">
+            <Grid.Col span={1}/>
+            <Grid.Col span={4}>Name</Grid.Col>
+            <Grid.Col span={4}>Details</Grid.Col>
+            <Grid.Col span={3}><Group justify="right" gap="xs">
+              <Button onClick={()=>add()} size="xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Task</Button></Group>
+            </Grid.Col>
+        </Grid>
+    </Paper>
+    {entries.length===0&&<Paper mb="xs" p="xs" mt="xs" withBorder ><Center c="dimmed" >No tasks configured.</Center></Paper>}
     <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem("tasks", { from: source.index, to: destination? destination.index : 0 }) } >
         <Droppable droppableId="dnd-list" direction="vertical">
         {(provided) => (
         <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-            {entries.map((entry, index) => <Task key={index} index={index} entry={entry} form={form} path={"tasks"} />)}
+            {entries.map((entry, index) => <Task key={index} index={index} entry={entry} form={form} path={"tasks"} edit={edit} />)}
             {provided.placeholder}
         </div>
         )}
@@ -158,7 +156,7 @@ function Content({ open: schedule, refresh, adding, close }: { open: Schedule, r
 
 export default function Editor({ open, adding, close, refresh }: { open?: Schedule, adding?: boolean, close(): void, refresh(): void }) {
   return (
-    <Modal opened={!!open} onClose={close} size="xl" title={adding ? "New Schedule" : "Edit Schedule"}>
+    <Modal opened={!!open} onClose={close} size="xl" title={adding ? "New Schedule" : "Edit Schedule"} closeOnClickOutside={!adding} >
       {open&&<Content open={open} refresh={refresh} adding={adding} close={close} />}
     </Modal>
   );
