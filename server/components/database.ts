@@ -60,3 +60,4 @@ export async function getFiles(schema_name: string, fieldName?: string) { return
 export async function getActions(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).actions; }
 export async function getConnectors(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).connectors; }
 export async function getRules(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).rules; }
+export async function getSchedules(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).schedules; }

@@ -38,7 +38,7 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
                     <Group visibleFrom="xl" ><Icon size={20} color={color?theme.colors[color][6]:undefined} /></Group>
                 </Group>
             </Grid.Col>
-            <Grid.Col span={4}>{name}</Grid.Col>
+            <Grid.Col span={4}><Text truncate="end">{name}</Text></Grid.Col>
             <Grid.Col span={4}>{label}</Grid.Col>
             <Grid.Col span={3} miw={120}>
                     <Group gap="xs" justify="flex-end">

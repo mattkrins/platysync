@@ -48,9 +48,13 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
                         <Group visibleFrom="sm" ><provider.Icon size={20} color={provider.color?theme.colors[provider.color][6]:undefined} /></Group>
                     </Group>
                 </Grid.Col>
-                <Grid.Col span={9}>{name}</Grid.Col>
+                <Grid.Col span={9}><Text truncate="end">{name}</Text></Grid.Col>
                 <Grid.Col span={2}>
-                    <Group justify="flex-start" visibleFrom="md"><Badge color={provider.color?theme.colors[provider.color][6]:undefined} variant="light">{provider.id}</Badge></Group>
+                    <Group justify="flex-start" visibleFrom="md">
+                        <Tooltip label={provider.name} withArrow color={provider.color?theme.colors[provider.color][6]:undefined} >
+                            <Badge color={provider.color?theme.colors[provider.color][6]:undefined} variant="light">{provider.id}</Badge>
+                        </Tooltip>
+                    </Group>
                 </Grid.Col>
                 <Grid.Col span={4} miw={160}>
                     <Group gap="xs" justify="flex-end">

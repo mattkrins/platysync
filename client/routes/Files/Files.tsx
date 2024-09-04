@@ -39,8 +39,8 @@ function File({ index, file: { name, key, format }, edit, refresh }: { index: nu
                     <Group visibleFrom="xl" ><icon.Icon size={20} color={icon.color?theme.colors[icon.color][6]:undefined} /></Group>
                 </Group>
             </Grid.Col>
-            <Grid.Col span={4}>{name}</Grid.Col>
-            <Grid.Col span={4}>{key||<Text c="dimmed" >{name}</Text>}</Grid.Col>
+            <Grid.Col span={4}><Text truncate="end">{name}</Text></Grid.Col>
+            <Grid.Col span={4}>{key?<Text truncate="end">{key}</Text>:<Text c="dimmed" truncate="end" >{name}</Text>}</Grid.Col>
             <Grid.Col span={3} miw={120}>
                     <Group gap="xs" justify="flex-end">
                         {loading&&<Loader size="xs" />}

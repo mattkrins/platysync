@@ -1,7 +1,7 @@
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { Button, Center, Grid, Group, Modal, MultiSelect, NumberInput, Paper, Select, Switch, Tabs, Textarea, TextInput, Text, Anchor, Alert, Tooltip } from "@mantine/core";
 import { isNotEmpty, useForm, UseFormReturnType } from "@mantine/form";
-import { IconAlertCircle, IconCheck, IconCheckbox, IconClock, IconCopy, IconEdit, IconFileInfinity, IconGripVertical, IconPlus, IconTag, IconTrash } from "@tabler/icons-react";
+import { IconAlertCircle, IconCheck, IconCheckbox, IconClock, IconCopy, IconEdit, IconFileSearch, IconGripVertical, IconPlus, IconRun, IconTag, IconTrash } from "@tabler/icons-react";
 import MenuTip from "../../components/MenuTip";
 import { useSelector } from "../../hooks/redux";
 import { getRules } from "../../providers/schemaSlice";
@@ -59,25 +59,26 @@ function TriggerEditor({ open, adding, close, task_form, index }: { open: Trigge
   </>)
 }
 
+export function triggerDetails(entry: Trigger) {
+  switch (entry.name) {
+    case "cron":{
+      const cron = cronstrue.toString(entry.cron||"", { throwExceptionOnParseError: false });
+      const invalidCron = (cron||"").includes("An error occured when generating the expression description");
+      return invalidCron ? cron : `Runs ${cron}`;
+    }
+    case "watch": return `Watching for changes to '${entry.watch}'`;
+    default: return "Error";
+  }
+}
+
 function Trigger({ form, index, entry, path, edit }: { form: UseFormReturnType<Schedule>, index: number, entry: Trigger, path: string, edit(task: Trigger, i: number): void } ) {
   const copy = () => form.insertListItem(path, structuredClone(entry));
   const remove = () => form.removeListItem(path, index);
   const toggle = () => form.setFieldValue(`${path}.${index}.enabled`, !entry.enabled);
-  const Details = () => {
-    switch (entry.name) {
-      case "cron":{
-        const cron = cronstrue.toString(entry.cron||"", { throwExceptionOnParseError: false });
-        const invalidCron = (cron||"").includes("An error occured when generating the expression description");
-        return invalidCron ? cron : `Runs ${cron} (${entry.cron})`;
-      }
-      case "watch": return `Watching for changes to '${entry.watch}'`;
-      default: return "Error";
-    }
-  }
   const Icon = () => {
     switch (entry.name) {
       case "cron": return <IconClock size={18} />
-      case "watch": return <IconFileInfinity size={18} />
+      case "watch": return <IconFileSearch size={18} />
       default: return "";
     }
   }
@@ -90,7 +91,7 @@ function Trigger({ form, index, entry, path, edit }: { form: UseFormReturnType<S
                   <Group><IconGripVertical size="1.2rem" /></Group>
               </Grid.Col>
               <Grid.Col span={2} ><Group gap="xs" ><Icon/>{entry.name}</Group></Grid.Col>
-              <Grid.Col span={6} ><Text truncate="end">{Details()}</Text></Grid.Col>
+              <Grid.Col span={6} ><Text truncate="end">{triggerDetails(entry)}</Text></Grid.Col>
               <Grid.Col span={3}>
                   <Group justify="right" gap="xs">
                     <Switch onChange={()=>toggle()} checked={entry.enabled} />
@@ -142,6 +143,7 @@ function TaskEditor({ open, adding, close, task_form, index }: { open: Task, add
     name: isNotEmpty('Task type can not be empty.'),
   }, initialValues: structuredClone(open) });
   const rules = useSelector(getRules);
+  const ruleData = rules.filter(r=>r.enabled).map(r=>r.name);
   const name = form.getInputProps("name").value;
   const selected_rules = form.getInputProps("rules").value as string[];
   const invalid = () => { form.validate(); return !form.isValid(); }
@@ -152,15 +154,19 @@ function TaskEditor({ open, adding, close, task_form, index }: { open: Task, add
     <Select
       label="Task Type" withAsterisk
       placeholder="Select a task to run"
-      data={['Run Rules']}
+      data={[{ value: 'run', label: 'Run Rules' }]}
       {...form.getInputProps("name")}
     />
-    {name==="Run Rules"&&<MultiSelect
+    {name==="run"&&<>
+    <MultiSelect
       label="Rules" leftSection={<IconCheckbox size={16} />}
       placeholder={ (Array.isArray(selected_rules) && selected_rules.length > 0) ? "Pick rules":"All rules"}
-      data={rules.map(r=>r.name)}
+      data={ruleData}
       {...form.getInputProps("rules")}
-    />}
+    />
+    {ruleData.length<=0&&<Text size="xs" mt={2} c="red">No enabled rules.</Text>}
+    </>
+    }
     <Switch
     label="Task Enabled" mt="xs"
     {...form.getInputProps("enabled", { type: 'checkbox' })}
@@ -174,7 +180,7 @@ function TaskEditor({ open, adding, close, task_form, index }: { open: Task, add
 function Task({ form, index, entry, path, edit }: { form: UseFormReturnType<Schedule>, index: number, entry: Task, path: string, edit(task: Task, i: number): void } ) {
   const copy = () => form.insertListItem(path, structuredClone(entry));
   const remove = () => form.removeListItem(path, index);
-  const details = (entry.rules||[]).length > 0 ? `${(entry.rules||[]).join(', ')}` : `[ All ]`;
+  const details = (entry.rules||[]).length > 0 ? `${(entry.rules||[]).join(', ')}` : `[ All Rules ]`;
   const toggle = () => form.setFieldValue(`${path}.${index}.enabled`, !entry.enabled)
   return (
   <Draggable index={index} draggableId={String(index)}>
@@ -184,7 +190,7 @@ function Task({ form, index, entry, path, edit }: { form: UseFormReturnType<Sche
               <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                   <Group><IconGripVertical size="1.2rem" /></Group>
               </Grid.Col>
-              <Grid.Col span={2} >{entry.name}</Grid.Col>
+              <Grid.Col span={2} ><Group gap="xs" ><IconRun size={18} />{entry.name}</Group></Grid.Col>
               <Grid.Col span={6} ><Text truncate="end">{details}</Text></Grid.Col>
               <Grid.Col span={3}>
                   <Group justify="right" gap="xs">
@@ -241,7 +247,6 @@ function General({ form }: { form: UseFormReturnType<Schedule> } ) {
       {...form.getInputProps('name')}
       leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     />
-    <Switch label="Enabled" mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} />
     <Textarea
         label="Description" mt="xs"
         placeholder="Describe what this schedule does."
@@ -261,7 +266,8 @@ function General({ form }: { form: UseFormReturnType<Schedule> } ) {
         min={1} max={10}
         {...form.getInputProps('disableAfter')}
     />
-  </Paper>)
+    <Switch label="Enabled" mt="xs" {...form.getInputProps('enabled', { type: 'checkbox' })} />
+    </Paper>)
 }
 
 function Content({ open: schedule, refresh, adding, close }: { open: Schedule, refresh(): void, adding?: boolean, close(): void }) {

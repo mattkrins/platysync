@@ -21,6 +21,7 @@ import rule from './server/routes/rule';
 import action from './server/routes/action';
 import socketioServer from "fastify-socket.io";
 import { Server } from "socket.io";
+import schedule from './server/routes/schedule';
 const { combine, timestamp, json, simple, errors } = winston.format;
 
 export let version = process.env.npm_package_version as string;
@@ -71,6 +72,7 @@ function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (
 async function routes(route: FastifyInstance) {
   if (dev) route.addHook('preHandler', (req, res, done: () => void) => setTimeout(done, 200) );
   addRoute(route, '/auth', auth, false);
+  addRoute(route, '/schema/:schema_name/schedule', schedule);
   addRoute(route, '/schema/:schema_name/action', action);
   addRoute(route, '/schema/:schema_name/rule', rule);
   addRoute(route, '/schema/:schema_name/file', file);

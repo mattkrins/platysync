@@ -146,7 +146,7 @@ interface Schedule {
     description?: string;
     failAfter?: number;
     disableAfter?: number;
-    triggers: [];
+    triggers: Trigger[];
     tasks: Task[];
 }
 

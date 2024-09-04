@@ -78,7 +78,7 @@ function Rule({ index, rule: { name, enabled, ...rule }, edit, refresh, run }: {
                 </Grid.Col>
                 <Grid.Col span={3}>
                     <Tooltip disabled={!rule.description} label={<><Text size="xs" >{rule.description}</Text></>} position="bottom-start" withArrow  color="gray">
-                        <Text>{name}</Text>
+                        <Text truncate="end">{name}</Text>
                     </Tooltip>
                 </Grid.Col>
                 <Grid.Col span={2}>
