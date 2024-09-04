@@ -129,7 +129,15 @@ interface psFile {
 
 interface Task {
     name: string;
+    enabled: boolean;
     rules?: string[];
+}
+
+interface Trigger {
+    name: string;
+    enabled: boolean;
+    cron: string;
+    watch: string;
 }
 
 interface Schedule {
