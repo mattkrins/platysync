@@ -138,6 +138,8 @@ interface Trigger {
     enabled: boolean;
     cron: string;
     watch: string;
+    delay?: number;
+    timezone?: string;
 }
 
 interface Schedule {

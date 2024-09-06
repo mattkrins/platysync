@@ -30,6 +30,7 @@ const theme = createTheme({
       PasswordInput: PasswordInput.extend(inputTheme),
       Select: Select.extend(inputTheme),
       Textarea: Textarea.extend(inputTheme),
+      NumberInput: Textarea.extend(inputTheme),
       JsonInput: Textarea.extend(inputTheme),
       Autocomplete: Textarea.extend(inputTheme),
       MultiSelect: MultiSelect.extend({ classNames: { pill: themeClasses.pill, ...inputTheme.classNames } }),

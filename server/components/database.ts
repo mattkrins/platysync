@@ -49,7 +49,7 @@ async function upgrade() {
 
 export async function Settings() { return (await database()).data.settings; }
 export async function Users() { return (await database()).data.users; }
-export async function Schemas() { return (await database()).data.schemas; }
+export async function getSchemas() { return (await database()).data.schemas; }
 export async function getSchema(schema_name: string, fieldName?: string) {
     const { data: { schemas } } = await database();
     const schema = schemas.find(s=>s.name===schema_name);

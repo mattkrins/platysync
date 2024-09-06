@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
-import database, { Schemas } from "../components/database";
+import database, { getSchemas } from "../components/database";
 import { version } from "../../server";
 
 interface newSchema extends Schema {
@@ -21,7 +21,7 @@ const defaultSchema: Schema = {
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
         try {
-            return await Schemas();
+            return await getSchemas();
         } catch (e) { new xError(e).send(reply); }
     });
     route.post('/', async (request, reply) => {

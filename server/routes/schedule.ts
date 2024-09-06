@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
 import { getSchedules, getSchema, sync } from "../components/database";
+import { initSchedule, stopSchedule } from "../components/schedules";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -37,6 +38,7 @@ export default async function (route: FastifyInstance) {
             if (options.disableAfter && options.disableAfter < 1) throw new xError("Invalid disable after range.", "disableAfter", 406 );
             schedules.push({ name, ...options });
             await sync();
+            await initSchedule(name, schema_name);
             return true;
         }
         catch (e) { new xError(e).send(reply); }
@@ -58,6 +60,8 @@ export default async function (route: FastifyInstance) {
             if (options.disableAfter && options.disableAfter < 1) throw new xError("Invalid disable after range.", "disableAfter", 406 );
             schema.schedules = schema.schedules.map(c=>c.name!==editing?c:{...c, name, ...options })
             await sync();
+            stopSchedule(editing, schema_name);
+            await initSchedule(name, schema_name);
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -73,7 +77,7 @@ export default async function (route: FastifyInstance) {
             const newName = `${schedule.name}_copy${schedules.length}`;
             const nameCheck = schedules.find(c=>c.name===newName);
             if (nameCheck) throw new xError("Schedule name taken.", "name", 409 );
-            schedules.push({...schedule, name: newName });
+            schedules.push({...schedule, name: newName, enabled: false });
             await sync();
             return true;
         } catch (e) { new xError(e).send(reply); }
@@ -88,6 +92,8 @@ export default async function (route: FastifyInstance) {
             const schedule = schedules.find(c=>c.name===name);
             if (!schedule) throw new xError("Schedule not found.", "name", 404 );
             schedule.enabled = true;
+            await sync();
+            await initSchedule(name, schema_name);
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -101,6 +107,8 @@ export default async function (route: FastifyInstance) {
             const schedule = schedules.find(c=>c.name===name);
             if (!schedule) throw new xError("Schedule not found.", "name", 404 );
             schedule.enabled = false;
+            await sync();
+            await initSchedule(name, schema_name);
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -113,6 +121,7 @@ export default async function (route: FastifyInstance) {
             if (!action) throw new xError("Schedule config not found.", "name", 404 );
             schema.schedules = schema.schedules.filter(f=>f.name!==name);
             await sync();
+            stopSchedule(name, schema_name);
             return true;
         }
         catch (e) { new xError(e).send(reply); }

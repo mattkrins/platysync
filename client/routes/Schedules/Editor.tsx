@@ -33,11 +33,16 @@ function TriggerEditor({ open, adding, close, task_form, index }: { open: Trigge
     {{cron:<>
       <TextInput mt="xs"
         label="CRON Expression"
-        placeholder={'0 * * * MON-FRI'} required
+        placeholder="0 * * * MON-FRI" required
         description={<>Enter a <Anchor size="xs" href="https://croner.56k.guru/usage/pattern/" target="_blank" >CRON</Anchor> expression to run the schedule.</>}
         {...form.getInputProps('cron')}
         error={noValue?false:(invalidCron && cron)}
       /><Text truncate="end" size="xs" c="blue" mt={2} >{!inValid&&`Runs ${cron}`}</Text>
+      <TextInput mt="xs"
+        label="Timezone"
+        placeholder="Australia/Victoria"
+        {...form.getInputProps('timezone')}
+      />
       </>,
       watch:<>
       <TextInput mt="xs"
@@ -48,7 +53,12 @@ function TriggerEditor({ open, adding, close, task_form, index }: { open: Trigge
       /><Text truncate="end" size="xs" c="blue">{cron}</Text>
       </>,
     }[name]}
-
+    <NumberInput mt="xs"
+      label="Delay"
+      description="Delay for specified milliseconds, useful to wait for file writing to finish."
+      placeholder="x milliseconds" min={100}
+      {...form.getInputProps('delay')}
+    />
     <Switch
     label="Trigger Enabled" mt="xs"
     {...form.getInputProps("enabled", { type: 'checkbox' })}
@@ -172,7 +182,7 @@ function TaskEditor({ open, adding, close, task_form, index }: { open: Task, add
     {...form.getInputProps("enabled", { type: 'checkbox' })}
     />
     <Group justify={"flex-end"} mt="md">
-          <Button onClick={()=>adding?add():edit()}>{adding ? "Add" : "Save"}</Button>
+          <Button disabled={!name} onClick={()=>adding?add():edit()}>{adding ? "Add" : "Save"}</Button>
     </Group>
   </>)
 }

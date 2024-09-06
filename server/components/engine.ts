@@ -47,6 +47,7 @@ export class Engine { //TODO - add way to cancel
             progress: { total: 0, init: false, connect: false, iterative: false, final: false },
             iteration: { current: 0, total: false },
         };
+        console.log('init ', rule.name , !!filter)
     }
     public async Run(){
         this.settings = await Settings();
