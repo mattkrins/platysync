@@ -165,9 +165,9 @@ if (process.argv[1].endsWith('server.ts')||process.argv[1].endsWith('server.js')
         if (err) throw err;
         if (!dev) console.log(`> PlatySync started @ http://localhost:7528`);
       });
-      //log.info(`Server started on port ${port} ${https?'(https)':''} running ver. ${version}.`);
+      log.info({port, version, https: (!!settings.server?.https), message: 'Server started.'});
     } catch (err) {
-      console.error('Error starting server:', err);
+      console.error('Critical failure starting server:', err);
       process.exit(1);
     }
   })();
