@@ -80,7 +80,7 @@ export default function useTemplater( { names, inline }: { names?: string[], inl
     const [ viewPaths, { toggle: togglePaths } ] = useDisclosure(false);
     const [ viewInline, { toggle: toggleInline } ] = useDisclosure(false);
     const [ filter, setFilter ] = useState<string>('');
-    const [ click, setClick ] = useState(() => (d: string) => console.log(d));
+    const [ click, setClick ] = useState(() => (d: string) => {});
     const files = useSelector(getFiles);
     const { proConnectors } = useConnectors();
 

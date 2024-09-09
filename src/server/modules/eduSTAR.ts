@@ -5,7 +5,7 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { CookieJar } from 'tough-cookie';
 import { JSDOM } from 'jsdom';
 import * as fs from 'node:fs';
-import { paths } from "../../server";
+import { paths } from "../..";
 import { decrypt, encrypt } from "./cryptography";
 import { Engine } from "../components/engine";
 

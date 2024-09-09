@@ -112,6 +112,7 @@ export default async function (route: FastifyInstance) {
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
+    //TODO - add play button
     route.delete('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         const { name } = request.body as { name: string };

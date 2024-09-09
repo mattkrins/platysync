@@ -1,4 +1,5 @@
-import { paths, server } from "../../server";
+import { paths } from "../..";
+import { server } from '../server';
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
 import { availableActions, handles } from "./actions";
@@ -47,7 +48,6 @@ export class Engine { //TODO - add way to cancel
             progress: { total: 0, init: false, connect: false, iterative: false, final: false },
             iteration: { current: 0, total: false },
         };
-        console.log('init ', rule.name , !!filter)
     }
     public async Run(){
         this.settings = await Settings();

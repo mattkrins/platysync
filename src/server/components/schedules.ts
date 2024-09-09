@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import Cron from "croner";
 import evaluate from "./engine";
 import { getSchedules, getSchema, getSchemas } from "./database";
+import { log } from "../../index";
 
 const schedules: { [k: string]: scheduled } = {};
 //TODO - failAfter, disableAfter
@@ -21,6 +22,7 @@ export async function initSchedules() {
             new scheduled(schedule, schema);
         }
     }
+    log.debug("Schedules Initialized");
 }
 
 export function stopSchedule(schedule_name: string, schema_name: string) {
@@ -119,6 +121,7 @@ export class scheduled {
     }
     error(e: xError) {
         console.error(e);
+        //TODO - log this
         //history.error({schema: schedule.schema, schedule: schedule.id, message});
     }
 }

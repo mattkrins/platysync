@@ -1,7 +1,6 @@
 import { FastifyReply } from "fastify";
 import winston from "winston";
-//import { log } from "../server.js";
-//import winston from "winston";
+import { log } from "../../index";
 
 type status = 400|401|403|404|405|406|408|409|500|number;
 export class xError {
@@ -41,7 +40,7 @@ export class xError {
       if (field) this.errors = { [field]: this.message };
       if (field) this.field = field;
       this.status = status;
-      //if (log && log.verbose) log.verbose({...this, stack: this.stack });
+      if (log && log.verbose) log.verbose(this);
     }
     public attach(error: xError|unknown = {}) {
       const e = (error as xError) || {};

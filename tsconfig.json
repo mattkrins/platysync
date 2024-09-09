@@ -19,7 +19,7 @@
     //"noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["client", "src", "typings"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.vite.json" }]
 }
   

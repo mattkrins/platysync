@@ -1,6 +1,6 @@
 import { Low } from 'lowdb';
 import { JSONFilePreset } from 'lowdb/node';
-import { log, paths, version } from '../../server';
+import { log, paths, version } from '../..';
 import { xError } from '../modules/common';
 
 interface Database {
@@ -30,6 +30,7 @@ export default async function database(force?: boolean) {
         await upgrade();
         const { settings, ...rest } = db.data;
         db.data = { ...defaultData, ...rest, settings: { ...defaultData.settings, ...settings }  };
+        log.debug("Database Initialized");
     }
     return db;
 }

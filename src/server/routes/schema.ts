@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
 import database, { getSchemas } from "../components/database";
-import { version } from "../../server";
+import { version } from "../..";
 
 interface newSchema extends Schema {
     importing?: boolean;

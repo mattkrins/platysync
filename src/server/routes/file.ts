@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { isAlphanumeric, isNotEmpty, validate, xError } from "../modules/common";
 import { getFiles, getSchema, sync } from "../components/database";
 import multer from 'fastify-multer';
-import { paths } from "../../server";
+import { paths } from "../..";
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import mime from 'mime/lite';

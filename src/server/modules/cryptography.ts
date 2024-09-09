@@ -1,12 +1,6 @@
 import crypto from 'crypto';
 import database from '../components/database';
 
-export interface Hash {
-    hex: string;
-    iv: string;
-    it: number;
-}
-
 function salt(key: string, iterationCount = 100000): Buffer {
     return crypto.pbkdf2Sync(key, 'salt', iterationCount, 32, 'sha512');
 }

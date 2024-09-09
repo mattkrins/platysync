@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { getLogs, xError } from "../modules/common";
 import winston from "winston";
-import { log, history } from "../../server";
+import { log, history } from "../..";
 
 const loggers: { [k: string]: { logger: winston.Logger, fields: string[] } } = {};
 function init() {

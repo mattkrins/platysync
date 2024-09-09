@@ -1,4 +1,4 @@
-import { paths } from "../../../server";
+import { paths } from "../../..";
 import { hasLength, isAlphanumeric, validate, xError } from "../../modules/common";
 import { compile } from "../../modules/handlebars";
 import { base_provider, base_provider_options } from "./base";

@@ -3,7 +3,7 @@ import { isNotEmpty, validate, xError } from "../modules/common";
 import database, { Users } from "../components/database";
 import { encrypt } from "../modules/cryptography";
 import { logout } from "./auth";
-import { FastifyRequestX } from "../../server";
+import { FastifyRequestX } from "../..";
 
 export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {
