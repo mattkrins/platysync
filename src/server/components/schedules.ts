@@ -13,7 +13,6 @@ export async function initSchedule(schedule_name: string, schema_name: string) {
     const schedules = await getSchedules(schema_name);
     const schedule = schedules.find(c=>c.name===schedule_name);
     if (!schedule) throw new xError("Schedule not found.", "name", 404 );
-    if (!schedule.enabled) return;
     return new scheduled(schedule, schema);
 }
 
@@ -21,11 +20,10 @@ export async function initSchedules() {
     const schemas = await getSchemas();
     for (const schema of schemas){
         for (const schedule of schema.schedules||[]){
-            if (!schedule.enabled) continue;
             new scheduled(schedule, schema);
         }
     }
-    log.debug("Schedules Initialized");
+    log.debug("Schedules Initialized.");
 }
 
 export function stopSchedule(schedule_name: string, schema_name: string) {
@@ -36,7 +34,7 @@ export function stopSchedule(schedule_name: string, schema_name: string) {
 
 export async function executeSchedule(schedule_name: string, schema_name: string) {
     if (!schedules[`${schema_name}.${schedule_name}`]) return;
-    await schedules[`${schema_name}.${schedule_name}`].execute("manual");
+    return schedules[`${schema_name}.${schedule_name}`].execute("manual");
 }
 
 export class scheduled {
@@ -57,7 +55,6 @@ export class scheduled {
         this.schema = schema.name;
         if (options.failAfter) this.failAfter = options.failAfter;
         if (options.disableAfter) this.disableAfter = options.disableAfter;
-        if (!options.enabled) return;
         schedules[`${schema.name}.${options.name}`] = this;
         for (let i=0; i<options.tasks.length; ++i) {
             const task = options.tasks[i];
@@ -67,9 +64,9 @@ export class scheduled {
                 case "run": {
                     func = async (trigger: string) => {
                         try {
-                            if (!task.enabled) return;
+                            if (!task.enabled && trigger!=="manual") return;
                             const run = async (rules: Rule[]) => {
-                                history.info({message: "Task executed", method: trigger, schedule: this.name});
+                                history.info({message: "Schedule task executed.", method: trigger, schema: this.schema, schedule: this.name, rule: rules.map(r=>r.name).join(",") });
                                 let timer: NodeJS.Timeout|undefined;
                                 if (this.failAfter){
                                     timer = setInterval(()=>{
@@ -80,12 +77,12 @@ export class scheduled {
                                     if (!rule.enabled) return;
                                     const response = await evaluate(rule, schema);
                                     const results = response.primaryResults.filter(r=>!r.error).map(r=>r.id);
-                                    await evaluate(rule, schema, results||[], true);
+                                    await evaluate(rule, schema, results||[], true, false);
                                     if (timer) clearTimeout(timer);
                                 }
                             }
-                            if (!task.rules) return await run(schema.rules);
-                            return await run(schema.rules.filter(r=>task.rules?.includes(r.name)));
+                            if (!task.rules || task.rules.length <= 0) return await run(schema.rules.filter(r=>r.enabled));
+                            return await run(schema.rules.filter(r=>r.enabled).filter(r=>task.rules?.includes(r.name)));
                         } catch (e) { this.error(e as xError); }
                     };
                     break;
@@ -104,7 +101,7 @@ export class scheduled {
                             if (!f||!e) throw new xError("Failed to init watcher.");
                             try {
                                 if (!trigger.enabled) return;
-                                history.debug({message: "Schedule triggered", method: "watch", schedule: this.name});
+                                history.debug({message: "Schedule triggered.", method: "watch", schedule: this.name});
                                 await wait(Number(trigger.delay||1000));
                                 await this.execute("watch");
                             } catch (e) { this.error(e as xError); }
@@ -119,7 +116,7 @@ export class scheduled {
                             catch: (e) =>{ this.error(e as xError); }}, async () => {
                             try {
                                 if (!trigger.enabled) return;
-                                history.debug({message: "Schedule triggered", method: "cron", schedule: this.name});
+                                history.debug({message: "Schedule triggered.", method: "cron", schedule: this.name});
                                 if (trigger.delay) await wait(Number(trigger.delay));
                                 await this.execute("cron");
                             } catch (e) { this.error(e as xError); }
@@ -131,7 +128,7 @@ export class scheduled {
                 default: continue;
             }
         }
-        log.debug({message: "Schedule Initialized", schedule: options.name});
+        log.debug({message: "Schedule Initialized.", schedule: options.name});
     }
     async execute(trigger: string) {
         try {

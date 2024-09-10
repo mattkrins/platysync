@@ -136,7 +136,7 @@ export function initLogging() {
   history.clear()
   .add(new winston.transports.File({ filename: `${paths.logs}/history.txt` }));
 }
-
+//TODO - fix cookies 
 export default async function InitPlatySync() {
   initLogging();
   const https = await getHTTPS();
@@ -152,6 +152,6 @@ export default async function InitPlatySync() {
   addRoute(server, '/api/v1', routes, false);
   const __dirname = dirname(fileURLToPath(import.meta.url));
   await server.register(fastifyStatic, { root: pa.join(__dirname, 'client'), });
-  log.info({version, message: "PlatySync Initialized"  });
+  log.info({version, message: "PlatySync Initialized."  });
   return server;
 }

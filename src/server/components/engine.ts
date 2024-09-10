@@ -1,4 +1,4 @@
-import { paths } from "../..";
+import { paths, history } from "../..";
 import { server } from '../server';
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
@@ -31,13 +31,15 @@ export class Engine { //TODO - add way to cancel
     private progress = 0;
     private hasInit = false;
     private hasFinal = false;
+    private testing = false;
     private display = "Display";
-    constructor(rule: Rule, schema: Schema, filter?:  string[], scheduled?: boolean) {
+    constructor(rule: Rule, schema: Schema, filter?:  string[], scheduled?: boolean, testing?: boolean) {
         this.id = uuidv4();
         this.rule = rule;
         this.schema = schema;
         this.filter = filter;
         this.scheduled = scheduled;
+        this.testing = testing||false;
         this.primary = this.rule.primary;
         this.sources = this.rule.sources||[];
         this.hasInit = this.rule.initActions.length > 0;
@@ -50,6 +52,16 @@ export class Engine { //TODO - add way to cancel
         };
     }
     public async Run(){
+        if (!this.testing){
+            history.info({
+                schema: this.schema.name,
+                rule: this.rule.name,
+                message: `${this.filter?'Executing':'Evaluating'} rule: ${this.rule.name}`,
+                scheduled: this.scheduled,
+                actioning: this.filter?.length,
+                id: this.id
+            });
+        }
         this.settings = await Settings();
         this.Emit();
         const docsTemplate: template = { $file: {} };
@@ -63,20 +75,31 @@ export class Engine { //TODO - add way to cancel
         if (this.hasInit) this.progress = 15;
         this.initTemplate = initTemplate;
         if (initError) throw initError;
-        //TODO - fix progress for contexts
+        //FIXME - fix progress for contexts
         for (const context of (this.rule.contexts||[])) await addContext(this.schema, context, this.contexts );
         if (this.primary) this.progress = this.hasInit ? 35 : 20;
         if (!this.primary) this.progress = 50;
         await wait(500);
         await this.iteratePrimary();
         if (this.primary) this.progress = 85;
-        const {todo: finalActions, error: finalError } = await this.processActions(this.rule.finalActions, initTemplate, "final");
+        const { todo: finalActions } = await this.processActions(this.rule.finalActions, initTemplate, "final");
         this.Emit({ text: "Finalising..." });
         await wait(500);
+        await this.conclude();
         this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
         const columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
+        // history.info({schema: schema.name, rule: rule.name, message: `Concluded rule: ${rule.name}`, evaluated: santitizeData(evaluated), initActions, finalActions });
         //TODO - santitizeData for log
         return { primaryResults: this.primaryResults, initActions, finalActions, columns, id: this.rule.idName };
+    }
+    private async conclude(){ //REVIEW - maybe combine santitize and conclude?
+        for (const key of Object.keys(this.handles)) {
+            const handle = this.handles[key];
+            if (handle.close) await handle.close();
+        }
+    }
+    private santitize(){
+        
     }
     public async ldap_getUser(key: string, template: template, id?: string, userFilter?: string, compiledFilter?: string) {
         if (!id) return false;
@@ -156,12 +179,14 @@ export class Engine { //TODO - add way to cancel
         const x = () => (20/(this.sources.length+1))*i;
         this.Emit({ iteration: { total: this.sources.length+1, current: 0 }, });
         await connect(this.schema, this.primary, this.connections, this, this.rule.primaryKey);
+        history.debug({schema: this.schema.name, rule: this.rule.name, message: `Primary: ${this.primary} connected.` });
         this.Emit({
             progress: { total: this.progress + x(), connect: x() },
             iteration: { current: 1 },
         });
         for (const source of this.sources) {  i++;
             await connect(this.schema, source.foreignName, this.connections, this, source.foreignKey);
+            history.debug({schema: this.schema.name, rule: this.rule.name, message: `Secondary: ${source.foreignName} connected.` });
             //TODO - add condition filter to add source GUI, run evaluateAll against connector data to filter on a source basis and speed up later joins
             this.Emit({
                 progress: { total: this.progress + x(), connect: x() },
@@ -326,9 +351,9 @@ export class Engine { //TODO - add way to cancel
     }
 }
 
-export default async function evaluate(rule: Rule, schema: Schema, filter?:  string[], scheduled?: boolean ): Promise<response> {
+export default async function evaluate(rule: Rule, schema: Schema, filter?:  string[], scheduled?: boolean, testing?: boolean ): Promise<response> {
     try {
-        const engine = new Engine(rule, schema, filter, scheduled);
+        const engine = new Engine(rule, schema, filter, scheduled, testing);
         return await engine.Run();
     } catch (e) {
         const error = e as { schema: string, rule: string, scheduled?: boolean, message: string };

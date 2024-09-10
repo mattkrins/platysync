@@ -1,5 +1,5 @@
-import { Group, Title, Button, Anchor, Paper, Grid, Container, Text, Loader, useMantineTheme, Switch, Tooltip } from "@mantine/core";
-import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import { Group, Title, Button, Anchor, Paper, Grid, Container, Text, Loader, Switch, Tooltip } from "@mantine/core";
+import { IconCopy, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
@@ -10,7 +10,6 @@ import MenuTip from "../../components/MenuTip";
 import useAPI from "../../hooks/useAPI";
 
 function Schedule({ index, schedule: { name, enabled, triggers, tasks, description }, edit, refresh }: { index: number, schedule: Schedule, edit(): void, refresh(): Promise<void> }) {
-    const theme = useMantineTheme();
     const loaders = useLoader();
     const loading = loaders[`loadingschedules_${index}`];
     const { del, loading: deleting, error: dError, reset: dReset } = useAPI({
@@ -25,6 +24,9 @@ function Schedule({ index, schedule: { name, enabled, triggers, tasks, descripti
         url: `/schedule/${name}/${enabled?'disable':'enable'}`, schema: true,
         then: () => refresh().then(()=>sReset()),
     });
+    const { get: run, loading: executing, error: eError, reset: eReset } = useAPI({
+        url: `/schedule/${name}`, schema: true
+    });
     const enabledTriggers = triggers.filter(t=>t.enabled);
     const triggerDetailsText = enabledTriggers.length <= 0 ? `${triggers.length} disabled triggers` :
     (enabledTriggers.length > 1 ?  `${triggers.length} triggers defined` : triggerDetails(enabledTriggers[0]));
@@ -32,6 +34,7 @@ function Schedule({ index, schedule: { name, enabled, triggers, tasks, descripti
     const taskDetails = enabledTasks.length <= 0 ? `${tasks.length} disabled tasks` :
     (enabledTasks.length > 1 ?  `${tasks.length} tasks defined` : ( (enabledTasks[0].rules||[]).length > 0 ? `${(enabledTasks[0].rules||[]).join(', ')}` : `[ All Rules ]` ) );
     const canEnable = enabledTriggers.length > 0 && enabledTasks.length > 0;
+    const canExecute = enabledTasks.length > 0;
     return (
     <Draggable index={index} draggableId={name}>
     {(provided, snapshot) => (
@@ -55,6 +58,7 @@ function Schedule({ index, schedule: { name, enabled, triggers, tasks, descripti
                         <Tooltip style={{zIndex:100}} label={sError||(enabled?'Disable':'Enable')} refProp="rootRef" opened={!!sError ? true : undefined} color={sError ? "red" : undefined } zIndex={100} >
                             <Switch disabled={!canEnable&&!enabled} onChange={()=>toggle()} checked={(switching||success)?!enabled:enabled} onMouseEnter={!!sError?sReset:undefined} />
                         </Tooltip>
+                        <MenuTip label="Run" Icon={IconPlayerPlay} error={eError} reset={eReset} onClick={()=>run()} loading={executing} disabled={!canExecute} color="lime" variant="subtle" />
                         <MenuTip label="Copy" Icon={IconCopy} error={cError} reset={cReset} onClick={()=>copy()} loading={copying} color="indigo" variant="subtle" />
                         <MenuTip label="Edit" Icon={IconPencil} onClick={edit} color="orange" variant="subtle" />
                         <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={async () => await del()} loading={deleting} color="red" variant="subtle" />

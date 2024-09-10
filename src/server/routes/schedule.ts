@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
 import { getSchedules, getSchema, sync } from "../components/database";
-import { initSchedule, stopSchedule } from "../components/schedules";
+import { executeSchedule, initSchedule, stopSchedule } from "../components/schedules";
 import { log } from "../..";
 
 export async function toggleSchedule(schema_name: string, name: string, enable = false) {
@@ -79,6 +79,16 @@ export default async function (route: FastifyInstance) {
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
+    route.get('/:name', async (request, reply) => {
+        const { schema_name, name } = request.params as { schema_name: string, name: string };
+        try {
+            validate( { name }, {
+                name: isNotEmpty('Name can not be empty.'),
+            });
+            await executeSchedule(name, schema_name);
+            return true;
+        } catch (e) { new xError(e).send(reply); }
+    });
     route.put('/:name/copy', async (request, reply) => {
         const { schema_name, name } = request.params as { schema_name: string, name: string };
         try {
@@ -115,7 +125,6 @@ export default async function (route: FastifyInstance) {
             return await toggleSchedule(schema_name, name, false);
         } catch (e) { new xError(e).send(reply); }
     });
-    //TODO - add play button
     route.delete('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         const { name } = request.body as { name: string };

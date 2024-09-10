@@ -40,7 +40,7 @@ export default async function (route: FastifyInstance) {
         try {
             log.silly({message: "Rule evaluate", rule: rule.name, schema: schema_name });
             const schema = await getSchema(schema_name);
-            return await evaluate(rule, schema);
+            return await evaluate(rule, schema, undefined, false, test);
         }
         catch (e) { new xError(e).send(reply); }
     });
@@ -50,7 +50,7 @@ export default async function (route: FastifyInstance) {
         try {
             log.silly({message: "Rule execute", rule: rule.name, schema: schema_name });
             const schema = await getSchema(schema_name);
-            return await evaluate(rule, schema, context||[], false);
+            return await evaluate(rule, schema, context||[], false, false);
         }
         catch (e) { new xError(e).send(reply); }
     });
