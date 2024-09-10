@@ -27,6 +27,7 @@ const { combine, timestamp, json, simple, errors } = winston.format;
 export let version = process.env.npm_package_version as string;
 export const testing: boolean = process.env.NODE_ENV === 'test';
 export const dev: boolean = process.env.NODE_ENV !== 'production';
+export const windows = process.platform === "win32";
 
 if (!version){
   try {
@@ -127,14 +128,17 @@ async function getHTTPS() {
   } return null;
 }
 
+export function initLogging() {
+  if (testing) return;
+  log.clear()
+  .add(new winston.transports.Console({ level: 'error', format: combine(errors({ stack: true }), timestamp(), winston.format.colorize(), simple()) }))
+  .add(new winston.transports.File({ filename: `${paths.logs}/general.txt` }));
+  history.clear()
+  .add(new winston.transports.File({ filename: `${paths.logs}/history.txt` }));
+}
+
 export default async function InitPlatySync() {
-  if (!testing) {
-    log.remove(transports)
-    .add(new winston.transports.Console({ level: 'error', format: combine(errors({ stack: true }), timestamp(), winston.format.colorize(), simple()) }))
-    .add(new winston.transports.File({ filename: `${paths.logs}/general.txt` }));
-    history.remove(transports)
-    .add(new winston.transports.File({ filename: `${paths.logs}/history.txt` }));
-  }
+  initLogging();
   const https = await getHTTPS();
   const server = fastify({ logger: false, https });
   const key = await getKey();

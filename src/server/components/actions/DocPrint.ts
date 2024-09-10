@@ -5,14 +5,13 @@ import path from 'path';
 import { props } from "../actions.js";
 import winPrinter from "pdf-to-printer";
 import unixPrinter from "unix-print";
+import { windows } from "../../../index.js";
 
 interface DocPrintPDF {
     source: string;
     target?: string;
     validate?: boolean;
 }
-
-const isWin = process.platform === "win32";
 
 export default async function DocPrintPDF({ action, template, execute, engine, data }: props<DocPrintPDF>) {
     try {
@@ -25,7 +24,7 @@ export default async function DocPrintPDF({ action, template, execute, engine, d
         if (!execute) return { data };
         const filename = path.parse(data.source).base;
         engine.Emit({ text: `Printing ${filename}` });
-        if (isWin) {
+        if (windows) {
             const options: { printer?: string } = {};
             if (data.target&&data.target!=="System Default") options.printer = data.target;
             await winPrinter.print(data.source, options);

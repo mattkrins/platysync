@@ -5,6 +5,7 @@ import { decrypt, encrypt } from "../modules/cryptography";
 import axios from "axios";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import { log } from "../..";
 
 const levels = ['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'];
 
@@ -36,12 +37,14 @@ export default async function (route: FastifyInstance) {
                 db.data.settings[key] = settings[key];
             }
             await db.write();
+            log.silly("Settings modified");
             return settings;
         } catch (e) { new xError(e).send(reply); }
     });
     route.put('/purge', async (request, reply) => {
         try {
             const db = await database(true);
+            log.silly("Settings purged");
             return {...sanitizeSettings(db.data.settings), enableRun: db.data.settings.enableRun||false };
         } catch (e) { new xError(e).send(reply); }
     });
@@ -51,6 +54,7 @@ export default async function (route: FastifyInstance) {
             db.data = defaultData;
             await db.write();
             await database(true);
+            log.silly("Settings reset");
             return sanitizeSettings(db.data.settings);
         } catch (e) { new xError(e).send(reply); }
     });
@@ -71,6 +75,7 @@ export default async function (route: FastifyInstance) {
                 httpsAgent: new HttpsProxyAgent(url),
                 proxy: false as const,
             });
+            log.http(response);
             if (!response || !response.data) throw new xError('No data returned.', 'proxy_url');
             if (!response.data.includes("Example Domain")) throw new xError('Unexpected malformed data.', 'proxy_url');
             return true;

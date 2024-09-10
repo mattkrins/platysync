@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import InitPlatySync, { dev, log, version } from "../index";
+import InitPlatySync, { dev, log, version } from "..";
 import { Settings } from "./components/database";
 import { initSchedules } from "./components/schedules";
 
@@ -15,7 +15,7 @@ export let server: FastifyInstance;
         server.listen({ port, host }, (err) => {
             if (err) throw err;
             if (!dev) console.log(`> PlatySync started @ http://localhost:${port}`);
-            log.info({port, version, https: (!!settings.server?.https), message: 'Server started.'});
+            log.debug({port, version, https: (!!settings.server?.https), message: 'Server started.'});
         });
     } catch (err) {
         console.error('Critical failure starting server:', err);

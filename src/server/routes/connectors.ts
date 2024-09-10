@@ -3,6 +3,7 @@ import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../modu
 import { getConnectors, getSchema, sync } from "../components/database";
 import { providers } from "../components/providers";
 import { encrypt } from "../modules/cryptography";
+import { log } from "../..";
 
 function validateHeaders(headers: string[]) {
     const findDuplicateIndexes = (arr: string[]) => {
@@ -99,6 +100,7 @@ export default async function (route: FastifyInstance) {
             options.type = options.type||"provider";
             connectors.push({ id, name, ...options, headers });
             await sync();
+            log.silly({message: "Connector created", connector: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -126,6 +128,7 @@ export default async function (route: FastifyInstance) {
             if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
             schema.connectors = schema.connectors.map(c=>c.name!==editing?c:{...c, name, ...options, headers })
             await sync();
+            log.silly({message: "Connector modified", connector: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -143,6 +146,7 @@ export default async function (route: FastifyInstance) {
             if (nameCheck) throw new xError("Connector name taken.", "name", 409 );
             connectors.push({...connector, name: newName });
             await sync();
+            log.silly({message: "Connector copied", connector: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -155,6 +159,7 @@ export default async function (route: FastifyInstance) {
             if (!connector) throw new xError("Connector not found.", "name", 404 );
             schema.connectors = schema.connectors.filter(f=>f.name!==name);
             await sync();
+            log.silly({message: "Connector deleted", connector: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }

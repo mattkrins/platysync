@@ -38,8 +38,9 @@ export default async function database(force?: boolean) {
 export async function sync() { return await (await database()).write(); }
 
 async function upgrade() {
+    if (db.data.version===version) return;
     try {
-        log.info(`Upgrading version from ${db.data.version} to ${version}`);
+        log.info(`Upgrading database from ${db.data.version} to ${version}`);
         db.data.version = version as string;
         await db.write();
     } catch (e) {

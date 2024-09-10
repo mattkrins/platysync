@@ -2,8 +2,8 @@ import { FastifyInstance } from "fastify";
 import { isAlphanumeric, isNotEmpty, validate, xError } from "../modules/common";
 import { getFiles, getSchema, sync } from "../components/database";
 import multer from 'fastify-multer';
-import { paths } from "../..";
-import * as fs from 'fs';
+import { log, paths } from "../..";
+import fs from 'fs-extra';
 import { v4 as uuidv4 } from 'uuid';
 import mime from 'mime/lite';
 
@@ -77,6 +77,7 @@ export default async function (route: FastifyInstance) {
             fs.writeFileSync(`${folder}/${path}`, data.buffer);
             files.push({ name, path, key, format, });
             await sync();
+            log.silly({message: "File created", file: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }
@@ -118,6 +119,7 @@ export default async function (route: FastifyInstance) {
                 file.path = path;
             }
             await sync();
+            log.silly({message: "File modified", file: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }
@@ -136,6 +138,7 @@ export default async function (route: FastifyInstance) {
             }
             schema.files = schema.files.filter(f=>f.name!==name);
             await sync();
+            log.silly({message: "File deleted", file: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }

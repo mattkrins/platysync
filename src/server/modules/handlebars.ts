@@ -1,6 +1,6 @@
 import Handlebars from "handlebars";
 import dictionary from './dictionary.js'
-import { paths } from "../../index.js";
+import { paths } from "../..";
 import ldap from "./ldap.js";
 import dayjs from "dayjs";
 import localizedFormat from 'dayjs/plugin/localizedFormat';

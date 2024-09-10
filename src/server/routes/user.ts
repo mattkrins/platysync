@@ -3,7 +3,7 @@ import { isNotEmpty, validate, xError } from "../modules/common";
 import database, { Users } from "../components/database";
 import { encrypt } from "../modules/cryptography";
 import { logout } from "./auth";
-import { FastifyRequestX } from "../..";
+import { FastifyRequestX, log } from "../..";
 
 export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {
@@ -26,6 +26,7 @@ export default async function (route: FastifyInstance) {
             const encrypted = await encrypt(password);
             users.push({username, password: JSON.stringify(encrypted) });
             await db.write();
+            log.silly({message: "User created", username });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -56,6 +57,7 @@ export default async function (route: FastifyInstance) {
                     return reply.code(401).send(true);
                 }
             }
+            log.silly({message: "User modified", username });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -73,6 +75,7 @@ export default async function (route: FastifyInstance) {
             if (!user) throw new xError("User not found.", "username", 404);
             db.data.users = users.filter(u=>u.username!==username);
             await db.write();
+            log.silly({message: "User deleted", username });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });

@@ -4,6 +4,7 @@ import { getRules, getSchema, sync } from "../components/database";
 import evaluate from "../components/engine";
 import pdfPrinter from "pdf-to-printer";
 import unixPrint from "unix-print";
+import { log, windows } from "../..";
 //TODO - implement unix print in action
 
 export default async function (route: FastifyInstance) {
@@ -28,7 +29,6 @@ export default async function (route: FastifyInstance) {
     });
     route.get('/getPrinters', async (request, reply) => {
         try {
-            const windows = process.platform === "win32";
             if (windows) return (await pdfPrinter.getPrinters()).map(p=>p.name);
             return (await unixPrint.getPrinters()).map(p=>p.printer);
         }
@@ -38,6 +38,7 @@ export default async function (route: FastifyInstance) {
         const { schema_name } = request.params as { schema_name: string };
         const { context, test, ...rule} = request.body as evalRule;
         try {
+            log.silly({message: "Rule evaluate", rule: rule.name, schema: schema_name });
             const schema = await getSchema(schema_name);
             return await evaluate(rule, schema);
         }
@@ -47,6 +48,7 @@ export default async function (route: FastifyInstance) {
         const { schema_name } = request.params as { schema_name: string };
         const { context, test, ...rule} = request.body as evalRule;
         try {
+            log.silly({message: "Rule execute", rule: rule.name, schema: schema_name });
             const schema = await getSchema(schema_name);
             return await evaluate(rule, schema, context||[], false);
         }
@@ -59,12 +61,11 @@ export default async function (route: FastifyInstance) {
             validate( { name }, {
                 name: isNotEmpty('Name can not be empty.'),
             });
-            //const actionsLength = options.initActions.length+ options.iterativeActions.length + options.finalActions.length;
-            //if (actionsLength <= 0) throw new xError("Rules must have an action.", null, 406);
             const rules = await getRules(schema_name);
             if (rules.find(c=>c.name===name)) throw new xError("Rule name taken.", "name", 409);
             rules.push({ name, ...options });
             await sync();
+            log.silly({message: "Rule created", rule: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }
@@ -84,6 +85,7 @@ export default async function (route: FastifyInstance) {
             }
             schema.rules = schema.rules.map(c=>c.name!==editing?c:{...c, name, ...options })
             await sync();
+            log.silly({message: "Rule modified", rule: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -101,6 +103,7 @@ export default async function (route: FastifyInstance) {
             if (nameCheck) throw new xError("Rule name taken.", "name", 409 );
             rules.push({...rule, name: newName });
             await sync();
+            log.silly({message: "Rule copied", rule: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -114,6 +117,8 @@ export default async function (route: FastifyInstance) {
             const rule = rules.find(c=>c.name===name);
             if (!rule) throw new xError("Rule not found.", "name", 404 );
             rule.enabled = true;
+            await sync();
+            log.silly({message: "Rule enabled", rule: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -127,6 +132,8 @@ export default async function (route: FastifyInstance) {
             const rule = rules.find(c=>c.name===name);
             if (!rule) throw new xError("Rule not found.", "name", 404 );
             rule.enabled = false;
+            await sync();
+            log.silly({message: "Rule disabled", rule: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -139,6 +146,7 @@ export default async function (route: FastifyInstance) {
             if (!rule) throw new xError("Rule not found.", "name", 404 );
             schema.rules = schema.rules.filter(f=>f.name!==name);
             await sync();
+            log.silly({message: "Rule deleted", rule: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }

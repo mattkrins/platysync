@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
 import database, { getSchemas } from "../components/database";
-import { version } from "../..";
+import { log, version } from "../..";
 
 interface newSchema extends Schema {
     importing?: boolean;
@@ -38,6 +38,7 @@ export default async function (route: FastifyInstance) {
             if (schemas.find(s=>s.name===name)) throw new xError("Schema name taken.", "name", 409);
             schemas.push({ ...defaultSchema, name, ...schema, version });
             await db.write();
+            log.silly({message: "Schema created", schema: name});
             return name;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -61,6 +62,7 @@ export default async function (route: FastifyInstance) {
             }
             db.data.schemas = schemas.map(s=>s.name!==editing?s:({...s, ...schema, name }));
             await db.write();
+            log.silly({message: "Schema modified", schema: name});
             return name;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -76,6 +78,7 @@ export default async function (route: FastifyInstance) {
             if (!schema) throw new xError("Schema not found.", "name", 404);
             db.data = { ...db.data, schemas: schemas.filter(s=>s.name!==name) };
             await db.write();
+            log.silly({message: "Schema deleted", schema: name});
             return true;
         } catch (e) { new xError(e).send(reply); }
     });

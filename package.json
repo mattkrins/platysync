@@ -3,8 +3,12 @@
   "version": "0.6.0",
   "author": "mattkrins",
   "description": "Data Automation",
+  "homepage": "https://github.com/mattkrins/platysync",
+  "bugs": "https://github.com/mattkrins/platysync/issues",
+  "repository": "github:mattkrins/platysync",
   "private": true,
   "type": "module",
+  "main": "server/server.ts",
   "scripts": {
     "start": "run-p client server",
     "server": "tsx watch --clear-screen=false --ignore ./build src/server/server.ts",
@@ -89,5 +93,8 @@
     "vite": "^5.4.3",
     "vitest": "^1.6.0",
     "wouter": "^3.3.5"
+  },
+  "engines": {
+    "node": ">=20.17.0"
   }
 }

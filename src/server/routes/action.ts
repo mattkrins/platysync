@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { isNotEmpty, validate, xError } from "../modules/common";
 import { getActions, getSchema, sync } from "../components/database";
 import { encrypt } from "../modules/cryptography";
+import { log } from "../..";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -36,6 +37,7 @@ export default async function (route: FastifyInstance) {
             if (actions.find(c=>c.name===name)) throw new xError("Action name taken.", "name", 409);
             actions.push({ id, name, ...options });
             await sync();
+            log.silly({message: "Action created", action: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }
@@ -57,6 +59,7 @@ export default async function (route: FastifyInstance) {
             if (options.config.password && typeof options.config.password === 'string' ) options.config.password = await encrypt(options.config.password as string);
             schema.actions = schema.actions.map(c=>c.name!==editing?c:{...c, name, ...options })
             await sync();
+            log.silly({message: "Action modified", action: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -74,6 +77,7 @@ export default async function (route: FastifyInstance) {
             if (nameCheck) throw new xError("Action name taken.", "name", 409 );
             actions.push({...action, name: newName });
             await sync();
+            log.silly({message: "Action copied", action: name, schema: schema_name });
             return true;
         } catch (e) { new xError(e).send(reply); }
     });
@@ -86,6 +90,7 @@ export default async function (route: FastifyInstance) {
             if (!action) throw new xError("Action config not found.", "name", 404 );
             schema.actions = schema.actions.filter(f=>f.name!==name);
             await sync();
+            log.silly({message: "Action deleted", action: name, schema: schema_name });
             return true;
         }
         catch (e) { new xError(e).send(reply); }
