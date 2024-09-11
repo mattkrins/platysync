@@ -45,6 +45,7 @@ function Category({ category, add, form, type }: { category: availableCategory, 
     filter(a=> a.name==="SysRunCommand"?settings.enableRun:true ).
     filter(a=> a.iterative?( typeof(a.iterative)==="boolean" ? (type==="iterativeActions") : true ) : true ).
     filter(a=>a.category===category.id).
+    filter(a=>a.type ? a.type === type : true).
     filter(a=>a.provider?ruleProConnectors.
     find(c=>c.id===a.provider):true)
     , [ ruleProConnectors, settings, type ]);

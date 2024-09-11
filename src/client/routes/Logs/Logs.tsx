@@ -7,6 +7,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { useViewportSize } from '@mantine/hooks';
 import Wrapper from '../../components/Wrapper';
 import Evaluate from '../../components/Run/Evaluate';
+import Concealer from '../../components/Concealer';
 
 export const events: {[event: string]: react.ForwardRefExoticComponent<IconProps & react.RefAttributes<Icon>>} = {
   error: IconAlertCircle,
@@ -52,14 +53,19 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
   const [level, setLevel] = useState<string | null>('all');
   const [limit, setLimit] = useState<string | null>('50');
   const [query, search] = useState<string>('');
-  const [viewing, view] = useState<log|undefined>(undefined);
+  const [viewing, setViewing] = useState<log|undefined>(undefined);
   const { data: logs, fetch, del, loading } = useAPI<log[]>({
       url: `/log/${endpoint}?level=${level}&limit=${limit}${!date[0]?'':`&date=${String(date[0])}${!date[1]?'':`,${String(date[1])}`}`}`,
       default: [],
   });
   const filtered = (logs||[]).filter(log=>find(query, log));
   useEffect(()=>{ fetch() },[ date, level, limit ]);
-
+  const [evaluated, setEvaluated] = useState<response>({ primaryResults: [], initActions: [], finalActions: [], columns: [] });
+  const view = (log?: log) => {
+    setViewing(log);
+    if (!log || !log.results) return setEvaluated({ primaryResults: [], initActions: [], finalActions: [], columns: [] });
+    setEvaluated(log.results as unknown as response);
+  }
   const clear = () =>
     modals.openConfirmModal({
         title: 'Clear log?',
@@ -80,23 +86,22 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
     <Modal size="auto" opened={!!viewing} onClose={()=>(view(undefined))} title="Log Viewer">
         {viewing&&
         <Box>
-          <List pb="xs">
+          <List>
             <List.Item>level: <Code c={colors[viewing.level]} >{viewing.level}</Code></List.Item>
             <List.Item>timestamp: <Code>{viewing.timestamp}</Code></List.Item>
             <List.Item>message: <Code>{viewing.message}</Code></List.Item>
             {viewing.schema&&<List.Item>schema: <Code>{viewing.schema}</Code></List.Item>}
             {viewing.rule&&<List.Item>rule: <Code>{viewing.rule}</Code></List.Item>}
           </List>
+          <Concealer fz="xs" label='Raw Output' >
+                <pre style={{margin:0}} ><Code fz="xs" >{JSON.stringify(viewing, null, 2)}</Code></pre>
+          </Concealer>
           {viewing.stack&&
-          <Box>
+          <Box mt="xs" >
             <Title size="h4">Error Stack</Title>
             <Code c="red">{viewing.stack}</Code>
           </Box>}
-          {
-            //TODO - connect this.
-          //viewing.results&&
-          //<Evaluate evaluated={viewing.results} setEvaluated={setEvaluated} loading={l1} maximized={maximized||fullscreen} error={e1} />
-          }
+          {viewing.results&&<Evaluate evaluated={evaluated} setEvaluated={setEvaluated} />}
         </Box>}
     </Modal>
     <Group justify="space-between">
@@ -146,14 +151,19 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
       <Table.Tr>
         <Table.Th w={"32px"} />
         <Table.Th w={"128px"}>Level</Table.Th>
-        <Table.Th>Time</Table.Th>
+        <Table.Th w={"200px"} >Time</Table.Th>
         <Table.Th>Message</Table.Th>
         {extraTh}
       </Table.Tr>
     </Table.Thead>
     <Table.Tbody>
-      {filtered.map((log, key)=>
-        <Table.Tr key={key} >
+      {filtered.map((log, key)=> {
+        let message = <Text>{log.message}</Text>;
+        if (log.message.includes("Rule evaluating")) message = <Text c="indigo" >{log.message}</Text>;
+        if (log.message.includes("Rule executing")) message = <Text c="green" >{log.message}</Text>;
+        if (log.message.includes("Rule concluded")) message = <Text c="blue" >{log.message}</Text>;
+        if (log.stack) message = <Text c="red" >{log.message}</Text>;
+        return <Table.Tr key={key} >
           <Table.Td><ActionIcon onClick={()=>view(log)} variant="subtle" color="gray"><IconDots size={16} stroke={1.5} /></ActionIcon></Table.Td>
           <Table.Td>
             <Indicator disabled={!log.stack&&!log.results} color={log.stack?'red':undefined} >
@@ -161,10 +171,10 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
             </Indicator>
           </Table.Td>
           <Table.Td><Text size="sm" truncate="end">{log.timestamp}</Text></Table.Td>
-          <Table.Td maw={width/2} ><Text size="sm" truncate="end">{log.message}</Text></Table.Td>
+          <Table.Td maw={width/2} ><Text size="sm" truncate="end">{message}</Text></Table.Td>
           {extraTd&&extraTd(log, endpoint)}
         </Table.Tr>
-      )}
+      })}
     </Table.Tbody>
   </Table></>)
 }

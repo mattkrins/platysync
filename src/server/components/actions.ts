@@ -27,6 +27,7 @@ import LdapMoveOU from "./actions/LdapMoveOU";
 import LdapUpdateAccount from "./actions/LdapUpdateAccount";
 import LdapUpdateAttributes from "./actions/LdapUpdateAttributes";
 import LdapUpdateGroups from "./actions/LdapUpdateGroups";
+import SysWriteCSV from "./actions/SysWriteCSV";
 
 interface handle<type=unknown> {
   handle: type;
@@ -76,5 +77,6 @@ export const availableActions: { [k: string]: operation } = {
   'SysRunCommand': SysRunCommand,
   'SysTemplate': SysTemplate,
   'SysWait': SysWait,
+  'SysWriteCSV': SysWriteCSV,
   'TransEmailSend': TransEmailSend,
 }

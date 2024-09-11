@@ -69,7 +69,7 @@ export class scheduled {
                             if (task.rules && task.rules.length > 0) rules = schema.rules.filter(r=>r.enabled).filter(r=>task.rules?.includes(r.name));
                             const rString = rules.length <= 0 ? "[all]" : rules.map(r=>r.name).join(",");
                             history.info({
-                                message: `Schedule task executed [${trigger}].`,
+                                message: `Scheduled task running [${trigger}].`,
                                 method: trigger,
                                 schema: this.schema,
                                 schedule: this.name,

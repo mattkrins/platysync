@@ -2,6 +2,8 @@ import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinary
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
 import { UseFormReturnType } from "@mantine/form";
+import { ContextProps } from "./providers";
+import { LDAPContext } from "../routes/Connectors/providers/LDAP";
 import DocWritePDF from "../routes/Rules/Editor/actions/DocWritePDF";
 import DocPrintPDF from "../routes/Rules/Editor/actions/DocPrintPDF";
 import FileCopy from "../routes/Rules/Editor/actions/FileCopy";
@@ -25,9 +27,8 @@ import LdapUpdateAttributes from "../routes/Rules/Editor/actions/LdapUpdateAttri
 import LdapUpdateGroups from "../routes/Rules/Editor/actions/LdapUpdateGroups";
 import LdapUpdateAccount from "../routes/Rules/Editor/actions/LdapUpdateAccount";
 import LdapMoveOU from "../routes/Rules/Editor/actions/LdapMoveOU";
-import { ContextProps } from "./providers";
-import { LDAPContext } from "../routes/Connectors/providers/LDAP";
 import TransAPIGet from "../routes/Rules/Editor/actions/TransAPIGet";
+import SysWriteCSV from "../routes/Rules/Editor/actions/SysWriteCSV";
 
 export interface availableCategory {
     id: string,
@@ -106,6 +107,7 @@ export interface availableAction {
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
     color?: string;
     category: string;
+    type?: string;
     Options?(props: actionProps): JSX.Element;
     initialValues?: Record<string, unknown>;
     validator?: boolean;
@@ -117,7 +119,6 @@ export interface availableAction {
 }
 
 export const availableActions: availableAction[] = [
-    //TODO - save results as csv
     {
         name: "LdapCreateUser",
         label: "Create User",
@@ -339,6 +340,14 @@ export const availableActions: availableAction[] = [
         category: 'system',
         Icon: IconClock,
         Options: SysWait,
+    },
+    {
+        name: "SysWriteCSV",
+        label: "Write Results To CSV",
+        category: 'system',
+        Icon: IconCsv,
+        Options: SysWriteCSV,
+        type: "finalActions",
     },
     {
         name: "StmcUpStuPass",

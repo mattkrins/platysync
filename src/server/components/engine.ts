@@ -30,6 +30,7 @@ export class Engine { //TODO - add way to cancel
     private sources: Source[];
     private initTemplate: template = {};
     private primaryResults: primaryResult[] = [];
+    private columns: string[] = [];
     private progress = 0;
     private hasInit = false;
     private hasFinal = false;
@@ -54,6 +55,9 @@ export class Engine { //TODO - add way to cancel
             iteration: { current: 0, total: false },
         };
     }
+    public getRule() { return this.rule }
+    public getColumns() { return this.columns }
+    public getPrimaryResults() { return this.primaryResults }
     public async Run(): Promise<response> {
         if (!this.testing){
             history.info({
@@ -66,6 +70,7 @@ export class Engine { //TODO - add way to cancel
             });
         }
         this.settings = await Settings();
+        this.columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
         this.Emit();
         const docsTemplate: template = { $file: {} };
         for (const file of this.schema.files) {
@@ -90,13 +95,19 @@ export class Engine { //TODO - add way to cancel
         await wait(500);
         await this.conclude();
         this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
-        const columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
-        const response: response = { primaryResults: this.primaryResults, initActions, finalActions, columns, id: this.rule.idName };
-        //REVIEW - check logging enabled
+        const response: response = { primaryResults: this.primaryResults, initActions, finalActions, columns: this.columns, id: this.rule.idName };
         if (this.executing) await this.safeLog(response);
         return response;
     }
     private async safeLog(response: response){
+        if (!this.rule.log) {
+            history.info({
+                schema: this.schema.name,
+                rule: this.rule.name,
+                message: "Rule concluded.",
+            });
+            return;
+        }
         const copy = JSON.parse(JSON.stringify(response)) as response;
         const settings = await Settings();
         const redacted = (settings.redact||[]).map(r=>r.toLowerCase());
@@ -111,7 +122,8 @@ export class Engine { //TODO - add way to cancel
                 case "SysTemplate": {
                     if (redacted.includes((action.result.data as Record<string,string>).key)) {
                         (action.result.data as Record<string,string>).value = "-REDACTED-";
-                    } break;
+                    }
+                    break;
                 }
                 case "LdapUpdateAttributes": {
                     if ((action.result.data as Record<string,ldapAttributeUpdate[]>).changes) {
@@ -132,7 +144,7 @@ export class Engine { //TODO - add way to cancel
         });
         const initActions = santitize(copy.initActions);
         const finalActions = santitize(copy.finalActions);
-        const primaryResults = this.primaryResults.map(({actions, ...r})=>({...r, actions: santitize(actions) }))
+        const primaryResults = copy.primaryResults.map(({actions, ...r})=>({...r, actions: santitize(actions) }))
         const safe: response = { ...copy, initActions, finalActions, primaryResults };
         history.info({
             schema: this.schema.name,
