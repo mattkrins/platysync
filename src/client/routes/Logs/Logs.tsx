@@ -6,6 +6,7 @@ import { modals } from '@mantine/modals';
 import { DatePickerInput } from '@mantine/dates';
 import { useViewportSize } from '@mantine/hooks';
 import Wrapper from '../../components/Wrapper';
+import Evaluate from '../../components/Run/Evaluate';
 
 export const events: {[event: string]: react.ForwardRefExoticComponent<IconProps & react.RefAttributes<Icon>>} = {
   error: IconAlertCircle,
@@ -91,6 +92,11 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
             <Title size="h4">Error Stack</Title>
             <Code c="red">{viewing.stack}</Code>
           </Box>}
+          {
+            //TODO - connect this.
+          //viewing.results&&
+          //<Evaluate evaluated={viewing.results} setEvaluated={setEvaluated} loading={l1} maximized={maximized||fullscreen} error={e1} />
+          }
         </Box>}
     </Modal>
     <Group justify="space-between">
@@ -149,7 +155,11 @@ function Generic( { endpoint, extraTh, extraTd, extraButtons, extraFilters }: Ge
       {filtered.map((log, key)=>
         <Table.Tr key={key} >
           <Table.Td><ActionIcon onClick={()=>view(log)} variant="subtle" color="gray"><IconDots size={16} stroke={1.5} /></ActionIcon></Table.Td>
-          <Table.Td><Indicator disabled={!log.stack&&!log.evaluated} ><Badge radius="xs" color={colors[log.level]} fullWidth variant="light">{log.level}</Badge></Indicator></Table.Td>
+          <Table.Td>
+            <Indicator disabled={!log.stack&&!log.results} color={log.stack?'red':undefined} >
+              <Badge radius="xs" color={colors[log.level]} fullWidth variant="light">{log.level}</Badge>
+            </Indicator>
+          </Table.Td>
           <Table.Td><Text size="sm" truncate="end">{log.timestamp}</Text></Table.Td>
           <Table.Td maw={width/2} ><Text size="sm" truncate="end">{log.message}</Text></Table.Td>
           {extraTd&&extraTd(log, endpoint)}

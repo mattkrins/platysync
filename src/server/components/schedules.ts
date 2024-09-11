@@ -65,24 +65,34 @@ export class scheduled {
                     func = async (trigger: string) => {
                         try {
                             if (!task.enabled && trigger!=="manual") return;
-                            const run = async (rules: Rule[]) => {
-                                history.info({message: "Schedule task executed.", method: trigger, schema: this.schema, schedule: this.name, rule: rules.map(r=>r.name).join(",") });
-                                let timer: NodeJS.Timeout|undefined;
-                                if (this.failAfter){
-                                    timer = setInterval(()=>{
-                                        throw new xError(`Execution exceeded ${this.failAfter}ms.`);
-                                    }, Number(this.failAfter));
-                                }
-                                for (const rule of rules){
-                                    if (!rule.enabled) return;
+                            let rules = schema.rules.filter(r=>r.enabled);
+                            if (task.rules && task.rules.length > 0) rules = schema.rules.filter(r=>r.enabled).filter(r=>task.rules?.includes(r.name));
+                            const rString = rules.length <= 0 ? "[all]" : rules.map(r=>r.name).join(",");
+                            history.info({
+                                message: `Schedule task executed [${trigger}].`,
+                                method: trigger,
+                                schema: this.schema,
+                                schedule: this.name,
+                                rule: rString,
+                            });
+                            let timer: NodeJS.Timeout|undefined;
+                            if (this.failAfter){
+                                timer = setInterval(()=>{
+                                    throw new xError(`Execution exceeded ${this.failAfter}ms.`);
+                                }, Number(this.failAfter));
+                            }
+                            for (const rule of rules){
+                                if (!rule.enabled) return;
+                                try {
                                     const response = await evaluate(rule, schema);
                                     const results = response.primaryResults.filter(r=>!r.error).map(r=>r.id);
                                     await evaluate(rule, schema, results||[], true, false);
-                                    if (timer) clearTimeout(timer);
+                                } catch (e) {
+                                    this.error(e as xError, rule.name);
+                                    continue;
                                 }
                             }
-                            if (!task.rules || task.rules.length <= 0) return await run(schema.rules.filter(r=>r.enabled));
-                            return await run(schema.rules.filter(r=>r.enabled).filter(r=>task.rules?.includes(r.name)));
+                            if (timer) clearTimeout(timer);
                         } catch (e) { this.error(e as xError); }
                     };
                     break;
@@ -139,9 +149,9 @@ export class scheduled {
         for (const watcher of this.watching) watcher.close();
         for (const job of this.waiting_jobs) job.stop();
     }
-    error(e: xError) {
+    error(e: xError, rule?: string) {
         this.failures ++;
-        history.error({schema: this.schema, schedule: this.name, message: e.message || JSON.stringify(e) });
+        history.error({schema: this.schema, schedule: this.name, message: e.message || JSON.stringify(e), rule });
         if (this.disableAfter && this.failures >= Number(this.disableAfter)) toggleSchedule(this.schema, this.name, false);
     }
 }

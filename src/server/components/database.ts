@@ -15,7 +15,7 @@ export const defaultData: Database = {
     version: '',
     settings: {
         logLevel: 'info',
-        redact: ['password', 'secret', 'key','token','code', 'unicodePwd'],
+        redact: ['password', 'secret', 'key','token','code', 'hash', 'unicodePwd'],
     },
     users: [],
     schemas: [],

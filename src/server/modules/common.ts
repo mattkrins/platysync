@@ -50,6 +50,9 @@ export class xError {
       this.status = e.status;
       return this;
     }
+    public assign(error: Record<string, string> = {}) {
+      return Object.assign(this, error);
+    }
     public send(reply: FastifyReply) {
       return reply.code(this.status||(this.errors?406:500)).send(this);
     }

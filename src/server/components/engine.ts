@@ -10,6 +10,7 @@ import fs from 'fs-extra';
 import LDAP from "./providers/LDAP";
 import { defaultData, Settings } from "./database";
 import { configs } from "./configs/base";
+import { ldapAttributeUpdate } from "./actions/LdapUpdateAttributes";
 
 export class Engine { //TODO - add way to cancel
     public id: string;
@@ -25,6 +26,7 @@ export class Engine { //TODO - add way to cancel
     private filter?:  string[];
     private scheduled?: boolean;
     private primary?: string;
+    private executing: boolean;
     private sources: Source[];
     private initTemplate: template = {};
     private primaryResults: primaryResult[] = [];
@@ -37,8 +39,9 @@ export class Engine { //TODO - add way to cancel
         this.id = uuidv4();
         this.rule = rule;
         this.schema = schema;
-        this.filter = filter;
         this.scheduled = scheduled;
+        this.filter = filter;
+        this.executing = !!filter||false;
         this.testing = testing||false;
         this.primary = this.rule.primary;
         this.sources = this.rule.sources||[];
@@ -51,14 +54,14 @@ export class Engine { //TODO - add way to cancel
             iteration: { current: 0, total: false },
         };
     }
-    public async Run(){
+    public async Run(): Promise<response> {
         if (!this.testing){
             history.info({
                 schema: this.schema.name,
                 rule: this.rule.name,
-                message: `${this.filter?'Executing':'Evaluating'} rule: ${this.rule.name}`,
+                message: `Rule ${this.executing?'executing':'evaluating'}.`,
                 scheduled: this.scheduled,
-                actioning: this.filter?.length,
+                executing: this.executing,
                 id: this.id
             });
         }
@@ -88,18 +91,61 @@ export class Engine { //TODO - add way to cancel
         await this.conclude();
         this.Emit({ progress: { total: 100 }, eta: "Complete", text: "Complete"});
         const columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
-        // history.info({schema: schema.name, rule: rule.name, message: `Concluded rule: ${rule.name}`, evaluated: santitizeData(evaluated), initActions, finalActions });
-        //TODO - santitizeData for log
-        return { primaryResults: this.primaryResults, initActions, finalActions, columns, id: this.rule.idName };
+        const response: response = { primaryResults: this.primaryResults, initActions, finalActions, columns, id: this.rule.idName };
+        //REVIEW - check logging enabled
+        if (this.executing) await this.safeLog(response);
+        return response;
     }
-    private async conclude(){ //REVIEW - maybe combine santitize and conclude?
+    private async safeLog(response: response){
+        const copy = JSON.parse(JSON.stringify(response)) as response;
+        const settings = await Settings();
+        const redacted = (settings.redact||[]).map(r=>r.toLowerCase());
+        const santitize = (actions: actionResult[]): actionResult[] => actions.map(action=>{
+            switch (action.name) {
+                case "SysEncryptString": {
+                    (action.result.data as Record<string,string>).secret = "-REDACTED-";
+                    (action.result.data as Record<string,string>).password = "-REDACTED-";
+                    (action.result.data as Record<string,string>).key = "-REDACTED-";
+                    break;
+                }
+                case "SysTemplate": {
+                    if (redacted.includes((action.result.data as Record<string,string>).key)) {
+                        (action.result.data as Record<string,string>).value = "-REDACTED-";
+                    } break;
+                }
+                case "LdapUpdateAttributes": {
+                    if ((action.result.data as Record<string,ldapAttributeUpdate[]>).changes) {
+                        for (const change of ((action.result.data as Record<string,ldapAttributeUpdate[]>).changes||[])) {
+                            if (redacted.includes(change.name.toLowerCase())) change.value = "-REDACTED-";
+                        }
+                    }
+                    break;
+                }
+                default: {
+                    for (const key of (Object.keys(action.result.data as Record<string,string>))) {
+                        if (redacted.includes(key.toLowerCase())) (action.result.data as Record<string,string>)[key] = "-REDACTED-";
+                    }
+                    break;
+                }
+            }
+            return action;
+        });
+        const initActions = santitize(copy.initActions);
+        const finalActions = santitize(copy.finalActions);
+        const primaryResults = this.primaryResults.map(({actions, ...r})=>({...r, actions: santitize(actions) }))
+        const safe: response = { ...copy, initActions, finalActions, primaryResults };
+        history.info({
+            schema: this.schema.name,
+            rule: this.rule.name,
+            message: "Rule concluded.",
+            results: safe,
+        });
+    }
+    private async conclude(){
         for (const key of Object.keys(this.handles)) {
             const handle = this.handles[key];
             if (handle.close) await handle.close();
         }
-    }
-    private santitize(){
-        
     }
     public async ldap_getUser(key: string, template: template, id?: string, userFilter?: string, compiledFilter?: string) {
         if (!id) return false;
@@ -295,7 +341,7 @@ export class Engine { //TODO - add way to cancel
             if (!(action.name in availableActions)) throw new xError(`Unknown action '${action.name}'.`);
             const result = await availableActions[action.name]({
                 action, template, connections: this.connections,
-                handles: this.handles, execute: !!this.filter,
+                handles: this.handles, execute: this.executing,
                 engine: this, data: {}, id, settings: this.settings,
                 contexts: this.contexts, configs: this.configs, schema: this.schema
             })
@@ -357,9 +403,7 @@ export default async function evaluate(rule: Rule, schema: Schema, filter?:  str
         return await engine.Run();
     } catch (e) {
         const error = e as { schema: string, rule: string, scheduled?: boolean, message: string };
-        //error.schema = schema.name||'unknown';
-        //error.rule = rule.name||'unknown';
-        //error.scheduled = scheduled;
+        history.error({schema: schema.name, message: error.message || JSON.stringify(e), rule: rule.name, scheduled });
         throw error.message;
     }
 }

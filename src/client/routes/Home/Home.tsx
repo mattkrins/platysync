@@ -63,7 +63,7 @@ function Chart({}) {
   });
   const chart = useMemo(()=>Object.values(data.reduce((acc: Record<string, TransformedData>, log) => {
     const date = new Date(log.timestamp).toLocaleDateString();
-    const logType = log.message.includes("Evaluating") ? "Evaluated" : log.message.includes("Executing") ? "Executed" : "Errors";
+    const logType = log.message.includes("evaluat") ? "Evaluated" : log.message.includes("execut") ? "Executed" : "Errors";
     if (!acc[date]) acc[date] = { timestamp: date, "Evaluated": 0, "Executed": 0, "Errors": 0 };
     acc[date][logType] += 1;
     return acc;
@@ -109,19 +109,19 @@ function Chart({}) {
 
 function Stats({}) {
   const { data: evaluated, loading: evaluated_loading } = useAPI<number>({
-      url: `/log/history?message=Evaluating&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
+      url: `/log/history?message=eval&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
       default: 0, fetch: true,
   });
   const { data: executed, loading: executed_loading } = useAPI<number>({
-    url: `/log/history?message=Executing&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
+    url: `/log/history?message=exec&count=true&limit=1000&date=${new Date((new Date()).valueOf() - (24 * 60 * 60 * 1000))}`,
     default: 0, fetch: true,
   });
   const { data: evaluated_total, loading: evaluated_total_loading } = useAPI<number>({
-      url: `/log/history?message=Evaluating&count=true&limit=9000`,
+      url: `/log/history?message=eval&count=true&limit=9000`,
       default: 0, fetch: true,
   });
   const { data: executed_total, loading: executed_total_loading } = useAPI<number>({
-      url: `/log/history?message=Executing&count=true&limit=9000`,
+      url: `/log/history?message=exec&count=true&limit=9000`,
       default: 0, fetch: true,
   });
   return (

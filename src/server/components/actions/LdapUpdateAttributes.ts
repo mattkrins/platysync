@@ -5,20 +5,20 @@ import LDAPprovider, { LdapProps } from "../providers/LDAP.js";
 import LDAP from "../../modules/ldap.js";
 import { default as ldapjs } from "ldapjs";
 
-interface Attribute {
+export interface ldapAttribute {
     method: 'add'|'replace'|'delete';
     name: string;
     value: string;
 }
 
-interface update extends Attribute {
+export interface ldapAttributeUpdate extends ldapAttribute {
     currentValue: string;
     success?: true;
     error?: string;
 }
 
 interface LdapUpdateAttributes extends LdapProps {
-    attributes: Attribute[];
+    attributes: ldapAttribute[];
     [k: string]: unknown;
 }
 
@@ -27,7 +27,7 @@ export default async function LdapUpdateAttributes(props: props<LdapUpdateAttrib
     try {
         const user = await LDAPprovider.getUser(props);
         data.attributes = user.attributes as unknown as string;
-        const changes: update[] = [];
+        const changes: ldapAttributeUpdate[] = [];
         for (const a of action.attributes) {
             switch (a.method) {
                 case 'add': {

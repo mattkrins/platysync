@@ -7,7 +7,7 @@ import fs from 'fs-extra';
 const loggers: { [k: string]: { logger: winston.Logger, fields: string[] } } = {};
 function init() {
     loggers.general = { logger: log, fields: ['message', 'level', 'timestamp', 'stack'] };
-    loggers.history = { logger: history, fields: ['message', 'level', 'timestamp', 'rule', 'schema', 'stack', 'evaluated'] };
+    loggers.history = { logger: history, fields: ['message', 'level', 'timestamp', 'rule', 'schema', 'stack', 'results'] };
 }
 
 interface query extends Log {
@@ -51,7 +51,7 @@ export default async function (route: FastifyInstance) {
             } catch (e) { throw new xError(e); }
             finally {
                 initLogging();
-                log.info("Log cleared.");
+                log.info(`${endpoint} log cleared.`);
             }
         }
         catch (e) { new xError(e).send(reply); }
