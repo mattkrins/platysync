@@ -301,7 +301,6 @@ export default function Conditions({ form, label, compact, path = "conditions", 
     const conditions = (form.getInputProps(path).value || []) as Condition[];
     const disabled = !form.values.primary;
     //FIXME - dragging and dropping empty conditions are populated with the target values for some reason?
-    //TODO - add case sensitivity option
     return (
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >

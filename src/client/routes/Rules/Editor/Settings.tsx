@@ -43,15 +43,20 @@ function Source({ index, source, form, edit }: { index: number, source: Source, 
     )
 }
 
-const validate = {
-    foreignName: isNotEmpty('Foreign connector must not be empty.'),
-    primaryName: isNotEmpty('Primary connector must not be empty.'),
+function ConnectorOverrides({ name, form }: { name: string, form: UseFormReturnType<Source> }) {
+    return (
+    <Box mt="xs" >
+        <Divider/>
+    </Box>)
 }
 
 function SourceModal({ join, index, adding, sources, rule, close }: { join: Source, index?: number, adding: boolean, sources: string[], rule: UseFormReturnType<Rule>, close(): void }) {
     const { proConnectors } = useConnectors();
     const { usedContexts } = useRule(rule);
-    const form = useForm<Source>({ validate, initialValues: structuredClone(join) });
+    const form = useForm<Source>({ validate: {
+        foreignName: isNotEmpty('Foreign connector must not be empty.'),
+        primaryName: isNotEmpty('Primary connector must not be empty.'),
+    }, initialValues: structuredClone(join) });
     const add = () => {
         form.validate(); if (!form.isValid()) return;
         rule.insertListItem('sources', form.values);
@@ -128,6 +133,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
                 <Switch label="Required" description="If no match is found, each row, entry, user, etc will be skipped." mt="xs" {...form.getInputProps('require', { type: 'checkbox' })} />
             </Grid.Col>
         </Grid>
+        {foreignName&&<ConnectorOverrides name={foreignName} form={form} /> }
         <Group justify={adding?"flex-end":"space-between"} mt="md">
           {!adding&&<Tooltip hidden={!dependancy} color="red" label={dependancy?"Has dependancies":undefined} ><Button disabled={!!dependancy} color="red" onClick={remove} >Remove</Button></Tooltip>}
           <Button onClick={adding?add:edit} >{adding ? "Join Data" : "Save"}</Button>
@@ -225,10 +231,11 @@ function ContextEditor({ editing, close, form }: { editing?: [Context,number|und
 export default function Settings( { form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void } ) {
     const { sources, templateSources, primaryHeaders, displayExample, contextSources, inline } = useRule(form, "iterativeActions");
     const { templateProps, explorer } = useTemplater({names:templateSources, inline});
+    //REVIEW - replace with editor
     const [ editingSource, setEditingSource ] = useState<[Source,number|undefined,boolean]|undefined>(undefined);
     const [ editingContext, setEditingContext ] = useState<[Context,number|undefined,boolean]|undefined>(undefined);
     const { proConnectors } = useConnectors();
-    const addSource = () => setEditingSource([{ foreignName: null, primaryName: null } as unknown as Source,undefined,false]);
+    const addSource = () => setEditingSource([{ foreignName: null, primaryName: null, overrides: {} } as unknown as Source,undefined,false]);
     const addContext = () => setEditingContext([{ name: null } as unknown as Context,undefined,false]);
     const editSource = (source: Source, index: number) => setEditingSource([source,index,true]);
     const editContext = (context: Context, index: number) => setEditingContext([context,index,true]);

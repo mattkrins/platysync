@@ -5,7 +5,6 @@ import evaluate from "../components/engine";
 import pdfPrinter from "pdf-to-printer";
 import unixPrint from "unix-print";
 import { log, windows } from "../..";
-//TODO - implement unix print in action
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {

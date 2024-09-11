@@ -44,6 +44,7 @@ interface Source {
     primaryKey?: string;
     inCase?: boolean;
     require?: boolean;
+    overrides: { [k: string]: unknown };
 }
 
 interface Condition {

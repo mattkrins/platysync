@@ -117,7 +117,9 @@ export interface availableAction {
     validate?: {[value: string]: (...v: unknown[]) => unknown};
     noPreConfig?: boolean;
 }
-
+//TODO - thermal print, regular print, read file into template
+// https://github.com/thiagoelg/node-printer
+// https://github.com/Klemen1337/node-thermal-printer
 export const availableActions: availableAction[] = [
     {
         name: "LdapCreateUser",
