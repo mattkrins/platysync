@@ -66,7 +66,7 @@ function Content({ action, refresh, adding, close }: { action: ActionConfig, ref
 export default function Editor({ editing, close, refresh }: { editing?: [ActionConfig,boolean], close(): void, refresh(): void }) {
     const adding = (editing && editing[0] && !editing[1]) || false ;
     return (
-    <Modal size="lg" opened={!!editing} onClose={close} title={adding?"Add Action":"Edit Action"} styles={adding?{content:{background:"none"},header:{background:"none"}}:undefined} closeOnClickOutside={!adding} >
+    <Modal size="xl" opened={!!editing} onClose={close} title={adding?"Add Action":"Edit Action"} styles={adding?{content:{background:"none"},header:{background:"none"}}:undefined} closeOnClickOutside={!adding} >
         {editing&&(editing[0].name?
         <Content action={editing[0]} refresh={refresh} adding={adding} close={close} />:
         <Wrapper><Content action={editing[0]} refresh={refresh} adding={adding} close={close} /></Wrapper>)}

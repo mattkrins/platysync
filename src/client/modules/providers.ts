@@ -1,12 +1,13 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { UseFormReturnType, hasLength, isNotEmpty } from "@mantine/form";
-import { Icon, IconBinaryTree2, IconFolder, IconProps, IconSchool } from "@tabler/icons-react";
+import { Icon, IconBinaryTree2, IconCloudDown, IconFolder, IconProps, IconSchool } from "@tabler/icons-react";
 import { fileIcons, isAlphanumeric } from "./common";
 
 import CSV from "../routes/Connectors/providers/CSV";
 import LDAP, { LDAPContext } from "../routes/Connectors/providers/LDAP";
 import FOLDER from "../routes/Connectors/providers/FOLDER";
 import STMC, { STMCContext } from "../routes/Connectors/providers/STMC";
+import API from "../routes/Connectors/providers/API";
 
 export interface ContextProps {
     form: UseFormReturnType<any>;
@@ -94,5 +95,18 @@ export const providers: provider[] = [
             school: hasLength({ min: 4 }, 'School ID must be at least 4 characters long.'),
         },
     },
-
+    {
+        id: 'api',
+        name: "Web Request (API)",
+        color: 'red',
+        Icon: IconCloudDown,
+        Options: API,
+        initialValues: {
+            name: 'MyAPI',
+        },
+        validate: {
+            name: isNotEmpty('Name can not be empty.'),
+            endpoint: isNotEmpty('Endpoint can not be empty.'),
+        },
+    },
 ];

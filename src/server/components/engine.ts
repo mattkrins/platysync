@@ -236,6 +236,7 @@ export class Engine { //TODO - add way to cancel
         let i = 1;
         const x = () => (20/(this.sources.length+1))*i;
         this.Emit({ iteration: { total: this.sources.length+1, current: 0 }, });
+        //TODO - add override GUI for primary
         await connect(this.schema, this.primary, this.connections, this, this.rule.primaryKey);
         history.debug({schema: this.schema.name, rule: this.rule.name, message: `Primary: ${this.primary} connected.` });
         this.Emit({
@@ -243,7 +244,7 @@ export class Engine { //TODO - add way to cancel
             iteration: { current: 1 },
         });
         for (const source of this.sources) {  i++;
-            await connect(this.schema, source.foreignName, this.connections, this, source.foreignKey);
+            await connect(this.schema, source.foreignName, this.connections, this, source.foreignKey, source.overrides);
             history.debug({schema: this.schema.name, rule: this.rule.name, message: `Secondary: ${source.foreignName} connected.` });
             //TODO - add condition filter to add source GUI, run evaluateAll against connector data to filter on a source basis and speed up later joins
             this.Emit({

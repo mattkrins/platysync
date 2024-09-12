@@ -105,7 +105,7 @@ function Form({ form, path, templateProps }: actionProps) {
     const add = () => form.insertListItem(formPath, { type: "string", key: undefined, value: undefined, });
     return (
     <Box mt="xs">
-        <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Template</Button></Group>
+        <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Form Value</Button></Group>
         {formValues.length===0&&<Center c="dimmed" fz="xs" >No templates configured.</Center>}
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(formPath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">

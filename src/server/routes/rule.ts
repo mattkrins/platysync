@@ -5,6 +5,7 @@ import evaluate from "../components/engine";
 import pdfPrinter from "pdf-to-printer";
 import unixPrint from "unix-print";
 import { log, windows } from "../..";
+import { encrypt } from "../modules/cryptography";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -62,6 +63,11 @@ export default async function (route: FastifyInstance) {
             });
             const rules = await getRules(schema_name);
             if (rules.find(c=>c.name===name)) throw new xError("Rule name taken.", "name", 409);
+            for (const source of options.sources||[]) {
+                if (source.overrides.password && typeof source.overrides.password === 'string' ){
+                    source.overrides.password = await encrypt(source.overrides.password as string);
+                }
+            }
             rules.push({ name, ...options });
             await sync();
             log.silly({message: "Rule created", rule: name, schema: schema_name });
@@ -81,6 +87,11 @@ export default async function (route: FastifyInstance) {
             if (!rule) throw new xError("Rule not found.", "name", 404 );
             if (editing!==name){
                 if (schema.rules.find(c=>c.name===name)) throw new xError("Rule name taken.", "name", 409);
+            }
+            for (const source of options.sources||[]) {
+                if (source.overrides.password && typeof source.overrides.password === 'string' ){
+                    source.overrides.password = await encrypt(source.overrides.password as string);
+                }
             }
             schema.rules = schema.rules.map(c=>c.name!==editing?c:{...c, name, ...options })
             await sync();

@@ -17,11 +17,11 @@ export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap
                 {...form.getInputProps('username')}
             />
             <SecurePasswordInput withAsterisk
-            label="Password"
-            placeholder="password"
-            secure={!!form.values.password&&typeof form.values.password !== 'string'}
-            unlock={()=>form.setFieldValue("password", "")}
-            {...form.getInputProps('password')}
+                label="Password"
+                placeholder="password"
+                secure={!!form.values.password&&typeof form.values.password !== 'string'}
+                unlock={()=>form.setFieldValue("password", "")}
+                {...form.getInputProps('password')}
             />
         </SimpleGrid>
         <TextInput mt="sm"
@@ -31,8 +31,8 @@ export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap
             withAsterisk {...form.getInputProps('school')}
         />
         <SelectConnector mt="sm"
-        {...form.getInputProps('eduhub')} ids={["csv"]} clearable
-        label="Match Eduhub" description="Match against eduhub making the _stkey header available."
+            {...form.getInputProps('eduhub')} ids={["csv"]} clearable
+            label="Match Eduhub" description="Match against eduhub making the _stkey header available."
         />
         <Concealer>
             <NumberInput mt="sm"

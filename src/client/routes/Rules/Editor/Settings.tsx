@@ -2,13 +2,14 @@ import { Box, Grid, Group, Select, TextInput, Text, ActionIcon, Modal, Button, S
 import { UseFormReturnType, isNotEmpty, useForm } from "@mantine/form";
 import { IconGripVertical, IconKey, IconPencil, IconPlus, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../components/SelectConnector";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useConnectors } from "../../../hooks/redux";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { provider } from "../../../modules/providers";
+import { provider, providers } from "../../../modules/providers";
 import MenuTip from "../../../components/MenuTip";
 import useTemplater from "../../../hooks/useTemplater";
 import { useRule } from "./Editor";
+import { ldap_options } from "../../../../server/components/providers/LDAP";
 
 function Source({ index, source, form, edit }: { index: number, source: Source, form: UseFormReturnType<Rule>, edit(source: Source, index: number): void }) {
     const theme = useMantineTheme();
@@ -43,10 +44,13 @@ function Source({ index, source, form, edit }: { index: number, source: Source, 
     )
 }
 
-function ConnectorOverrides({ name, form }: { name: string, form: UseFormReturnType<Source> }) {
+function ConnectorOverrides({ provider: { Options }, form }: { provider: provider, form: UseFormReturnType<Source> }) {
+    const cForm = useForm<Connector>({initialValues: structuredClone(form.values.overrides as Connector) });
+    useEffect(()=>{ form.setFieldValue("overrides", cForm.values); },[ cForm.values ]);
     return (
-    <Box mt="xs" >
-        <Divider/>
+    <Box mt="xs">
+        <Divider mb="xs" label="Overrides" labelPosition="left" />
+        <Options form={cForm} />
     </Box>)
 }
 
@@ -73,6 +77,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
         rule.setFieldValue(`sources.${index}.primaryKey`, form.values.primaryKey||null);
         rule.setFieldValue(`sources.${index}.inCase`, form.values.inCase||false);
         rule.setFieldValue(`sources.${index}.require`, form.values.require||false);
+        rule.setFieldValue(`sources.${index}.overrides`, form.values.overrides||{});
         close();
     }
     const foreignName = form.values.foreignName;
@@ -133,7 +138,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
                 <Switch label="Required" description="If no match is found, each row, entry, user, etc will be skipped." mt="xs" {...form.getInputProps('require', { type: 'checkbox' })} />
             </Grid.Col>
         </Grid>
-        {foreignName&&<ConnectorOverrides name={foreignName} form={form} /> }
+        {foreignName&&<ConnectorOverrides provider={foreignProvider} form={form} /> }
         <Group justify={adding?"flex-end":"space-between"} mt="md">
           {!adding&&<Tooltip hidden={!dependancy} color="red" label={dependancy?"Has dependancies":undefined} ><Button disabled={!!dependancy} color="red" onClick={remove} >Remove</Button></Tooltip>}
           <Button onClick={adding?add:edit} >{adding ? "Join Data" : "Save"}</Button>
