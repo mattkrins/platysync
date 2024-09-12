@@ -72,7 +72,13 @@ export class Engine { //TODO - add way to cancel
         this.settings = await Settings();
         this.columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
         this.Emit();
-        const docsTemplate: template = { $file: {} };
+        const docsTemplate: template = {
+            $file: {},
+            $rule_name: this.rule.name as any,
+            $rule_id: this.id as any,
+            $rule_schema: this.schema.name as any,
+            $rule_scheduled: String(this.scheduled) as any,
+        };
         for (const file of this.schema.files) {
             const folder = `${paths.storage}/${this.schema.name}`;
             const path = `${folder}/${file.path}`;

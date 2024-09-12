@@ -5,6 +5,7 @@ import ldap from "./ldap.js";
 import dayjs from "dayjs";
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 dayjs.extend(localizedFormat);
+import { v4 as uuidv4 } from 'uuid';
 
 function toTitleCase(str: string) { return str.replace(/\w\S*/g, function(txt){ return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); }); }
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -38,7 +39,9 @@ Handlebars.registerHelper("$split", function(str: string, part?: string, separat
     return str.split(separator)[parseInt(part)];
 });
 
+Handlebars.registerHelper("$uuidv4", function() { return uuidv4(); });
 Handlebars.registerHelper("$dir", function() { return paths.base; });
+Handlebars.registerHelper("$cache", function() { return paths.cache; });
 
 const compiler = Handlebars.compile;
 Handlebars.compile = function(input: string, options?: CompileOptions | undefined) {

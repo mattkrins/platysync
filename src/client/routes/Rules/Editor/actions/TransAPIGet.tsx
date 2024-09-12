@@ -171,7 +171,7 @@ export default function TransAPIGet( { form, path, templateProps, config, config
             <Form form={form} path={path} templateProps={templateProps} config={config} configured={configured} />,
             }[mime]}
         </>}
-        {
+        { //TODO - this
         //<SimpleGrid mt="xs" cols={mime==="json"?{ base: 1, sm: 2 }:undefined} >
         //    <TextInput
         //        label="Template Key" mt="xs"

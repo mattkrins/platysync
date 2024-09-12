@@ -40,6 +40,7 @@ export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap
                 description="Minutes to wait before invalidating downloaded cache."
                 leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                 placeholder="1440 (1 day)"
+                min={1}
                 {...form.getInputProps('cache')}
             />
         </Concealer>

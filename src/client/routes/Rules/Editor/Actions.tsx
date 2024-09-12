@@ -130,7 +130,7 @@ function Action({ index, action, type, form }: { index: number, action: Action, 
     const { templateSources, inline, sources } = useRule(form, type);
     const iterative = type === "iterativeActions";
     const actionConfig = availableActions.find(a=>a.name===action.name) as availableAction;
-    const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline});
+    const { templateProps, explorer } = useTemplater({names:iterative?templateSources:[], inline, inRule: true });
     if (!actionConfig) return <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />;
     const { Icon, color, name, label, validator, overwriter, Options, provider, iterative: Context } = actionConfig;
     const useContext = !iterative && Context && (typeof Context === "function");

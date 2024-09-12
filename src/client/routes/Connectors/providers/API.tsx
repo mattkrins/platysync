@@ -1,5 +1,5 @@
-import { TextInput, Select, Anchor, JsonInput } from "@mantine/core";
-import { IconWorld } from "@tabler/icons-react";
+import { TextInput, Select, Anchor, JsonInput, Checkbox, NumberInput } from "@mantine/core";
+import { IconClock, IconRoute2, IconWorld } from "@tabler/icons-react";
 import Concealer from "../../../components/Concealer";
 import { UseFormReturnType } from "@mantine/form";
 import { config } from "process";
@@ -24,13 +24,6 @@ export default function API( { form }: { form: UseFormReturnType<Connector> } ) 
             withAsterisk
             {...form.getInputProps('endpoint')}
         />
-        <TextInput
-            label="Iterative Data Path" mt="xs" description="Response JSON path which holds array of object data"
-            leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            placeholder="https://service.com/api/v1"
-            withAsterisk
-            {...form.getInputProps('endpoint')}
-        />
         <Select mt="xs" label="Authentication"
             description={<>
             Method used to <Anchor size="xs" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication" >authenticate</Anchor> the request.
@@ -48,6 +41,14 @@ export default function API( { form }: { form: UseFormReturnType<Connector> } ) 
             rightSectionX={options.buttons}
             {...form.getInputProps('password')}
         />}
+        <NumberInput mt="xs"
+            label="Caching Policy"
+            description="Cache data and hold for x minutes."
+            leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+            placeholder="0"
+            min={1}
+            {...form.getInputProps('cache')}
+        />
         <Concealer>
             <Select mt="xs" label="Method"
                 description={<>
@@ -60,8 +61,19 @@ export default function API( { form }: { form: UseFormReturnType<Connector> } ) 
             <JsonInput mt="xs" autosize
             label="Body Data" description="JSON data to send in the request."
             placeholder='{"name":"John", "age":30, "car":null}'
-            {...form.getInputProps(`data`)}
+            {...form.getInputProps(`sendData`)}
             />}
+            <TextInput
+                label="Iterative Data Path" mt="xs" description="Response JSON path which holds array of object data"
+                leftSection={<IconRoute2 size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+                placeholder="data.users"
+                {...form.getInputProps('responsePath')}
+            />
+            <Checkbox mt="md" label="Page with header links" {...form.getInputProps('linkHeader', { type: 'checkbox' })}
+            description={<>
+                Data is paged by the <Anchor size="xs" target="_blank" href="https://www.w3.org/Protocols/9707-link-header.html" >linked resources</Anchor> standard.
+            </>}
+            />
         </Concealer>
     </>);
 }

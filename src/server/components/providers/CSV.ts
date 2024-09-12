@@ -2,7 +2,7 @@ import { paths } from "../../..";
 import { hasLength, isAlphanumeric, validate, xError } from "../../modules/common";
 import { compile } from "../../modules/handlebars";
 import { base_provider, base_provider_options } from "./base";
-import * as fs from 'fs';
+import fs from 'fs-extra';
 import Papa, { ParseResult } from "papaparse";
 
 export interface csv_options extends base_provider_options {

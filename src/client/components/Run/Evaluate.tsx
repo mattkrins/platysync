@@ -11,7 +11,7 @@ const defaultPage = 50
 const pages = [ 10, 25, 50, 100, 1000 ];
 
 function find(query: string, r: primaryResult, caseSen: boolean, columns: string[]){
-    if (caseSen?r.id.toLowerCase().includes(query.toLowerCase()):r.id.includes(query)) return true;
+    if (r.id && (caseSen?String(r.id).toLowerCase().includes(query.toLowerCase()):String(r.id).includes(query))) return true;
     if (columns.find(data=>caseSen?data.toLowerCase().includes(query.toLowerCase()):data.includes(query))) return true;
     return false;
 }

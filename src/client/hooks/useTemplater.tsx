@@ -1,9 +1,9 @@
 import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Drawer, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { Icon, IconAlertCircle, IconBraces, IconChevronRight, IconCode, IconFiles, IconFolderCode, IconPlug, IconProps, IconRun, IconSearch } from "@tabler/icons-react";
+import { Icon, IconAlertCircle, IconBraces, IconCheckbox, IconChevronRight, IconCode, IconFiles, IconFolderCode, IconPlug, IconProps, IconRun, IconSearch } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes, useCallback, useMemo, useState } from "react";
-import { compile, genericHelpers, paths } from "../modules/handlebars";
+import { compile, genericHelpers, pathHelpers, ruleHelpers } from "../modules/handlebars";
 import classes from './useTemplater.module.css';
 import { useSelector } from "react-redux";
 import { getFiles } from "../providers/schemaSlice";
@@ -73,10 +73,11 @@ export type templateProps = (form: UseFormReturnType<any>, path: string, options
     placeholder?: string;
 }
 
-export default function useTemplater( { names, inline }: { names?: string[], inline?: string[] } = {} ) {
+export default function useTemplater( { names, inline, inRule }: { names?: string[], inline?: string[], inRule?: boolean } = {} ) {
     const theme = useMantineTheme();
     const [ opened, { open, close } ] = useDisclosure(false);
     const [ viewHelpers, { toggle: toggleHelpers } ] = useDisclosure(false);
+    const [ viewRule, { toggle: toggleRule } ] = useDisclosure(false);
     const [ viewPaths, { toggle: togglePaths } ] = useDisclosure(false);
     const [ viewInline, { toggle: toggleInline } ] = useDisclosure(false);
     const [ filter, setFilter ] = useState<string>('');
@@ -93,13 +94,15 @@ export default function useTemplater( { names, inline }: { names?: string[], inl
     const template = useMemo(()=>{
         const head: {[k: string]: {[k: string]: string}|string } = { $file: {} };
         if (inline) for (const key of inline) head[key] = key;
+        if (inRule) for (const {key} of ruleHelpers) head[key] = key;
+        for (const {key} of pathHelpers) head[key] = key;
         for (const {name, key} of files) (head.$file as {[k: string]: string})[(key||name)] = key||name;
         for (const {name, headers} of contextualised){
             if (!head[name]) head[name] = {};
             for (const header of headers) (head[name] as {[k: string]: string})[header] = header;
         }
         return head;
-    }, [ files, contextualised ]);
+    }, [ files, contextualised, inline, inRule ]);
 
     const tags = useMemo(()=>flattenTemplate(template),[ template ]);
     const filteredTags = useMemo(()=>tags.filter(item => item.toLowerCase().includes(filter.toLowerCase()) ),[ tags, filter ]);
@@ -148,9 +151,18 @@ export default function useTemplater( { names, inline }: { names?: string[], inl
             ))}
             </Flex>
         </Collapse>
+        {inRule&&<Section open={viewRule} label="Rule" Icon={IconCheckbox} onClick={toggleRule} />}
+        <Collapse mt="xs" in={viewRule}>
+            {ruleHelpers.map(helper=>
+            <UnstyledButton onClick={addHelper(helper.key, helper.example)} mb="xs" key={helper.key} className={classes.connector} p="xs" pt={0} pb={4} >
+                <Title size="h6" >{helper.key}</Title>
+                {helper.description&&<Text size="xs" c="dimmed" >{helper.description}</Text>}
+                {helper.example&&<Code>{helper.example}</Code>}
+            </UnstyledButton>)}
+        </Collapse>
         <Section open={viewPaths} label="Paths" Icon={IconFolderCode} onClick={togglePaths} />
         <Collapse mt="xs" in={viewPaths}>
-            {paths.map(helper=>
+            {pathHelpers.map(helper=>
             <UnstyledButton onClick={addHelper(helper.key, helper.example)} mb="xs" key={helper.key} className={classes.connector} p="xs" pt={0} pb={4} >
                 <Title size="h6" >{helper.key}</Title>
                 {helper.description&&<Text size="xs" c="dimmed" >{helper.description}</Text>}

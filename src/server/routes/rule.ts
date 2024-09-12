@@ -6,7 +6,7 @@ import pdfPrinter from "pdf-to-printer";
 import unixPrint from "unix-print";
 import { log, windows } from "../..";
 import { encrypt } from "../modules/cryptography";
-
+//TODO - add dependancy check for each module
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };

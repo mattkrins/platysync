@@ -1,4 +1,5 @@
 import { Engine } from "./engine";
+import API from "./providers/API";
 import CSV from "./providers/CSV";
 import FOLDER from "./providers/FOLDER";
 import LDAP from "./providers/LDAP";
@@ -35,4 +36,5 @@ export const providers: { [id: string]: typeof base_provider } = {
     ldap: LDAP,
     folder: FOLDER,
     stmc: STMC,
+    api: API,
 };

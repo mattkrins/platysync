@@ -39,28 +39,6 @@ function Template({ index, column, form, templateProps, path }: { index: number,
     </Draggable>)
 }
 
-function IDHeader({ form, templateProps }: { form: UseFormReturnType<Rule>, templateProps: templateProps }) {
-    const { id } = useRule(form);
-    return (
-    <Grid align="center" mt="xs" gutter="xs" columns={25} >
-        <Grid.Col span={1}/>
-        <Grid.Col span="auto" >
-            <TextInput label="Name" description="Header name, also used in csv export."
-            leftSection={<IconChevronUp size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder="ID" {...form.getInputProps('IDName')}
-            />
-        </Grid.Col>
-        <Grid.Col span="auto" >
-            <TextInput label="Value" description="Value used for the row, entry, user, etc."
-            leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-            placeholder={id} value={id} disabled
-            />
-        </Grid.Col>
-        <Grid.Col span={2}/>
-    </Grid>
-    )
-}
-
 function RequiredHeaders({ form, templateProps }: { form: UseFormReturnType<Rule>, templateProps: templateProps }) {
     const { displayExample } = useRule(form);
     return (<>
@@ -104,7 +82,7 @@ export default function Headers( { form }: { form: UseFormReturnType<Rule> } ) {
     const columns = form.getInputProps(templatePath).value as resultColumn[];
     const add = () => form.insertListItem(templatePath, { name: undefined, value: undefined, });
     const { templateSources, inline } = useRule(form, 'iterativeActions');
-    const { templateProps, explorer } = useTemplater({names:templateSources, inline});
+    const { templateProps, explorer } = useTemplater({names:templateSources, inline, inRule: true});
     return (
     <Box> {explorer}
         <Grid justify="space-between" gutter={0} align="center" >

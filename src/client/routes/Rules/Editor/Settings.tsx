@@ -44,9 +44,10 @@ function Source({ index, source, form, edit }: { index: number, source: Source, 
     )
 }
 
-function ConnectorOverrides({ provider: { Options }, form }: { provider: provider, form: UseFormReturnType<Source> }) {
+function ConnectorOverrides({ provider: { Options, id, name }, form }: { provider: provider, form: UseFormReturnType<Source> }) {
     const cForm = useForm<Connector>({initialValues: structuredClone(form.values.overrides as Connector) });
     useEffect(()=>{ form.setFieldValue("overrides", cForm.values); },[ cForm.values ]);
+    useEffect(()=>{ cForm.reset(); }, [ id, name ]);
     return (
     <Box mt="xs">
         <Divider mb="xs" label="Overrides" labelPosition="left" />
@@ -72,6 +73,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
     }
     const edit = () => {
         form.validate(); if (!form.isValid()) return;
+        rule.setFieldValue(`sources.${index}.foreignName`, form.values.foreignName||null);
         rule.setFieldValue(`sources.${index}.foreignKey`, form.values.foreignKey||null);
         rule.setFieldValue(`sources.${index}.primaryName`, form.values.primaryName||null);
         rule.setFieldValue(`sources.${index}.primaryKey`, form.values.primaryKey||null);
@@ -80,6 +82,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
         rule.setFieldValue(`sources.${index}.overrides`, form.values.overrides||{});
         close();
     }
+    useEffect(()=>{ form.setFieldValue("overrides", {}); }, [ form.values.foreignName ]);
     const foreignName = form.values.foreignName;
     const primaryName = form.values.primaryName;
     const foreignProvider = proConnectors.find(c=>c.name===foreignName) || {} as Connector&provider;
@@ -235,7 +238,7 @@ function ContextEditor({ editing, close, form }: { editing?: [Context,number|und
 
 export default function Settings( { form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void } ) {
     const { sources, templateSources, primaryHeaders, displayExample, contextSources, inline } = useRule(form, "iterativeActions");
-    const { templateProps, explorer } = useTemplater({names:templateSources, inline});
+    const { templateProps, explorer } = useTemplater({names:templateSources, inline, inRule: true});
     //REVIEW - replace with editor
     const [ editingSource, setEditingSource ] = useState<[Source,number|undefined,boolean]|undefined>(undefined);
     const [ editingContext, setEditingContext ] = useState<[Context,number|undefined,boolean]|undefined>(undefined);

@@ -14,10 +14,10 @@ Handlebars.registerHelper("$grad", function(_str: string, _year = "12") { return
 Handlebars.registerHelper("$inc", function(_str: string) { return ""; });
 Handlebars.registerHelper("$escape", function(_str: string) { return ""; });
 Handlebars.registerHelper("$ouFromDn", function(_str: string) { return ""; });
-Handlebars.registerHelper("$dir", function() { return ""; });
 Handlebars.registerHelper("$date", function() { return ""; });
 Handlebars.registerHelper("$formatDate", function(_str: string, _format = "LLL") { return ""; });
 Handlebars.registerHelper("$split", function(_str: string, _part = "0", _separator = ",") { return ""; });
+Handlebars.registerHelper("$uuidv4", function() { return ""; });
 
 export const compile = function(input: string, options?: CompileOptions | undefined) {
     return Handlebars.compile(input, {...options, noEscape: true, strict: true });
@@ -31,6 +31,7 @@ export const genericHelpers = [
     { key: "$escape", description: "Escapes special characters in the input string.", example: "{{$escape '& <'}} > &amp; &lt" },
     { key: "$clean", description: "Removes extra whitespace and newlines from the input.", example: "{{$clean 'hello \\n world \\n'}} > hello world" },
     { key: "$find", description: "Searches for the substring. Returns true or false.", example: "{{$find 'haystack' 'needle'}} > false" },
+    { key: "$count", description: "Return length of given string.", example: "{{$count 'hello world'}} > 11" },
     { key: "$inc", description: "Increments a numeric value by 1.", example: "{{$inc '2'}} > 3" },
     { key: "$rand", description: "Generates a random integer between the specified range.", example: "{{$rand 1 9}} > 5" },
     { key: "$special", description: "Generates a random special character from '!?$%&*)>'.", example: "{{$special}} > %" },
@@ -39,11 +40,17 @@ export const genericHelpers = [
     { key: "$date", description: "Retrieves the current datetime.", example: "{{$date}} > Fri, 25 Jan 2024 02:00:00 GMT'" },
     { key: "$formatDate", description: "Format a date using day.js.", example: "{{$formatDate '2019-01-25', 'YY'}} > 25" },
     { key: "$split", description: "Return a substring given an index and/or separator.", example: "{{$split 'Hello world', '1', ' '}} > world" },
+    { key: "$uuidv4", description: "Generates a version 4 UUID identifier.", example: "{{$uuidv4}} > c9916f3b-067b-4f1..." },
 ];
 
-export const paths = [
+export const pathHelpers = [
     { key: "$dir", description: "Prints the working directory of platysync.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync" },
-    //{ key: "$cache", description: "Prints a temporary / unique directory for this rule.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync\\cache\\2b9b619b-380e-47f1-86de-89248a0a79bf" },
+    { key: "$cache", description: "Prints the cache directory of platysync.", example: "{{$cache}} > C:\\Users\\user\\AppData\\Roaming\\platysync\\cache" },
 ];
 
-//TODO - add rule specific templates
+export const ruleHelpers = [
+    { key: "$rule_name", description: "Prints the rule's name.", example: "{{$rule_name}} > My Rule" },
+    { key: "$rule_id", description: "Prints the rule's unique run ID.", example: "{{$rule_id}} > c9916f3b-067b-4f1..." },
+    { key: "$rule_schema", description: "Prints the current schema name.", example: "{{$rule_schema}} > My Schema" },
+    { key: "$rule_scheduled", description: "Print if the rule was ran from a schedule.", example: "{{$rule_scheduled}} > false" },
+];

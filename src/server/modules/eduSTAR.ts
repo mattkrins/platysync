@@ -123,8 +123,8 @@ export default class eduSTAR {
     }
     public async getStudents(): Promise<starAttributes[]> {
         if (this.students && this.students.length > 0) return this.students;
-        if (!fs.existsSync(`${paths.cache}/${this.school}.students.json`)) return await this.downloadStudents();
-        const file: string = fs.readFileSync(`${paths.cache}/${this.school}.students.json`, 'utf8');
+        if (!fs.existsSync(`${paths.cache}/STMC.${this.school}.students.json`)) return await this.downloadStudents();
+        const file: string = fs.readFileSync(`${paths.cache}/STMC.${this.school}.students.json`, 'utf8');
         const cache = JSON.parse(file) as cache;
         if ((((new Date().valueOf()) - new Date(cache.date).valueOf())/1000/60) >= (this.cachePolicy)) return await this.downloadStudents();
         const students = JSON.parse(await decrypt(cache.data as Hash)) as starAttributes[];
@@ -138,7 +138,7 @@ export default class eduSTAR {
             if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
             const encrypted = await encrypt(JSON.stringify(response.data));
             const cache: cache = { date: new Date(), data: encrypted };
-            fs.writeFileSync(`${paths.cache}/${this.school}.students.json`, JSON.stringify(cache));
+            fs.writeFileSync(`${paths.cache}/STMC.${this.school}.students.json`, JSON.stringify(cache));
             return response.data as starAttributes[];
         } catch (e) {
             const { message } = e as { response: {status: number}, message: string };
@@ -153,7 +153,7 @@ export default class eduSTAR {
             if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
             const encrypted = await encrypt(JSON.stringify(response.data));
             const cache: cache = { date: new Date(), data: encrypted };
-            fs.writeFileSync(`${paths.cache}/${this.school}.staff.json`, JSON.stringify(cache));
+            fs.writeFileSync(`${paths.cache}/STMC.${this.school}.staff.json`, JSON.stringify(cache));
             return response.data as starAttributes[];
         } catch (e) {
             const { message } = e as { response: {status: number}, message: string };
