@@ -171,24 +171,22 @@ export default function TransAPIGet( { form, path, templateProps, config, config
             <Form form={form} path={path} templateProps={templateProps} config={config} configured={configured} />,
             }[mime]}
         </>}
-        { //TODO - this
-        //<SimpleGrid mt="xs" cols={mime==="json"?{ base: 1, sm: 2 }:undefined} >
-        //    <TextInput
-        //        label="Template Key" mt="xs"
-        //        description="Set to store returned / response data in this template key."
-        //        placeholder="response"
-        //        leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-        //        {...templateProps(form, `${path}.response`)}
-        //    />
-        //    {mime==="json"&&<TextInput
-        //        label="Response Path" mt="xs"
-        //        description="Set to store response data with a specific accessor path."
-        //        placeholder="user.0.name"
-        //        leftSection={<IconRoute2 size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-        //        {...templateProps(form, `${path}.path`)}
-        //    />}
-        //</SimpleGrid>
-        }
+        <SimpleGrid mt="xs" cols={mime==="json"?{ base: 1, sm: 2 }:undefined} >
+            <TextInput
+                label="Template Key" mt="xs"
+                description="Set to store returned / response data in this template key."
+                placeholder="response"
+                leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                {...templateProps(form, `${path}.responsePath`)}
+            />
+            {mime==="json"&&<TextInput
+                label="Response Path" mt="xs"
+                description="Set to store response data with a specific accessor path."
+                placeholder="users[0].name"
+                leftSection={<IconRoute2 size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                {...templateProps(form, `${path}.path`)}
+            />}
+        </SimpleGrid>
     </>
   )
 }
