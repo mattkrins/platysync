@@ -107,6 +107,7 @@ interface Rule {
     iterativeActions: Action[];
     finalActions: Action[];
     columns: resultColumn[];
+    primaryOverrides: { [k: string]: unknown };
 }
 
 interface evalRule extends Rule {

@@ -8,28 +8,28 @@ import useTemplater from "../../../hooks/useTemplater";
 import { ContextProps } from "../../../modules/providers";
 import { useRule } from "../../Rules/Editor/Editor";
 
-export default function LDAP( { form }: { form: UseFormReturnType<Connector|ldap_options> } ) {
+export default function LDAP( { form, path }: { form: UseFormReturnType<Connector|ldap_options>, path?: string } ) {
     return (
     <>
         <TextInput mt="sm"
             label="Target URL"
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="ldaps://10.10.1.1:636"
-            withAsterisk {...form.getInputProps('url')}
+            withAsterisk {...form.getInputProps(`${path}url`)}
         />
         <SimpleGrid mt="sm" cols={{ base: 1, sm: 2 }} >
             <TextInput withAsterisk
                 label="Username"
                 placeholder="domain\administrator"
                 leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...form.getInputProps('username')}
+                {...form.getInputProps(`${path}username`)}
             />
             <SecurePasswordInput withAsterisk
             label="Password"
             placeholder="password"
             secure={!!form.values.password&&typeof form.values.password !== 'string'}
-            unlock={()=>form.setFieldValue("password", "")}
-            {...form.getInputProps('password')}
+            unlock={()=>form.setFieldValue(`${path}password`, "")}
+            {...form.getInputProps(`${path}password`)}
             />
         </SimpleGrid>
         <TextInput mt="sm"
@@ -37,7 +37,7 @@ export default function LDAP( { form }: { form: UseFormReturnType<Connector|ldap
             description={<><Text size="xs" c="red" >Recommended</Text>Path to a user/object used to improve auto-detection of headers.</>}
             placeholder="cn=user,c=sub,dc=domain,dc=com"
             leftSection={<IconTableColumn size={16} style={{ display: 'block', opacity: 0.5 }} />}
-            {...form.getInputProps('target')}
+            {...form.getInputProps(`${path}target`)}
         />
         <Concealer>
             <TextInput mt="xs"
@@ -45,21 +45,21 @@ export default function LDAP( { form }: { form: UseFormReturnType<Connector|ldap
                 description="All distinguished names, including the Base Organizational Unit, will be appended by this path."
                 placeholder="dc=sub,dc=domain,dc=com"
                 leftSection={<IconServer size={16} style={{ display: 'block', opacity: 0.5 }} />}
-                {...form.getInputProps('dse')}
+                {...form.getInputProps(`${path}dse`)}
             />
             <TextInput mt="xs"
                 label="Base OU"
                 description="All search paths will be prepended by this path."
                 placeholder="ou=staff,ou=users"
                 leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.5 }} />}
-                {...form.getInputProps('ou')}
+                {...form.getInputProps(`${path}ou`)}
             />
             <TextInput mt="xs"
             label="Search Filter"
             description={<>All searches will be refined using this <Anchor href='https://ldap.com/ldap-filters/' size="xs" target='_blank' >filter</Anchor>.</>}
             placeholder="(objectclass=person)"
             leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }} />}
-            {...form.getInputProps('filter')}
+            {...form.getInputProps(`${path}filter`)}
             />
         </Concealer>
     </>);

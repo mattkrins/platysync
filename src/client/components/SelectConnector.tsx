@@ -1,9 +1,9 @@
-import { useCombobox, Combobox, InputBase, Input, Group, Text, InputBaseProps, useMantineTheme, CloseButton, FloatingPosition } from '@mantine/core';
+import { useCombobox, Combobox, InputBase, Input, Group, Text, InputBaseProps, useMantineTheme, CloseButton, FloatingPosition, Button, ActionIcon } from '@mantine/core';
 import { useSelector } from '../hooks/redux';
 import { getConnectors } from '../providers/schemaSlice';
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from 'react';
 import { provider, providers } from '../modules/providers';
-import { Icon, IconPlug, IconProps } from '@tabler/icons-react';
+import { Icon, IconPlug, IconProps, IconX } from '@tabler/icons-react';
 
 
 interface Item extends Connector, provider {}
@@ -11,7 +11,8 @@ interface Item extends Connector, provider {}
 export interface SelectConnectorProps extends InputBaseProps {
     value?: string;
     onChange(value: string|null): void;
-    Icon?: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>
+    Icon?: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
+    rightSectionX?: JSX.Element;
     connector?: string;
     placeholder?: string;
     withinPortal?: boolean;
@@ -42,7 +43,7 @@ function SelectOption({ name, cName, Icon, color, inactive }: Item&{ inactive?: 
     );
 }
 
-export default function SelectConnector( { value, width, position, onChange, Icon, placeholder, clearable, provider, names, ids, removeNames, removeIds, ...props }: SelectConnectorProps ) {
+export default function SelectConnector( { value, width, position, onChange, Icon, placeholder, clearable, provider, names, ids, removeNames, removeIds, rightSectionX, ...props }: SelectConnectorProps ) {
     const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption(), });
     const connectors = useSelector(getConnectors);
     const proConnectors = useMemo(()=>connectors.map(({name, ...c})=>({ ...(providers.find(p=>p.id===c.id) as provider), ...c, cName: name })),[ connectors ]);
@@ -83,12 +84,15 @@ export default function SelectConnector( { value, width, position, onChange, Ico
             }
             rightSection={
                 (clearable && value !== null) ? ( props.disabled ? undefined :
-                  <CloseButton
-                    size="sm"
+                <Button.Group style={{marginRight:rightSectionX?30:0}} >
+                    {rightSectionX}
+                    <ActionIcon variant="subtle" color="gray"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => onChange(null)}
-                    aria-label="Clear value"
-                  />
+                    >
+                    <IconX size={16} style={{ display: 'block', opacity: 0.5 }}/>
+                    </ActionIcon>
+                </Button.Group>
                 ) : (
                   <Combobox.Chevron />
                 )

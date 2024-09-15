@@ -162,7 +162,8 @@ export default function Rules() {
     const add = () => {
         setEditing([{
             name: "", enabled: false, log: false,
-            sources: [], contexts: [], conditions: [], initActions: [], iterativeActions: [], finalActions: [], columns: []
+            sources: [], contexts: [], conditions: [], initActions: [], iterativeActions: [], finalActions: [], columns: [],
+            primaryOverrides: {}
         },false]);
         setLocation("/edit");
     }

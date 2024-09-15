@@ -1,15 +1,15 @@
 import { Box, Grid, Group, Select, TextInput, Text, ActionIcon, Modal, Button, SimpleGrid, Paper, useMantineTheme, Textarea, Switch, Tooltip, Divider, Anchor } from "@mantine/core";
 import { UseFormReturnType, isNotEmpty, useForm } from "@mantine/form";
-import { IconGripVertical, IconKey, IconPencil, IconPlus, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
+import { IconGripVertical, IconKey, IconPencil, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from "@tabler/icons-react";
 import SelectConnector from "../../../components/SelectConnector";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useConnectors } from "../../../hooks/redux";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { provider, providers } from "../../../modules/providers";
+import { provider } from "../../../modules/providers";
 import MenuTip from "../../../components/MenuTip";
 import useTemplater from "../../../hooks/useTemplater";
 import { useRule } from "./Editor";
-import { ldap_options } from "../../../../server/components/providers/LDAP";
+import { useDisclosure } from "@mantine/hooks";
 
 function Source({ index, source, form, edit }: { index: number, source: Source, form: UseFormReturnType<Rule>, edit(source: Source, index: number): void }) {
     const theme = useMantineTheme();
@@ -44,14 +44,11 @@ function Source({ index, source, form, edit }: { index: number, source: Source, 
     )
 }
 
-function ConnectorOverrides({ provider: { Options, id, name }, form }: { provider: provider, form: UseFormReturnType<Source> }) {
-    const cForm = useForm<Connector>({initialValues: structuredClone(form.values.overrides as Connector) });
-    useEffect(()=>{ form.setFieldValue("overrides", cForm.values); },[ cForm.values ]);
-    useEffect(()=>{ cForm.reset(); }, [ id, name ]);
+function ConnectorOverrides({ provider: { Options }, form }: { provider: provider, form: UseFormReturnType<Source> }) {
     return (
     <Box mt="xs">
         <Divider mb="xs" label="Overrides" labelPosition="left" />
-        <Options form={cForm} />
+        <Options form={form as any} path={`overrides.`} />
     </Box>)
 }
 
@@ -70,7 +67,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
     const remove = () => {
         rule.removeListItem(`sources`, index||0);
         close();
-    }
+    }   
     const edit = () => {
         form.validate(); if (!form.isValid()) return;
         rule.setFieldValue(`sources.${index}.foreignName`, form.values.foreignName||null);
@@ -82,15 +79,15 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
         rule.setFieldValue(`sources.${index}.overrides`, form.values.overrides||{});
         close();
     }
-    useEffect(()=>{ form.setFieldValue("overrides", {}); }, [ form.values.foreignName ]);
     const foreignName = form.values.foreignName;
     const primaryName = form.values.primaryName;
     const foreignProvider = proConnectors.find(c=>c.name===foreignName) || {} as Connector&provider;
     const foreignPlaceholder = !foreignName ? 'Foreign Key' : ( foreignProvider.headers ? foreignProvider.headers[0]: undefined );
     const primaryProvider = proConnectors.find(c=>c.name===primaryName) || {} as Connector&provider;
     const dependancy = rule.values.sources.find(s=>s.primaryName===join.foreignName);
+    const clearOverrides = () => form.setFieldValue("overrides", {});
     return (
-    <>
+    <>{JSON.stringify(form.values)}
         <Text size="xs" c="dimmed" >Join connectors with relational keys, similar to an SQL join.</Text>
         <Text size="xs" c="dimmed" >The Foreign (From) and Primary (To) connector must have headers with matching data.</Text>
         <Grid pt="xs" >
@@ -101,6 +98,7 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
                 onChange={(v)=>{
                     form.getInputProps(`foreignName`).onChange(v);
                     form.setFieldValue(`foreignKey`, null as unknown as string);
+                    clearOverrides();
                 }}
                 />
             </Grid.Col>
@@ -142,9 +140,12 @@ function SourceModal({ join, index, adding, sources, rule, close }: { join: Sour
             </Grid.Col>
         </Grid>
         {foreignName&&<ConnectorOverrides provider={foreignProvider} form={form} /> }
-        <Group justify={adding?"flex-end":"space-between"} mt="md">
-          {!adding&&<Tooltip hidden={!dependancy} color="red" label={dependancy?"Has dependancies":undefined} ><Button disabled={!!dependancy} color="red" onClick={remove} >Remove</Button></Tooltip>}
-          <Button onClick={adding?add:edit} >{adding ? "Join Data" : "Save"}</Button>
+        <Group justify="space-between" mt="md">
+            <Group>
+                {!adding&&<Tooltip hidden={!dependancy} color="red" label={dependancy?"Has dependancies":undefined} ><Button disabled={!!dependancy} color="red" onClick={remove} >Remove</Button></Tooltip>}
+                <Button variant="default" disabled={!foreignName} onClick={()=>clearOverrides()} >Clear Overrides</Button>
+            </Group>
+            <Button onClick={adding?add:edit} >{adding ? "Join Data" : "Save"}</Button>
         </Group>
     </>)
 }
@@ -236,8 +237,21 @@ function ContextEditor({ editing, close, form }: { editing?: [Context,number|und
     );
 }
 
+function PrimaryOverrides({ open, close, form, provider }: { open: boolean, close(): void, form: UseFormReturnType<Rule>, provider?: provider }) {
+    const clearOverrides = ()=> { form.setFieldValue("primaryOverrides", {}); close(); }
+    return (
+    <Modal opened={!!open} onClose={close} size="xl" title={`Primary Overrides`} >{open&&provider&&
+        <Box mt="xs">
+            <provider.Options form={form as any} path={`primaryOverrides.`} />
+            <Group justify="flex-end" mt="md">
+                <Button variant="default" onClick={()=>clearOverrides()} >Clear Overrides</Button>
+            </Group>
+        </Box>}
+    </Modal>)
+}
+
 export default function Settings( { form, setActiveTab }: { form: UseFormReturnType<Rule>, setActiveTab(t: string): void } ) {
-    const { sources, templateSources, primaryHeaders, displayExample, contextSources, inline } = useRule(form, "iterativeActions");
+    const { sources, primary, templateSources, primaryHeaders, displayExample, contextSources, inline } = useRule(form, "iterativeActions");
     const { templateProps, explorer } = useTemplater({names:templateSources, inline, inRule: true});
     //REVIEW - replace with editor
     const [ editingSource, setEditingSource ] = useState<[Source,number|undefined,boolean]|undefined>(undefined);
@@ -247,14 +261,17 @@ export default function Settings( { form, setActiveTab }: { form: UseFormReturnT
     const addContext = () => setEditingContext([{ name: null } as unknown as Context,undefined,false]);
     const editSource = (source: Source, index: number) => setEditingSource([source,index,true]);
     const editContext = (context: Context, index: number) => setEditingContext([context,index,true]);
+    const [opened, { open, close }] = useDisclosure();
     //TODO - https://mantine.dev/form/uncontrolled/
     const changePrimary = () => {
         form.setFieldValue("primaryKey", null as unknown as string);
         form.setFieldValue("sources", []);
         form.setFieldValue("contexts", []);
+        form.setFieldValue("primaryOverrides", {});
     }
     return (
     <Box> {explorer}
+        {primary&&<PrimaryOverrides form={form} open={opened} close={close} provider={primary} />}
         <SourceEditor editing={editingSource} close={()=>setEditingSource(undefined)} sources={sources} form={form} />
         <ContextEditor editing={editingContext} close={()=>setEditingContext(undefined)} form={form} />
         <TextInput
@@ -268,6 +285,7 @@ export default function Settings( { form, setActiveTab }: { form: UseFormReturnT
             <Grid.Col span={7}>
                 <SelectConnector
                 label="Primary Data Source"
+                rightSectionX={<ActionIcon variant="subtle" color="gray" onClick={()=>open()} ><IconSettings size={16} style={{ display: 'block', opacity: 0.5 }}/></ActionIcon>}
                 description="Iterate over and evaluate conditions for each row, entry, user, etc in this connector."
                 {...form.getInputProps('primary')} clearable
                 onChange={(v)=>{form.getInputProps('primary').onChange(v); changePrimary(); }}

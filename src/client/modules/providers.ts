@@ -22,7 +22,7 @@ export interface provider {
     name: string;
     color?: string;
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
-    Options(props: { form: UseFormReturnType<Connector>, editing?: boolean }): JSX.Element;
+    Options(props: { form: UseFormReturnType<Connector>, editing?: boolean, path?: string }): JSX.Element;
     Context?(props: ContextProps): JSX.Element;
     initialValues?: Partial<Connector>;
     validate?: {[value: string]: (...v: unknown[]) => unknown};

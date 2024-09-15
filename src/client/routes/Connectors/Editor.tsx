@@ -216,7 +216,7 @@ function EditConnector({ provider: { validate, Options }, initialValues, close }
         leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
         {...form.getInputProps('name')}
     />
-    <Options form={form} />
+    <Options form={form} path="" />
     <Concealer label="Headers" onClick={toggle} isOpen={opened} >{opened&&<Headers initialValues={initialValues} editing={form} />}</Concealer>
     <Group justify="right" mt="md">
       <SplitButton disabled={form.values.headers.length<=0} loading={loading} onClick={()=>save()} leftSection={<IconDeviceFloppy size={16}  />} options={[

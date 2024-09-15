@@ -51,6 +51,7 @@ function parseLinkHeader(header: string): { [key: string]: string } {
 
 export interface api_options extends base_provider_options {
     endpoint: string;
+    target: string;
     responsePath: string;
     auth: string;
     password: string|Hash;
@@ -62,6 +63,7 @@ export interface api_options extends base_provider_options {
 
 export default class API extends base_provider {
     private endpoint: string;
+    private target: string;
     private responsePath: string;
     private auth: string;
     private password: string|Hash;
@@ -70,16 +72,17 @@ export default class API extends base_provider {
     private linkHeader: boolean;
     private cache: number;
     public client?: AxiosInstance;
-    constructor(options: api_options) {
+    constructor(options: api_options, cache = 0) {
         super(options);
         this.endpoint = options.endpoint;
+        this.target = options.target;
         this.responsePath = options.responsePath;
         this.auth = options.auth;
         this.password = options.password;
         this.method = options.method;
         this.sendData = options.sendData;
         this.linkHeader = options.linkHeader||false;
-        this.cache = options.cache||0;
+        this.cache = options.cache||cache;
     }
     public async validate() {
         validate( this, {
@@ -139,7 +142,7 @@ export default class API extends base_provider {
         try {
             let entries = [];
             if (this.linkHeader && page) {
-                let url: string|null = this.endpoint;
+                let url: string|null = `${this.endpoint}${this.target}`;
                 while (url) {
                     try {
                         const response = await this.client.request({
@@ -171,7 +174,7 @@ export default class API extends base_provider {
                 }
             } else {
                 const response = await this.client.request({
-                    url: this.endpoint,
+                    url: `${this.endpoint}${this.target}`,
                     method: this.method||"get",
                     data: !this.sendData ? undefined : JSON.parse(this.sendData||"{}")
                 })

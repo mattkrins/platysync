@@ -6,7 +6,7 @@ import { ldap_options } from "../../../../server/components/providers/LDAP";
 import Concealer from "../../../components/Concealer";
 import SelectConnector from "../../../components/SelectConnector";
 
-export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap_options> } ) {
+export default function STMC( { form, path }: { form: UseFormReturnType<Connector|ldap_options>, path?: string } ) {
     return (
     <>
         <SimpleGrid mt="sm" cols={{ base: 1, sm: 2 }} >
@@ -14,24 +14,24 @@ export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap
                 label="Username"
                 placeholder="ST01235"
                 leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...form.getInputProps('username')}
+                {...form.getInputProps(`${path}username`)}
             />
             <SecurePasswordInput withAsterisk
                 label="Password"
                 placeholder="password"
                 secure={!!form.values.password&&typeof form.values.password !== 'string'}
-                unlock={()=>form.setFieldValue("password", "")}
-                {...form.getInputProps('password')}
+                unlock={()=>form.setFieldValue(`${path}password`, "")}
+                {...form.getInputProps(`${path}password`)}
             />
         </SimpleGrid>
         <TextInput mt="sm"
             label="School Identification Number"
             leftSection={<IconSchool size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="1234"
-            withAsterisk {...form.getInputProps('school')}
+            withAsterisk {...form.getInputProps(`${path}school`)}
         />
         <SelectConnector mt="sm"
-            {...form.getInputProps('eduhub')} ids={["csv"]} clearable
+            {...form.getInputProps(`${path}eduhub`)} ids={["csv"]} clearable
             label="Match Eduhub" description="Match against eduhub making the _stkey header available."
         />
         <Concealer>
@@ -41,7 +41,7 @@ export default function STMC( { form }: { form: UseFormReturnType<Connector|ldap
                 leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                 placeholder="1440 (1 day)"
                 min={1}
-                {...form.getInputProps('cache')}
+                {...form.getInputProps(`${path}cache`)}
             />
         </Concealer>
     </>);
