@@ -48,13 +48,6 @@ function APIOptions( { form, path, templateProps, config, configured }: actionPr
             rightSectionX={options.buttons}
             {...templateProps(form, `${path}.password`, options)}
         />}
-        <TextInput mt="xs"
-            label="Append Query"
-            description="Appended to all API target URLs (added to query string)."
-            leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            placeholder="access_token=secret"
-            {...templateProps(form, `${path}.append`)}
-        />
     </Concealer>
   )
 }

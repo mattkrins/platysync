@@ -74,8 +74,8 @@ export default class API extends base_provider {
     public client?: AxiosInstance;
     constructor(options: api_options, cache = 0) {
         super(options);
-        this.endpoint = options.endpoint;
-        this.target = options.target;
+        this.endpoint = options.endpoint||"";
+        this.target = options.target||"";
         this.responsePath = options.responsePath;
         this.auth = options.auth;
         this.password = options.password;
