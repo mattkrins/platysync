@@ -5,7 +5,6 @@ import { actionProps } from '../../../../modules/actions'
 import usePassword from '../../../../hooks/usePassword';
 import Concealer from '../../../../components/Concealer';
 import { Draggable, DragDropContext, Droppable } from '@hello-pangea/dnd';
-import { UseFormReturnType } from '@mantine/form';
 import MenuTip from '../../../../components/MenuTip';
 
 const xmlPlaceholder = `<user>
@@ -101,7 +100,7 @@ function Form({ form, path, templateProps }: actionProps) {
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Form Value</Button></Group>
         {formValues.length===0&&<Center c="dimmed" fz="xs" >No templates configured.</Center>}
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(formPath, { from: source.index, to: destination? destination.index : 0 }) } >
-            <Droppable droppableId="dnd-list" direction="vertical">
+            <Droppable droppableId="dnd-list1" direction="vertical">
             {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
                 {formValues.map((value, index) => <FormValue key={index} index={index} value={value} form={form} templateProps={templateProps} path={formPath} />)}
@@ -114,6 +113,61 @@ function Form({ form, path, templateProps }: actionProps) {
     )    
 }
 
+function Header({ index, value, form, templateProps, path }: actionProps & { index: number, value: FormDataValue } ) {
+    const copy = () => form.insertListItem(path, structuredClone(value));
+    const remove = () => form.removeListItem(path, index);
+    return (
+    <Draggable index={index} draggableId={String(index)}>
+        {provided => (
+            <Grid align="center" mt="xs" gutter="xs" {...provided.draggableProps} ref={provided.innerRef} >
+                <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
+                    <Group><IconGripVertical size="1.2rem" /></Group>
+                </Grid.Col>
+                <Grid.Col span="auto" >
+                    <TextInput {...templateProps(form, `${path}.${index}.key`)}
+                    leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                    placeholder="Key"
+                    />
+                </Grid.Col>
+                <Grid.Col span="auto" >
+                    <TextInput {...templateProps(form, `${path}.${index}.value`)}
+                    leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                    placeholder="Value"
+                    />
+                </Grid.Col>
+                <Grid.Col span="content">
+                    <Group justify="right" gap="xs">
+                        <MenuTip label="Copy" Icon={IconCopy} onClick={copy} variant="default" />
+                        <MenuTip label="Delete" Icon={IconTrash} onClick={remove} variant="default" />
+                    </Group>
+                </Grid.Col>
+            </Grid>
+        )}
+    </Draggable>)
+}
+
+function Headers({ form, path, templateProps }: actionProps) {
+    const formPath = `${path}.headers`;
+    const formValues = form.getInputProps(formPath).value as FormDataValue[];
+    const add = () => form.insertListItem(formPath, { type: "string", key: undefined, value: undefined, });
+    return (
+    <Concealer label="Headers" rightSection={
+        <Group justify="end" ><Button mt="xs" onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Header</Button></Group>} >
+        {formValues.length===0&&<Center c="dimmed" fz="xs" >No header overrides configured.</Center>}
+        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(formPath, { from: source.index, to: destination? destination.index : 0 }) } >
+            <Droppable droppableId="dnd-list2" direction="vertical">
+            {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+                {formValues.map((value, index) => <Header key={index} index={index} value={value} form={form} templateProps={templateProps} path={formPath} />)}
+                {provided.placeholder}
+            </div>
+            )}
+        </Droppable>
+        </DragDropContext>
+    </Concealer>
+    )    
+}
+
 export default function TransAPIRequest( { form, path, templateProps, config, configured }: actionProps ) {
     const method: string = form.getInputProps(`${path}.method`).value;
     const mime: string = form.getInputProps(`${path}.mime`).value;
@@ -121,12 +175,13 @@ export default function TransAPIRequest( { form, path, templateProps, config, co
     <>
         <APIOptions form={form} path={path} templateProps={templateProps} config={config} configured={configured} />
         <TextInput withAsterisk={!config}
-            label="Target Endpoint URL" mt="md"
+            label="Target Endpoint URL" mt="xs"
             description="Appended to the base API URL."
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="/user/add"
             {...templateProps(form, `${path}.target`)}
         />
+        <Headers form={form} path={path} templateProps={templateProps} config={config} configured={configured} />
         <Switch label="Send request during evaluation"
         mt="xs" {...form.getInputProps(`${path}.evaluation`, { type: 'checkbox' })}
         />
@@ -145,7 +200,7 @@ export default function TransAPIRequest( { form, path, templateProps, config, co
             </>}
             placeholder="json"
             {...form.getInputProps(`${path}.mime`)}
-            data={['text','form','xml']}
+            data={['text','form','xml', 'file']}
             />
             { !mime ?
             <JsonInput mt="xs" autosize
@@ -165,6 +220,12 @@ export default function TransAPIRequest( { form, path, templateProps, config, co
             {...templateProps(form, `${path}.data`)}
             />, form:
             <Form form={form} path={path} templateProps={templateProps} config={config} configured={configured} />,
+            file:
+            <TextInput mt="xs"
+            label="Body Data" description="Path of the file to stream."
+            placeholder="D:/data.zip"
+            {...templateProps(form, `${path}.data`)}
+            />
             }[mime]}
         </>}
         <SimpleGrid mt="xs" cols={{ base: 1, sm: 2 }} >

@@ -20,6 +20,7 @@ interface TransAPIRequest extends api {
     data: string;
     key: string;
     form: FormDataValue[];
+    headers: FormDataValue[];
     responsePath: string;
     path: string;
     response: string;
@@ -31,6 +32,7 @@ const ContentTypes: { [k: string]: string } = {
     form: "multipart/form-data",
     xml: "application/xml",
     json: "application/json",
+    file: "application/octet-stream",
 }
 
 export default async function TransAPIRequest({ action, template, execute, data, configs, schema }: props<TransAPIRequest>) {
@@ -63,9 +65,14 @@ export default async function TransAPIRequest({ action, template, execute, data,
         if (data.data && data.method) {
             body = data.data;
             if (!action.mime) body = JSON.parse(data.data);
+            if (action.mime==='file') body = fs.createReadStream(data.data);
         }
-        if (!headers['Content-Type']) headers['Content-Type'] = (ContentTypes[action.mime] || ContentTypes.json);
-        console.log('body', body)
+        if (!headers['Content-Type']) headers['Content-Type'] = (ContentTypes[action.mime] || ContentTypes['json']);
+        for (const entry of (action.headers||[])) {
+            const key = compile(template, entry.key);
+            const value = compile(template, entry.value);
+            headers[key] = value;
+        }
         const response = await api.client.request({
             url: `${data.endpoint}${data.target}`,
             method: data.method||"get",
