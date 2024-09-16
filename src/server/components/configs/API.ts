@@ -1,4 +1,3 @@
-import { createCookieAgent } from "http-cookie-agent/http";
 import { Settings } from "../database";
 import { base_config, configs } from "./base";
 import axios, { AxiosInstance } from "axios";
@@ -6,7 +5,7 @@ import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 
 export default class API extends base_config {
-    public dataKeys: string[] = ['endpoint', 'auth', 'append', 'method', 'mime', 'target', 'data', 'response', 'path'];
+    public dataKeys: string[] = ['endpoint', 'auth', 'append', 'method', 'mime', 'target', 'data', 'response', 'responsePath', 'key'];
     public client?: AxiosInstance;
     [k: string]: unknown;
     constructor(schema: Schema, options: Partial<base_config>, name?: string) {
@@ -29,12 +28,10 @@ export default class API extends base_config {
         let httpAgent;
         let httpsAgent;
         if (url) {
-            const HttpProxyCookieAgent: any = createCookieAgent(HttpProxyAgent);
-            const HttpsProxyCookieAgent: any = createCookieAgent(HttpsProxyAgent);
             let proxyAuth: undefined|string;
             if (url.username&&url.password) proxyAuth = `${url.username}:${url.password}`;
-            httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port, proxyAuth });
-            httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port });
+            httpAgent = new HttpProxyAgent(url.toString());
+            httpsAgent = new HttpsProxyAgent(url.toString());
         }
         this.client = axios.create({
             baseURL: this.endpoint as string,

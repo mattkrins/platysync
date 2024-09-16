@@ -55,7 +55,7 @@ function Content( { rule, close, test, fullscreen, maximized, toggleFS, toggleMa
       </ActionIcon.Group>
     </Group>
     <Stepper active={active} onStepClick={onStepClick}>
-      <Stepper.Step label="Conditions" description="Modify Conditions" icon={<IconEqual />} ><Conditions form={form} label="Single-run modifications can be added here." compact /></Stepper.Step>
+      <Stepper.Step label="Conditions" description="Modify Conditions" icon={<IconEqual />} ><Conditions form={form} label="Single-run modifications can be added here." compact iterative /></Stepper.Step>
       <Stepper.Step label="Evaluate" description="Find Matches" icon={<IconListSearch />} loading={l1} color={e1?"red":(l1?undefined:(active==1?"lime":undefined))} >
         <Evaluate evaluated={evaluated} setEvaluated={setEvaluated} loading={l1} maximized={maximized||fullscreen} error={e1} />
       </Stepper.Step>

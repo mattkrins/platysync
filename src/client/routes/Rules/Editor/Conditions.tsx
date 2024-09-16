@@ -299,7 +299,8 @@ export default function Conditions({ form, label, compact, path = "conditions", 
     const { templateProps, explorer } = useTemplater({names:templateSources, inline });
     const ldapAvailable = iterative && ruleProConnectors.find(c=>c.id==="ldap");
     const conditions = (form.getInputProps(path).value || []) as Condition[];
-    const disabled = !form.values.primary;
+    const disabled = iterative && !form.values.primary;
+    //REVIEW - This is super convoluted; template components should have context attached so they know what they consume.
     //FIXME - dragging and dropping empty conditions are populated with the target values for some reason?
     return (
     <Box> {explorer}

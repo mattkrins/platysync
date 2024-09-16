@@ -20,7 +20,7 @@ interface objectString {
     [k: string]: objectString;
 }
 
-function getNestedValue(o: objectString, s: string): any {
+export function getNestedValue(o: objectString, s: string): any {
     s = s.replace(/\[(\w+)\]/g, '.$1');
     s = s.replace(/^\./, '');
     var a = s.split('.');

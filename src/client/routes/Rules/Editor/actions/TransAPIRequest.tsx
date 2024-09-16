@@ -1,4 +1,4 @@
-import { TextInput, Select, Anchor, JsonInput, Textarea, Box, Button, Center, Grid, Group, SimpleGrid } from '@mantine/core'
+import { TextInput, Select, Anchor, JsonInput, Textarea, Box, Button, Center, Grid, Group, SimpleGrid, Switch } from '@mantine/core'
 import { IconBraces, IconCopy, IconGripVertical, IconPencil, IconPlus, IconRoute2, IconTrash, IconWorld } from '@tabler/icons-react'
 import SecurePasswordInput from '../../../../components/SecurePasswordInput'
 import { actionProps } from '../../../../modules/actions'
@@ -114,7 +114,7 @@ function Form({ form, path, templateProps }: actionProps) {
     )    
 }
 
-export default function TransAPIGet( { form, path, templateProps, config, configured }: actionProps ) {
+export default function TransAPIRequest( { form, path, templateProps, config, configured }: actionProps ) {
     const method: string = form.getInputProps(`${path}.method`).value;
     const mime: string = form.getInputProps(`${path}.mime`).value;
     return (
@@ -126,6 +126,9 @@ export default function TransAPIGet( { form, path, templateProps, config, config
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="/user/add"
             {...templateProps(form, `${path}.target`)}
+        />
+        <Switch label="Send request during evaluation"
+        mt="xs" {...form.getInputProps(`${path}.evaluation`, { type: 'checkbox' })}
         />
         <Select mt="xs" label="Method"
             description={<>
@@ -164,21 +167,21 @@ export default function TransAPIGet( { form, path, templateProps, config, config
             <Form form={form} path={path} templateProps={templateProps} config={config} configured={configured} />,
             }[mime]}
         </>}
-        <SimpleGrid mt="xs" cols={mime==="json"?{ base: 1, sm: 2 }:undefined} >
+        <SimpleGrid mt="xs" cols={{ base: 1, sm: 2 }} >
             <TextInput
                 label="Template Key" mt="xs"
                 description="Set to store returned / response data in this template key."
                 placeholder="response"
                 leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                {...templateProps(form, `${path}.responsePath`)}
+                {...templateProps(form, `${path}.key`)}
             />
-            {mime==="json"&&<TextInput
+            <TextInput
                 label="Response Path" mt="xs"
                 description="Set to store response data with a specific accessor path."
                 placeholder="users[0].name"
                 leftSection={<IconRoute2 size={16} style={{ display: 'block', opacity: 0.8 }}/>}
-                {...templateProps(form, `${path}.path`)}
-            />}
+                {...templateProps(form, `${path}.responsePath`)}
+            />
         </SimpleGrid>
     </>
   )

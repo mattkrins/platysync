@@ -28,6 +28,7 @@ import LdapUpdateAccount from "./actions/LdapUpdateAccount";
 import LdapUpdateAttributes from "./actions/LdapUpdateAttributes";
 import LdapUpdateGroups from "./actions/LdapUpdateGroups";
 import SysWriteCSV from "./actions/SysWriteCSV";
+import TransAPIRequest from "./actions/TransAPIRequest";
 
 interface handle<type=unknown> {
   handle: type;
@@ -79,4 +80,5 @@ export const availableActions: { [k: string]: operation } = {
   'SysWait': SysWait,
   'SysWriteCSV': SysWriteCSV,
   'TransEmailSend': TransEmailSend,
+  'TransAPIRequest': TransAPIRequest,
 }

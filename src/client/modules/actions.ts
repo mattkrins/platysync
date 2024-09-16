@@ -1,4 +1,4 @@
-import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv, IconCloudDownload } from "@tabler/icons-react";
+import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinaryTree2, IconFile, IconFolder, IconMail, IconSchool, IconTerminal, IconFolderShare, IconLock, IconLockOpen, IconPencil, IconShieldCog, IconTrash, IconUsersGroup, IconArrowBarToRight, IconClock, IconCloudUpload, IconCopy, IconEqualNot, IconKey, IconMailForward, IconPlus, IconTemplate, IconCsv, IconCloudDownload, IconCloudUp } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
 import { UseFormReturnType } from "@mantine/form";
@@ -27,7 +27,7 @@ import LdapUpdateAttributes from "../routes/Rules/Editor/actions/LdapUpdateAttri
 import LdapUpdateGroups from "../routes/Rules/Editor/actions/LdapUpdateGroups";
 import LdapUpdateAccount from "../routes/Rules/Editor/actions/LdapUpdateAccount";
 import LdapMoveOU from "../routes/Rules/Editor/actions/LdapMoveOU";
-import TransAPIGet from "../routes/Rules/Editor/actions/TransAPIGet";
+import TransAPIRequest from "../routes/Rules/Editor/actions/TransAPIRequest";
 import SysWriteCSV from "../routes/Rules/Editor/actions/SysWriteCSV";
 
 export interface availableCategory {
@@ -117,7 +117,7 @@ export interface availableAction {
     validate?: {[value: string]: (...v: unknown[]) => unknown};
     noPreConfig?: boolean;
 }
-//TODO - thermal print, regular print, read file into template, write temp folder for rule
+//TODO - thermal print, regular print, read file into template, write temp folder for rule, log to console
 // https://github.com/thiagoelg/node-printer
 // https://github.com/Klemen1337/node-thermal-printer
 export const availableActions: availableAction[] = [
@@ -378,26 +378,13 @@ export const availableActions: availableAction[] = [
         color: 'grape',
         Options: TransEmailSend
     },
-    //{
-    //    name: "TransAPIRequest",
-    //    label: "API Request",
-    //    category: 'transmission',
-    //    Icon: IconCloudUp,
-    //    color: 'red',
-    //    Options: TransAPIRequest,
-    //    initialValues: {
-    //        method: 'get',
-    //        mime: 'json',
-    //        form: [],
-    //    }
-    //},
     {
-        name: "TransAPIGet",
-        label: "GET Request",
+        name: "TransAPIRequest",
+        label: "API Request",
         category: 'transmission',
-        Icon: IconCloudDownload,
+        Icon: IconCloudUp,
         color: 'red',
-        Options: TransAPIGet,
+        Options: TransAPIRequest,
         initialValues: {
             form: [],
         }

@@ -61,6 +61,7 @@ export function useRule( form: UseFormReturnType<Rule>, type?: string ) {
             for (const action of (form.values[type as 'initActions']||[])){
                 switch (action.name) {
                     case "SysEncryptString":{ if (action.key) array.push(action.key as string); break; }
+                    case "TransAPIRequest":{ if (action.key) array.push(action.key as string); break; }
                     case "SysComparator":{ if (action.output) array.push((action.key||"result") as string); break; }
                     case "SysTemplate":{
                         array = [...array, ...((action.templates||[]) as SysTemplate[]).filter(s=>s.key).map(s=>s.key) ]; break;
