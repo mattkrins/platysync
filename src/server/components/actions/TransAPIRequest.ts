@@ -68,11 +68,14 @@ export default async function TransAPIRequest({ action, template, execute, data,
             if (action.mime==='file') body = fs.createReadStream(data.data);
         }
         if (!headers['Content-Type']) headers['Content-Type'] = (ContentTypes[action.mime] || ContentTypes['json']);
+        const compHeaders = [];
         for (const entry of (action.headers||[])) {
             const key = compile(template, entry.key);
             const value = compile(template, entry.value);
             headers[key] = value;
+            compHeaders.push({key, value});
         }
+        data.headers = compHeaders as unknown as string;
         const response = await api.client.request({
             url: `${data.endpoint}${data.target}`,
             method: data.method||"get",
