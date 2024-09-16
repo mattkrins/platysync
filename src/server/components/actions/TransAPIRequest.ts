@@ -4,7 +4,6 @@ import { props } from "../actions.js";
 import API from "../configs/API.js";
 import fs from 'fs-extra';
 import FormData from 'form-data';
-import { AxiosHeaderValue } from "axios";
 import { getNestedValue } from "../providers/API.js";
 
 interface api {
@@ -23,6 +22,7 @@ interface TransAPIRequest extends api {
     form: FormDataValue[];
     responsePath: string;
     path: string;
+    response: string;
     evaluation: boolean;
 }
 
@@ -44,29 +44,35 @@ export default async function TransAPIRequest({ action, template, execute, data,
         if (!api.client) throw new xError("Client not connected.");
         if (!execute && !action.evaluation) return { data };
         let form: FormData|undefined;
+        let headers: {[k: string]: string} = {};
+        let body;
         if (action.mime==='form') {
             form = new FormData();
-            const formdata: TransAPIRequest['form'] = [];
             for (const entry of (action.form||[])) {
                 const key = compile(template, entry.key);
                 const value = compile(template, entry.value);
-                formdata.push({ type: entry.type, key, value });
                 if (entry.type==="string") form.append(key, value);
                 if (entry.type==="file"){
                     const fileStream = fs.createReadStream(value);
                     form.append(key, fileStream as unknown as Blob);
                 }
             }
+            headers = form.getHeaders();
+            body = form;
         }
-        const formHeaders = form ? form.getHeaders() : {};
-        const contentHeaders: {[k: string]: AxiosHeaderValue} = { 'Content-Type': ContentTypes[data.mime] };
-        const body = !data.data ? undefined : action.mime==='json' ? JSON.parse(data.data) : action.mime==='form' ? form : data.data;
+        if (data.data && data.method) {
+            body = data.data;
+            if (!action.mime) body = JSON.parse(data.data);
+        }
+        if (!headers['Content-Type']) headers['Content-Type'] = (ContentTypes[action.mime] || ContentTypes.json);
+        console.log('body', body)
         const response = await api.client.request({
             url: `${data.endpoint}${data.target}`,
             method: data.method||"get",
-            headers: { ...formHeaders, ...contentHeaders },
+            headers,
             data: body,
         })
+        if (response.data) data.response = JSON.stringify(response.data);
         if (data.key){
             let responseData = response.data;
             if (data.responsePath) responseData = getNestedValue(response.data, data.responsePath);

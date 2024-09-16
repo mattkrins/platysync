@@ -70,13 +70,13 @@ function FormValue({ index, value, form, templateProps, path }: actionProps & { 
                     />
                 </Grid.Col>
                 <Grid.Col span="auto" >
-                    <TextInput {...templateProps(form, `${path}.${index}.value`)}
+                    <TextInput {...templateProps(form, `${path}.${index}.key`)}
                     leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="Key"
                     />
                 </Grid.Col>
                 <Grid.Col span="auto" >
-                    <TextInput {...templateProps(form, `${path}.${index}.key`)}
+                    <TextInput {...templateProps(form, `${path}.${index}.value`)}
                     leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="Value"
                     />
