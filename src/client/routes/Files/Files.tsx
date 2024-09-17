@@ -1,8 +1,8 @@
-import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader, useMantineTheme } from "@mantine/core";
+import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader, useMantineTheme, Box } from "@mantine/core";
 import { IconDownload, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { getConnectors, getFiles, loadFiles, reorder } from "../../providers/schemaSlice";
+import { getActions, getConnectors, getFiles, getRules, loadFiles, reorder } from "../../providers/schemaSlice";
 import Editor from "./Editor";
 import useAPI from "../../hooks/useAPI";
 import { modals } from "@mantine/modals";
@@ -11,11 +11,54 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import MenuTip from "../../components/MenuTip";
 import useEditor from "../../hooks/useEditor";
 
-function useDependencyWalker({}) {
-    const files = useSelector(getFiles);
+function useDependencyWalker() {
     const connectors = useSelector(getConnectors);
-    return function find(name: string) {
-        
+    const actions = useSelector(getActions);
+    const rules = useSelector(getRules);
+    const testFile = (str = "",substring: string) => (new RegExp(`.*\\$file[./]${substring}.*`)).test(str);;
+    return (fileName: string) => {
+        for (const { id, name, path } of connectors) {    
+            switch (id) {
+                case "csv": { if (testFile(path as string, fileName)) return `csv connector: '${name}' path`; break; }
+                case "folder": { if (testFile(path as string, fileName)) return `folder connector: '${name}' path`; break; }
+                default: continue;
+            }
+        }
+        const testAction = (name: string, action: Action) => {
+            for (const key of Object.keys(action)) {
+                const value = action[key as keyof Action];
+                if (!value) continue;
+                switch (typeof value) {
+                    case "string": { if (testFile(value, fileName)) return `action '${name}' ${key}`; break; }
+                    case "object": {
+                        if (!Array.isArray(value)) continue;
+                        for (const object of value) {
+                            switch (typeof object) {
+                                case "string": { if (testFile(object, fileName)) return `action '${name}' ${key}`; break; }
+                                case "object": {
+                                    for (const k of Object.keys(object)) {
+                                        const v = object[k];
+                                        if (testFile(v, fileName)) return `action '${name}' ${key}`;
+                                    }
+                                    break;
+                                }
+                                default: continue;
+                            }
+                        }
+                        break;
+                    }
+                    default: continue;
+                }
+            }
+        }
+        for (const { name, config } of actions) {
+            const test = testAction(name, config);
+            if (test) return test;
+        }
+        for (const rule of rules) {
+            if (testFile(rule.display, fileName)) return `rule '${rule.name}' display`;
+            //TODO - check conditions, columns, acttions.
+        }
     }
 }
 
@@ -27,14 +70,21 @@ function File({ index, file: { name, key, format }, edit, refresh }: { index: nu
         url: `/file`, data: { name }, schema: true,
         then: () => refresh()
     });
-    const clickDel = () =>
-    modals.openConfirmModal({
-        title: 'Delete File',
-        children: <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>,
-        labels: { confirm: 'Delete file', cancel: "Cancel" },
-        confirmProps: { color: 'red' },
-        onConfirm: async () => await del(),
-    });
+    const walk = useDependencyWalker();
+    const clickDel = () => {
+        const dependencies = walk(key||name);
+        modals.openConfirmModal({
+            title: dependencies ? 'Delete In-Use File' : 'Delete File',
+            children:
+            <Box>
+                {dependencies&&<Text fw="bold" c="red" size="xs" mb="xs" >Warning, usage detected in {dependencies}.</Text>}
+                <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>
+            </Box>,
+            labels: { confirm: 'Delete file', cancel: "Cancel" },
+            confirmProps: { color: 'red' },
+            onConfirm: async () => await del(),
+        });
+    }
     const icon = format ? (fileIcons[format]||fileIcons.txt) : fileIcons.txt;
     return (
     <Draggable index={index} draggableId={name}>
