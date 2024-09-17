@@ -66,11 +66,10 @@ function Content({ file, refresh, adding, close }: { file: psFile, refresh(): vo
   </>)
 }
 
-export default function Editor({ editing, close, refresh }: { editing?: [psFile,boolean], close(): void, refresh(): void }) {
-  const adding = (editing && editing[0] && !editing[1]) || false ;
+export default function Editor({ open, adding, close, refresh }: { open?: psFile, adding: boolean, close(): void, refresh(): void }) {
   return (
-    <Modal opened={!!editing} onClose={close} title={adding ? "New File" : "Edit File"}>
-      {editing&&<Content file={editing[0]} refresh={refresh} adding={adding} close={close} />}
+    <Modal opened={!!open} onClose={close} title={adding ? "New File" : "Edit File"}>
+      {!!open&&<Content file={open} refresh={refresh} adding={adding} close={close} />}
     </Modal>
   );
 }

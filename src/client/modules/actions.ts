@@ -117,6 +117,7 @@ export interface availableAction {
     validate?: {[value: string]: (...v: unknown[]) => unknown};
     noPreConfig?: boolean;
 }
+//TODO - add secret manager
 //TODO - thermal print, regular print, read file into template, write temp folder for rule, log to console, zip/unzip file/s
 // https://github.com/thiagoelg/node-printer
 // https://github.com/Klemen1337/node-thermal-printer
