@@ -10,6 +10,7 @@ import { providers } from "../../modules/providers";
 import { modals } from "@mantine/modals";
 import useAPI from "../../hooks/useAPI";
 import MenuTip from "../../components/MenuTip";
+import useDependencyWalker from "../../hooks/useDependencyWalker";
 
 function Connector({ index, connector: { id, name, ...options }, edit, refresh }: { index: number, connector: Connector, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
@@ -26,14 +27,34 @@ function Connector({ index, connector: { id, name, ...options }, edit, refresh }
         url: `/connector/${name}/copy`, schema: true,
         then: () => refresh(),
     });
-    const clickDel = () =>
-    modals.openConfirmModal({
-        title: 'Delete Connector',
-        children: <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>,
-        labels: { confirm: 'Delete connector', cancel: "Cancel" },
-        confirmProps: { color: 'red' },
-        onConfirm: async () => await del(),
+    const findConnector = (str = "",substring: string) => (new RegExp(`\\{\\{[^}]*${substring}\\.\\S+[^}]*\\}\\}`, 'g')).test(str);
+    const walk = useDependencyWalker(name, findConnector, (name, connectors, actions, rules)=>{
+        for (const rule of rules||[]) {
+            if (!rule.primary) continue;
+            if (rule.primary === name) return `rule '${rule.name}' primary connector`;
+            for (const source of rule.sources||[]) {
+                if (source.foreignName === name) return `rule '${rule.name}' secondary connectors`;
+            }
+            for (const context of rule.contexts||[]) {
+                if (context.name === name) return `rule '${rule.name}' additional connectors`;
+            }
+        }
     });
+
+    const clickDel = () => {
+        const dependencies = walk();
+        modals.openConfirmModal({
+            title: dependencies ? 'Delete In-Use Connector' : 'Delete Connector',
+            children:
+            <Box>
+                {dependencies&&<Text fw="bold" c="red" size="xs" mb="xs" >Warning, usage detected in {dependencies}.</Text>}
+                <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>
+            </Box>,
+            labels: { confirm: 'Delete connector', cancel: "Cancel" },
+            confirmProps: { color: 'red' },
+            onConfirm: async () => await del(),
+        }); 
+    }
     const provider = providers.find(p=>p.id===id);
     if (!provider) return <></>;
     return (

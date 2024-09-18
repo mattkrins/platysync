@@ -1,10 +1,10 @@
-import { Anchor, Button, Container, Grid, Group, Paper, Title, Text, useMantineTheme, Loader, Switch, Tooltip, Divider } from "@mantine/core";
+import { Anchor, Button, Container, Grid, Group, Paper, Title, Text, useMantineTheme, Loader, Switch, Tooltip, Divider, Box } from "@mantine/core";
 import { useConnectors, useDispatch, useLoader, useSelector } from "../../hooks/redux";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { IconCopy, IconExclamationCircle, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import Wrapper from "../../components/Wrapper";
-import { getRules, loadRules, reorder } from "../../providers/schemaSlice";
+import { getRules, getSchedules, loadRules, reorder } from "../../providers/schemaSlice";
 import Editor from "./Editor/Editor";
 import { Route, Switch as WSwitch, useLocation } from "wouter";
 import useAPI from "../../hooks/useAPI";
@@ -12,6 +12,20 @@ import { modals } from "@mantine/modals";
 import MenuTip from "../../components/MenuTip";
 import Run from "../../components/Run/Run";
 import { availableActions } from "../../modules/actions";
+
+function useDependencyWalker(name: string) {
+    const schedules = useSelector(getSchedules);
+    return () => {
+        for (const schedule of schedules||[]) {
+            for (const task of schedule.tasks) {
+                if (!task.rules) continue;
+                for (const rule of task.rules) {
+                    if (rule === name) return schedule.name;
+                }
+            }
+        }
+    }
+}
 
 function IconMap({ actions }: { actions: Action[] }){
     const theme = useMantineTheme();
@@ -55,14 +69,21 @@ function Rule({ index, rule: { name, enabled, ...rule }, edit, refresh, run }: {
         url: `/rule/${name}/${enabled?'disable':'enable'}`, schema: true,
         then: () => refresh().then(()=>sReset()),
     });
-    const clickDel = () =>
-    modals.openConfirmModal({
-        title: 'Delete Rule',
-        children: <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>,
-        labels: { confirm: 'Delete rule', cancel: "Cancel" },
-        confirmProps: { color: 'red' },
-        onConfirm: async () => await del(),
-    });
+    const walk = useDependencyWalker(name);
+    const clickDel = () => {
+        const dependencies = walk();
+        modals.openConfirmModal({
+            title: dependencies ? 'Delete In-Use Rule' : 'Delete Rule',
+            children:
+            <Box>
+                {dependencies&&<Text fw="bold" c="red" size="xs" mb="xs" >Warning, schedule '{dependencies}' is using this rule.</Text>}
+                <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>
+            </Box>,
+            labels: { confirm: 'Delete rule', cancel: "Cancel" },
+            confirmProps: { color: 'red' },
+            onConfirm: async () => await del(),
+        });
+    }
 
     const hInit = (rule.initActions||[]).length > 0;
     const hIter = (rule.iterativeActions||[]).length > 0;

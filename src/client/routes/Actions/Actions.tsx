@@ -3,7 +3,7 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector, useSettings } from "../../hooks/redux";
-import { getActions, loadActions, reorder } from "../../providers/schemaSlice";
+import { getActions, getRules, loadActions, reorder } from "../../providers/schemaSlice";
 import Editor from "./Editor";
 import { Icon, IconChevronRight, IconCopy, IconGripVertical, IconPencil, IconPlus, IconProps, IconTrash } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";
@@ -11,6 +11,24 @@ import MenuTip from "../../components/MenuTip";
 import { availableAction, availableActions, availableCategories, availableCategory } from "../../modules/actions";
 import { useClickOutside, useDisclosure } from "@mantine/hooks";
 import classes from './Editor.module.css';
+import { modals } from "@mantine/modals";
+
+function useDependencyWalker(name: string) {
+    const rules = useSelector(getRules);
+    return () => {
+        for (const rule of rules||[]) {
+            for (const action of rule.initActions||[]) {
+                if (action.config === name) return `rule '${rule.name}', action '${action.name}'`;
+            }
+            for (const action of rule.iterativeActions||[]) {
+                if (action.config === name) return `rule '${rule.name}', action '${action.name}'`;
+            }
+            for (const action of rule.finalActions||[]) {
+                if (action.config === name) return `rule '${rule.name}', action '${action.name}'`;
+            }
+        }
+    }
+}
 
 function Action({ index, action: { name, id }, edit, refresh }: { index: number, action: ActionConfig, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
@@ -24,6 +42,22 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
         url: `/action/${name}/copy`, schema: true,
         then: () => refresh(),
     });
+    const walk = useDependencyWalker(name);
+    const clickDel = () => {
+        const dependencies = walk();
+        modals.openConfirmModal({
+            title: dependencies ? 'Delete In-Use Config' : 'Delete Action Config',
+            children:
+            <Box>
+                {dependencies&&<Text fw="bold" c="red" size="xs" mb="xs" >Warning, usage detected in {dependencies}.</Text>}
+                <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>
+            </Box>,
+            labels: { confirm: 'Delete action config', cancel: "Cancel" },
+            confirmProps: { color: 'red' },
+            onConfirm: async () => await del(),
+        }); 
+    }
+
     const action = availableActions.find(a=>a.name===id);
     if (!action) return <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={async () => await del()} loading={deleting} color="red" variant="subtle" />;
     const { Icon, color, label } = action;
@@ -45,7 +79,7 @@ function Action({ index, action: { name, id }, edit, refresh }: { index: number,
                         {loading&&<Loader size="xs" />}
                         <MenuTip label="Copy" Icon={IconCopy} error={cError} reset={cReset} onClick={()=>copy()} loading={copying} color="indigo" variant="subtle" />
                         <MenuTip label="Edit" Icon={IconPencil} onClick={edit} color="orange" variant="subtle" />
-                        <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={async () => await del()} loading={deleting} color="red" variant="subtle" />
+                        <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={clickDel} loading={deleting} color="red" variant="subtle" />
                     </Group>
             </Grid.Col>
         </Grid>

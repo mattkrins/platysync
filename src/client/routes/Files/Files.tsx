@@ -2,7 +2,7 @@ import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader, use
 import { IconDownload, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { getActions, getConnectors, getFiles, getRules, loadFiles, reorder } from "../../providers/schemaSlice";
+import { getFiles, loadFiles, reorder } from "../../providers/schemaSlice";
 import Editor from "./Editor";
 import useAPI from "../../hooks/useAPI";
 import { modals } from "@mantine/modals";
@@ -10,57 +10,7 @@ import { download, fileIcons } from "../../modules/common";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import MenuTip from "../../components/MenuTip";
 import useEditor from "../../hooks/useEditor";
-
-function useDependencyWalker() {
-    const connectors = useSelector(getConnectors);
-    const actions = useSelector(getActions);
-    const rules = useSelector(getRules);
-    const testFile = (str = "",substring: string) => (new RegExp(`.*\\$file[./]${substring}.*`)).test(str);;
-    return (fileName: string) => {
-        for (const { id, name, path } of connectors) {    
-            switch (id) {
-                case "csv": { if (testFile(path as string, fileName)) return `csv connector: '${name}' path`; break; }
-                case "folder": { if (testFile(path as string, fileName)) return `folder connector: '${name}' path`; break; }
-                default: continue;
-            }
-        }
-        const testAction = (name: string, action: Action) => {
-            for (const key of Object.keys(action)) {
-                const value = action[key as keyof Action];
-                if (!value) continue;
-                switch (typeof value) {
-                    case "string": { if (testFile(value, fileName)) return `action '${name}' ${key}`; break; }
-                    case "object": {
-                        if (!Array.isArray(value)) continue;
-                        for (const object of value) {
-                            switch (typeof object) {
-                                case "string": { if (testFile(object, fileName)) return `action '${name}' ${key}`; break; }
-                                case "object": {
-                                    for (const k of Object.keys(object)) {
-                                        const v = object[k];
-                                        if (testFile(v, fileName)) return `action '${name}' ${key}`;
-                                    }
-                                    break;
-                                }
-                                default: continue;
-                            }
-                        }
-                        break;
-                    }
-                    default: continue;
-                }
-            }
-        }
-        for (const { name, config } of actions) {
-            const test = testAction(name, config);
-            if (test) return test;
-        }
-        for (const rule of rules) {
-            if (testFile(rule.display, fileName)) return `rule '${rule.name}' display`;
-            //TODO - check conditions, columns, acttions.
-        }
-    }
-}
+import useDependencyWalker from "../../hooks/useDependencyWalker";
 
 function File({ index, file: { name, key, format }, edit, refresh }: { index: number, file: psFile, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
@@ -70,9 +20,10 @@ function File({ index, file: { name, key, format }, edit, refresh }: { index: nu
         url: `/file`, data: { name }, schema: true,
         then: () => refresh()
     });
-    const walk = useDependencyWalker();
+    const findFile = (str = "",substring: string) => (new RegExp(`.*\\$file[./]${substring}.*`)).test(str);
+    const walk = useDependencyWalker(key||name, findFile);
     const clickDel = () => {
-        const dependencies = walk(key||name);
+        const dependencies = walk();
         modals.openConfirmModal({
             title: dependencies ? 'Delete In-Use File' : 'Delete File',
             children:
