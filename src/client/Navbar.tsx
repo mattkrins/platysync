@@ -1,25 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Avatar, Box, Code, Group, SegmentedControl, Title } from '@mantine/core';
-import {
-  IconLicense,
-  IconKey,
-  IconSettings,
-  IconUsers,
-  IconLogout,
-  IconSwitchHorizontal,
-  Icon,
-  IconHistory,
-  IconFiles,
-  IconPlug,
-} from '@tabler/icons-react';
+import { IconLicense, IconKey, IconSettings, IconUsers, IconLogout, IconSwitchHorizontal, Icon, IconHistory, IconFiles, IconPlug } from '@tabler/icons-react';
 import classes from './Navbar.module.css';
+import { Link, useLocation, useRoute } from 'wouter';
 
 const tabs: { [k: string]: { link: string, label: string,icon: Icon }[] } = {
     schema: [
-        { link: '', label: 'Schema Settings', icon: IconSettings },
-        { link: '', label: 'Files', icon: IconFiles },
-        { link: '', label: 'Connectors', icon: IconPlug },
-        { link: '', label: 'Rules', icon: IconLicense },
+        { link: '/schema', label: 'Schema Settings', icon: IconSettings },
+        { link: '/files', label: 'Files', icon: IconFiles },
+        { link: '/connectors', label: 'Connectors', icon: IconPlug },
+        { link: '/rules', label: 'Rules', icon: IconLicense },
     ],
     general: [
         { link: '', label: 'General Settings', icon: IconSettings },
@@ -44,25 +34,37 @@ function Header({}) {
     )
 }
 
+const CustomLink = ( { href, item, ...props }:
+  {
+    href: string,
+    item: { link: string; label: string; icon: Icon; }
+  }) => {
+  const [isActive, x] = useRoute(href);
+  const [location, navigate] = useLocation();
+
+  return (
+    <Link href={href} {...props} asChild>
+      <a 
+      className={classes.link}
+      data-active={isActive}
+      href={item.link}
+      key={item.label}
+      >
+        <item.icon className={classes.linkIcon} stroke={1.5} />
+        <span>{item.label}</span>
+      </a>
+    </Link>
+  );
+};
+
 export default function Navbar() {
   const [section, setSection] = useState('schema');
   const [active, setActive] = useState('Billing');
 
-  const links = useMemo(()=>tabs[section].map((item) => 
-    <a
-      className={classes.link}
-      data-active={item.label === active || undefined}
-      href={item.link}
-      key={item.label}
-      onClick={(event) => {
-        event.preventDefault();
-        setActive(item.label);
-      }}
-    >
-      <item.icon className={classes.linkIcon} stroke={1.5} />
-      <span>{item.label}</span>
-    </a>
-  ),[ active, section ]);
+  const links = tabs[section].map((item) => {
+    return <CustomLink key={item.label} item={item} href={item.link} />;
+  })
+
 
   return (
     <>
