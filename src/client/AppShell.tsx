@@ -1,6 +1,8 @@
 import { AppShell as Shell } from "@mantine/core";
-import Navbar from "./Navbar";
-import { Link, Route, Switch, useLocation, useParams, useRoute } from "wouter";
+import Navbar from "./components/Navbar";
+import { Link, Route, Switch, useLocation } from "wouter";
+import { useDispatch, useSelector } from "./hooks/redux";
+import { isSetup } from "./providers/appSlice";
 
 
 function Def() {
@@ -11,28 +13,24 @@ function Test() {
     return <>Test</>
 }
 
-function NavTest({}) {
-    const [isActive] = useRoute("/rules");
-    return <>isActive: {String(isActive)}</>
-}
-
 export default function AppShell() {
-    const [location, navigate] = useLocation();
-    const params = useParams();
-    const [isActive] = useRoute("/rules");
+    const dispatch = useDispatch();
+    const setup = useSelector(isSetup);
+    //const [_, setLocation] = useLocation();
+    //useEffect(()=>{
+    //  dispatch(loadApp()).then(setup=> setup ? null : setLocation(`/setup`))
+    //  .then(()=>dispatch(loadSettings()));
+    //}, []);
+
 
     return (
       <Switch>
         <Route path="/" component={Def} />
         <Route path="/setup" component={Test} />
         <Route>
-            {(params) =>
-            <Shell navbar={{ width: 256, breakpoint: 0 }}>
-                <Shell.Navbar p="md" ><Navbar/></Shell.Navbar>
+            <Shell navbar={{ width: 280, breakpoint: 0 }}>
+                <Shell.Navbar><Navbar/></Shell.Navbar>
                 <Shell.Main>
-                    isActive: {String(isActive)}<br/>
-                    {JSON.stringify(params)}<br/>
-                    location: {location}<br/>
                     <Route path="/rules">
                         {(params) => <>rules! <Link href="/rules/test" >child</Link></>}
                     </Route>
@@ -44,8 +42,6 @@ export default function AppShell() {
                     </Route>
                 </Shell.Main>
             </Shell>
-            }
-
         </Route>
       </Switch>
 )

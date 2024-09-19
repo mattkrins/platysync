@@ -1,6 +1,6 @@
 import { createTheme, MantineProvider, PasswordInput, Select, TextInput, Textarea, MultiSelect } from "@mantine/core";
 import { ModalsProvider } from '@mantine/modals';
-import { Link, Route, Switch, useLocation } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import { Provider as Redux } from 'react-redux';
 
 import "@mantine/core/styles.css";
@@ -58,25 +58,8 @@ function Router2() {
     )
 }
 
-function InboxPage({}) {
-  return <>TEST</>
-}
-
 function Router() {
     return <AppShell/>
-    return (
-    <>
-      <Link href="/users/1">Profile</Link>
-      <Route path="/about">About Us</Route>
-      <Switch>
-        <Route path="/" component={InboxPage} />
-        <Route path="/users/:name">
-          {(params) => <>Hello, {params.name}!</>}
-        </Route>
-        <Route>404: No such page!</Route>
-      </Switch>
-    </>
-    )
 }
 
 export default function App() {
