@@ -94,7 +94,7 @@ async function routes(route: FastifyInstance) {
       version,
       setup,
     };
-    if (setup){ reply.setCookie("setup", "true", { path: "/", httpOnly: true }); } else {  reply.clearCookie("setup", { path: "/", httpOnly: true }); }
+    if (setup){ reply.setCookie("setup", "true", { path: "/" }); } else {  reply.clearCookie("setup", { path: "/" }); }
     return response;
   });
 }
