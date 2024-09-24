@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { isNotEmpty, validate, xError } from "../modules/common";
-import database, { Users } from "../components/database";
+import database, { getUsers } from "../components/database";
 import { encrypt } from "../modules/cryptography";
 import { logout } from "./auth";
 import { FastifyRequestX, log } from "../..";
@@ -8,7 +8,7 @@ import { FastifyRequestX, log } from "../..";
 export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {
         try {
-            const users = await Users();
+            const users = await getUsers();
             return users.map(({username})=>({username}));
         } catch (e) { new xError(e).send(reply); }
     });

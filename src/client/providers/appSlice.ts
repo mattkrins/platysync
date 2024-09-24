@@ -10,9 +10,10 @@ interface app {
 }
 
 interface appState extends app {
-  auth: { username: string };
+  auth: { username: string, expires?: string };
   settings: Partial<Settings>;
   schemas: Schema[];
+  error?: Error;
 }
 
 const initialState: appState = {
@@ -31,24 +32,27 @@ const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    init(_, { payload: { application, version, setup } }: PayloadAction<app>) {
-      return { ...initialState, application, version, setup }
-    },
+    login(state, { payload }: PayloadAction<Session>) { return { ...state, auth: payload }; },
+    logout(state) { return { ...state, auth: initialState.auth }; },
     mutate(state, { payload }: PayloadAction<Partial<appState>>) { return { ...state, ...payload }; },
   },
   selectors: {
+    getError: state => state.error,
+    isLoaded: state => !!state.application,
     isSetup: state => state.setup,
     getVersion: state => state.version,
     getSetup: state => state.setup,
     getSchemas: state => state.schemas,
     getUser: state => state.auth,
+    getAuthed: state => !!state.auth.username,
     getSettings: state => state.settings,
   },
 });
 
 export default appSlice;
 
-export const { isSetup, getVersion, getSetup, getSchemas, getUser, getSettings } = appSlice.selectors;
+export const { login, logout } = appSlice.actions;
+export const { isLoaded, isSetup, getError, getVersion, getSetup, getSchemas, getUser, getSettings } = appSlice.selectors;
 
 export const loadApp = () => async (dispatch: Dispatch) => {
   dispatch(startLoading("App"));
@@ -56,6 +60,8 @@ export const loadApp = () => async (dispatch: Dispatch) => {
     const { data } = await axios<app>({ url: '/api/v1' });
     dispatch(appSlice.actions.mutate(data));
     return data.setup;
+  } catch (e) {
+    dispatch(appSlice.actions.mutate({error: e as Error}));
   } finally {
     dispatch(stopLoading("App"));
   }

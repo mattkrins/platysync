@@ -5,7 +5,7 @@ import useAPI from "../../hooks/useAPI";
 import { Redirect, useLocation } from "wouter";
 import { onKeyUp } from "../../modules/common";
 import { IconAlertCircle, IconKey, IconUser } from "@tabler/icons-react";
-import { isSetup, loadApp } from "../../providers/appSlice";
+import { isSetup, loadApp, login } from "../../providers/appSlice";
 import { useDispatch, useSelector } from "../../hooks/redux";
 import { useEffect } from "react";
 
@@ -21,9 +21,10 @@ export default function Login() {
         },
     });
 
-    const { post, loading, error } = useAPI({
+    const { post, loading, error } = useAPI<Session>({
         url: "/auth", form, noAuth: true,
-        then: () => setLocation('/'),
+        //then: () => setLocation('/'),
+        then: session => dispatch(login(session)),
     });
 
     useEffect(()=>{ dispatch(loadApp()); }, []);

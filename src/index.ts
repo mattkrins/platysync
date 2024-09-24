@@ -7,7 +7,7 @@ import type { FastifyCookieOptions } from '@fastify/cookie'
 import cookie from '@fastify/cookie'
 import { getKey } from './server/modules/cryptography';
 import { readFileSync } from 'node:fs';
-import database, { Settings } from './server/components/database';
+import database, { getSetup, Settings } from './server/components/database';
 import winston from 'winston';
 import auth from './server/routes/auth';
 import schema from './server/routes/schema';
@@ -73,7 +73,7 @@ function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (
     await routesToAdd(route);
   }, { prefix } );
 }
-
+  
 async function routes(route: FastifyInstance) {
   if (dev) route.addHook('preHandler', (req, res, done: () => void) => setTimeout(done, 200) );
   addRoute(route, '/auth', auth, false);
@@ -86,15 +86,21 @@ async function routes(route: FastifyInstance) {
   addRoute(route, '/settings', settings);
   addRoute(route, '/user', user);
   addRoute(route, '/log', logs);
-  route.get('/', async (_, reply) => {
-    const {data: { users }} = await database();
+  route.get('/', async (request, reply) => {
+    let auth: { auth?: Partial<Session> } = {};
+    const { data: { users, sessions } } = await database();
     const setup = users.length > 0;
+    if ( setup && request.cookies && request.cookies['auth'] && request.cookies['auth'] in sessions) {
+      const session = sessions[request.cookies['auth']];
+      const user = users.find(u=>u.username===session.username);
+      if (user) auth = { auth: { username: user.username, expires: session.expires } };
+    }
     const response = {
       application: "PlatySync",
       version,
       setup,
+      ...auth
     };
-    if (setup){ reply.setCookie("setup", "true", { path: "/" }); } else {  reply.clearCookie("setup", { path: "/" }); }
     return response;
   });
 }
@@ -136,7 +142,7 @@ export function initLogging() {
   history.clear()
   .add(new winston.transports.File({ filename: `${paths.logs}/history.txt` }));
 }
-//TODO - fix cookies 
+
 export default async function InitPlatySync() {
   initLogging();
   const https = await getHTTPS();
