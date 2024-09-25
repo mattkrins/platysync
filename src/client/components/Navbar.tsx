@@ -1,16 +1,16 @@
-import { Avatar, Box, Code, Group, SegmentedControl, Title, UnstyledButton, Text, Badge, Menu } from '@mantine/core';
-import { IconLicense, IconKey, IconSettings, IconUsers, IconLogout, IconSwitchHorizontal, Icon, IconHistory, IconFiles, IconPlug, IconChevronRight, IconChevronDown } from '@tabler/icons-react';
+import { Avatar, Box, Group, SegmentedControl, Title, UnstyledButton, Text, Badge, Menu } from '@mantine/core';
+import { IconLicense, IconKey, IconSettings, IconUsers, Icon, IconHistory, IconFiles, IconPlug, IconChevronRight, IconChevronDown } from '@tabler/icons-react';
 import { useState } from 'react';
-import { Link, useRoute } from 'wouter';
+import { Link, useParams, useRoute } from 'wouter';
 import classes from './Navbar.module.css';
 
 interface link { link: string, label: string, route: string, icon: Icon }
 const tabs: { [k: string]: link[] } = {
     schema: [
-        { link: "/schema", route: "/schema", label: "Schema Settings", icon: IconSettings },
-        { link: "/files", route: "/files/:*", label: "Files", icon: IconFiles },
-        { link: "/connectors", route: "/connectors/:*", label: "Connectors", icon: IconPlug },
-        { link: "/rules", route: "/rules/:*", label: "Rules", icon: IconLicense },
+        { link: "/schema", route: "/app/:schema/schema", label: "Schema Settings", icon: IconSettings },
+        { link: "/files", route: "/app/:schema/files/:*", label: "Files", icon: IconFiles },
+        { link: "/connectors", route: "/app/:schema/connectors/:*", label: "Connectors", icon: IconPlug },
+        { link: "/rules", route: "/app/:schema/rules/:*", label: "Rules", icon: IconLicense },
     ],
     general: [
         { link: "/settings", route: "/settings", label: "General Settings", icon: IconSettings },
@@ -20,11 +20,13 @@ const tabs: { [k: string]: link[] } = {
     ],
 };
 
-const NavLink = ( { link, label, route, icon: Icon }: link) => {
-  const [linkActive] = useRoute(link);
+interface navLink extends link { params: Record<string, string>, section: string }
+const NavLink = ( { link, label, route, icon: Icon, section, params }: navLink) => {
+  const href = section === "schema" ? `/app/${params.schema}${link}` : link;
+  const [linkActive] = useRoute(href);
   const [routeActive] = useRoute(route);
   return (
-    <Link href={link} asChild>
+    <Link href={href} asChild>
       <a className={`${classes.link} ${(linkActive||routeActive)?classes.active:''}`} >
         <Icon className={classes.linkIcon} stroke={1.5} />
         <span>{label}</span>
@@ -62,9 +64,9 @@ function Version() {
   )
 }
 
-export default function Navbar() {
+export default function Navbar({ params }: { params: Record<string, string> }) {
   const [section, setSection] = useState('schema');
-  const links = tabs[section].map((item) => <NavLink key={item.label} {...item} />);
+  const links = tabs[section].map((item) => <NavLink key={item.label} {...item} params={params} section={section} />);
   return (
     <>
       <Box p="md">
