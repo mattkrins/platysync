@@ -7,7 +7,7 @@ import type { FastifyCookieOptions } from '@fastify/cookie'
 import cookie from '@fastify/cookie'
 import { getKey } from './server/modules/cryptography';
 import { readFileSync } from 'node:fs';
-import database, { getSetup, Settings } from './server/components/database';
+import database, { Settings } from './server/components/database';
 import winston from 'winston';
 import auth from './server/routes/auth';
 import schema from './server/routes/schema';

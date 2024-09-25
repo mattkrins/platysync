@@ -3,7 +3,7 @@ import { RootState } from './store';
 import axios from 'axios';
 import { startLoading, stopLoading } from './loadSlice';
 
-const initialState: Schema = {
+export const initialState: Schema = {
   name: '',
   version: '',
   files: [],

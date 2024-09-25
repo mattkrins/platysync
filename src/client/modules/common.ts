@@ -27,6 +27,7 @@ export function validStr(string?: unknown) {
 export const testRegex = (error = "Invalid.", regex: RegExp) => (value: unknown) => regex.test(value as string) ? false : error;
 export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => validStr(value) ? testRegex(error, /^[a-zA-Z0-9_]+$/)(value) : "Can not be empty";
 
+//TODO - cleanup
 export function checkForUpdate(): Promise<string> {
   return new Promise((resolve, reject) => {
     const axiosClient = axios.create({headers: {'X-GitHub-Api-Version': '2022-11-28'}});

@@ -1,19 +1,24 @@
-import { Avatar, Box, Group, SegmentedControl, Title, UnstyledButton, Text, Badge, Menu } from '@mantine/core';
-import { IconLicense, IconKey, IconSettings, IconUsers, Icon, IconHistory, IconFiles, IconPlug, IconChevronRight, IconChevronDown } from '@tabler/icons-react';
-import { useState } from 'react';
-import { Link, useParams, useRoute } from 'wouter';
+import { Avatar, Box, Group, SegmentedControl, Title, UnstyledButton, Text, Badge, Menu, Loader, Tooltip } from '@mantine/core';
+import { IconLicense, IconKey, IconSettings, IconUsers, Icon, IconHistory, IconFiles, IconPlug, IconChevronRight, IconChevronDown, IconQuotes, IconBlockquote, IconAdjustmentsHorizontal, IconList, IconRefresh } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useParams, useRoute } from 'wouter';
 import classes from './Navbar.module.css';
+import { useDispatch, useLoader, useSelector } from '../hooks/redux';
+import { checkVersion, getActive, getLatestVersion, getVersion, setActive } from '../providers/appSlice';
+import { checkForUpdate, compareVersion } from '../modules/common';
+import VersionBadge from './VersionBadge';
 
 interface link { link: string, label: string, route: string, icon: Icon }
 const tabs: { [k: string]: link[] } = {
     schema: [
-        { link: "/schema", route: "/app/:schema/schema", label: "Schema Settings", icon: IconSettings },
+        { link: "/dictionary", route: "/app/:schema/dictionary/:*", label: "Dictionary", icon: IconList },
         { link: "/files", route: "/app/:schema/files/:*", label: "Files", icon: IconFiles },
         { link: "/connectors", route: "/app/:schema/connectors/:*", label: "Connectors", icon: IconPlug },
         { link: "/rules", route: "/app/:schema/rules/:*", label: "Rules", icon: IconLicense },
     ],
     general: [
-        { link: "/settings", route: "/settings", label: "General Settings", icon: IconSettings },
+        { link: "/settings", route: "/settings", label: "Settings", icon: IconAdjustmentsHorizontal },
+        { link: "/dictionary", route: "/app/:schema/dictionary/:*", label: "Dictionary", icon: IconList },
         { link: "/secrets", route: "/secrets", label: "Secrets", icon: IconKey },
         { link: "/users", route: "/users", label: "Users", icon: IconUsers },
         { link: "/logs", route: "/logs", label: "Logs", icon: IconHistory },
@@ -22,7 +27,8 @@ const tabs: { [k: string]: link[] } = {
 
 interface navLink extends link { params: Record<string, string>, section: string }
 const NavLink = ( { link, label, route, icon: Icon, section, params }: navLink) => {
-  const href = section === "schema" ? `/app/${params.schema}${link}` : link;
+  const activeSchema = useSelector(getActive);
+  const href = section === "schema" ? `/app/${activeSchema}${link}` : link;
   const [linkActive] = useRoute(href);
   const [routeActive] = useRoute(route);
   return (
@@ -50,23 +56,21 @@ function UserButton() {
   );
 }
 
-function Version() {
-  return (
-    <Menu shadow="md" width={100}>
-      <Menu.Target>
-        <Badge style={{cursor:"pointer"}} variant="dot" color='lime.4' tt="lowercase"><Group gap={6} >v0.6.0 <IconChevronDown size={10} /></Group></Badge>
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Label>Application</Menu.Label>
-        <Menu.Item>Test</Menu.Item>
-      </Menu.Dropdown>
-    </Menu>
-  )
-}
-
-export default function Navbar({ params }: { params: Record<string, string> }) {
-  const [section, setSection] = useState('schema');
+export default function Navbar({ params, section, setSection }: { params: Record<string, string>, section: string, setSection(s: string): void }) {
   const links = tabs[section].map((item) => <NavLink key={item.label} {...item} params={params} section={section} />);
+  const [_, setLocation] = useLocation();
+  const dispatch = useDispatch();
+  const [isSchemaRoute] = useRoute("/app/:schema/*");
+  const activeSchema = useSelector(getActive);
+  useEffect(()=>{
+    if (!activeSchema) {
+      if (isSchemaRoute && params.schema && params.schema !== "undefined" ) {
+        dispatch(setActive(params.schema))
+      } else {
+        setLocation("/");
+      }
+    }
+  },[ activeSchema ]);
   return (
     <>
       <Box p="md">
@@ -76,7 +80,7 @@ export default function Navbar({ params }: { params: Record<string, string> }) {
                 <Avatar src="/logo.png" />
                 <Title size="h3" >PlatySync</Title>
               </Group>
-              <Version/>
+              <VersionBadge/>
             </Group>
         </Box>
         <SegmentedControl

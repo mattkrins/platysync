@@ -14,6 +14,8 @@ interface appState extends app {
   settings: Partial<Settings>;
   schemas: Schema[];
   error?: Error;
+  active?: string;
+  newVersion?: string;
 }
 
 const initialState: appState = {
@@ -35,12 +37,15 @@ const appSlice = createSlice({
     login(state, { payload }: PayloadAction<Session>) { return { ...state, auth: payload }; },
     logout(state) { return { ...state, auth: initialState.auth }; },
     mutate(state, { payload }: PayloadAction<Partial<appState>>) { return { ...state, ...payload }; },
+    setActive(state, { payload }: PayloadAction<string|undefined>) { return { ...state, active: payload }; },
   },
   selectors: {
-    getError: state => state.error,
     isLoaded: state => !!state.application,
     isSetup: state => state.setup,
+    getError: state => state.error,
+    getActive: state => state.active,
     getVersion: state => state.version,
+    getLatestVersion: state => state.newVersion,
     getSetup: state => state.setup,
     getSchemas: state => state.schemas,
     getUser: state => state.auth,
@@ -51,8 +56,8 @@ const appSlice = createSlice({
 
 export default appSlice;
 
-export const { login, logout } = appSlice.actions;
-export const { isLoaded, isSetup, getError, getVersion, getSetup, getSchemas, getUser, getSettings } = appSlice.selectors;
+export const { login, logout, setActive } = appSlice.actions;
+export const { isLoaded, isSetup, getError, getVersion, getSetup, getSchemas, getUser, getSettings, getActive, getLatestVersion } = appSlice.selectors;
 
 export const loadApp = () => async (dispatch: Dispatch) => {
   dispatch(startLoading("App"));
@@ -64,6 +69,21 @@ export const loadApp = () => async (dispatch: Dispatch) => {
     dispatch(appSlice.actions.mutate({error: e as Error}));
   } finally {
     dispatch(stopLoading("App"));
+  }
+}
+
+export const checkVersion = () => async (dispatch: Dispatch) => {
+  dispatch(startLoading("Version"));
+  try {
+    const { data: releases } = await axios<{name: string}[]>({
+      headers: {'X-GitHub-Api-Version': '2022-11-28'},
+      url: "https://api.github.com/repos/mattkrins/platysync/releases",
+    });
+    const { name: newVersion } = releases[0];
+    dispatch(appSlice.actions.mutate({ newVersion }));
+    return newVersion;
+  } finally {
+    dispatch(stopLoading("Version"));
   }
 }
 
