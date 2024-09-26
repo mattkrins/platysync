@@ -37,13 +37,11 @@ const appSlice = createSlice({
     login(state, { payload }: PayloadAction<Session>) { return { ...state, auth: payload }; },
     logout(state) { return { ...state, auth: initialState.auth }; },
     mutate(state, { payload }: PayloadAction<Partial<appState>>) { return { ...state, ...payload }; },
-    setActive(state, { payload }: PayloadAction<string|undefined>) { return { ...state, active: payload }; },
   },
   selectors: {
     isLoaded: state => !!state.application,
     isSetup: state => state.setup,
     getError: state => state.error,
-    getActive: state => state.active,
     getVersion: state => state.version,
     getLatestVersion: state => state.newVersion,
     getSetup: state => state.setup,
@@ -56,8 +54,8 @@ const appSlice = createSlice({
 
 export default appSlice;
 
-export const { login, logout, setActive } = appSlice.actions;
-export const { isLoaded, isSetup, getError, getVersion, getSetup, getSchemas, getUser, getSettings, getActive, getLatestVersion } = appSlice.selectors;
+export const { login, logout } = appSlice.actions;
+export const { isLoaded, isSetup, getError, getVersion, getSetup, getSchemas, getUser, getSettings, getLatestVersion } = appSlice.selectors;
 
 export const loadApp = () => async (dispatch: Dispatch) => {
   dispatch(startLoading("App"));

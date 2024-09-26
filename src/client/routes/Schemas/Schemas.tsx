@@ -1,6 +1,6 @@
 import { Link, Redirect, useLocation } from "wouter";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { loadSchemas, setActive } from "../../providers/appSlice";
+import { loadSchemas } from "../../providers/appSlice";
 import { ActionIcon, Card, Center, Container, Group, Image, LoadingOverlay, Menu, Title, Text, Anchor, Modal, SimpleGrid, Grid, UnstyledButton } from "@mantine/core";
 import { IconDots, IconDotsVertical, IconEdit, IconGridDots, IconLogout, IconPackageExport, IconPackageImport, IconPlus, IconRefresh, IconSettings, IconTrash } from "@tabler/icons-react";
 import classes from './Schemas.module.css';
@@ -12,7 +12,7 @@ import Exporter from "../../components/Exporter";
 import { useState } from "react";
 import useEditor from "../../hooks/useEditor";
 import Editor from "./Editor";
-import { initialState } from "../../providers/schemaSlice";
+import { initialState, loadSchema } from "../../providers/schemaSlice";
 import VersionBadge from "../../components/VersionBadge";
 
 function Schema({ schema, exportSchema, edit }: { schema: Schema, exportSchema(schema: Schema): void, edit(): void }) {
@@ -23,7 +23,8 @@ function Schema({ schema, exportSchema, edit }: { schema: Schema, exportSchema(s
     finally: () => dispatch(loadSchemas())
   }); 
   const openSchema = () => {
-    dispatch(setActive(schema.name));
+    dispatch(loadSchema(schema.name));
+    
     setLocation(`/app/${schema.name}/dictionary`);
   }
   const deleteSchema = () =>
@@ -79,7 +80,7 @@ export default function Schemas() {
         <Group justify="space-between">
           <Title size="h3" >Schema Manager</Title>
           <Menu shadow="md" width={110}>
-              <Menu.Target><ActionIcon size="lg" variant="subtle" color="gray"><IconDots/></ActionIcon></Menu.Target>
+              <Menu.Target><ActionIcon size="lg" variant="subtle" color="gray"><IconPlus/></ActionIcon></Menu.Target>
               <Menu.Dropdown>
                   <Menu.Item onClick={()=>add()} leftSection={<IconPlus size={16}/>}>New</Menu.Item>
                   <Menu.Item onClick={()=>add()} leftSection={<IconPackageImport size={15}/>}>Import</Menu.Item>

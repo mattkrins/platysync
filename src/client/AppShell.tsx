@@ -10,6 +10,8 @@ import Login from "./routes/Auth2/Login";
 import Logout from "./routes/Auth2/Logout";
 import Schemas from "./routes/Schemas/Schemas";
 import Settings from "./routes/Settings/Settings";
+import classes from './AppShell.module.css';
+import Dictionary from "./routes/Schema2/Dictionary/Dictionary";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -34,7 +36,7 @@ function ShellWrap({ params, section, setSection, Component }: { params: Record<
     return (
     <Shell navbar={{ width: 280, breakpoint: 0 }}>
         <Shell.Navbar><Navbar params={params} section={section} setSection={setSection} /></Shell.Navbar>
-        <Shell.Main>
+        <Shell.Main className={classes.main} >
             <Component params={params} />
         </Shell.Main>
     </Shell>
@@ -75,9 +77,18 @@ export default function AppShell() {
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Settings} />}
             </Route>
             <Route path="/app/:schema/dictionary">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Dictionary} />}
+            </Route>
+            <Route path="/app/:schema/secrets">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
             </Route>
             <Route path="/app/:schema/files">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
+            </Route>
+            <Route path="/app/:schema/connectors">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
+            </Route>
+            <Route path="/app/:schema/rules">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
             </Route>
         </Route>

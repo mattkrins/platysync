@@ -1,0 +1,4 @@
+.main {
+  padding-top: var(--mantine-spacing-md);
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+}

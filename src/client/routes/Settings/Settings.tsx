@@ -1,14 +1,13 @@
-import { Alert, Anchor, Button, Code, Container, Grid, Group, Input, SegmentedControl, Select, Switch, Title, Text, useMantineColorScheme, SimpleGrid, PasswordInput, TextInput } from "@mantine/core";
+import { Alert, Anchor, Button, Code, Container, Grid, Group, Input, SegmentedControl, Select, Switch, Title, Text, useMantineColorScheme, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import useAPI from "../../hooks/useAPI";
 import { useLocalStorage } from "@mantine/hooks";
-import { IconAlertCircle, IconCheck, IconKey, IconUser, IconWorld } from "@tabler/icons-react";
+import { IconAlertCircle, IconCheck, IconUser, IconWorld } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
-import { useState } from "react";
-import { checkForUpdate, compareVersion } from "../../modules/common";
+import { compareVersion } from "../../modules/common";
 import { useLocation } from "wouter";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { getVersion, loadApp, loadSettings } from "../../providers/appSlice";
+import { checkVersion, getLatestVersion, loadApp, loadSettings } from "../../providers/appSlice";
 import Wrapper from "../../components/Wrapper";
 import SecurePasswordInput from "../../components/SecurePasswordInput";
 
@@ -17,7 +16,6 @@ export default function Settings() {
     const { version, settings } = useSelector(({ app })=> app);
     const dispatch = useDispatch();
     const [_, setLocation] = useLocation();
-    const [newVersion, setAvailable] = useState<string|true|undefined>(undefined);
     const { setColorScheme, clearColorScheme } = useMantineColorScheme();
     const [value, setValue, removeValue ] = useLocalStorage<string>({ key: 'mantine-color-scheme-value', defaultValue: 'auto', serialize: v => v, deserialize: (v) => v as string });
     const changeTheme = (value: string)=> {
@@ -61,14 +59,10 @@ export default function Settings() {
         confirmProps: { color: 'red' },
         onConfirm: () => reset(),
     });
-    
-    const check = () => {
-        setAvailable(true);
-        checkForUpdate().then(newVersion=>{
-            if ( compareVersion(newVersion, version) > 0 ) return setAvailable(newVersion);
-            setAvailable(undefined);
-        }).catch(()=>setAvailable(undefined));
-    }
+
+    const latestVersion = useSelector(getLatestVersion);
+    const { loadingVersion } = useLoader();
+    const upgrade = (latestVersion && version && compareVersion(latestVersion, version) > 0);
 
     return (<Container>
         <Group justify="space-between">
@@ -100,10 +94,10 @@ export default function Settings() {
             <Grid mt="xs">
                 <Grid.Col span={4} mih={120}><Input.Wrapper
                 label={`Application Version: ${version}`}
-                description={newVersion&&typeof newVersion==="string"?<><Text component='span' c="orange" size='xs'>New release v{newVersion} available!</Text><br/>
+                description={upgrade?<><Text component='span' c="orange" size='xs'>New release {latestVersion} available!</Text><br/>
                 Download the latest version from github <Anchor href='https://github.com/mattkrins/platysync/releases' size="xs" target='_blank' >releases</Anchor>.
                 </>:'Check for new releases.'}
-                ><Button color='green' onClick={()=>check()} loading={!!newVersion&&typeof newVersion!=="string"} mt={5} mb={5} >Check</Button>
+                ><Button color='green' onClick={()=>dispatch(checkVersion())} loading={loadingVersion} mt={5} mb={5} >Check</Button>
                 </Input.Wrapper></Grid.Col>
                 <Grid.Col span={4}><Input.Wrapper
                 label="Clear Cache"

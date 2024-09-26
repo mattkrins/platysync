@@ -13,12 +13,6 @@ export const initialState: Schema = {
   schedules: [],
 };
 
-function getNested(obj: {[k: string]: any}, path: string): unknown {
-  if (!path.includes(".")) return obj[path];
-  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-}
-
-
 const schemaSlice = createSlice({
   name: 'schema',
   initialState,
