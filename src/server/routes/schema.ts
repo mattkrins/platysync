@@ -13,6 +13,7 @@ const defaultSchema: Schema = {
     version: '',
     files: [],
     connectors: [],
+    dictionary: [],
     rules: [],
     actions: [],
     schedules: [],

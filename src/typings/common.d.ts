@@ -147,11 +147,17 @@ interface Schedule {
     tasks: Task[];
 }
 
+interface dictionaryEntry {
+    key: string;
+    value: string;
+}
+
 interface Schema {
     name: string;
     version: string;
     files: psFile[];
     connectors: Connector[];
+    dictionary: dictionaryEntry[];
     rules: Rule[];
     actions: ActionConfig[];
     schedules: Schedule[];

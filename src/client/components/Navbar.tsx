@@ -19,10 +19,10 @@ const tabs: { [k: string]: link[] } = {
     ],
     general: [
         { link: "/settings", route: "/settings", label: "Settings", icon: IconAdjustmentsHorizontal },
-        { link: "/dictionary", route: "/dictionary", label: "Dictionary", icon: IconList },
-        { link: "/secrets", route: "/secrets", label: "Secrets", icon: IconKey },
         { link: "/users", route: "/users", label: "Users", icon: IconUsers },
         { link: "/logs", route: "/logs", label: "Logs", icon: IconHistory },
+        { link: "/dictionary", route: "/dictionary", label: "Dictionary", icon: IconList },
+        { link: "/secrets", route: "/secrets", label: "Secrets", icon: IconKey },
     ],
 };
 

@@ -8,6 +8,7 @@ export const initialState: Schema = {
   version: '',
   files: [],
   connectors: [],
+  dictionary: [],
   rules: [],
   actions: [],
   schedules: [],
