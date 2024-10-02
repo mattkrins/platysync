@@ -2,8 +2,8 @@
     "explorer.fileNesting.patterns": {
         "*.jsx": "${capture}.js, ${capture}.module.css",
         "*.tsx": "${capture}.ts, ${capture}.module.css",
-        "main.tsx": "vite-env.d.ts, Theme.module.css",
-        "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, tsconfig.json, eslint.config.mjs, .eslintignore, vite.config.ts, readme.md, .gitignore, postcss.config.cjs, vitest.config.ts, LICENSE"
+        "main.tsx": "vite-env.d.ts, Theme.module.css, index.html",
+        "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, tsconfig.json, eslint.config.js, .eslintignore, vite.config.ts, readme.md, .gitignore, postcss.config.cjs, vitest.config.ts, LICENSE"
     },
     "files.associations": {
         "*.module.css": "scss"
