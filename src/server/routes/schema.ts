@@ -14,6 +14,7 @@ const defaultSchema: Schema = {
     files: [],
     connectors: [],
     dictionary: [],
+    secrets: [],
     rules: [],
     actions: [],
     schedules: [],

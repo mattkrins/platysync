@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Modal, TextInput } from "@mantine/core";
+import { Alert, Button, Group, Modal, TextInput, Text } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { IconCheck, IconBraces, IconAlertCircle, IconTextCaption } from "@tabler/icons-react";
 import useAPI from "../../../hooks/useAPI";
@@ -11,7 +11,7 @@ const validate = {
 function Content({ entry, refresh, adding, close }: { entry: dictionaryEntry, refresh(): void, adding: boolean, close(): void }) {
   const form = useForm<dictionaryEntry>({ validate, initialValues: structuredClone(entry) });
   const { data: success, put, post, loading, error } = useAPI<dictionaryEntry, FormData>({
-    url: `/file${adding?'':`/${entry.key}`}`, schema: true, form,
+    url: `/dictionary${adding?'':`/${entry.key}`}`, schema: true, form,
     then: () => { refresh(); close(); },
   });
   return (<>
@@ -25,12 +25,14 @@ function Content({ entry, refresh, adding, close }: { entry: dictionaryEntry, re
     leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     />
     <TextInput
-    label="Template Value" pb="xs"
+    label="Template Value" pb={5}
     description="String value which will replace the template key."
     placeholder="value" required
     {...form.getInputProps('value')}
     leftSection={<IconTextCaption size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     />
+    <Text c="dimmed" size="xs">Example template: {`Hello {{sdict.${form.getInputProps('key').value||"key"}}}`}</Text>
+    <Text c="dimmed" size="xs">Example output: {`Hello ${form.getInputProps('value').value}`}</Text>
     <Group justify={adding?"flex-end":"space-between"} mt="md">
           <Button loading={loading} onClick={()=>adding?post():put()}>{adding ? "Add" : "Save"}</Button>
     </Group>

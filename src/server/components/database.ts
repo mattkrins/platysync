@@ -61,6 +61,8 @@ export async function getSchema(schema_name: string, fieldName?: string) {
 }
 export async function getFiles(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).files; }
 export async function getActions(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).actions; }
+export async function getSchemaSecrets(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).secrets; }
+export async function getSchemaDictionary(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).dictionary; }
 export async function getConnectors(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).connectors; }
 export async function getRules(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).rules; }
 export async function getSchedules(schema_name: string, fieldName?: string) { return (await getSchema(schema_name, fieldName)).schedules; }

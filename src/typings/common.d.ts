@@ -158,6 +158,7 @@ interface Schema {
     files: psFile[];
     connectors: Connector[];
     dictionary: dictionaryEntry[];
+    secrets: dictionaryEntry[];
     rules: Rule[];
     actions: ActionConfig[];
     schedules: Schedule[];
