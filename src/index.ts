@@ -22,6 +22,7 @@ import action from './server/routes/action';
 import socketioServer from "fastify-socket.io";
 import { Server } from "socket.io";
 import schedule from './server/routes/schedule';
+import dictionary from './server/routes/schema/dictionary';
 const { combine, timestamp, json, simple, errors } = winston.format;
 
 export let version = process.env.npm_package_version as string;
@@ -81,6 +82,7 @@ async function routes(route: FastifyInstance) {
   addRoute(route, '/schema/:schema_name/action', action);
   addRoute(route, '/schema/:schema_name/rule', rule);
   addRoute(route, '/schema/:schema_name/file', file);
+  addRoute(route, '/schema/:schema_name/dictionary', dictionary);
   addRoute(route, '/schema/:schema_name/connector', connectors);
   addRoute(route, '/schema', schema);
   addRoute(route, '/settings', settings);

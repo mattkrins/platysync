@@ -1,55 +1,35 @@
-import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader, useMantineTheme, Box } from "@mantine/core";
+import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader, useMantineTheme } from "@mantine/core";
 import { IconDownload, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Wrapper from "../../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
-import { getFiles, loadFiles, reorder } from "../../../providers/schemaSlice";
+import { getDict, loadDictionary, loadFiles, reorder } from "../../../providers/schemaSlice";
 import useAPI from "../../../hooks/useAPI";
-import { modals } from "@mantine/modals";
-import { download, fileIcons } from "../../../modules/common";
+import { download } from "../../../modules/common";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import MenuTip from "../../../components/MenuTip";
 import useEditor from "../../../hooks/useEditor";
-import useDependencyWalker from "../../../hooks/useDependencyWalker";
 import Editor from "./Editor";
 
-function File({ index, file: { name, key, format }, edit, refresh }: { index: number, file: psFile, edit(): void, refresh(): void }) {
-    const theme = useMantineTheme();
+function File({ index, entry: { key, value }, edit, refresh }: { index: number, entry: dictionaryEntry, edit(): void, refresh(): void }) {
     const loaders = useLoader();
-    const loading = loaders[`loadingfiles_${index}`];
+    const loading = loaders[`loadingdictionary_${index}`];
     const { del, loading: deleting, error: dError, reset: dReset, schema_name } = useAPI({
-        url: `/file`, data: { name }, schema: true,
+        url: `/dictionary`, data: { key }, schema: true,
         then: () => refresh()
     });
-    const findFile = (str = "",substring: string) => (new RegExp(`.*\\$file[./]${substring}.*`)).test(str);
-    const walk = useDependencyWalker(key||name, findFile);
-    const clickDel = () => {
-        const dependencies = walk();
-        modals.openConfirmModal({
-            title: dependencies ? 'Delete In-Use File' : 'Delete File',
-            children:
-            <Box>
-                {dependencies&&<Text fw="bold" c="red" size="xs" mb="xs" >Warning, usage detected in {dependencies}.</Text>}
-                <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>
-            </Box>,
-            labels: { confirm: 'Delete file', cancel: "Cancel" },
-            confirmProps: { color: 'red' },
-            onConfirm: async () => await del(),
-        });
-    }
-    const icon = format ? (fileIcons[format]||fileIcons.txt) : fileIcons.txt;
+    const clickDel = () => del();
     return (
-    <Draggable index={index} draggableId={name}>
+    <Draggable index={index} draggableId={key}>
     {(provided, snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
                 <Group justify="space-between">
                     <IconGripVertical size="1.2rem" />
-                    <Group visibleFrom="xl" ><icon.Icon size={20} color={icon.color?theme.colors[icon.color][6]:undefined} /></Group>
                 </Group>
             </Grid.Col>
-            <Grid.Col span={4}><Text truncate="end">{name}</Text></Grid.Col>
-            <Grid.Col span={4}>{key?<Text truncate="end">{key}</Text>:<Text c="dimmed" truncate="end" >{name}</Text>}</Grid.Col>
+            <Grid.Col span={4}><Text truncate="end">{key}</Text></Grid.Col>
+            <Grid.Col span={4}><Text truncate="end">{value}</Text></Grid.Col>
             <Grid.Col span={3} miw={120}>
                     <Group gap="xs" justify="flex-end">
                         {loading&&<Loader size="xs" />}
@@ -66,19 +46,19 @@ function File({ index, file: { name, key, format }, edit, refresh }: { index: nu
 
 export default function Dictionary() {
   const dispatch = useDispatch();
-  const { loadingFiles } = useLoader();
-  const files = useSelector(getFiles);
-  const refresh = () => dispatch(loadFiles());
+  const { loadingDictionary } = useLoader();
+  const entries = useSelector(getDict);
+  const refresh = () => dispatch(loadDictionary());
   const [ file, editing, { add, close, edit } ] =  useEditor({ key: "", value: "" });
   return (
   <Container>
       <Editor open={file} adding={!editing} close={close} refresh={refresh} />
       <Group justify="space-between">
           <Group><Title mb="xs" >Dictionary</Title><Text c="dimmed" size="xs" >Dictionary values can be used in string templates.</Text></Group>
-          <Button onClick={()=>add()} loading={loadingFiles} leftSection={<IconPlus size={18} />} >Add</Button>
+          <Button onClick={()=>add()} loading={loadingDictionary} leftSection={<IconPlus size={18} />} >Add</Button>
       </Group>
-      <Wrapper loading={loadingFiles} >
-          {files.length<=0?<Text c="dimmed" >No files in schema. <Anchor onClick={()=>add()} >Add</Anchor> static files for use in templating.</Text>:
+      <Wrapper loading={loadingDictionary} >
+          {entries.length<=0?<Text c="dimmed" >No files in schema. <Anchor onClick={()=>add()} >Add</Anchor> static files for use in templating.</Text>:
           <Paper mb="xs" p="xs" >
               <Grid justify="space-between">
                   <Grid.Col span={1}/>
@@ -87,11 +67,11 @@ export default function Dictionary() {
                   <Grid.Col span={3}/>
               </Grid>
           </Paper>}
-          <DragDropContext onDragEnd={({ destination, source }) => dispatch(reorder({ name: "files", from: source.index, to: destination?.index || 0 })) } >
+          <DragDropContext onDragEnd={({ destination, source }) => dispatch(reorder({ name: "dictionary", from: source.index, to: destination?.index || 0 })) } >
           <Droppable droppableId="dnd-list" direction="vertical">
               {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {files.map((file, index) => <File index={index} key={file.name} file={file} edit={()=>edit(file)} refresh={refresh} />)}
+                  {entries.map((entry, index) => <File index={index} key={entry.key} entry={entry} edit={()=>edit(entry)} refresh={refresh} />)}
                   {provided.placeholder}
               </div>
               )}

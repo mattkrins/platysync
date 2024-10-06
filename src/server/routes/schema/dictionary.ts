@@ -1,11 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { isNotEmpty, validate, xError } from "../../modules/common";
 import { getSchemaDictionary, getSchema, sync } from "../../components/database";
-import { encrypt } from "../../modules/cryptography";
 import { log } from "../../..";
 
 export default async function (route: FastifyInstance) {
-    route.get('s', async (request, reply) => {
+    route.get('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         try { return await getSchemaDictionary(schema_name); }
         catch (e) { new xError(e).send(reply); }
@@ -29,7 +28,7 @@ export default async function (route: FastifyInstance) {
         const { key, value } = request.body as dictionaryEntry;
         try {
             validate( { key, value }, {
-                key: isNotEmpty('Ley can not be empty.'),
+                key: isNotEmpty('Key can not be empty.'),
                 value: isNotEmpty('Value can not be empty.'),
             });
             const entry = await getSchemaDictionary(schema_name);
@@ -46,7 +45,7 @@ export default async function (route: FastifyInstance) {
         const { key, value } = request.body as dictionaryEntry;
         try {
             validate( { key, value }, {
-                key: isNotEmpty('Ley can not be empty.'),
+                key: isNotEmpty('Key can not be empty.'),
                 value: isNotEmpty('Value can not be empty.'),
             });
             const schema = await getSchema(schema_name);

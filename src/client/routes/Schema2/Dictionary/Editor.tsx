@@ -42,7 +42,7 @@ function Content({ entry, refresh, adding, close }: { entry: dictionaryEntry, re
 export default function Editor({ open, adding, close, refresh }: { open?: dictionaryEntry, adding: boolean, close(): void, refresh(): void }) {
   return (
     <Modal opened={!!open} onClose={close} title={adding ? "New Entry" : "Edit Entry"}>
-      {!!open&&<Content file={open} refresh={refresh} adding={adding} close={close} />}
+      {!!open&&<Content entry={open} refresh={refresh} adding={adding} close={close} />}
     </Modal>
   );
 }
