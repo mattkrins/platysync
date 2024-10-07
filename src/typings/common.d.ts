@@ -17,6 +17,16 @@ interface Settings {
     };
 }
 
+interface kvPair {
+    key: string;
+    value: string;
+}
+
+interface encryptedkvPair {
+    key: string;
+    value: Hash;
+}
+
 interface Log {
   timestamp: string;
   level: string;
@@ -147,18 +157,13 @@ interface Schedule {
     tasks: Task[];
 }
 
-interface dictionaryEntry {
-    key: string;
-    value: string;
-}
-
 interface Schema {
     name: string;
     version: string;
     files: psFile[];
     connectors: Connector[];
-    dictionary: dictionaryEntry[];
-    secrets: dictionaryEntry[];
+    dictionary: kvPair[];
+    secrets: encryptedkvPair[];
     rules: Rule[];
     actions: ActionConfig[];
     schedules: Schedule[];

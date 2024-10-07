@@ -12,6 +12,7 @@ import Schemas from "./routes/Schemas/Schemas";
 import Settings from "./routes/Settings/Settings";
 import classes from './AppShell.module.css';
 import Dictionary from "./routes/Schema2/Dictionary/Dictionary";
+import Secrets from "./routes/Schema2/Secrets/Secrets";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -80,7 +81,7 @@ export default function AppShell() {
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Dictionary} />}
             </Route>
             <Route path="/app/:schema/secrets">
-                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Secrets} />}
             </Route>
             <Route path="/app/:schema/files">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
