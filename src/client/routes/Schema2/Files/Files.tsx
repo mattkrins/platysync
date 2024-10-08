@@ -1,16 +1,16 @@
 import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader, useMantineTheme, Box } from "@mantine/core";
 import { IconDownload, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
-import Wrapper from "../../components/Wrapper";
-import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { getFiles, loadFiles, reorder } from "../../providers/schemaSlice";
+import Wrapper from "../../../components/Wrapper";
+import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
+import { getFiles, loadFiles, reorder } from "../../../providers/schemaSlice";
 import Editor from "./Editor";
-import useAPI from "../../hooks/useAPI";
+import useAPI from "../../../hooks/useAPI";
 import { modals } from "@mantine/modals";
-import { download, fileIcons } from "../../modules/common";
+import { download, fileIcons } from "../../../modules/common";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import MenuTip from "../../components/MenuTip";
-import useEditor from "../../hooks/useEditor";
-import useDependencyWalker from "../../hooks/useDependencyWalker";
+import MenuTip from "../../../components/MenuTip";
+import useEditor from "../../../hooks/useEditor";
+import useDependencyWalker from "../../../hooks/useDependencyWalker";
 
 function File({ index, file: { name, key, format }, edit, refresh }: { index: number, file: psFile, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
@@ -68,13 +68,13 @@ export default function Files() {
     const { loadingFiles } = useLoader();
     const dispatch = useDispatch();
     const files = useSelector(getFiles);
-    const [ file, editing, { add, close, edit } ] =  useEditor<psFile>({ name: "", key: "" });
     const refresh = () => dispatch(loadFiles());
+    const [ file, editing, { add, close, edit } ] =  useEditor<psFile>({ name: "", key: "" });
     return (
     <Container>
         <Editor open={file} adding={!editing} close={close} refresh={refresh} />
         <Group justify="space-between">
-            <Title mb="xs" >Files</Title>
+            <Group><Title mb="xs" >Files</Title><Text c="dimmed" size="xs" >Static files can be uploaded to use as a data source via string templates.</Text></Group>
             <Button onClick={()=>add()} loading={loadingFiles} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
         <Wrapper loading={loadingFiles} >

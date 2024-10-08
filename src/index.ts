@@ -15,7 +15,7 @@ import settings from './server/routes/settings';
 import user from './server/routes/user';
 import { xError } from './server/modules/common';
 import logs from './server/routes/logs';
-import file from './server/routes/file';
+import file from './server/routes/schema/file';
 import connectors from './server/routes/connectors';
 import rule from './server/routes/rule';
 import action from './server/routes/action';

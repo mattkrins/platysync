@@ -2,10 +2,10 @@ import { Alert, Button, Group, Modal, TextInput, Text, Input, CloseButton } from
 import { isNotEmpty, useForm } from "@mantine/form";
 import { IconCheck, IconBraces, IconTag, IconAlertCircle } from "@tabler/icons-react";
 import { useState } from "react";
-import useAPI from "../../hooks/useAPI";
+import useAPI from "../../../hooks/useAPI";
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import classes from './Editor.module.css';
-import { download } from "../../modules/common";
+import { download } from "../../../modules/common";
 
 const validate = {
   name: isNotEmpty('Name can not be empty.'),

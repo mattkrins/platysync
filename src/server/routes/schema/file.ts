@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { isAlphanumeric, isNotEmpty, validate, xError } from "../modules/common";
-import { getFiles, getSchema, sync } from "../components/database";
+import { isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common";
+import { getFiles, getSchema, sync } from "../../components/database";
 import multer from 'fastify-multer';
-import { log, paths } from "../..";
+import { log, paths } from "../../..";
 import fs from 'fs-extra';
 import { v4 as uuidv4 } from 'uuid';
 import mime from 'mime/lite';
@@ -43,7 +43,7 @@ export default async function (route: FastifyInstance) {
         catch (e) { new xError(e).send(reply); }
     });
     const storage = multer.memoryStorage();
-    const upload = multer({ storage: storage });
+    const upload = multer({ storage });
     route.register(multer.contentParser);
     route.post('/', { preValidation: upload.single('file') }, async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
