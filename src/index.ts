@@ -82,10 +82,10 @@ async function routes(route: FastifyInstance) {
   addRoute(route, '/schema/:schema_name/schedule', schedule);
   addRoute(route, '/schema/:schema_name/action', action);
   addRoute(route, '/schema/:schema_name/rule', rule);
-  addRoute(route, '/schema/:schema_name/file', file);
   addRoute(route, '/schema/:schema_name/dictionary', dictionary);
   addRoute(route, '/schema/:schema_name/secret', secrets);
   addRoute(route, '/schema/:schema_name/connector', connectors);
+  addRoute(route, '/schema/:schema_name/file', file);
   addRoute(route, '/schema', schema);
   addRoute(route, '/settings', settings);
   addRoute(route, '/user', user);
@@ -156,7 +156,7 @@ export default async function InitPlatySync() {
   await server.register(socketioServer, {
     cors: {
       origin: "*",
-      methods: ["GET", "POST"]
+      methods: ["GET", "POST", "PUT", "DELETE"],
     }
   });
   addRoute(server, '/api/v1', routes, false);

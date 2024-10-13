@@ -19,11 +19,11 @@ function Content({ file, refresh, adding, close }: { file: psFile, refresh(): vo
     url: `/file${adding?'':`/${editing}`}`, schema: true,
     headers: { 'Content-Type': 'multipart/form-data' },
     validate: () => { form.validate(); return !form.isValid(); },
-    mutateData: ()=>{
+    sendData: ()=>{
       const send = new FormData();
-      send.append('file', data as FileWithPath);
       send.append('name', form.values.name);
       send.append('key', form.values.key as string);
+      send.append('file', data as FileWithPath);
       return send;
     },
     then: () => { refresh(); close(); },

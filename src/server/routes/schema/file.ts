@@ -8,6 +8,9 @@ import { v4 as uuidv4 } from 'uuid';
 import mime from 'mime/lite';
 
 export default async function (route: FastifyInstance) {
+    route.register(multer.contentParser);
+    const storage = multer.memoryStorage();
+    const upload = multer({ storage });
     route.get('s', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         try { return await getFiles(schema_name); }
@@ -42,9 +45,6 @@ export default async function (route: FastifyInstance) {
         }
         catch (e) { new xError(e).send(reply); }
     });
-    const storage = multer.memoryStorage();
-    const upload = multer({ storage });
-    route.register(multer.contentParser);
     route.post('/', { preValidation: upload.single('file') }, async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         const { file: data } = (request as unknown as { file?: { buffer: Buffer, originalname: string }, name: string, key: string });

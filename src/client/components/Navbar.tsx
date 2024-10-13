@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
 import classes from './Navbar.module.css';
 import { useDispatch, useSelector } from '../hooks/redux';
-import { getSchemas, getUser } from '../providers/appSlice';
+import { getSchemas, getUser, loadSchemas } from '../providers/appSlice';
 import VersionBadge from './VersionBadge';
 import { getName, loadSchema } from '../providers/schemaSlice';
 
@@ -46,6 +46,8 @@ function UserButton() {
   const [_, setLocation] = useLocation();
   const user = useSelector(getUser);
   const schema = useSelector(getName);
+  const dispatch = useDispatch();
+  const switchSchema = () => { dispatch(loadSchemas()); setLocation('/'); }
   return (
   <Menu position="top" width={270} >
     <Menu.Target>
@@ -62,7 +64,7 @@ function UserButton() {
     </Menu.Target>
     <Menu.Dropdown>
       <Menu.Item onClick={()=>setLocation('/logout')} leftSection={<IconLogout size={16} />}>Logout</Menu.Item>
-      <Menu.Item onClick={()=>setLocation('/')} leftSection={<IconSwitchHorizontal size={16} />}>Switch Schema</Menu.Item>
+      <Menu.Item onClick={switchSchema} leftSection={<IconSwitchHorizontal size={16} />}>Switch Schema</Menu.Item>
       </Menu.Dropdown>
   </Menu>
   );  
