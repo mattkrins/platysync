@@ -7,7 +7,7 @@ import type { FastifyCookieOptions } from '@fastify/cookie'
 import cookie from '@fastify/cookie'
 import { getKey } from './server/modules/cryptography';
 import { readFileSync } from 'node:fs';
-import database, { Settings } from './server/components/database';
+import database, { getDictionary, getSecrets, Settings } from './server/components/database';
 import winston from 'winston';
 import auth from './server/routes/auth';
 import schema from './server/routes/schema';
@@ -22,8 +22,10 @@ import action from './server/routes/action';
 import socketioServer from "fastify-socket.io";
 import { Server } from "socket.io";
 import schedule from './server/routes/schedule';
-import dictionary from './server/routes/schema/dictionary';
-import secrets from './server/routes/schema/secrets';
+import sdictionary from './server/routes/schema/dictionary';
+import ssecrets from './server/routes/schema/secrets';
+import dictionary from './server/routes/general/dictionary';
+import secrets from './server/routes/general/secrets';
 const { combine, timestamp, json, simple, errors } = winston.format;
 
 export let version = process.env.npm_package_version as string;
@@ -75,35 +77,41 @@ function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (
     await routesToAdd(route);
   }, { prefix } );
 }
-  
+
 async function routes(route: FastifyInstance) {
   if (dev) route.addHook('preHandler', (req, res, done: () => void) => setTimeout(done, 200) );
   addRoute(route, '/auth', auth, false);
   addRoute(route, '/schema/:schema_name/schedule', schedule);
   addRoute(route, '/schema/:schema_name/action', action);
   addRoute(route, '/schema/:schema_name/rule', rule);
-  addRoute(route, '/schema/:schema_name/dictionary', dictionary);
-  addRoute(route, '/schema/:schema_name/secret', secrets);
+  addRoute(route, '/schema/:schema_name/dictionary', sdictionary);
+  addRoute(route, '/schema/:schema_name/secret', ssecrets);
   addRoute(route, '/schema/:schema_name/connector', connectors);
   addRoute(route, '/schema/:schema_name/file', file);
   addRoute(route, '/schema', schema);
   addRoute(route, '/settings', settings);
+  addRoute(route, '/dictionary', dictionary);
+  addRoute(route, '/secret', secrets);
   addRoute(route, '/user', user);
   addRoute(route, '/log', logs);
   route.get('/', async (request, reply) => {
-    let auth: { auth?: Partial<Session> } = {};
+    const extra: { auth?: Partial<Session>, dictionary?: kvPair[], secrets?: encryptedkvPair[] } = {};
     const { data: { users, sessions } } = await database();
     const setup = users.length > 0;
     if ( setup && request.cookies && request.cookies['auth'] && request.cookies['auth'] in sessions) {
       const session = sessions[request.cookies['auth']];
       const user = users.find(u=>u.username===session.username);
-      if (user) auth = { auth: { username: user.username, expires: session.expires } };
+      if (user) {
+        extra.auth = { username: user.username, expires: session.expires };
+        extra.dictionary = await getDictionary();
+        extra.secrets = await getSecrets();
+      }
     }
     const response = {
       application: "PlatySync",
       version,
       setup,
-      ...auth
+      ...extra
     };
     return response;
   });

@@ -8,22 +8,7 @@ import { useViewportSize } from '@mantine/hooks';
 import Wrapper from '../../components/Wrapper';
 import Evaluate from '../../components/Run/Evaluate';
 import Concealer from '../../components/Concealer';
-
-export const events: {[event: string]: react.ForwardRefExoticComponent<IconProps & react.RefAttributes<Icon>>} = {
-  error: IconAlertCircle,
-  evaluate: IconPlayerPlay,
-  execute: IconRun,
-};
-
-export const colors: {[level: string]: string} = {
-  silly: 'indigo',
-  debug: 'blue',
-  verbose: 'cyan',
-  http: 'green',
-  info: 'lime',
-  warn: 'orange',
-  error: 'red',
-};
+import { colors } from '../../modules/common';
 
 const limits = [ 1000, 500, 100, 50, 20, 10 ];
 const limitData = limits.map(l=>({ value: String(l), label: `limit: ${l}` }));

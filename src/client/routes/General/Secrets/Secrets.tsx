@@ -2,7 +2,7 @@ import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader } fr
 import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Wrapper from "../../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
-import { getsSecrets, loadsSecrets, reorder } from "../../../providers/schemaSlice";
+import { getSecrets, loadSecrets, reorder } from "../../../providers/appSlice";
 import useAPI from "../../../hooks/useAPI";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import MenuTip from "../../../components/MenuTip";
@@ -12,12 +12,12 @@ import Editor from "./Editor";
 function Entry({ index, entry: { key }, edit, refresh }: { index: number, entry: encryptedkvPair, edit(): void, refresh(): void }) {
     const loaders = useLoader();
     const loading = loaders[`loadingsecrets_${index}`];
-    const { del, loading: deleting, error: dError, reset: dReset, schema_name } = useAPI({
-        url: `/secret`, data: { key }, schema: true,
-        then: () => refresh()
+    const { del, loading: deleting, error: dError, reset: dReset } = useAPI({
+        url: `/secret`, data: { key },
+        then: () => refresh(),
     });
     const { put: copy, loading: copying, error: cError, reset: cReset } = useAPI({
-        url: `/secret/${key}/copy`, schema: true,
+        url: `/secret/${key}/copy`,
         then: () => refresh(),
     });
     const clickDel = () => del();
@@ -49,18 +49,18 @@ function Entry({ index, entry: { key }, edit, refresh }: { index: number, entry:
 export default function Secrets() {
   const dispatch = useDispatch();
   const { loadingSecrets } = useLoader();
-  const entries = useSelector(getsSecrets);
-  const refresh = () => dispatch(loadsSecrets());
+  const entries = useSelector(getSecrets);
+  const refresh = () => dispatch(loadSecrets());
   const [ open, editing, { add, close, edit } ] =  useEditor({ key: "", value: "" });
   return (
   <Container>
       <Editor open={open} adding={!editing} close={close} refresh={refresh} />
       <Group justify="space-between">
-          <Group><Title mb="xs" >Secrets</Title><Text c="dimmed" size="xs" >Secrets are encrypted values to be used in string templates.</Text></Group>
+          <Group><Title mb="xs" >Global Secrets</Title><Text c="dimmed" size="xs" >Secrets are encrypted values to be used in string templates.</Text></Group>
           <Button onClick={()=>add()} loading={loadingSecrets} leftSection={<IconPlus size={18} />} >Add</Button>
       </Group>
       <Wrapper loading={loadingSecrets} >
-          {entries.length<=0?<Text c="dimmed" >No secrets in schema scope. <Anchor onClick={()=>add()} >Add</Anchor> a secret for use in templating.</Text>:
+          {entries.length<=0?<Text c="dimmed" >No secrets in global scope. <Anchor onClick={()=>add()} >Add</Anchor> a secret for use in templating.</Text>:
           <Paper mb="xs" p="xs" >
               <Grid justify="space-between">
                   <Grid.Col span={1}/>

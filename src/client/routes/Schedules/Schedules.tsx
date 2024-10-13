@@ -4,10 +4,11 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import Wrapper from "../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
 import { getSchedules, loadSchedules, reorder } from "../../providers/schemaSlice";
-import Editor, { triggerDetails } from "./Editor";
+import Editor from "./Editor";
 import useEditor from "../../hooks/useEditor";
 import MenuTip from "../../components/MenuTip";
 import useAPI from "../../hooks/useAPI";
+import { triggerDetails } from "../../modules/common";
 
 function Schedule({ index, schedule: { name, enabled, triggers, tasks, description }, edit, refresh }: { index: number, schedule: Schedule, edit(): void, refresh(): Promise<void> }) {
     const loaders = useLoader();

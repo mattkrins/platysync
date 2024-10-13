@@ -8,6 +8,7 @@ import { getRules } from "../../providers/schemaSlice";
 import useEditor from "../../hooks/useEditor";
 import cronstrue from 'cronstrue';
 import useAPI from "../../hooks/useAPI";
+import { triggerDetails } from "../../modules/common";
 
 function TriggerEditor({ open, adding, close, task_form, index }: { open: Trigger, adding?: boolean, close(): void, task_form: UseFormReturnType<Schedule>, index?: number } ) {
   const form = useForm<Trigger>({ validate: {
@@ -67,18 +68,6 @@ function TriggerEditor({ open, adding, close, task_form, index }: { open: Trigge
           <Button disabled={form.values.name==="cron"?inValid:!form.values.watch} onClick={()=>adding?add():edit()}>{adding ? "Add" : "Save"}</Button>
     </Group>
   </>)
-}
-
-export function triggerDetails(entry: Trigger) {
-  switch (entry.name) {
-    case "cron":{
-      const cron = cronstrue.toString(entry.cron||"", { throwExceptionOnParseError: false });
-      const invalidCron = (cron||"").includes("An error occured when generating the expression description");
-      return invalidCron ? cron : `Runs ${cron}`;
-    }
-    case "watch": return `Watching for changes to '${entry.watch}'`;
-    default: return "Error";
-  }
 }
 
 function Trigger({ form, index, entry, path, edit }: { form: UseFormReturnType<Schedule>, index: number, entry: Trigger, path: string, edit(task: Trigger, i: number): void } ) {

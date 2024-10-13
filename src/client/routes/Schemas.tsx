@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { modals } from '@mantine/modals';
 import useAPI from '../hooks/useAPI';
 import { Link, Redirect, useLocation } from 'wouter';
-import { checkForUpdate, compareVersion, getCookie } from '../modules/common';
+import { compareVersion, getCookie } from '../modules/common';
 import { useDisclosure } from '@mantine/hooks';
 import NewSchema from '../components/NewSchema';
 import Exporter from '../components/Exporter';
@@ -14,6 +14,7 @@ import { useDispatch, useLoader, useSelector } from '../hooks/redux';
 import { loadApp, loadSchemas, loadUser } from '../providers/appSlice';
 import { loadSchema } from '../providers/schemaSlice';
 import Settings from './Settings/Settings';
+import axios from 'axios';
 
 function Schema({ schema, exportSchema }: { schema: Schema, exportSchema(schema: Schema): void }) {
   if (!getCookie("setup")) return <Redirect to="/setup" />;
@@ -53,6 +54,21 @@ function Schema({ schema, exportSchema }: { schema: Schema, exportSchema(schema:
         </Grid>
     </Card>
   )
+}
+
+function checkForUpdate(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const axiosClient = axios.create({headers: {'X-GitHub-Api-Version': '2022-11-28'}});
+    axiosClient.get("https://api.github.com/repos/mattkrins/platysync/releases")
+    .catch(error=>{ console.error('Failed to get latest version', error); reject(error); })
+    .then((( response )=>{
+        if (!response) return;
+        const { data: releases } = response as { data: {name: string}[] };
+        const { name: latest } = releases[0];
+        resolve(latest);
+        return false;
+    }));
+  });
 }
 
 function Version({ version }: { version: string }) {

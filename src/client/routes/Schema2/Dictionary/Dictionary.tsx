@@ -2,7 +2,7 @@ import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader } fr
 import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Wrapper from "../../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
-import { getDict, loadDictionary, reorder } from "../../../providers/schemaSlice";
+import { getsDictionary, loadsDictionary, reorder } from "../../../providers/schemaSlice";
 import useAPI from "../../../hooks/useAPI";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import MenuTip from "../../../components/MenuTip";
@@ -50,18 +50,18 @@ function Entry({ index, entry: { key, value }, edit, refresh }: { index: number,
 export default function Dictionary() {
   const dispatch = useDispatch();
   const { loadingDictionary } = useLoader();
-  const entries = useSelector(getDict);
-  const refresh = () => dispatch(loadDictionary());
+  const entries = useSelector(getsDictionary);
+  const refresh = () => dispatch(loadsDictionary());
   const [ open, editing, { add, close, edit } ] =  useEditor({ key: "", value: "" });
   return (
   <Container>
       <Editor open={open} adding={!editing} close={close} refresh={refresh} />
       <Group justify="space-between">
-          <Group><Title mb="xs" >Dictionary</Title><Text c="dimmed" size="xs" >Dictionary entries can be used in string templates.</Text></Group>
-          <Button onClick={()=>add()} loading={loadingDictionary} leftSection={<IconPlus size={18} />} >Add</Button>
+        <Group><Title mb="xs" >Dictionary</Title><Text c="dimmed" size="xs" >Dictionary entries can be used in string templates.</Text></Group>
+        <Button onClick={()=>add()} loading={loadingDictionary} leftSection={<IconPlus size={18} />} >Add</Button>
       </Group>
       <Wrapper loading={loadingDictionary} >
-          {entries.length<=0?<Text c="dimmed" >No dictionary entries in schema. <Anchor onClick={()=>add()} >Add</Anchor> entry for use in templating.</Text>:
+          {entries.length<=0?<Text c="dimmed" >No dictionary entries in schema scope. <Anchor onClick={()=>add()} >Add</Anchor> entry for use in templating.</Text>:
           <Paper mb="xs" p="xs" >
               <Grid justify="space-between">
                   <Grid.Col span={1}/>

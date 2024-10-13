@@ -11,9 +11,11 @@ import Logout from "./routes/Auth2/Logout";
 import Schemas from "./routes/Schemas/Schemas";
 import Settings from "./routes/Settings/Settings";
 import classes from './AppShell.module.css';
-import Dictionary from "./routes/Schema2/Dictionary/Dictionary";
-import Secrets from "./routes/Schema2/Secrets/Secrets";
+import SDictionary from "./routes/Schema2/Dictionary/Dictionary";
+import SSecrets from "./routes/Schema2/Secrets/Secrets";
 import Files from "./routes/Schema2/Files/Files";
+import Dictionary from "./routes/General/Dictionary/Dictionary";
+import Secrets from "./routes/General/Secrets/Secrets";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -78,11 +80,17 @@ export default function AppShell() {
             <Route path="/settings">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Settings} />}
             </Route>
-            <Route path="/app/:schema/dictionary">
+            <Route path="/dictionary">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Dictionary} />}
             </Route>
-            <Route path="/app/:schema/secrets">
+            <Route path="/secrets">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Secrets} />}
+            </Route>
+            <Route path="/app/:schema/dictionary">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={SDictionary} />}
+            </Route>
+            <Route path="/app/:schema/secrets">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={SSecrets} />}
             </Route>
             <Route path="/app/:schema/files">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Files} />}

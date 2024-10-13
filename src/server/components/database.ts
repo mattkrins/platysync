@@ -8,6 +8,8 @@ interface Database {
     settings: Settings;
     users: User[];
     schemas: Schema[];
+    dictionary: kvPair[];
+    secrets: encryptedkvPair[];
     sessions: { [k: string]: Session };
 }
 
@@ -19,6 +21,8 @@ export const defaultData: Database = {
     },
     users: [],
     schemas: [],
+    dictionary: [],
+    secrets: [],
     sessions: {},
 };
 
@@ -53,6 +57,8 @@ export async function Settings() { return (await database()).data.settings; }
 export async function getUsers() { return (await database()).data.users; }
 export async function getSetup() { return ((await database()).data.users).length > 0; }
 export async function getSchemas() { return (await database()).data.schemas; }
+export async function getDictionary() { return (await database()).data.dictionary; }
+export async function getSecrets() { return (await database()).data.secrets; }
 export async function getSchema(schema_name: string, fieldName?: string) {
     const { data: { schemas } } = await database();
     const schema = schemas.find(s=>s.name===schema_name);

@@ -1,5 +1,6 @@
-import { IconProps, Icon, IconFile, IconFileTypeCsv, IconFileTypePdf, IconPhoto, IconFileTypeDocx, IconFileTypeXls, IconFileText, IconFileZip } from "@tabler/icons-react";
+import { IconProps, Icon, IconFile, IconFileTypeCsv, IconFileTypePdf, IconPhoto, IconFileTypeDocx, IconFileTypeXls, IconFileText, IconFileZip, IconAlertCircle, IconPlayerPlay, IconRun } from "@tabler/icons-react";
 import axios from "axios";
+import cronstrue from "cronstrue";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export const getCookie = (name: string) => document.cookie.split('; ').filter(row => row.startsWith(`${name}=`)).map(c=>c.split('=')[1])[0];
@@ -27,21 +28,33 @@ export function validStr(string?: unknown) {
 export const testRegex = (error = "Invalid.", regex: RegExp) => (value: unknown) => regex.test(value as string) ? false : error;
 export const isAlphanumeric = (error = "Contains non-alphanumeric characters.") => (value: unknown) => validStr(value) ? testRegex(error, /^[a-zA-Z0-9_]+$/)(value) : "Can not be empty";
 
-//TODO - cleanup
-export function checkForUpdate(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const axiosClient = axios.create({headers: {'X-GitHub-Api-Version': '2022-11-28'}});
-    axiosClient.get("https://api.github.com/repos/mattkrins/platysync/releases")
-    .catch(error=>{ console.error('Failed to get latest version', error); reject(error); })
-    .then((( response )=>{
-        if (!response) return;
-        const { data: releases } = response as { data: {name: string}[] };
-        const { name: latest } = releases[0];
-        resolve(latest);
-        return false;
-    }));
-  });
+export function triggerDetails(entry: Trigger) {
+  switch (entry.name) {
+    case "cron":{
+      const cron = cronstrue.toString(entry.cron||"", { throwExceptionOnParseError: false });
+      const invalidCron = (cron||"").includes("An error occured when generating the expression description");
+      return invalidCron ? cron : `Runs ${cron}`;
+    }
+    case "watch": return `Watching for changes to '${entry.watch}'`;
+    default: return "Error";
+  }
 }
+
+export const events: {[event: string]: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>} = {
+  error: IconAlertCircle,
+  evaluate: IconPlayerPlay,
+  execute: IconRun,
+};
+
+export const colors: {[level: string]: string} = {
+  silly: 'indigo',
+  debug: 'blue',
+  verbose: 'cyan',
+  http: 'green',
+  info: 'lime',
+  warn: 'orange',
+  error: 'red',
+};
 
 export const fileIcons: {[k: string]:  {
   Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;

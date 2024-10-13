@@ -3,12 +3,12 @@ import { useLocalStorage } from "@mantine/hooks";
 import { AreaChart } from '@mantine/charts';
 import useAPI from "../../hooks/useAPI";
 import { Link } from "wouter";
-import { colors, events } from "../Logs/Logs";
 import { IconListSearch, IconRun } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { useLoader, useSelector } from "../../hooks/redux";
 import { getSchemas } from "../../providers/appSlice";
 import '@mantine/charts/styles.css';
+import { colors, events } from "../../modules/common";
 
 //REVIEW - Idea: Add custom run buttons, each button has settings such as ask for a prompt, preset conditions which can use a template from the prompt
 // button then executes the customised rule.

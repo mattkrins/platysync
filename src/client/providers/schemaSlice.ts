@@ -34,8 +34,8 @@ const schemaSlice = createSlice({
     getName: state => state.name,
     getVersion: state => state.version,
     getFiles: state => state.files,
-    getDict: state => state.dictionary,
-    getSecrets: state => state.secrets,
+    getsDictionary: state => state.dictionary,
+    getsSecrets: state => state.secrets,
     getActions: state => state.actions,
     getConnectors: state => state.connectors,
     getRules: state => state.rules,
@@ -44,7 +44,7 @@ const schemaSlice = createSlice({
 });
 
 export const { init, mutate } = schemaSlice.actions;
-export const { getName, getVersion, getFiles, getDict, getSecrets, getConnectors, getRules, getActions, getSchedules, } = schemaSlice.selectors;
+export const { getName, getVersion, getFiles, getsDictionary, getsSecrets, getConnectors, getRules, getActions, getSchedules, } = schemaSlice.selectors;
 
 export default schemaSlice;
 
@@ -85,8 +85,8 @@ const load = (name: string) => async (dispatch: Dispatch, getState: ()=> RootSta
   }
 }
 
-export const loadDictionary = () => load("Dictionary");
-export const loadSecrets = () => load("Secrets");
+export const loadsDictionary = () => load("Dictionary");
+export const loadsSecrets = () => load("Secrets");
 export const loadFiles = () => load("Files");
 export const loadActions = () => load("Actions");
 export const loadRules = () => load("Rules");

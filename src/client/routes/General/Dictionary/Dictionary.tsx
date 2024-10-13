@@ -2,22 +2,22 @@ import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader } fr
 import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Wrapper from "../../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
-import { getsSecrets, loadsSecrets, reorder } from "../../../providers/schemaSlice";
+import { getDictionary, loadDictionary, reorder } from "../../../providers/appSlice";
 import useAPI from "../../../hooks/useAPI";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import MenuTip from "../../../components/MenuTip";
 import useEditor from "../../../hooks/useEditor";
 import Editor from "./Editor";
 
-function Entry({ index, entry: { key }, edit, refresh }: { index: number, entry: encryptedkvPair, edit(): void, refresh(): void }) {
+function Entry({ index, entry: { key, value }, edit, refresh }: { index: number, entry: kvPair, edit(): void, refresh(): void }) {
     const loaders = useLoader();
-    const loading = loaders[`loadingsecrets_${index}`];
-    const { del, loading: deleting, error: dError, reset: dReset, schema_name } = useAPI({
-        url: `/secret`, data: { key }, schema: true,
+    const loading = loaders[`loadingdictionary_${index}`];
+    const { del, loading: deleting, error: dError, reset: dReset } = useAPI({
+        url: `/dictionary`, data: { key }, 
         then: () => refresh()
     });
     const { put: copy, loading: copying, error: cError, reset: cReset } = useAPI({
-        url: `/secret/${key}/copy`, schema: true,
+        url: `/dictionary/${key}/copy`,
         then: () => refresh(),
     });
     const clickDel = () => del();
@@ -31,7 +31,8 @@ function Entry({ index, entry: { key }, edit, refresh }: { index: number, entry:
                     <IconGripVertical size="1.2rem" />
                 </Group>
             </Grid.Col>
-            <Grid.Col span={8}><Text truncate="end">{key}</Text></Grid.Col>
+            <Grid.Col span={4}><Text truncate="end">{key}</Text></Grid.Col>
+            <Grid.Col span={4}><Text truncate="end">{value}</Text></Grid.Col>
             <Grid.Col span={3} miw={120}>
                     <Group gap="xs" justify="flex-end">
                         {loading&&<Loader size="xs" />}
@@ -46,33 +47,34 @@ function Entry({ index, entry: { key }, edit, refresh }: { index: number, entry:
     </Draggable>)
 }
 
-export default function Secrets() {
+export default function Dictionary() {
   const dispatch = useDispatch();
-  const { loadingSecrets } = useLoader();
-  const entries = useSelector(getsSecrets);
-  const refresh = () => dispatch(loadsSecrets());
+  const { loadingDictionary } = useLoader();
+  const entries = useSelector(getDictionary);
+  const refresh = () => dispatch(loadDictionary());
   const [ open, editing, { add, close, edit } ] =  useEditor({ key: "", value: "" });
   return (
   <Container>
       <Editor open={open} adding={!editing} close={close} refresh={refresh} />
       <Group justify="space-between">
-          <Group><Title mb="xs" >Secrets</Title><Text c="dimmed" size="xs" >Secrets are encrypted values to be used in string templates.</Text></Group>
-          <Button onClick={()=>add()} loading={loadingSecrets} leftSection={<IconPlus size={18} />} >Add</Button>
+        <Group><Title mb="xs" >Global Dictionary</Title><Text c="dimmed" size="xs" >Dictionary entries can be used in string templates.</Text></Group>
+        <Button onClick={()=>add()} loading={loadingDictionary} leftSection={<IconPlus size={18} />} >Add</Button>
       </Group>
-      <Wrapper loading={loadingSecrets} >
-          {entries.length<=0?<Text c="dimmed" >No secrets in schema scope. <Anchor onClick={()=>add()} >Add</Anchor> a secret for use in templating.</Text>:
+      <Wrapper loading={loadingDictionary} >
+          {entries.length<=0?<Text c="dimmed" >No dictionary entries in global scope. <Anchor onClick={()=>add()} >Add</Anchor> entry for use in templating.</Text>:
           <Paper mb="xs" p="xs" >
               <Grid justify="space-between">
                   <Grid.Col span={1}/>
-                  <Grid.Col span={8}>Key</Grid.Col>
+                  <Grid.Col span={4}>Key</Grid.Col>
+                  <Grid.Col span={4}>Value</Grid.Col>
                   <Grid.Col span={3}/>
               </Grid>
           </Paper>}
-          <DragDropContext onDragEnd={({ destination, source }) => dispatch(reorder({ name: "secrets", from: source.index, to: destination?.index || 0 })) } >
+          <DragDropContext onDragEnd={({ destination, source }) => dispatch(reorder({ name: "dictionary", from: source.index, to: destination?.index || 0 })) } >
           <Droppable droppableId="dnd-list" direction="vertical">
               {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {entries.map((entry, index) => <Entry index={index} key={entry.key} entry={entry} edit={()=>edit(entry as unknown as kvPair)} refresh={refresh} />)}
+                  {entries.map((entry, index) => <Entry index={index} key={entry.key} entry={entry} edit={()=>edit(entry)} refresh={refresh} />)}
                   {provided.placeholder}
               </div>
               )}
