@@ -3,11 +3,11 @@ import { createCookieAgent } from 'http-cookie-agent/http';
 import { HttpProxyAgent } from 'http-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { CookieJar } from 'tough-cookie';
+import { wrapper } from 'axios-cookiejar-support';
 import { JSDOM } from 'jsdom';
 import * as fs from 'node:fs';
 import { paths } from "../..";
 import { decrypt, encrypt } from "./cryptography";
-import { Engine } from "../components/engine";
 
 export interface starAttributes {
   [k: string]: string;
@@ -71,13 +71,20 @@ export default class eduSTAR {
             if (url.username&&url.password) proxyAuth = `${url.username}:${url.password}`;
             httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port, proxyAuth });
             httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port });
+            this.client = axios.create({
+                baseURL: 'https://apps.edustar.vic.edu.au',
+                headers: { 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42' },
+                httpAgent, httpsAgent,
+                proxy: false,
+            });
+        } else {
+            this.client = wrapper(axios.create({
+                baseURL: 'https://apps.edustar.vic.edu.au',
+                headers: { 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42' },
+                jar: this.jar
+            }));
         }
-        this.client = axios.create({
-            baseURL: 'https://apps.edustar.vic.edu.au',
-            headers: { 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42' },
-            httpAgent, httpsAgent,
-            proxy: false,
-        });
+
     }
     public async validate(): Promise<unknown> {
         try {
@@ -110,6 +117,7 @@ export default class eduSTAR {
             if (!response || !response.data) throw Error("No response.");
             const cookies = await this.jar.getCookies(response.config.baseURL as string);
             if (!cookies || cookies.length <= 0){
+                console.error(response.request.URL)
                 const dom = new JSDOM(response.data);
                 const error = dom.window.document.querySelector('.wrng');
                 if (!error||!error.textContent) throw Error("Unknown Error.");

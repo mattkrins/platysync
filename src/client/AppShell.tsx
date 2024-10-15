@@ -16,6 +16,7 @@ import SSecrets from "./routes/Schema2/Secrets/Secrets";
 import Files from "./routes/Schema2/Files/Files";
 import Dictionary from "./routes/General/Dictionary/Dictionary";
 import Secrets from "./routes/General/Secrets/Secrets";
+import Connectors from "./routes/Schema2/Connectors/Connectors";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -96,7 +97,7 @@ export default function AppShell() {
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Files} />}
             </Route>
             <Route path="/app/:schema/connectors">
-                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Connectors} />}
             </Route>
             <Route path="/app/:schema/rules">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}

@@ -15,7 +15,7 @@ interface query extends Log {
     date?: string;
     count?: string;
 }
-
+//TODO - auto-cleanup logs
 export default async function (route: FastifyInstance) {
     route.get('/:endpoint', async (request, reply) => {
         if (!loggers.general) init();
