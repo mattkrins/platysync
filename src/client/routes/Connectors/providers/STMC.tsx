@@ -14,24 +14,24 @@ export default function STMC( { form, path }: { form: UseFormReturnType<Connecto
                 label="Username"
                 placeholder="ST01235"
                 leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...form.getInputProps(`${path}username`)}
+                {...form.getInputProps(`${path||''}username`)}
             />
             <SecurePasswordInput withAsterisk
                 label="Password"
                 placeholder="password"
                 secure={!!form.values.password&&typeof form.values.password !== 'string'}
-                unlock={()=>form.setFieldValue(`${path}password`, "")}
-                {...form.getInputProps(`${path}password`)}
+                unlock={()=>form.setFieldValue(`${path||''}password`, "")}
+                {...form.getInputProps(`${path||''}password`)}
             />
         </SimpleGrid>
         <TextInput mt="sm"
             label="School Identification Number"
             leftSection={<IconSchool size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="1234"
-            withAsterisk {...form.getInputProps(`${path}school`)}
+            withAsterisk {...form.getInputProps(`${path||''}school`)}
         />
         <SelectConnector mt="sm"
-            {...form.getInputProps(`${path}eduhub`)} ids={["csv"]} clearable
+            {...form.getInputProps(`${path||''}eduhub`)} ids={["csv"]} clearable
             label="Match Eduhub" description="Match against eduhub making the _stkey header available."
         />
         <Concealer>
@@ -41,7 +41,7 @@ export default function STMC( { form, path }: { form: UseFormReturnType<Connecto
                 leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                 placeholder="1440 (1 day)"
                 min={1}
-                {...form.getInputProps(`${path}cache`)}
+                {...form.getInputProps(`${path||''}cache`)}
             />
         </Concealer>
     </>);

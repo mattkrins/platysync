@@ -102,7 +102,7 @@ export default function Connectors() {
     <Container>
         <Editor open={open} adding={!editing} close={close} refresh={refresh} />
         <Group justify="space-between">
-          <Group><Title mb="xs" >Connectors</Title><Text c="dimmed" size="xs" >Dictionary entries can be used in string templates.</Text></Group>
+          <Group><Title mb="xs" >Connectors</Title><Text c="dimmed" size="xs" >Connectors provide data to iterate over and run actions.</Text></Group>
           <Button onClick={()=>add()} loading={loading} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
         <Wrapper loading={loading} >
