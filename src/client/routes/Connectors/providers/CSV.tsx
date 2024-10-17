@@ -3,6 +3,7 @@ import { IconFile, IconTypography } from "@tabler/icons-react";
 import Concealer from "../../../components/Concealer";
 import { UseFormReturnType } from "@mantine/form";
 import useTemplater from "../../../hooks/useTemplater";
+import ExtTextInput from "../../../components/ExtTextInput";
 
 export default function CSV( { form, path }: { form: UseFormReturnType<Connector>, path?: string } ) {
     const { templateProps, explorer } = useTemplater({names:[]});
@@ -15,6 +16,7 @@ export default function CSV( { form, path }: { form: UseFormReturnType<Connector
             withAsterisk {...templateProps(form, `${path}path`)}
             error={form.getInputProps(`${path||''}path`).error||templateProps(form, `${path||''}path`).error}
         />
+        <ExtTextInput/>
         <Concealer>
             <Checkbox mt="xs" label="Does not contain headers" {...form.getInputProps(`${path||''}noHeaders`, { type: 'checkbox' })} />
             <Select mt="xs"

@@ -17,6 +17,7 @@ import Files from "./routes/Schema2/Files/Files";
 import Dictionary from "./routes/General/Dictionary/Dictionary";
 import Secrets from "./routes/General/Secrets/Secrets";
 import Connectors from "./routes/Schema2/Connectors/Connectors";
+import TemplateExplorer from "./components/TemplateExplorer";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -42,6 +43,7 @@ function ShellWrap({ params, section, setSection, Component }: { params: Record<
     <Shell navbar={{ width: 280, breakpoint: 0 }}>
         <Shell.Navbar><Navbar params={params} section={section} setSection={setSection} /></Shell.Navbar>
         <Shell.Main className={classes.main} >
+            <TemplateExplorer/>
             <Component params={params} />
         </Shell.Main>
     </Shell>
