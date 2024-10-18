@@ -19,7 +19,7 @@ function Content({ entry, refresh, adding, close }: { entry: kvPair, refresh(): 
     {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
     <TextInput required
     label="Template Key" pb="xs"
-    description="Key to use in the templating syntax {{sdict.key}}."
+    description="Key to use in the templating syntax {{gdict.key}}."
     placeholder="key"
     {...form.getInputProps('key')}
     leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.5 }}/>}
@@ -31,7 +31,7 @@ function Content({ entry, refresh, adding, close }: { entry: kvPair, refresh(): 
     {...form.getInputProps('value')}
     leftSection={<IconTextCaption size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     />
-    <Text c="dimmed" size="xs">Example template: {`Hello {{sdict.${form.getInputProps('key').value||"key"}}}`}</Text>
+    <Text c="dimmed" size="xs">Example template: {`Hello {{gdict.${form.getInputProps('key').value||"key"}}}`}</Text>
     <Text c="dimmed" size="xs">Example output: {`Hello ${form.getInputProps('value').value}`}</Text>
     <Group justify={adding?"flex-end":"space-between"} mt="md">
           <Button loading={loading} onClick={()=>adding?post():put()}>{adding ? "Add" : "Save"}</Button>

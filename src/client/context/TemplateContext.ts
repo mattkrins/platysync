@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 
 interface ThemeContext {
     opened: boolean,
-    open(): void,
+    open(input?: HTMLInputElement|null): void,
     close(): void,
     setInput(input: HTMLInputElement): void,
     input?: HTMLInputElement,
@@ -16,6 +16,6 @@ export const ThemeContext = createContext<ThemeContext>({
     input: undefined,
 });
 
-export const useTemplate = () => {
+export const useTemplater = () => {
   return useContext(ThemeContext);
 };

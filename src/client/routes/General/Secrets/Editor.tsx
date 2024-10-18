@@ -20,7 +20,7 @@ function Content({ entry, refresh, adding, close }: { entry: kvPair, refresh(): 
     {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
     <TextInput required
     label="Template Key" pb="xs"
-    description="Key to use in the templating syntax {{ssec.key}}."
+    description="Key to use in the templating syntax {{gsec.key}}."
     placeholder="key"
     {...form.getInputProps('key')}
     leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.5 }}/>}
@@ -34,7 +34,7 @@ function Content({ entry, refresh, adding, close }: { entry: kvPair, refresh(): 
     leftSection={<IconTextCaption size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     {...form.getInputProps(`value`)}
     />
-    <Text c="dimmed" size="xs">Example template: {`Hello {{ssec.${form.getInputProps('key').value||"key"}}}`}</Text>
+    <Text c="dimmed" size="xs">Example template: {`Hello {{gsec.${form.getInputProps('key').value||"key"}}}`}</Text>
     <Group justify={adding?"flex-end":"space-between"} mt="md">
           <Button loading={loading} onClick={()=>adding?post():put()}>{adding ? "Add" : "Save"}</Button>
     </Group>

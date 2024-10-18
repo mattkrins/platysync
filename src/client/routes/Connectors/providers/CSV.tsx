@@ -9,14 +9,12 @@ export default function CSV( { form, path }: { form: UseFormReturnType<Connector
     const { templateProps, explorer } = useTemplater({names:[]});
     return (
     <>  {explorer}
-        <TextInput
+        <ExtTextInput
             label="File Path"
             leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="C:/folder/input.csv"
-            withAsterisk {...templateProps(form, `${path}path`)}
-            error={form.getInputProps(`${path||''}path`).error||templateProps(form, `${path||''}path`).error}
+            withAsterisk {...form.getInputProps(`${path||''}path`)}
         />
-        <ExtTextInput/>
         <Concealer>
             <Checkbox mt="xs" label="Does not contain headers" {...form.getInputProps(`${path||''}noHeaders`, { type: 'checkbox' })} />
             <Select mt="xs"
