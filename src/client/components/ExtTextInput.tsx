@@ -13,7 +13,7 @@ export default function ExtTextInput({ rightSection: buttons, ...props }: ExtTex
   const ref = useRef<HTMLInputElement>(null);
   const [ value, setValue ] = useState<string>("");
   const { open } = useTemplater();
-  const { validate } = useTemplate();
+  const { validate } = useTemplate({});
   const update = ()=> setValue(ref.current?.value||"");
   const error = useCallback(() => validate(value),[ value ]);
   if (error()) extProps.error = error();

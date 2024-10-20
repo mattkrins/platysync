@@ -1,4 +1,4 @@
-import { TextInput, Input, SegmentedControl } from "@mantine/core";
+import { TextInput, Input, SegmentedControl, Select } from "@mantine/core";
 import { IconFolder } from "@tabler/icons-react";
 import { UseFormReturnType } from "@mantine/form";
 import useTemplater from "../../../hooks/useTemplater";
@@ -14,17 +14,14 @@ export default function FOLDER( { form, path }: { form: UseFormReturnType<Connec
             withAsterisk {...templateProps(form, `${path||''}path`)}
             error={form.getInputProps(`${path||''}path`).error||templateProps(form, `${path||''}path`).error}
         />
-        <Input.Wrapper mt="xs" withAsterisk
-        label="Iterate Over"
-        >
-        <SegmentedControl fullWidth 
-        {...form.getInputProps(`${path||''}type`)}
-        defaultValue="file"
-        data={[
-        { label: 'Files', value: 'file' },
-        { label: 'Directory', value: 'directory' },
-        { label: 'Both', value: 'both' },
-        ]} />
-        </Input.Wrapper>
+        <Select mt="xs" label="Iterate Over" withAsterisk
+            {...form.getInputProps(`${path||''}type`)}
+            defaultValue="Files"
+            data={[
+                { label: 'Files', value: 'file' },
+                { label: 'Directory', value: 'directory' },
+                { label: 'Both', value: 'both' },
+            ]}
+        />
     </>);
 }

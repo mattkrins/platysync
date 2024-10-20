@@ -1,11 +1,14 @@
-import { Box, Button, CloseButton, Drawer, Flex, Group, Text, TextInput, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Drawer, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
 import { useTemplater } from '../context/TemplateContext';
 import { ForwardRefExoticComponent, RefAttributes, useMemo, useState } from 'react';
-import { Icon, IconChevronRight, IconFiles, IconProps, IconSearch } from '@tabler/icons-react';
+import { Icon, IconBook, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconListDetails, IconProps, IconSearch } from '@tabler/icons-react';
 import classes from './TemplateExplorer.module.css';
 import { useSelector } from '../hooks/redux';
-import { getFiles } from '../providers/schemaSlice';
+import { getFiles, getsDictionary, getsSecrets } from '../providers/schemaSlice';
 import useTemplate from '../hooks/useTemplate';
+import { getDictionary, getSecrets } from '../providers/appSlice';
+import { useDisclosure } from '@mantine/hooks';
+import { genericHelpers, pathHelpers, ruleHelpers } from '../modules/handlebars';
 
 
 type Template = {
@@ -52,33 +55,79 @@ function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
     )
 }
 
+interface FSectionProps {
+    label: string;
+    path: string;
+    search(v: string): void;
+    Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
+    list: { key: string, value?: string, description?: string }[];
+}
+
+function FSection({ label, path, list, search, Icon }: FSectionProps) {
+    const [ open, { toggle } ] = useDisclosure();
+    return (<>
+        <Section open={open} label={label} Icon={Icon} onClick={toggle} />
+        <Collapse mt="xs" in={open}>
+            {list.map(item=>
+            <UnstyledButton onClick={()=>search(`$${path}.${item.key}`)} mb="xs" key={item.key} className={classes.connector} p="xs" pt={4} pb={4} >
+                <Title size="h6" >{item.key}</Title>
+                {item.description&&<Text size="xs" c="dimmed" >{item.description}</Text>}
+                {item.value&&<Code>{item.value}</Code>}
+            </UnstyledButton>)}
+        </Collapse>
+    </>)
+}
+
 export default function TemplateExplorer() {
-    const [ searchValue, setSearchValue ] = useState<string>('');
+    const [ searchValue, search ] = useState<string>('');
     const { close, opened, input } = useTemplater();
-    const { template } = useTemplate();
+    const { template } = useTemplate({});
+    const [ exploreAll, { toggle: toggleAll } ] = useDisclosure();
+    const [ viewHelpers, { toggle: toggleHelpers } ] = useDisclosure();
     const files = useSelector(getFiles);
+    const sdict = useSelector(getsDictionary);
+    const ssec = useSelector(getsSecrets);
+    const gdict = useSelector(getDictionary);
+    const gsec = useSelector(getSecrets);
     const add = (value: string, quote = true) => {
         if (!input) return;
         input.focus();
         document.execCommand('insertText', false, quote ? `{{${value}}}` : value);
     }
-    const tagCloud = useMemo(()=>flattenTemplate(template),[ template ]);
+    const flattenedTemplate = useMemo(()=>flattenTemplate(template),[ template ]);
+    const tags = useMemo(()=>flattenedTemplate.filter(item => item.toLowerCase().includes(searchValue.toLowerCase()) ),[ flattenedTemplate, searchValue ]);
     return (
     <Drawer zIndex={300} position="right" size="lg" opened={opened} onClose={close} overlayProps={{ opacity: 0.2}} title={<Group><Text>Template Explorer</Text></Group>} >
-        {JSON.stringify(template)}
         <TextInput
-        pb="xs" leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-        placeholder="Search" onChange={event=>setSearchValue(event.target.value)} value={searchValue}
-        rightSection={ (searchValue) ? ( <CloseButton size="sm" onClick={() => setSearchValue("")} aria-label="Clear value" /> ) : undefined }
+        leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+        placeholder="Search" onChange={event=>search(event.target.value)} value={searchValue}
+        rightSection={searchValue?
+        <CloseButton size="sm" onClick={() => search("")} aria-label="Clear value" /> :
+        <Tooltip label="Browse" position="left" color="gray" disabled={exploreAll} withArrow >
+        <ActionIcon variant={exploreAll?"filled":"subtle"} color="gray" size="sm" onClick={toggleAll} ><IconListDetails size={14} aria-label="Clear value" /></ActionIcon></Tooltip> }
         />
-        {searchValue&&
-        <Flex style={{justifyContent: 'center'}} gap="sm" justify="flex-start" align="center" direction="row" wrap="wrap" >
-        {tagCloud.map(item => (
-            <Button onClick={()=>add(item)} variant="default" radius="xl" size="compact-xs" key={item}>{item}</Button>
-        ))}
-        </Flex>
-        }
-        {files.length>0&&<Section label="Files" Icon={IconFiles} onClick={()=>setSearchValue(`$file.`)} Ricon={IconSearch} />}
+        {(searchValue||exploreAll)?
+        <Flex style={{justifyContent: 'center'}} gap="sm" justify="flex-start" align="center" direction="row" wrap="wrap" mt="xs" >
+        {tags.map(item => (<Button onClick={()=>add(item)} variant="default" radius="xl" size="compact-xs" key={item}>{item}</Button>))}
+        </Flex>:
+        <>
+            {files.length>0&&<FSection label="Files" path="file" Icon={IconFiles} list={files.map(f=>({ key: f.key||f.name, description: f.path }))} search={search} />}
+            <FSection label="Paths" path="path" Icon={IconFolderCode} list={pathHelpers.map(f=>({ ...f, value: f.example }))} search={search} />
+            {sdict.length>0&&<FSection label="Schema Dictionary" path="sdict" Icon={IconBook2} list={sdict} search={search} />}
+            {ssec.length>0&&<FSection label="Schema Secrets" path="ssec" Icon={IconKey} list={ssec.map(f=>({ key: f.key }))} search={search} />}
+            {gdict.length>0&&<FSection label="Global Dictionary" path="gdict" Icon={IconBook2} list={gdict} search={search} />}
+            {gsec.length>0&&<FSection label="Global Secrets" path="gsec" Icon={IconKey} list={gsec.map(f=>({ key: f.key }))} search={search} />}
+            <FSection label="Rule Helpers" path="rule" Icon={IconLicense} list={ruleHelpers.map(f=>({ ...f, value: f.example }))} search={search} />
+            <Section open={viewHelpers} label="Global Helpers" Icon={IconBraces} onClick={toggleHelpers} />
+            <Collapse mt="xs" in={viewHelpers}>
+                {genericHelpers.map(helper=>
+                <UnstyledButton onClick={()=>add(helper.example.split(" > ")[0].replace(/[{}]/g, ''))} mb="xs" key={helper.key} className={classes.connector} p="xs" pt={0} pb={4} >
+                    <Title size="h6" >{helper.key}</Title>
+                    {helper.description&&<Text size="xs" c="dimmed" >{helper.description}</Text>}
+                    {helper.example&&<Code>{helper.example}</Code>}
+                </UnstyledButton>)}
+            </Collapse>
+        </>}
         </Drawer>
     )
 }

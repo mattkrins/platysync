@@ -168,7 +168,7 @@ export default function useTemplater( { names, inline, inRule }: { names?: strin
                 {helper.description&&<Text size="xs" c="dimmed" >{helper.description}</Text>}
                 {helper.example&&<Code>{helper.example}</Code>}
             </UnstyledButton>)}
-        </Collapse>
+        </Collapse> 
         <Section open={viewHelpers} label="Helpers" Icon={IconBraces} onClick={toggleHelpers} />
         <Collapse mt="xs" in={viewHelpers}>
             {genericHelpers.map(helper=>

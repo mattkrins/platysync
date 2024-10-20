@@ -44,13 +44,13 @@ export const genericHelpers = [
 ];
 
 export const pathHelpers = [
-    { key: "$dir", description: "Prints the working directory of platysync.", example: "{{$dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync" },
-    { key: "$cache", description: "Prints the cache directory of platysync.", example: "{{$cache}} > C:\\Users\\user\\AppData\\Roaming\\platysync\\cache" },
+    { key: "dir", description: "Prints the working directory of platysync.", example: "{{$path.dir}} > C:\\Users\\user\\AppData\\Roaming\\platysync" },
+    { key: "cache", description: "Prints the cache directory of platysync.", example: "{{$path.cache}} > C:\\Users\\user\\AppData\\Roaming\\platysync\\cache" },
 ];
 
 export const ruleHelpers = [
-    { key: "$rule_name", description: "Prints the rule's name.", example: "{{$rule_name}} > My Rule" },
-    { key: "$rule_id", description: "Prints the rule's unique run ID.", example: "{{$rule_id}} > c9916f3b-067b-4f1..." },
-    { key: "$rule_schema", description: "Prints the current schema name.", example: "{{$rule_schema}} > My Schema" },
-    { key: "$rule_scheduled", description: "Print if the rule was ran from a schedule.", example: "{{$rule_scheduled}} > false" },
+    { key: "name", description: "Prints the rule's name.", example: "{{$rule.name}} > My Rule" },
+    { key: "id", description: "Prints the rule's unique run ID.", example: "{{$rule.id}} > c9916f3b-067b-4f1..." },
+    { key: "schema", description: "Prints the current schema name.", example: "{{$rule.schema}} > My Schema" },
+    { key: "scheduled", description: "Print if the rule was ran from a schedule.", example: "{{$rule.scheduled}} > false" },
 ];

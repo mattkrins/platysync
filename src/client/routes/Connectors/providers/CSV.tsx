@@ -1,14 +1,12 @@
-import { TextInput, Select, Checkbox } from "@mantine/core";
+import { Select, Checkbox } from "@mantine/core";
 import { IconFile, IconTypography } from "@tabler/icons-react";
 import Concealer from "../../../components/Concealer";
 import { UseFormReturnType } from "@mantine/form";
-import useTemplater from "../../../hooks/useTemplater";
 import ExtTextInput from "../../../components/ExtTextInput";
 
 export default function CSV( { form, path }: { form: UseFormReturnType<Connector>, path?: string } ) {
-    const { templateProps, explorer } = useTemplater({names:[]});
     return (
-    <>  {explorer}
+    <>
         <ExtTextInput
             label="File Path"
             leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.5 }}/>}

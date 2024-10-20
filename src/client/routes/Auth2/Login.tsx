@@ -5,7 +5,7 @@ import useAPI from "../../hooks/useAPI";
 import { Redirect, useLocation } from "wouter";
 import { onKeyUp } from "../../modules/common";
 import { IconAlertCircle, IconKey, IconUser } from "@tabler/icons-react";
-import { getUser, isSetup, loadSchemas, loadSettings, login } from "../../providers/appSlice";
+import { getUser, isSetup, loadApp, loadSchemas, loadSettings, login } from "../../providers/appSlice";
 import { useDispatch, useSelector } from "../../hooks/redux";
 
 export default function Login() {
@@ -26,6 +26,7 @@ export default function Login() {
         then: session => {
             dispatch(login(session));
             dispatch(loadSettings());
+            dispatch(loadApp());
             dispatch(loadSchemas());
             setLocation('/');
         },
