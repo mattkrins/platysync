@@ -20,7 +20,7 @@ function Entry({ index, entry: { key }, edit, refresh }: { index: number, entry:
         url: `/secret/${key}/copy`, schema: true,
         then: () => refresh(),
     });
-    const clickDel = () => del();
+    const clickDel = () => del(); //TODO - dependancy finder
     return (
     <Draggable index={index} draggableId={key}>
     {(provided, snapshot) => (

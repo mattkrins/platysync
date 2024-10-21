@@ -26,14 +26,27 @@ export const defaultData: Database = {
     sessions: {},
 };
 
+export const defaultSchema: Schema = {
+    name: '',
+    version: '',
+    files: [],
+    connectors: [],
+    dictionary: [],
+    secrets: [],
+    rules: [],
+    actions: [],
+    schedules: [],
+}
+
 let db: Low<Database>;
 
 export default async function database(force?: boolean) {
     if (!db || force){
         db = await JSONFilePreset(paths.database, defaultData);
         await upgrade();
-        const { settings, ...rest } = db.data;
-        db.data = { ...defaultData, ...rest, settings: { ...defaultData.settings, ...settings }  };
+        const { settings, schemas, ...rest } = db.data;
+        const defaultedSchemas = schemas.map(s=>({...defaultSchema, ...s}));
+        db.data = { ...defaultData, ...rest, settings: { ...defaultData.settings, ...settings }, schemas: defaultedSchemas  };
         log.debug("Database Initialized");
     }
     return db;

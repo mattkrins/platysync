@@ -57,14 +57,14 @@ function Router() {
 export default function App() {
 
     return (
+    <Redux store={store}>
         <MantineProvider defaultColorScheme="auto" theme={theme}>
             <TemplateProvider>
                 <ModalsProvider>
-                    <Redux store={store}>
                         <Router/>
-                    </Redux>
                 </ModalsProvider>
             </TemplateProvider>
         </MantineProvider>
+    </Redux>
     )
 }

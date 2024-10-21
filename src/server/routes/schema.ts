@@ -1,23 +1,11 @@
 import { FastifyInstance } from "fastify";
 import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
-import database, { getSchemas } from "../components/database";
+import database, { defaultSchema, getSchemas } from "../components/database";
 import { log, version } from "../..";
 
 interface newSchema extends Schema {
     importing?: boolean;
     editing?: string;
-}
-
-const defaultSchema: Schema = {
-    name: '',
-    version: '',
-    files: [],
-    connectors: [],
-    dictionary: [],
-    secrets: [],
-    rules: [],
-    actions: [],
-    schedules: [],
 }
 
 export default async function (route: FastifyInstance) {

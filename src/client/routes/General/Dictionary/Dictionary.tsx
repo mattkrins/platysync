@@ -20,7 +20,7 @@ function Entry({ index, entry: { key, value }, edit, refresh }: { index: number,
         url: `/dictionary/${key}/copy`,
         then: () => refresh(),
     });
-    const clickDel = () => del();
+    const clickDel = () => del(); //TODO - dependancy finder
     return (
     <Draggable index={index} draggableId={key}>
     {(provided, snapshot) => (

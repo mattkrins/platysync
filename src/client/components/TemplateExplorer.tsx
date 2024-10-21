@@ -1,11 +1,10 @@
 import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Drawer, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
 import { useTemplater } from '../context/TemplateContext';
 import { ForwardRefExoticComponent, RefAttributes, useMemo, useState } from 'react';
-import { Icon, IconBook, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconListDetails, IconProps, IconSearch } from '@tabler/icons-react';
+import { Icon, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconListDetails, IconProps, IconSearch } from '@tabler/icons-react';
 import classes from './TemplateExplorer.module.css';
 import { useSelector } from '../hooks/redux';
 import { getFiles, getsDictionary, getsSecrets } from '../providers/schemaSlice';
-import useTemplate from '../hooks/useTemplate';
 import { getDictionary, getSecrets } from '../providers/appSlice';
 import { useDisclosure } from '@mantine/hooks';
 import { genericHelpers, pathHelpers, ruleHelpers } from '../modules/handlebars';
@@ -80,8 +79,7 @@ function FSection({ label, path, list, search, Icon }: FSectionProps) {
 
 export default function TemplateExplorer() {
     const [ searchValue, search ] = useState<string>('');
-    const { close, opened, input } = useTemplater();
-    const { template } = useTemplate({});
+    const { close, opened, input, inRule, template } = useTemplater();
     const [ exploreAll, { toggle: toggleAll } ] = useDisclosure();
     const [ viewHelpers, { toggle: toggleHelpers } ] = useDisclosure();
     const files = useSelector(getFiles);
@@ -117,7 +115,7 @@ export default function TemplateExplorer() {
             {ssec.length>0&&<FSection label="Schema Secrets" path="ssec" Icon={IconKey} list={ssec.map(f=>({ key: f.key }))} search={search} />}
             {gdict.length>0&&<FSection label="Global Dictionary" path="gdict" Icon={IconBook2} list={gdict} search={search} />}
             {gsec.length>0&&<FSection label="Global Secrets" path="gsec" Icon={IconKey} list={gsec.map(f=>({ key: f.key }))} search={search} />}
-            <FSection label="Rule Helpers" path="rule" Icon={IconLicense} list={ruleHelpers.map(f=>({ ...f, value: f.example }))} search={search} />
+            {inRule&&<FSection label="Rule Helpers" path="rule" Icon={IconLicense} list={ruleHelpers.map(f=>({ ...f, value: f.example }))} search={search} />}
             <Section open={viewHelpers} label="Global Helpers" Icon={IconBraces} onClick={toggleHelpers} />
             <Collapse mt="xs" in={viewHelpers}>
                 {genericHelpers.map(helper=>
