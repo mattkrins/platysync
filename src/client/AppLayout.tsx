@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import classes from "./theme.module.css";
 
 import Home from "./routes/Home/Home";
-import Schema from "./routes/Schema/Schema";
+//import Schema from "./routes/Schema/Schema";
 import Settings from "./routes/Settings/Settings";
 import Users from "./routes/Users/Users";
 import Logs from "./routes/Logs/Logs";
@@ -22,7 +22,7 @@ import Schedules from "./routes/Schedules/Schedules";
 
 const links = [
     { label: "Home", link: "/home", icon: <IconHome size={15} />, page: Home },
-    { label: "Schema", link: "/schema", icon: <IconAdjustmentsHorizontal size={15} />, page: Schema },
+    //{ label: "Schema", link: "/schema", icon: <IconAdjustmentsHorizontal size={15} />, page: Schema },
     //{ label: "Files", link: "/files", icon: <IconFiles size={15} />, page: Files },
     { label: "Connectors", link: "/connectors", icon: <IconPlug size={15} />, page: Connectors  },
     { label: "Actions", link: "/actions", icon: <IconSettings2 size={15} />, page: Actions },

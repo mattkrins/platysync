@@ -101,7 +101,7 @@ export default function TemplateExplorer() {
         placeholder="Search" onChange={event=>search(event.target.value)} value={searchValue}
         rightSection={searchValue?
         <CloseButton size="sm" onClick={() => search("")} aria-label="Clear value" /> :
-        <Tooltip label="Browse" position="left" color="gray" disabled={exploreAll} withArrow >
+        <Tooltip label="Browse" position="left" color="gray" withArrow >
         <ActionIcon variant={exploreAll?"filled":"subtle"} color="gray" size="sm" onClick={toggleAll} ><IconListDetails size={14} aria-label="Clear value" /></ActionIcon></Tooltip> }
         />
         {(searchValue||exploreAll)?
