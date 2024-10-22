@@ -1,12 +1,12 @@
 import { TextInput, PasswordInput, Button, Container, Paper, Title, Text, Avatar, Center, Anchor, Alert } from "@mantine/core";
 import { useForm, isNotEmpty } from "@mantine/form";
 import classes from './Login.module.css';
-import useAPI from "../../hooks/useAPI";
+import useAPI from "../../../hooks/useAPI";
 import { Redirect, useLocation } from "wouter";
-import { onKeyUp } from "../../modules/common";
+import { onKeyUp } from "../../../modules/common";
 import { IconAlertCircle, IconKey, IconUser } from "@tabler/icons-react";
-import { getUser, isSetup, loadApp, loadSchemas, loadSettings, login } from "../../providers/appSlice";
-import { useDispatch, useSelector } from "../../hooks/redux";
+import { getUser, isSetup, loadApp, loadSchemas, loadSettings, login } from "../../../providers/appSlice";
+import { useDispatch, useSelector } from "../../../hooks/redux";
 
 export default function Login() {
     const [_, setLocation] = useLocation();

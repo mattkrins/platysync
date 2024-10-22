@@ -1,8 +1,8 @@
 import SplashScreen from "./SplashScreen";
 import CreateUser from "./CreateUser";
 import { Redirect, useParams } from "wouter";
-import { useSelector } from "../../hooks/redux";
-import { isSetup } from "../../providers/appSlice";
+import { useSelector } from "../../../hooks/redux";
+import { isSetup } from "../../../providers/appSlice";
 import CreateSchema from "./CreateSchema";
 
 export default function Setup() {

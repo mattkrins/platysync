@@ -11,7 +11,7 @@ import classes from "./theme.module.css";
 
 import Home from "./routes/Home/Home";
 //import Schema from "./routes/Schema/Schema";
-import Settings from "./routes/Settings/Settings";
+//import Settings from "./routes/Settings/Settings";
 import Users from "./routes/Users/Users";
 import Logs from "./routes/Logs/Logs";
 //import Files from "./routes/Files/Files";
@@ -119,7 +119,8 @@ export function AppLayout() {
         </AppShell.Navbar>
         <AppShell.Main>
           <Switch>
-                <Route path={"/settings"} component={Settings} />
+                {//<Route path={"/settings"} component={Settings} />
+                }
                 <Route path={"/users"} component={Users} />
                 <Route path={"/logs"} component={Logs} />
                 {links.filter(link=>link.page).map(link=><Route key={link.label} path={link.link} component={link.page} nest />)}

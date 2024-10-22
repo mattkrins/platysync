@@ -5,7 +5,7 @@ import { ActionIcon, Card, Center, Container, Group, Image, LoadingOverlay, Menu
 import { IconDots, IconDotsVertical, IconEdit, IconGridDots, IconLogout, IconPackageExport, IconPackageImport, IconPlus, IconRefresh, IconSettings, IconTrash } from "@tabler/icons-react";
 import classes from './Schemas.module.css';
 import { useDisclosure } from "@mantine/hooks";
-import Settings from "../Settings/Settings";
+import Settings from "../General/Settings/Settings";
 import { modals } from "@mantine/modals";
 import useAPI from "../../hooks/useAPI";
 import Exporter from "../../components/Exporter";

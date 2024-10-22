@@ -1,13 +1,13 @@
 import { TextInput, PasswordInput, Button, Container, Paper, Title, Text, Alert } from "@mantine/core";
 import { useForm, isNotEmpty } from "@mantine/form";
 import classes from './Setup.module.css';
-import useAPI from "../../hooks/useAPI";
+import useAPI from "../../../hooks/useAPI";
 import { useLocation } from "wouter";
-import { onKeyUp } from "../../modules/common";
-import PasswordStrength from "../../components/PasswordStrength";
+import { onKeyUp } from "../../../modules/common";
+import PasswordStrength from "../../../components/PasswordStrength";
 import { IconUser, IconKey, IconAlertCircle } from "@tabler/icons-react";
-import { useDispatch } from "../../hooks/redux";
-import { login } from "../../providers/appSlice";
+import { useDispatch } from "../../../hooks/redux";
+import { login } from "../../../providers/appSlice";
 
 export default function CreateUser() {
     const [_, setLocation] = useLocation();

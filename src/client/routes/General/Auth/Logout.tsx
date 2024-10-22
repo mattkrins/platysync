@@ -1,13 +1,19 @@
 import { Container, SimpleGrid, Center, Loader, Text } from '@mantine/core';
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useLocation } from 'wouter';
-import useFetch from '../../hooks/useFetch';
+import useAPI from '../../../hooks/useAPI';
+import { useDispatch } from '../../../hooks/redux';
+import { logout } from '../../../providers/appSlice';
 
 export default function Logout() {
   const [_, setLocation] = useLocation();
-  const { del } = useFetch<{ setup: number }>({
+  const dispatch = useDispatch();
+  const { del } = useAPI<{ setup: number }>({
       url: "/auth",
-      finally: () => setLocation(`/login`),
+      finally: () => {
+        dispatch(logout());
+        setLocation(`/login`);
+      },
   });
   useEffect(()=>{ del() }, []);
   return (

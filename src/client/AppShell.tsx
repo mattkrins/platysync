@@ -5,18 +5,18 @@ import { useDispatch, useSelector } from "./hooks/redux";
 import { isLoaded, getError, loadApp, isSetup, loadSettings, loadSchemas, checkVersion } from "./providers/appSlice";
 import { useEffect, useState } from "react";
 import { IconAccessPointOff } from "@tabler/icons-react";
-import Setup from "./routes/Setup2/Setup";
-import Login from "./routes/Auth2/Login";
-import Logout from "./routes/Auth2/Logout";
+import Setup from "./routes/General/Setup/Setup";
+import Login from "./routes/General//Auth/Login";
+import Logout from "./routes/General//Auth/Logout";
 import Schemas from "./routes/Schemas/Schemas";
-import Settings from "./routes/Settings/Settings";
+import Settings from "./routes/General/Settings/Settings";
 import classes from './AppShell.module.css';
-import SDictionary from "./routes/Schema2/Dictionary/Dictionary";
-import SSecrets from "./routes/Schema2/Secrets/Secrets";
-import Files from "./routes/Schema2/Files/Files";
+import SDictionary from "./routes/Schema/Dictionary/Dictionary";
+import SSecrets from "./routes/Schema/Secrets/Secrets";
+import Files from "./routes/Schema/Files/Files";
 import Dictionary from "./routes/General/Dictionary/Dictionary";
 import Secrets from "./routes/General/Secrets/Secrets";
-import Connectors from "./routes/Schema2/Connectors/Connectors";
+import Connectors from "./routes/Schema/Connectors/Connectors";
 import TemplateExplorer from "./components/TemplateExplorer";
 
 function AppLoader() {

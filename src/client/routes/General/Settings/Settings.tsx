@@ -1,15 +1,15 @@
 import { Alert, Anchor, Button, Code, Container, Grid, Group, Input, SegmentedControl, Select, Switch, Title, Text, useMantineColorScheme, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import useAPI from "../../hooks/useAPI";
+import useAPI from "../../../hooks/useAPI";
 import { useLocalStorage } from "@mantine/hooks";
 import { IconAlertCircle, IconCheck, IconUser, IconWorld } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
-import { compareVersion } from "../../modules/common";
+import { compareVersion } from "../../../modules/common";
 import { useLocation } from "wouter";
-import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { checkVersion, getLatestVersion, loadApp, loadSettings } from "../../providers/appSlice";
-import Wrapper from "../../components/Wrapper";
-import SecurePasswordInput from "../../components/SecurePasswordInput";
+import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
+import { checkVersion, getLatestVersion, loadApp, loadSettings } from "../../../providers/appSlice";
+import Wrapper from "../../../components/Wrapper";
+import SecurePasswordInput from "../../../components/SecurePasswordInput";
 
 export default function Settings() {
     const { loadingSettings } = useLoader();
