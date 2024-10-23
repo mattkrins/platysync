@@ -18,6 +18,8 @@ import Dictionary from "./routes/General/Dictionary/Dictionary";
 import Secrets from "./routes/General/Secrets/Secrets";
 import Connectors from "./routes/Schema/Connectors/Connectors";
 import TemplateExplorer from "./components/TemplateExplorer";
+import Rules from "./routes/Schema/Rules/Rules";
+import Editor from "./routes/Schema/Rules/Editor";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -102,7 +104,13 @@ export default function AppShell() {
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Connectors} />}
             </Route>
             <Route path="/app/:schema/rules">
-                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Page} />}
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Rules} />}
+            </Route>
+            <Route path="/app/:schema/rules/edit">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Editor} />}
+            </Route>
+            <Route path="/app/:schema/rules/edit/:rule">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Editor} />}
             </Route>
         </Route>
         </>}
