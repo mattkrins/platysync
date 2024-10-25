@@ -1,14 +1,14 @@
 import { Group, Title, Button, Anchor, Paper, Grid, Container, Text, Loader, Switch, Tooltip } from "@mantine/core";
 import { IconCopy, IconGripVertical, IconPencil, IconPlayerPlay, IconPlus, IconTrash } from "@tabler/icons-react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import Wrapper from "../../components/Wrapper";
-import { useDispatch, useLoader, useSelector } from "../../hooks/redux";
-import { getSchedules, loadSchedules, reorder } from "../../providers/schemaSlice";
+import Wrapper from "../../../components/Wrapper";
+import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
+import { getSchedules, loadSchedules, reorder } from "../../../providers/schemaSlice";
 import Editor from "./Editor";
-import useEditor from "../../hooks/useEditor";
-import MenuTip from "../../components/MenuTip";
-import useAPI from "../../hooks/useAPI";
-import { triggerDetails } from "../../modules/common";
+import useEditor from "../../../hooks/useEditor";
+import MenuTip from "../../../components/MenuTip";
+import useAPI from "../../../hooks/useAPI";
+import { triggerDetails } from "../../../modules/common";
 
 function Schedule({ index, schedule: { name, enabled, triggers, tasks, description }, edit, refresh }: { index: number, schedule: Schedule, edit(): void, refresh(): Promise<void> }) {
     const loaders = useLoader();
@@ -81,7 +81,7 @@ export default function Schedules() {
     <Container size="xl">
         <Editor open={schedule} adding={!editing} close={close} refresh={refresh} />
         <Group justify="space-between">
-            <Title mb="xs" >Schedules</Title>
+            <Group><Title mb="xs" >Schedules</Title><Text c="dimmed" size="xs" >Automate rule evaluation and execution based on a schedule or other triggers.</Text></Group>
             <Button onClick={()=>add()} loading={loadingSchedules} leftSection={<IconPlus size={18} />} >Add</Button>
         </Group>
         <Wrapper loading={loadingSchedules} >

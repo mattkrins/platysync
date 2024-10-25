@@ -2,13 +2,13 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { Button, Center, Grid, Group, Modal, MultiSelect, NumberInput, Paper, Select, Switch, Tabs, Textarea, TextInput, Text, Anchor, Alert, Tooltip } from "@mantine/core";
 import { isNotEmpty, useForm, UseFormReturnType } from "@mantine/form";
 import { IconAlertCircle, IconCheck, IconCheckbox, IconClock, IconCopy, IconEdit, IconFileSearch, IconGripVertical, IconPlus, IconRun, IconTag, IconTrash } from "@tabler/icons-react";
-import MenuTip from "../../components/MenuTip";
-import { useSelector } from "../../hooks/redux";
-import { getRules } from "../../providers/schemaSlice";
-import useEditor from "../../hooks/useEditor";
+import MenuTip from "../../../components/MenuTip";
+import { useSelector } from "../../../hooks/redux";
+import { getRules } from "../../../providers/schemaSlice";
+import useEditor from "../../../hooks/useEditor";
 import cronstrue from 'cronstrue';
-import useAPI from "../../hooks/useAPI";
-import { triggerDetails } from "../../modules/common";
+import useAPI from "../../../hooks/useAPI";
+import { triggerDetails } from "../../../modules/common";
 
 function TriggerEditor({ open, adding, close, task_form, index }: { open: Trigger, adding?: boolean, close(): void, task_form: UseFormReturnType<Schedule>, index?: number } ) {
   const form = useForm<Trigger>({ validate: {

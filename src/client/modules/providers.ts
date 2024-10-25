@@ -17,12 +17,35 @@ export interface ContextProps {
     path?: string;
 }
 
+
+export interface providerConfigOptions {
+    type?: any;
+    placeholder?: string;
+}
+
+export interface providerConfigProps {
+    onChange: any;
+    value?: any;
+    defaultValue?: any;
+    checked?: any;
+    error?: any;
+    onFocus?: any;
+    onBlur?: any;
+    placeholder?: string;
+    unlock?(): void;
+    secure?: boolean;
+}
+
+export interface providerConfig {
+    props: (name: string, options?: providerConfigOptions) => providerConfigProps;
+}
+
 export interface provider {
     id: string;
     name: string;
     color?: string;
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
-    Options(props: { form: UseFormReturnType<Connector>, editing?: boolean, path?: string }): JSX.Element;
+    Options(props: providerConfig): JSX.Element;
     Context?(props: ContextProps): JSX.Element;
     initialValues?: Partial<Connector>;
     validate?: {[value: string]: (...v: unknown[]) => unknown};

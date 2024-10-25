@@ -20,6 +20,7 @@ import Connectors from "./routes/Schema/Connectors/Connectors";
 import TemplateExplorer from "./components/TemplateExplorer";
 import Rules from "./routes/Schema/Rules/Rules";
 import Editor from "./routes/Schema/Rules/Editor";
+import Schedules from "./routes/Schema/Schedules/Schedules";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -111,6 +112,9 @@ export default function AppShell() {
             </Route>
             <Route path="/app/:schema/rules/edit/:rule">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Editor} />}
+            </Route>
+            <Route path="/app/:schema/schedules">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Schedules} />}
             </Route>
         </Route>
         </>}

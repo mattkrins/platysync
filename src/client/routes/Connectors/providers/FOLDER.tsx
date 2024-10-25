@@ -1,21 +1,18 @@
-import { TextInput, Input, SegmentedControl, Select } from "@mantine/core";
+import { Select } from "@mantine/core";
 import { IconFolder } from "@tabler/icons-react";
-import { UseFormReturnType } from "@mantine/form";
-import useTemplater from "../../../hooks/useTemplater";
+import { providerConfig } from "../../../modules/providers";
+import ExtTextInput from "../../../components/ExtTextInput";
 
-export default function FOLDER( { form, path }: { form: UseFormReturnType<Connector>, path?: string } ) {
-    const { templateProps, explorer } = useTemplater({names:[]});
+export default function FOLDER( { props }: providerConfig ) {
     return (
-    <>  {explorer}
-        <TextInput
+    <>
+        <ExtTextInput
             label="Folder Path"
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            placeholder="C:/folder/input/"
-            withAsterisk {...templateProps(form, `${path||''}path`)}
-            error={form.getInputProps(`${path||''}path`).error||templateProps(form, `${path||''}path`).error}
+            withAsterisk {...props("path", { placeholder: "C:/folder/" })}
         />
         <Select mt="xs" label="Iterate Over" withAsterisk
-            {...form.getInputProps(`${path||''}type`)}
+            {...props("type")}
             defaultValue="Files"
             data={[
                 { label: 'Files', value: 'file' },

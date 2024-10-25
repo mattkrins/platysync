@@ -16,6 +16,7 @@ const tabs: { [k: string]: link[] } = {
         { link: "/files", route: "/app/:schema/files/:*", label: "Files", icon: IconFiles },
         { link: "/connectors", route: "/app/:schema/connectors/:*", label: "Connectors", icon: IconPlug },
         { link: "/rules", route: "/app/:schema/rules/:*", label: "Rules", icon: IconLicense },
+        { link: "/schedules", route: "/app/:schema/schedules/:*", label: "Schedule", icon: IconHistory },
     ],
     general: [
         { link: "/settings", route: "/settings", label: "Settings", icon: IconAdjustmentsHorizontal },

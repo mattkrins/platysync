@@ -1,47 +1,41 @@
-import { TextInput, SimpleGrid, Anchor, Text, NumberInput } from "@mantine/core";
-import { IconClock, IconFolder, IconSchool, IconSearch, IconServer, IconTableColumn, IconUser, IconWorld } from "@tabler/icons-react";
-import { UseFormReturnType } from "@mantine/form";
+import { TextInput, SimpleGrid, NumberInput } from "@mantine/core";
+import { IconClock, IconSchool, IconUser } from "@tabler/icons-react";
 import SecurePasswordInput from "../../../components/SecurePasswordInput";
-import { ldap_options } from "../../../../server/components/providers/LDAP";
 import Concealer from "../../../components/Concealer";
-import SelectConnector from "../../../components/SelectConnector";
+import { providerConfig } from "../../../modules/providers";
 
-export default function STMC( { form, path }: { form: UseFormReturnType<Connector|ldap_options>, path?: string } ) {
+export default function STMC( { props }: providerConfig ) {
     return (
     <>
         <SimpleGrid mt="sm" cols={{ base: 1, sm: 2 }} >
             <TextInput withAsterisk
                 label="Username"
-                placeholder="ST01235"
                 leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...form.getInputProps(`${path||''}username`)}
+                {...props("username", { placeholder: "ST01235" })}
             />
             <SecurePasswordInput withAsterisk
                 label="Password"
-                placeholder="password"
-                secure={!!form.values.password&&typeof form.values.password !== 'string'}
-                unlock={()=>form.setFieldValue(`${path||''}password`, "")}
-                {...form.getInputProps(`${path||''}password`)}
+                {...props("password", { type: "password", placeholder: "User Password" })}
             />
         </SimpleGrid>
         <TextInput mt="sm"
             label="School Identification Number"
             leftSection={<IconSchool size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            placeholder="1234"
-            withAsterisk {...form.getInputProps(`${path||''}school`)}
+            withAsterisk {...props("school", { placeholder: "1234" })}
         />
-        <SelectConnector mt="sm"
-            {...form.getInputProps(`${path||''}eduhub`)} ids={["csv"]} clearable
-            label="Match Eduhub" description="Match against eduhub making the _stkey header available."
-        />
+        {
+        //<SelectConnector mt="sm"
+        //    {...props("eduhub", { placeholder: "" })} ids={["csv"]} clearable
+        //    label="Match Eduhub" description="Match against eduhub making the _stkey header available."
+        ///>
+        }
         <Concealer>
             <NumberInput mt="sm"
                 label="Caching Policy"
                 description="Minutes to wait before invalidating downloaded cache."
                 leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                placeholder="1440 (1 day)"
                 min={1}
-                {...form.getInputProps(`${path||''}cache`)}
+                {...props("cache", { placeholder: "1440 (1 day)" })}
             />
         </Concealer>
     </>);

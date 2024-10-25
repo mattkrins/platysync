@@ -2,7 +2,7 @@ import { ActionIcon, Alert, Anchor, Button, Center, Grid, Group, Loader, Modal, 
 import Wrapper from "../../../components/Wrapper";
 import classes from './Editor.module.css';
 import { IconAlertCircle, IconCheck, IconDeviceFloppy, IconGripVertical, IconKey, IconPlayerSkipForward, IconPlus, IconRecycle, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
-import { provider, providers } from "../../../modules/providers";
+import { provider, providerConfigOptions, providerConfigProps, providers } from "../../../modules/providers";
 import { useState } from "react";
 import { UseFormReturnType, useForm } from "@mantine/form";
 import SplitButton from "../../../components/SplitButton";
@@ -141,22 +141,30 @@ function ConfigButton( { save, loading, validate, force }: { save(): void, loadi
 }
 
 function Configure({ provider: { validate, initialValues, id, Options }, config, setConfig }: { provider: provider, config?: Partial<Connector>, setConfig(config: object): void }) {
-    const form = useForm<Connector>({ validate, initialValues: (config||initialValues) as Connector });
-    const save = () => post().then(()=>setConfig({ ...form.values, id, headers: [] }));
-    const force = () => setConfig({ ...form.values, id, headers: [] });
-    const { data: valid, post, error, loading } = useAPI({ url: `/connector/validate?creating=true`, form, data: { id }, schema: true, });
-    return <>
-        {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
-        {!!valid&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Validated successfully.</Alert>}
-        <TextInput withAsterisk mb="xs"
-            label="Connector Name"
-            placeholder="name"
-            leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            {...form.getInputProps('name')}
-        />
-        <Options form={form} />
-        <Group mt="xs" justify="flex-end"><ConfigButton loading={loading} save={save} validate={post} force={force} /></Group>
-    </>
+  const form = useForm<Connector>({ validate, initialValues: (config||initialValues) as Connector });
+  const save = () => post().then(()=>setConfig({ ...form.values, id, headers: [] }));
+  const force = () => setConfig({ ...form.values, id, headers: [] });
+  const { data: valid, post, error, loading } = useAPI({ url: `/connector/validate?creating=true`, form, data: { id }, schema: true, });
+  const props = (name: string, options?: providerConfigOptions) => {
+    const props: providerConfigProps = form.getInputProps(name, options);
+    if (options?.type === "password") {
+      props.secure = !!props.value && typeof props.value !== 'string';
+      props.unlock = () => form.setFieldValue(name, "");
+    }
+    return {...props, placeholder: options?.placeholder };
+  }
+  return <>
+      {error&&<Alert mb="xs" icon={<IconAlertCircle size={32} />} color="red">{error}</Alert>}
+      {!!valid&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Validated successfully.</Alert>}
+      <TextInput withAsterisk mb="xs"
+          label="Connector Name"
+          placeholder="name"
+          leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
+          {...form.getInputProps('name')}
+      />
+      <Options props={props} />
+      <Group mt="xs" justify="flex-end"><ConfigButton loading={loading} save={save} validate={post} force={force} /></Group>
+  </>
 }
 
 function NewConnector({ close }: { close(): void, }) {
@@ -205,6 +213,14 @@ function EditConnector({ provider: { validate, Options }, initialValues, close }
   const loading = l1||l2;
   const save = () => { form.validate(); if (form.isValid()) put(); }
   const force = () => put({append:"?force=true"});
+  const props = (name: string, options?: providerConfigOptions) => {
+    const props: providerConfigProps = {...form.getInputProps(name, options)};
+    if (options?.type === "password") {
+      props.secure = !!props.value && typeof props.value !== 'string';
+      props.unlock = () => form.setFieldValue(name, "");
+    }
+    return {...props, placeholder: options?.placeholder };
+  }
   return (
   <>
     {!!valid&&<Alert mb="xs" icon={<IconCheck size={32} />} color="green">Validated successfully.</Alert>}
@@ -216,7 +232,7 @@ function EditConnector({ provider: { validate, Options }, initialValues, close }
         leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
         {...form.getInputProps('name')}
     />
-    <Options form={form} path="" />
+    <Options props={props} />
     <Concealer label="Headers" onClick={toggle} isOpen={opened} >{opened&&<Headers initialValues={initialValues} editing={form} />}</Concealer>
     <Group justify="right" mt="md">
       <SplitButton disabled={form.values.headers.length<=0} loading={loading} onClick={()=>save()} leftSection={<IconDeviceFloppy size={16}  />} options={[
