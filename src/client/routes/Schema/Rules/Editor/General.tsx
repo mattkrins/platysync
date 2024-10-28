@@ -1,5 +1,5 @@
 import { ActionIcon, Box, Grid, Select, TextInput } from '@mantine/core'
-import { IconSettings, IconTag } from '@tabler/icons-react'
+import { IconKey, IconSettings, IconTag } from '@tabler/icons-react'
 import { editorTab } from './Editor'
 import SelectConnector from '../../../../components/SelectConnector';
 import { useConnectors } from '../../../../hooks/redux';
@@ -14,6 +14,7 @@ export default function General({ form }: editorTab) {
     }
     const { proConnectors } = useConnectors();
     const primary = useMemo(()=>proConnectors.find((item) => item.name === form.values.primary), [ form.values.primary ]);
+    const primaryHeaders = primary ? primary.headers : [];
     return (
     <Box>
         <TextInput

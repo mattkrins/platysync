@@ -27,11 +27,6 @@ const blankRule: Rule = {
   primaryOverrides: {}
 };
 
-function Settings() {return <></>}
-function Conditions() {return <></>}
-function Actions() {return <></>}
-function Headers() {return <></>}
-
 function ActionButton( { loading, save, test, cancel, clickExport, openImporter }: { loading?: boolean, save(): void, test(): void, cancel(): void, clickExport(): void, openImporter(): void } ) {
   const theme = useMantineTheme();
   return (
@@ -61,7 +56,7 @@ export default function Editor({ params }: { params: Record<string, string> }) {
   const dirty = form.isTouched();
 
   const cancel = () => {  setLocation(editing ? `${location}/../../../rules` : `${location}/../../rules`); };
-  const safeCancel = () => !dirty ? modals.openConfirmModal({
+  const safeCancel = () => dirty ? modals.openConfirmModal({
       title: 'Attention: Unsaved Changes Detected', centered: true,
       labels: { confirm: 'Close', cancel: "Cancel" }, confirmProps: { color: 'red' },
       children: (
