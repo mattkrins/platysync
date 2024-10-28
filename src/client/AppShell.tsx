@@ -19,7 +19,7 @@ import Secrets from "./routes/General/Secrets/Secrets";
 import Connectors from "./routes/Schema/Connectors/Connectors";
 import TemplateExplorer from "./components/TemplateExplorer";
 import Rules from "./routes/Schema/Rules/Rules";
-import Editor from "./routes/Schema/Rules/Editor";
+import Editor from "./routes/Schema/Rules/Editor/Editor";
 import Schedules from "./routes/Schema/Schedules/Schedules";
 
 function AppLoader() {
