@@ -43,14 +43,14 @@ interface Connector {
 }
 
 interface Context {
-    name: string;
+    name: string|null;
     [k: string]: unknown;
 }
 
 interface Source {
-    foreignName: string;
+    foreignName: string|null;
     foreignKey?: string;
-    primaryName: string;
+    primaryName: string|null;
     primaryKey?: string;
     inCase?: boolean;
     require?: boolean;
@@ -111,7 +111,7 @@ interface Rule {
     display?: string;
     displayKey?: string;
     sources: Source[];
-    contexts: Context[];
+    //contexts: Context[];
     conditions: Condition[];
     initActions: Action[];
     iterativeActions: Action[];

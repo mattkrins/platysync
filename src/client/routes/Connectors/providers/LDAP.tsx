@@ -2,9 +2,8 @@ import { TextInput, SimpleGrid, Anchor, Text } from "@mantine/core";
 import { IconFolder, IconSearch, IconServer, IconTableColumn, IconUser, IconWorld } from "@tabler/icons-react";
 import SecurePasswordInput from "../../../components/SecurePasswordInput";
 import Concealer from "../../../components/Concealer";
-import useTemplater from "../../../hooks/useTemplater";
-import { ContextProps, providerConfig } from "../../../modules/providers";
-import { useRule } from "../../Rules/Editor/Editor";
+import { contextConfig, providerConfig } from "../../../modules/providers";
+import useRule from "../../../hooks/useRule";
 
 export default function LDAP( { props }: providerConfig ) {
     return (
@@ -54,17 +53,15 @@ export default function LDAP( { props }: providerConfig ) {
     </>);
 }
 
-export function LDAPContext( { form, sources, rule, path }: ContextProps ) {
-    const { templateProps, explorer } = useTemplater({names:sources});
+export function LDAPContext( { props, rule }: contextConfig) {
     const { displayExample } = useRule(rule);
     return (
-    <>  {explorer}
+    <>
         <TextInput mt="sm"
         label="User Search Filter"
         description={<>The <Anchor href='https://ldap.com/ldap-filters/' size="xs" target='_blank' >filter</Anchor> used to search for / target individual users.</>}
-        placeholder={`(&(objectclass=person)(sAMAccountName=${displayExample}))`}
         leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }} />}
-        {...templateProps(form, path ? `${path}.userFilter` : 'userFilter' )}
+        {...props("userFilter", { placeholder: `( &(objectclass=person) ( sAMAccountName=${displayExample} ) )` })}
         />
     </>);
 }

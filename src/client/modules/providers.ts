@@ -40,15 +40,22 @@ export interface providerConfig {
     props: (name: string, options?: providerConfigOptions) => providerConfigProps;
 }
 
+export interface contextConfig extends providerConfig {
+    rule: Rule;
+}
+
 export interface provider {
     id: string;
     name: string;
     color?: string;
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
     Options(props: providerConfig): JSX.Element;
-    Context?(props: ContextProps): JSX.Element;
+    Context?(props: contextConfig): JSX.Element;
     initialValues?: Partial<Connector>;
     validate?: {[value: string]: (...v: unknown[]) => unknown};
+}
+export interface cProvider extends provider, Connector {
+    pName: string;
 }
 
 export const providers: provider[] = [

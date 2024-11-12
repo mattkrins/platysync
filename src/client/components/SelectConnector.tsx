@@ -13,14 +13,16 @@ export interface SelectConnectorProps extends InputBaseProps {
     onChange(value: string|null): void;
     Icon?: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
     rightSectionX?: JSX.Element;
-    connector?: string;
     placeholder?: string;
     withinPortal?: boolean;
     clearable?: boolean;
-    provider?: boolean;
+    /** Only list connectors from this name array */
     names?: string[];
+    /** Only list connectors from this type/id array */
     ids?: string[];
+    /** Do not list connectors from this name array */
     removeNames?: string[];
+    /** Do not list connectors from this type/id array */
     removeIds?: string[];
     width?: number|string;
     position?: FloatingPosition;
@@ -43,7 +45,7 @@ function SelectOption({ name, cName, Icon, color, inactive }: Item&{ inactive?: 
     );
 }
 
-export default function SelectConnector( { value, width, position, onChange, Icon, placeholder, clearable, provider, names, ids, removeNames, removeIds, rightSectionX, ...props }: SelectConnectorProps ) {
+export default function SelectConnector( { value, width, position, onChange, Icon, placeholder, clearable, names, ids, removeNames, removeIds, rightSectionX, ...props }: SelectConnectorProps ) {
     const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption(), });
     const connectors = useSelector(getConnectors);
     const proConnectors = useMemo(()=>connectors.map(({name, ...c})=>({ ...(providers.find(p=>p.id===c.id) as provider), ...c, cName: name })),[ connectors ]);

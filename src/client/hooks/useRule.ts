@@ -1,9 +1,16 @@
-import { UseFormReturnType } from "@mantine/form";
-import { useConnectors } from "./redux";
 import { useMemo } from "react";
+import { useConnectors } from "./redux";
 
-export default function useRule( form: UseFormReturnType<Rule> ) {
+export default function useRule(rule: Rule) {
     const { proConnectors } = useConnectors();
-    const primary = useMemo(()=>proConnectors.find((item) => item.name === form.values.primary), [ form.values.primary ]);
-    return { primary };
+    const primary = useMemo(()=>proConnectors.find((item) => item.name === rule.primary), [ rule.primary ]);
+    const primaryHeaders = primary ? primary.headers : [];
+    const displayExample = `{{${rule.primary?`${rule.primary}.`:''}${rule.primaryKey ? rule.primaryKey :  (primaryHeaders[0] ? primaryHeaders[0] : 'id')}}}`;
+    const sources = useMemo(()=> rule.primary ? [
+        rule.primary,
+        ...(rule.sources || []).map(s=>s.foreignName as string),
+        //...(rule.contexts || []).map(s=>s.name as string),
+    ] : [], [ rule ] );
+    const sourceProConnectors = useMemo(()=>proConnectors.filter(c=>sources.includes(c.name)), [ sources ]);
+    return { proConnectors, primary, primaryHeaders, displayExample, sources, sourceProConnectors };
 }

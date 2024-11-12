@@ -5,10 +5,8 @@ import { useLocation } from "wouter";
 import SplitButton from "../../../components/SplitButton";
 import { UseFormReturnType, isNotEmpty, useForm } from "@mantine/form";
 import { useMemo, useState } from "react";
-import Settings from "./Settings";
 import { modals } from "@mantine/modals";
 import Conditions from "./Conditions";
-import Headers from "./Columns";
 import { useConnectors, useDispatch } from "../../../hooks/redux";
 import Actions from "./Actions";
 import Run from "../../../components/Run/Run";
@@ -126,10 +124,8 @@ export default function Editor({ editing, close }: { editing: [Rule,boolean], cl
                     <Tabs.Tab value="actions" leftSection={<IconRun size="1rem" />}>Actions</Tabs.Tab>
                     <Tabs.Tab value="columns" disabled={!form.values.primary} leftSection={<IconTable size="1rem" />}>Columns</Tabs.Tab>
                 </Tabs.List>
-                <Tabs.Panel value="settings" pt="xs" >{activeTab==="settings"&&<Settings form={form} setActiveTab={setActiveTab} />}</Tabs.Panel>
                 <Tabs.Panel value="conditions" pt="xs" >{activeTab==="conditions"&&<Conditions form={form} iterative />}</Tabs.Panel>
                 <Tabs.Panel value="actions" pt="xs" >{activeTab==="actions"&&<Actions form={form} setActiveTab={setActiveTab} />}</Tabs.Panel>
-                <Tabs.Panel value="columns" pt="xs" >{activeTab==="columns"&&<Headers form={form} />}</Tabs.Panel>
             </Tabs>
         </Wrapper>
     </Container>

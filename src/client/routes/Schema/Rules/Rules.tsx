@@ -106,7 +106,7 @@ function Rule({ index, rule: { name, enabled, ...rule }, refresh, run }: { index
                 </Grid.Col>
                 <Grid.Col span={2}>
                     <Group justify="end" gap={5} >
-                        {rule.primary&&<SourcesMap sources={[rule.primary as string,  ...rule.sources.map(s=>s.foreignName)]} />}
+                        {rule.primary&&<SourcesMap sources={[rule.primary as string,  ...rule.sources.map(s=>s.foreignName as string)]} />}
                     </Group>
                 </Grid.Col>
                 <Grid.Col span={7}>

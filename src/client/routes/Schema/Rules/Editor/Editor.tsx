@@ -1,9 +1,9 @@
 import { Anchor, Container, Group, Tabs, ThemeIcon, Title, Tooltip, Text, Badge, useMantineTheme } from "@mantine/core";
 import { IconAlertCircle, IconFilter, IconInfoCircle, IconPackageExport, IconPackageImport, IconRun, IconSettings, IconTable, IconTestPipe, IconX } from "@tabler/icons-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Wrapper from "../../../../components/Wrapper";
 import { isNotEmpty, useForm, UseFormReturnType } from "@mantine/form";
-import { useDispatch, useSelector } from "../../../../hooks/redux";
+import { useConnectors, useDispatch, useSelector } from "../../../../hooks/redux";
 import { getRules, loadRules } from "../../../../providers/schemaSlice";
 import { modals } from "@mantine/modals";
 import { useLocation } from "wouter";
@@ -14,6 +14,10 @@ import General from "./General";
 import Importer from "../../../../components/Importer";
 import { useDisclosure } from "@mantine/hooks";
 import Exporter from "../../../../components/Exporter";
+import Columns from "./Columns";
+import Conditions from "../../../../components/Conditions";
+import useRule from "../../../../hooks/useRule";
+import Actions from "./Actions";
 
 export interface editorTab {
   form: UseFormReturnType<Rule>;
@@ -23,7 +27,7 @@ export interface editorTab {
 
 const blankRule: Rule = {
   name: "", enabled: false, log: false,
-  sources: [], contexts: [], conditions: [], initActions: [], iterativeActions: [], finalActions: [], columns: [],
+  sources: [], conditions: [], initActions: [], iterativeActions: [], finalActions: [], columns: [],
   primaryOverrides: {}
 };
 
@@ -39,6 +43,14 @@ function ActionButton( { loading, save, test, cancel, clickExport, openImporter 
   )
 }
 
+function ConditionsTab({ form, setTab }: editorTab) {
+  const { proConnectors, sources } = useRule(form.values);
+  const ldap = useMemo(()=> {
+    return proConnectors.filter(c=>c.id==="ldap").map(c=>c.name)
+    .filter(c=>sources.includes(c)).length > 0;
+  },[ sources, proConnectors ]);
+  return <Conditions form={form} rule={form.values} ldap={ldap} />
+}
 
 export default function Editor({ params }: { params: Record<string, string> }) {
   const [importOpen, { open: openImporter, close: closeImporter }] = useDisclosure(false);
@@ -49,7 +61,7 @@ export default function Editor({ params }: { params: Record<string, string> }) {
   const [tab, setTab] = useState<string | null>('general');
   const [testing, setTest] = useState<Rule | undefined>(undefined);
   const [exporting, setExporting] = useState<Rule|undefined>(undefined);
-  const rule = editing ? (rules.find(r=>r.name===params.rule)||blankRule) : blankRule;
+  const rule = editing ? (rules.find(r=>r.name===params.rule)) : blankRule;
   const form = useForm<Rule>({ validate: {
     name: isNotEmpty('Name must not be empty.'),
   }, initialValues: structuredClone(rule) });
@@ -68,14 +80,13 @@ export default function Editor({ params }: { params: Record<string, string> }) {
       onConfirm: () => cancel(),
   }) : cancel();
 
-
   const { post, put, error, loading } = useAPI({
-    url: `/rule${editing?`/${rule.name}`:''}`, form, schema: true,
+    url: `/rule${editing?`/${rule?.name}`:''}`, form, schema: true,
     then: () => { dispatch(loadRules()); cancel();  }
   });
   const clickExport = () => setExporting(form.values);
   const onImport = ({name, ...rule}: Rule) => { form.setValues(rule); closeImporter(); };
-
+  if (editing && !rule) return <Title c="red" >ERROR! You should go <Anchor onClick={()=>cancel()} >Back</Anchor></Title>
   return (
     <Container size="lg">
         <Importer title="Import Schema" opened={importOpen} close={closeImporter} onImport={onImport} json accept={['application/json']} />
@@ -100,9 +111,9 @@ export default function Editor({ params }: { params: Record<string, string> }) {
                     <Tabs.Tab value="columns" disabled={!form.values.primary} leftSection={<IconTable size="1rem" />}>Columns</Tabs.Tab>
                 </Tabs.List>
                 <Tabs.Panel value="general" pt="xs" >{tab==="general"&&<General form={form} setTab={setTab} />}</Tabs.Panel>
-                <Tabs.Panel value="conditions" pt="xs" >{tab==="conditions"&&<General form={form} iterative setTab={setTab} />}</Tabs.Panel>
-                <Tabs.Panel value="actions" pt="xs" >{tab==="actions"&&<General form={form} setTab={setTab} />}</Tabs.Panel>
-                <Tabs.Panel value="columns" pt="xs" >{tab==="columns"&&<General form={form} setTab={setTab} />}</Tabs.Panel>
+                <Tabs.Panel value="conditions" pt="xs" >{tab==="conditions"&&<ConditionsTab form={form} setTab={setTab} />}</Tabs.Panel>
+                <Tabs.Panel value="actions" pt="xs" >{tab==="actions"&&<Actions form={form} setTab={setTab} />}</Tabs.Panel>
+                <Tabs.Panel value="columns" pt="xs" >{tab==="columns"&&<Columns form={form} setTab={setTab} />}</Tabs.Panel>
             </Tabs>
         </Wrapper> 
     </Container>

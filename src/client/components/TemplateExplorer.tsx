@@ -1,10 +1,10 @@
-import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Drawer, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton, useMantineTheme } from '@mantine/core'
 import { useTemplater } from '../context/TemplateContext';
 import { ForwardRefExoticComponent, RefAttributes, useMemo, useState } from 'react';
-import { Icon, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconListDetails, IconProps, IconSearch } from '@tabler/icons-react';
+import { Icon, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconListDetails, IconPlug, IconProps, IconSearch } from '@tabler/icons-react';
 import classes from './TemplateExplorer.module.css';
-import { useSelector } from '../hooks/redux';
-import { getFiles, getsDictionary, getsSecrets } from '../providers/schemaSlice';
+import { useConnectors, useSelector } from '../hooks/redux';
+import { getConnectors, getFiles, getsDictionary, getsSecrets } from '../providers/schemaSlice';
 import { getDictionary, getSecrets } from '../providers/appSlice';
 import { useDisclosure } from '@mantine/hooks';
 import { genericHelpers, pathHelpers, ruleHelpers } from '../modules/handlebars';
@@ -34,12 +34,13 @@ interface SectionProps {
     onClick(): void;
     open?: boolean;
     label: string;
+    description?: string;
     color?: string;
     Icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
     Ricon?: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
 }
 
-function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
+function Section({ onClick, open, label, color, Icon, Ricon, description }: SectionProps ) {
     return (
     <UnstyledButton onClick={onClick} className={classes.connector} p="xs" mt="xs" >
     <Group>
@@ -47,6 +48,7 @@ function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
             <Icon size={17} color={color||"grey"} />
         </Box>
         <div style={{ flex: 1 }}><Text size="sm">{label}</Text></div>
+        {description&&<div><Text size="xs" c="dimmed" truncate="end">{description}</Text></div>}
         {open!==undefined&&<IconChevronRight size={17} stroke={1.5} style={{transform: open ? `rotate(${90}deg)` : 'none',}} />}
         {Ricon&&<Ricon size={17} stroke={1.5}/>}
     </Group>
@@ -78,10 +80,12 @@ function FSection({ label, path, list, search, Icon }: FSectionProps) {
 }
 
 export default function TemplateExplorer() {
+    const theme = useMantineTheme();
     const [ searchValue, search ] = useState<string>('');
-    const { close, opened, input, inRule, template } = useTemplater();
+    const { input, rule, buildTemplate } = useTemplater();
     const [ exploreAll, { toggle: toggleAll } ] = useDisclosure();
     const [ viewHelpers, { toggle: toggleHelpers } ] = useDisclosure();
+    const { proConnectors } = useConnectors();
     const files = useSelector(getFiles);
     const sdict = useSelector(getsDictionary);
     const ssec = useSelector(getsSecrets);
@@ -92,10 +96,13 @@ export default function TemplateExplorer() {
         input.focus();
         document.execCommand('insertText', false, quote ? `{{${value}}}` : value);
     }
-    const flattenedTemplate = useMemo(()=>flattenTemplate(template),[ template ]);
+    const flattenedTemplate = useMemo(()=>flattenTemplate(buildTemplate(rule)),[ buildTemplate, rule ]);
     const tags = useMemo(()=>flattenedTemplate.filter(item => item.toLowerCase().includes(searchValue.toLowerCase()) ),[ flattenedTemplate, searchValue ]);
+    const sources = useMemo(()=> rule?.primary ? [ rule.primary, ...(rule?.sources || []).map(s=>s.foreignName as string) ] : [], [ rule ] );
+    const ruleConnectors = useMemo(()=>proConnectors.filter(item => sources.includes(item.name) ),[ proConnectors, sources ]);
+
     return (
-    <Drawer zIndex={300} position="right" size="lg" opened={opened} onClose={close} overlayProps={{ opacity: 0.2}} title={<Group><Text>Template Explorer</Text></Group>} >
+    <Box>
         <TextInput
         leftSection={<IconSearch size={16} style={{ display: 'block', opacity: 0.5 }}/>}
         placeholder="Search" onChange={event=>search(event.target.value)} value={searchValue}
@@ -109,13 +116,14 @@ export default function TemplateExplorer() {
         {tags.map(item => (<Button onClick={()=>add(item)} variant="default" radius="xl" size="compact-xs" key={item}>{item}</Button>))}
         </Flex>:
         <>
+            {ruleConnectors.map(c=><Section label={c.name} description={c.pName} Icon={c.Icon} color={theme.colors[c.color||"grey"][6]} Ricon={IconPlug} onClick={()=>search(`${c.name}.`)} />)}
             {files.length>0&&<FSection label="Files" path="file" Icon={IconFiles} list={files.map(f=>({ key: f.key||f.name, description: f.path }))} search={search} />}
             <FSection label="Paths" path="path" Icon={IconFolderCode} list={pathHelpers.map(f=>({ ...f, value: f.example }))} search={search} />
             {sdict.length>0&&<FSection label="Schema Dictionary" path="sdict" Icon={IconBook2} list={sdict} search={search} />}
             {ssec.length>0&&<FSection label="Schema Secrets" path="ssec" Icon={IconKey} list={ssec.map(f=>({ key: f.key }))} search={search} />}
             {gdict.length>0&&<FSection label="Global Dictionary" path="gdict" Icon={IconBook2} list={gdict} search={search} />}
             {gsec.length>0&&<FSection label="Global Secrets" path="gsec" Icon={IconKey} list={gsec.map(f=>({ key: f.key }))} search={search} />}
-            {inRule&&<FSection label="Rule Helpers" path="rule" Icon={IconLicense} list={ruleHelpers.map(f=>({ ...f, value: f.example }))} search={search} />}
+            {rule&&<FSection label="Rule Helpers" path="rule" Icon={IconLicense} list={ruleHelpers.map(f=>({ ...f, value: f.example }))} search={search} />}
             <Section open={viewHelpers} label="Global Helpers" Icon={IconBraces} onClick={toggleHelpers} />
             <Collapse mt="xs" in={viewHelpers}>
                 {genericHelpers.map(helper=>
@@ -126,6 +134,6 @@ export default function TemplateExplorer() {
                 </UnstyledButton>)}
             </Collapse>
         </>}
-        </Drawer>
+        </Box>
     )
 }

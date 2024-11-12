@@ -1,9 +1,8 @@
-import { UseFormReturnType } from '@mantine/form';
 import { createContext, useContext } from 'react';
 
 export interface openExplorerProps {
   input?: HTMLInputElement|null
-  rule?: UseFormReturnType<Rule>;
+  rule?: Rule;
   scope?: string[],
 }
 
@@ -12,11 +11,11 @@ interface TemplateContext {
     open(input?: openExplorerProps): void,
     close(): void,
     setInput(input: HTMLInputElement): void,
+    setRule(rule: Rule): void,
     input?: HTMLInputElement,
-    scope: string[],
-    inRule: boolean,
-    validate: (value?: string) => string | undefined,
-    template: {
+    rule?: Rule,
+    validate: (value?: string, rule?: Rule) => string | undefined,
+    buildTemplate: (rule?: Rule) => {
       [k: string]: string | {[k: string]: string};
     }
   }
@@ -26,10 +25,10 @@ export const TemplateContext = createContext<TemplateContext>({
     open(){},
     close(){},
     setInput(){},
-    scope: [],
-    inRule: false,
+    setRule(){},
+    rule: undefined,
     validate: () => 'error',
-    template: {},
+    buildTemplate: () => ({}),
 });
 
 export const useTemplater = () => {

@@ -1,4 +1,4 @@
-import { Alert, Code, Container, LoadingOverlay, AppShell as Shell } from "@mantine/core";
+import { Alert, Code, Container, Drawer, Group, LoadingOverlay, AppShell as Shell, Text } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import { Redirect, Route, Switch } from "wouter";
 import { useDispatch, useSelector } from "./hooks/redux";
@@ -21,6 +21,7 @@ import TemplateExplorer from "./components/TemplateExplorer";
 import Rules from "./routes/Schema/Rules/Rules";
 import Editor from "./routes/Schema/Rules/Editor/Editor";
 import Schedules from "./routes/Schema/Schedules/Schedules";
+import { useTemplater } from "./context/TemplateContext";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -42,11 +43,14 @@ function SetupRedirect() {
 }
 
 function ShellWrap({ params, section, setSection, Component }: { params: Record<string, string>, section: string, setSection(s: string): void, Component(params: any): JSX.Element }) {
+    const { close, opened } = useTemplater();
     return (
     <Shell navbar={{ width: 280, breakpoint: 0 }}>
         <Shell.Navbar><Navbar params={params} section={section} setSection={setSection} /></Shell.Navbar>
         <Shell.Main className={classes.main} >
-            <TemplateExplorer/>
+            <Drawer zIndex={300} position="right" size="lg" opened={opened} onClose={close} overlayProps={{ opacity: 0.2}} title={<Group><Text>Template Explorer</Text></Group>} >
+                {opened&&<TemplateExplorer/>}
+            </Drawer>
             <Component params={params} />
         </Shell.Main>
     </Shell>
