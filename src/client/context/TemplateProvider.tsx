@@ -1,6 +1,6 @@
 import { useDisclosure } from "@mantine/hooks";
 import { openExplorerProps, TemplateContext } from "./TemplateContext";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useConnectors, useSelector } from "../hooks/redux";
 import { compile, pathHelpers, ruleHelpers } from "../modules/handlebars";
 import { getDictionary, getSecrets } from "../providers/appSlice";
@@ -8,7 +8,7 @@ import { getFiles, getsDictionary, getsSecrets } from "../providers/schemaSlice"
 
 type key = {[k: string]: string}
 
-function useTemplate({ rule }: { rule?: Rule }){
+function useTemplate({ rule }: { rule?: Rule }){ //TODO - add inrule templates
     const files = useSelector(getFiles);
     const sdict = useSelector(getsDictionary);
     const ssec = useSelector(getsSecrets);

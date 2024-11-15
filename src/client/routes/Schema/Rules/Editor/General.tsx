@@ -18,6 +18,7 @@ function ConnectorOverrides({ provider: { Options, ...config }, form }: { provid
             props.secure = !!props.value && typeof props.value !== 'string';
             props.unlock = () => form.setFieldValue(`overrides.${name}`, "");
         }
+        if (config[name]) props.placeholder = String(config[name])
         return {...props, placeholder: config[name] ? String(config[name]) : options?.placeholder };
     }
     return (

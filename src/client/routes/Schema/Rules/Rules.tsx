@@ -33,7 +33,7 @@ function IconMap({ actions }: { actions: Action[] }){
     {actions.map((action,key)=>{
         const act = availableActions.find(a=>a.name===action.name);
         if (!act) return <><IconExclamationCircle color="red" size={16}/></>;
-        return <Tooltip key={`${key}${action.name}`} fz="xs" withArrow label={action.display||action.name}>
+        return <Tooltip key={`${key}${action.id}`} fz="xs" withArrow label={action.name||action.id}>
             <act.Icon color={act.color?theme.colors[act.color][6]:undefined} size={16} stroke={2} />
         </Tooltip>
     })}

@@ -22,6 +22,7 @@ import Rules from "./routes/Schema/Rules/Rules";
 import Editor from "./routes/Schema/Rules/Editor/Editor";
 import Schedules from "./routes/Schema/Schedules/Schedules";
 import { useTemplater } from "./context/TemplateContext";
+import Blueprints from "./routes/Schema/Blueprints/Blueprints";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -101,6 +102,9 @@ export default function AppShell() {
             </Route>
             <Route path="/app/:schema/secrets">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={SSecrets} />}
+            </Route>
+            <Route path="/app/:schema/blueprints">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Blueprints} />}
             </Route>
             <Route path="/app/:schema/files">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Files} />}

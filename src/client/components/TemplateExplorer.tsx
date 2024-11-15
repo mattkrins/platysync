@@ -4,7 +4,7 @@ import { ForwardRefExoticComponent, RefAttributes, useMemo, useState } from 'rea
 import { Icon, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconListDetails, IconPlug, IconProps, IconSearch } from '@tabler/icons-react';
 import classes from './TemplateExplorer.module.css';
 import { useConnectors, useSelector } from '../hooks/redux';
-import { getConnectors, getFiles, getsDictionary, getsSecrets } from '../providers/schemaSlice';
+import { getFiles, getsDictionary, getsSecrets } from '../providers/schemaSlice';
 import { getDictionary, getSecrets } from '../providers/appSlice';
 import { useDisclosure } from '@mantine/hooks';
 import { genericHelpers, pathHelpers, ruleHelpers } from '../modules/handlebars';

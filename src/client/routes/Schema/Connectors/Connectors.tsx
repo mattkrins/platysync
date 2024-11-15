@@ -35,9 +35,9 @@ function Entry({ index, entry: { id, name, ...options }, edit, refresh }: { inde
             for (const source of rule.sources||[]) {
                 if (source.foreignName === name) return `rule '${rule.name}' secondary connectors`;
             }
-            for (const context of rule.contexts||[]) {
-                if (context.name === name) return `rule '${rule.name}' additional connectors`;
-            }
+            //for (const context of rule.contexts||[]) {
+            //    if (context.name === name) return `rule '${rule.name}' additional connectors`;
+            //}
         }
     });
 

@@ -29,7 +29,7 @@ import LdapUpdateAccount from "../routes/Rules/Editor/actions/LdapUpdateAccount"
 import LdapMoveOU from "../routes/Rules/Editor/actions/LdapMoveOU";
 import TransAPIRequest from "../routes/Rules/Editor/actions/TransAPIRequest";
 import SysWriteCSV from "../routes/Rules/Editor/actions/SysWriteCSV";
-
+//TODO - retire this module
 export interface availableCategory {
     id: string,
     name: string,

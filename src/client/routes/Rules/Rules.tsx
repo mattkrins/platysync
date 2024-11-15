@@ -33,7 +33,7 @@ function IconMap({ actions }: { actions: Action[] }){
     {actions.map((action,key)=>{
         const act = availableActions.find(a=>a.name===action.name);
         if (!act) return <><IconExclamationCircle color="red" size={16}/></>;
-        return <Tooltip key={`${key}${action.name}`} fz="xs" withArrow label={action.display||action.name}>
+        return <Tooltip key={`${key}${action.name}`} fz="xs" withArrow label={action.name||action.id}>
             <act.Icon color={act.color?theme.colors[act.color][6]:undefined} size={16} stroke={2} />
         </Tooltip>
     })}
@@ -183,7 +183,7 @@ export default function Rules() {
     const add = () => {
         setEditing([{
             name: "", enabled: false, log: false,
-            sources: [], contexts: [], conditions: [], initActions: [], iterativeActions: [], finalActions: [], columns: [],
+            sources: [], conditions: [], initActions: [], iterativeActions: [], finalActions: [], columns: [],
             primaryOverrides: {}
         },false]);
         setLocation("/edit");

@@ -85,13 +85,13 @@ interface ActionConfig {
 }
 
 interface Action {
-    name: string,
-    display?: string,
+    id: string,
+    name?: string,
     enabled?: boolean,
     noblock?: boolean,
     validate?: boolean,
     overwrite?: boolean,
-    config?: string,
+    blueprint?: string,
     [k: string]: unknown;
 }
 
@@ -165,7 +165,7 @@ interface Schema {
     dictionary: kvPair[];
     secrets: encryptedkvPair[];
     rules: Rule[];
-    actions: ActionConfig[];
+    blueprints: Action[];
     schedules: Schedule[];
 }
 

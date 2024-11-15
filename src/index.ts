@@ -18,7 +18,7 @@ import logs from './server/routes/logs';
 import file from './server/routes/schema/file';
 import connectors from './server/routes/connectors';
 import rule from './server/routes/rule';
-import action from './server/routes/action';
+import blueprint from './server/routes/blueprint';
 import socketioServer from "fastify-socket.io";
 import { Server } from "socket.io";
 import schedule from './server/routes/schedule';
@@ -82,7 +82,7 @@ async function routes(route: FastifyInstance) {
   if (dev) route.addHook('preHandler', (req, res, done: () => void) => setTimeout(done, 200) );
   addRoute(route, '/auth', auth, false);
   addRoute(route, '/schema/:schema_name/schedule', schedule);
-  addRoute(route, '/schema/:schema_name/action', action);
+  addRoute(route, '/schema/:schema_name/blueprint', blueprint);
   addRoute(route, '/schema/:schema_name/rule', rule);
   addRoute(route, '/schema/:schema_name/dictionary', sdictionary);
   addRoute(route, '/schema/:schema_name/secret', ssecrets);

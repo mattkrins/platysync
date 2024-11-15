@@ -11,7 +11,7 @@ export const initialState: Schema = {
   secrets: [],
   dictionary: [],
   rules: [],
-  actions: [],
+  blueprints: [],
   schedules: [],
 };
 
@@ -36,7 +36,8 @@ const schemaSlice = createSlice({
     getFiles: state => state.files,
     getsDictionary: state => state.dictionary,
     getsSecrets: state => state.secrets,
-    getActions: state => state.actions,
+    getActions: state => state.actions, //TODO - remove
+    getBlueprints: state => state.blueprints,
     getConnectors: state => state.connectors,
     getRules: state => state.rules,
     getSchedules: state => state.schedules,
@@ -44,7 +45,16 @@ const schemaSlice = createSlice({
 });
 
 export const { init, mutate } = schemaSlice.actions;
-export const { getName, getVersion, getFiles, getsDictionary, getsSecrets, getConnectors, getRules, getActions, getSchedules, } = schemaSlice.selectors;
+export const getName = schemaSlice.selectors.getName;
+export const getVersion = schemaSlice.selectors.getVersion;
+export const getFiles = schemaSlice.selectors.getFiles;
+export const getsDictionary = schemaSlice.selectors.getsDictionary;
+export const getsSecrets = schemaSlice.selectors.getsSecrets;
+export const getActions = schemaSlice.selectors.getActions;
+export const getConnectors = schemaSlice.selectors.getConnectors;
+export const getRules = schemaSlice.selectors.getRules;
+export const getBlueprints = schemaSlice.selectors.getBlueprints;
+export const getSchedules = schemaSlice.selectors.getSchedules;
 
 export default schemaSlice;
 
@@ -85,6 +95,7 @@ const load = (name: string) => async (dispatch: Dispatch, getState: ()=> RootSta
   }
 }
 
+export const loadsBlueprints = () => load("Blueprints");
 export const loadsDictionary = () => load("Dictionary");
 export const loadsSecrets = () => load("Secrets");
 export const loadFiles = () => load("Files");

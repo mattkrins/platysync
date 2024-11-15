@@ -69,7 +69,17 @@ const appSlice = createSlice({
 export default appSlice;
 
 export const { login, logout } = appSlice.actions;
-export const { isLoaded, isSetup, getError, getVersion, getDictionary, getSecrets, getSetup, getSchemas, getUser, getSettings, getLatestVersion } = appSlice.selectors;
+export const isLoaded = appSlice.selectors.isLoaded;
+export const isSetup = appSlice.selectors.isSetup;
+export const getError = appSlice.selectors.getError;
+export const getVersion = appSlice.selectors.getVersion;
+export const getDictionary = appSlice.selectors.getDictionary;
+export const getSecrets = appSlice.selectors.getSecrets;
+export const getSetup = appSlice.selectors.getSetup;
+export const getSchemas = appSlice.selectors.getSchemas;
+export const getUser = appSlice.selectors.getUser;
+export const getSettings = appSlice.selectors.getSettings;
+export const getLatestVersion = appSlice.selectors.getLatestVersion;
 
 export const loadApp = () => async (dispatch: Dispatch) => {
   dispatch(startLoading("App"));

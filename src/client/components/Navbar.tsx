@@ -1,5 +1,5 @@
 import { Avatar, Box, Group, SegmentedControl, Title, UnstyledButton, Text, Menu } from '@mantine/core';
-import { IconLicense, IconKey, IconUsers, Icon, IconHistory, IconFiles, IconPlug, IconChevronRight, IconAdjustmentsHorizontal, IconList, IconLogout, IconSwitchHorizontal } from '@tabler/icons-react';
+import { IconLicense, IconKey, IconUsers, Icon, IconHistory, IconFiles, IconPlug, IconChevronRight, IconAdjustmentsHorizontal, IconList, IconLogout, IconSwitchHorizontal, IconTemplate } from '@tabler/icons-react';
 import { useEffect } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
 import classes from './Navbar.module.css';
@@ -15,6 +15,7 @@ const tabs: { [k: string]: link[] } = {
         { link: "/secrets", route: "/app/:schema/secrets/:", label: "Secrets", icon: IconKey },
         { link: "/files", route: "/app/:schema/files/:*", label: "Files", icon: IconFiles },
         { link: "/connectors", route: "/app/:schema/connectors/:*", label: "Connectors", icon: IconPlug },
+        { link: "/blueprints", route: "/app/:schema/blueprints/:*", label: "Blueprints", icon: IconTemplate },
         { link: "/rules", route: "/app/:schema/rules/:*", label: "Rules", icon: IconLicense },
         { link: "/schedules", route: "/app/:schema/schedules/:*", label: "Schedule", icon: IconHistory },
     ],
