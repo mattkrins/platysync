@@ -11,17 +11,20 @@ export default function STMC( { props }: providerConfig ) {
             <TextInput withAsterisk
                 label="Username"
                 leftSection={<IconUser size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...props("username", { placeholder: "ST01235" })}
+                placeholder="ST01235"
+                {...props("username")}
             />
             <SecurePasswordInput withAsterisk
                 label="Password"
-                {...props("password", { type: "password", placeholder: "User Password" })}
+                placeholder="User Password"
+                {...props("password", { type: "password" })}
             />
         </SimpleGrid>
         <TextInput mt="sm"
             label="School Identification Number"
             leftSection={<IconSchool size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            withAsterisk {...props("school", { placeholder: "1234" })}
+            placeholder="1234"
+            withAsterisk {...props("school")}
         />
         {
         //<SelectConnector mt="sm"
@@ -35,7 +38,8 @@ export default function STMC( { props }: providerConfig ) {
                 description="Minutes to wait before invalidating downloaded cache."
                 leftSection={<IconClock size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                 min={1}
-                {...props("cache", { placeholder: "1440 (1 day)" })}
+                placeholder="1440 (1 day)"
+                {...props("cache")}
             />
         </Concealer>
     </>);

@@ -7,15 +7,15 @@ import { operationProps } from '../operations';
 export default function DocWritePDF( { props, rule, blueprint }: operationProps ) {
   return (
   <>
-    <ExtTextInput rule={rule}
-        label="Source File" withAsterisk={!blueprint?.source}
+    <ExtTextInput rule={rule} withAsterisk={!blueprint?.source}
+        label="Source File"
         description="Path of PDF to use as template."
         leftSection={<IconTemplate size={16} style={{ display: 'block', opacity: 0.8 }}/>}
         placeholder="D:/templates/input/user_template.pdf"
         {...props("source")}
     />
-    <ExtTextInput rule={rule}
-        label="Target File" withAsterisk={!blueprint?.target}
+    <ExtTextInput rule={rule} withAsterisk={!blueprint?.target}
+        label="Target File" mt="xs"
         description="Path of PDF to be written."
         leftSection={<IconFilePlus size={16} style={{ display: 'block', opacity: 0.8 }}/>}
         placeholder="D:/templates/ouput/{{username}}.pdf"

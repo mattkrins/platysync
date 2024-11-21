@@ -42,11 +42,6 @@ interface Connector {
     [k: string]: unknown;
 }
 
-interface Context {
-    name: string|null;
-    [k: string]: unknown;
-}
-
 interface Source {
     foreignName: string|null;
     foreignKey?: string;

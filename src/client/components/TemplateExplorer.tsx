@@ -82,7 +82,7 @@ function FSection({ label, path, list, search, Icon }: FSectionProps) {
 export default function TemplateExplorer() {
     const theme = useMantineTheme();
     const [ searchValue, search ] = useState<string>('');
-    const { input, rule, buildTemplate } = useTemplater();
+    const { input, rule, scope, buildTemplate } = useTemplater();
     const [ exploreAll, { toggle: toggleAll } ] = useDisclosure();
     const [ viewHelpers, { toggle: toggleHelpers } ] = useDisclosure();
     const { proConnectors } = useConnectors();
@@ -96,7 +96,7 @@ export default function TemplateExplorer() {
         input.focus();
         document.execCommand('insertText', false, quote ? `{{${value}}}` : value);
     }
-    const flattenedTemplate = useMemo(()=>flattenTemplate(buildTemplate(rule)),[ buildTemplate, rule ]);
+    const flattenedTemplate = useMemo(()=>flattenTemplate(buildTemplate(rule, scope)),[ buildTemplate, rule, scope ]);
     const tags = useMemo(()=>flattenedTemplate.filter(item => item.toLowerCase().includes(searchValue.toLowerCase()) ),[ flattenedTemplate, searchValue ]);
     const sources = useMemo(()=> rule?.primary ? [ rule.primary, ...(rule?.sources || []).map(s=>s.foreignName as string) ] : [], [ rule ] );
     const ruleConnectors = useMemo(()=>proConnectors.filter(item => sources.includes(item.name) ),[ proConnectors, sources ]);

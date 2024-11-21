@@ -10,17 +10,18 @@ export default function CSV( { props }: providerConfig ) {
         <ExtTextInput
             label="File Path"
             leftSection={<IconFile size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            withAsterisk {...props("path", { placeholder: "C:/folder/input.csv" })}
+            placeholder="C:/folder/input.csv"
+            withAsterisk {...props("path")}
         />
         <Concealer>
             <Checkbox mt="xs" label="Does not contain headers" {...props("noHeaders", { type: "checkbox" })} />
             <Select mt="xs"
                 label="Text Encoding"
                 defaultValue="utf8"
-                placeholder="Encoding"
                 data={['utf8', 'utf16le', 'latin1', 'base64', 'base64url', 'hex']}
                 leftSection={<IconTypography size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-                {...props("encoding", { placeholder: "Encoding" })}
+                placeholder="Encoding"
+                {...props("encoding")}
             />
         </Concealer>
     </>);

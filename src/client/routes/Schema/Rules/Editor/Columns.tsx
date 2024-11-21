@@ -36,7 +36,7 @@ function RequiredHeaders({ form }: { form: UseFormReturnType<Rule> }) {
         </Grid.Col>
         <Grid.Col span="auto" >
             <ExtTextInput
-                rule={form.values}
+                rule={form.values} scope="iterativeActions"
                 leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                 placeholder={displayExample}
                 {...form.getInputProps(`display`)}
@@ -65,7 +65,7 @@ function Template({ index, column, form }: { index: number, column: resultColumn
                 </Grid.Col>
                 <Grid.Col span="auto" >
                     <ExtTextInput
-                        rule={form.values}
+                        rule={form.values} scope="iterativeActions"
                         leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.5 }}/>}
                         placeholder="{{connector.header}}"
                         {...form.getInputProps(`columns.${index}.value`)}

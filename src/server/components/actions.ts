@@ -29,6 +29,7 @@ import LdapUpdateAttributes from "./actions/LdapUpdateAttributes";
 import LdapUpdateGroups from "./actions/LdapUpdateGroups";
 import SysWriteCSV from "./actions/SysWriteCSV";
 import TransAPIRequest from "./actions/TransAPIRequest";
+import SysDecryptString from "./actions/SysDecryptString";
 
 interface handle<type=unknown> {
   handle: type;
@@ -52,7 +53,7 @@ export interface props<type> {
 }
 
 export type operation = (props: props<any>) => Promise<result>;
-export const availableActions: { [k: string]: operation } = {
+export const availableOperations: { [k: string]: operation } = {
   'DocWritePDF': DocWritePDF,
   'DocPrintPDF': DocPrintPDF,
   'FileCopy': FileCopy,
@@ -74,6 +75,7 @@ export const availableActions: { [k: string]: operation } = {
   'StmcUpStuPass': StmcUpStuPass,
   'StmcUpStuPassBulk': StmcUpStuPassBulk,
   'SysComparator': SysComparator,
+  'SysDecryptString': SysDecryptString,
   'SysEncryptString': SysEncryptString,
   'SysRunCommand': SysRunCommand,
   'SysTemplate': SysTemplate,

@@ -1,9 +1,36 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { Icon, IconBinaryTree2, IconFile, IconFileTypePdf, IconFolder, IconMail, IconProps, IconSchool, IconTerminal } from "@tabler/icons-react";
+import { Icon, IconArrowBarToRight, IconBinaryTree2, IconClock, IconCloudUpload, IconCopy, IconCsv, IconEqualNot, IconFile, IconFileTypePdf, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconLockOpen2, IconLockPassword, IconMail, IconPencil, IconPlus, IconPrinter, IconProps, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
+import { UseFormReturnType } from "@mantine/form";
 import DocWritePDF from "./operations/DocWritePDF";
+import SysEncryptString from "./operations/SysEncryptString";
+import SysDecryptString from "./operations/SysDecryptString";
+import FileWriteTxt from "./operations/FileWriteTxt";
+import LdapCreateUser from "./operations/LdapCreateUser";
+import DocPrintPDF from "./operations/DocPrintPDF";
+import FileCopy from "./operations/FileCopy";
+import FileDelete from "./operations/FileDelete";
+import FileMove from "./operations/FileMove";
+import FolderCopy from "./operations/FolderCopy";
+import FolderCreate from "./operations/FolderCreate";
+import FolderDelete from "./operations/FolderDelete";
+import FolderMove from "./operations/FolderMove";
+import LdapUpdateAccount from "./operations/LdapUpdateAccount";
+import LdapUpdateAttributes from "./operations/LdapUpdateAttributes";
+import LdapUpdateGroups from "./operations/LdapUpdateGroups";
+import LdapMoveOU from "./operations/LdapMoveOU";
+import SysComparator from "./operations/SysComparator";
+import StmcUpStuPass from "./operations/StmcUpStuPass";
+import StmcUpStuPassBulk from "./operations/StmcUpStuPassBulk";
+import SysRunCommand from "./operations/SysRunCommand";
+import SysTemplate from "./operations/SysTemplate";
+import SysWait from "./operations/SysWait";
+
+//TODO - thermal print, regular print, read file into template, write temp folder for rule, log to console, zip/unzip file/s
+// https://github.com/thiagoelg/node-printer
+// https://github.com/Klemen1337/node-thermal-printer
 
 export interface operationPropOptions {
-  type?: 'input' | 'checkbox';
+  type?: 'input' | 'checkbox'| 'password';
 }
 
 export interface operationProp {
@@ -12,6 +39,7 @@ export interface operationProp {
   defaultValue?: any;
   checked?: any;
   error?: any;
+  scope?: string;
   onFocus?: any;
   onBlur?: any;
   placeholder?: string;
@@ -23,8 +51,11 @@ export interface operationProp {
 
 export interface operationProps {
   props: (name: string, options?: operationPropOptions) => operationProp;
+  form: UseFormReturnType<Rule>;
+  path: string;
   blueprint?: Action;
   rule?: Rule;
+  scope?: string;
 }
 
 export interface operation {
@@ -37,6 +68,7 @@ export interface operation {
     overwriter?: boolean;
     provider?: string;
     Operation?(props: operationProps): JSX.Element;
+    initialValues?: object;
 }
 
 export interface operationCategory {
@@ -96,6 +128,15 @@ export const availableCategories: operationCategory[] = [
 
 export const availableOperations: operation[] = [
     {
+        name: "DocPrintPDF",
+        label: "Print PDF",
+        category: 'document',
+        Icon: IconPrinter,
+        color: 'lime',
+        validator: true,
+        Operation: DocPrintPDF,
+    },
+    {
         name: "DocWritePDF",
         label: "Write PDF",
         category: 'document',
@@ -104,5 +145,224 @@ export const availableOperations: operation[] = [
         validator: true,
         overwriter: true,
         Operation: DocWritePDF,
+    },
+    {
+        name: "FileCopy",
+        label: "Copy File",
+        category: 'file',
+        Icon: IconCopy,
+        color: 'blue',
+        validator: true,
+        overwriter: true,
+        Operation: FileCopy,
+    },
+    {
+        name: "FileDelete",
+        label: "Delete File",
+        category: 'file',
+        Icon: IconTrash,
+        color: 'red',
+        validator: true,
+        Operation: FileDelete,
+    },
+    {
+        name: "FileMove",
+        label: "Move File",
+        category: 'file',
+        Icon: IconArrowBarToRight,
+        color: 'orange',
+        validator: true,
+        overwriter: true,
+        Operation: FileMove,
+    },
+    {
+        name: "FileWriteTxt",
+        label: "Write To File",
+        category: 'file',
+        Icon: IconPencil,
+        color: 'lime',
+        validator: true,
+        overwriter: true,
+        Operation: FileWriteTxt,
+    },
+    {
+        name: "FolderCopy",
+        label: "Copy Folder",
+        category: 'folder',
+        Icon: IconCopy,
+        color: 'blue',
+        validator: true,
+        overwriter: true,
+        Operation: FolderCopy,
+    },
+    {
+        name: "FolderCreate",
+        label: "Create Folder",
+        category: 'folder',
+        Icon: IconPlus,
+        color: 'lime',
+        overwriter: true,
+        Operation: FolderCreate,
+    },
+    {
+        name: "FolderDelete",
+        label: "Delete Folder",
+        category: 'folder',
+        Icon: IconTrash,
+        color: 'red',
+        validator: true,
+        Operation: FolderDelete,
+    },
+    {
+        name: "FolderMove",
+        label: "Move Folder",
+        category: 'folder',
+        Icon: IconArrowBarToRight,
+        color: 'orange',
+        validator: true,
+        overwriter: true,
+        Operation: FolderMove,
+    },
+    {
+        name: "LdapEnableUser",
+        label: "Enable User",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconLockOpen,
+        color: 'green',
+    },
+    {
+        name: "LdapDisableUser",
+        label: "Disable User",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconLock,
+        color: 'pink',
+    },
+    {
+        name: "LdapDeleteUser",
+        label: "Delete User",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconTrash,
+        color: 'red',
+    },
+    {
+        name: "LdapCreateUser",
+        label: "Create User",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconUserPlus,
+        color: 'blue',
+        Operation: LdapCreateUser,
+        initialValues: {
+            attributes: [],
+            groups: []
+        },
+    },
+    {
+        name: "LdapMoveOU",
+        label: "Move Organisational Unit",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconFolderShare,
+        color: 'grape',
+        Operation: LdapMoveOU,
+    },
+    {
+        name: "LdapUpdateAccount",
+        label: "Update Account Controls",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconShieldCog,
+        color: 'orange',
+        Operation: LdapUpdateAccount,
+    },
+    {
+        name: "LdapUpdateAttributes",
+        label: "Update Attributes",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconPencil,
+        color: 'orange',
+        Operation: LdapUpdateAttributes,
+        initialValues: {
+            attributes: []
+        },
+    },  
+    {
+        name: "LdapUpdateGroups",
+        label: "Update Groups",
+        category: 'directory',
+        provider: 'ldap',
+        Icon: IconUsersGroup,
+        color: 'yellow',
+        Operation: LdapUpdateGroups,
+        initialValues: {
+            groups: []
+        },
+    },
+    {
+        name: "StmcUpStuPass",
+        label: "Upload Student Password",
+        category: 'edustar',
+        Icon: IconCloudUpload,
+        color: 'yellow',
+        provider: 'stmc',
+        Operation: StmcUpStuPass,
+    },
+    {
+        name: "StmcUpStuPassBulk",
+        label: "Upload Student Password CSV",
+        category: 'edustar',
+        Icon: IconCsv,
+        color: 'orange',
+        provider: 'stmc',
+        Operation: StmcUpStuPassBulk,
+        validator: true,
+    },
+    {
+        name: "SysComparator",
+        label: "Comparator",
+        category: 'system',
+        Icon: IconEqualNot,
+        Operation: SysComparator,
+        initialValues: { conditions: [] },
+    },
+    {
+        name: "SysDecryptString",
+        label: "Decrypt String",
+        category: 'system',
+        Icon: IconLockOpen2,
+        Operation: SysDecryptString,
+    },
+    {
+        name: "SysEncryptString",
+        label: "Encrypt String",
+        category: 'system',
+        Icon: IconLockPassword,
+        Operation: SysEncryptString,
+    },
+    {
+        name: "SysRunCommand",
+        label: "Run Command",
+        category: 'system',
+        Icon: IconTerminal,
+        Operation: SysRunCommand,
+    },
+    {
+        name: "SysTemplate",
+        label: "Template",
+        category: 'system',
+        Icon: IconTemplate,
+        Operation: SysTemplate,
+        initialValues: { templates: [] },
+    },
+    {
+        name: "SysWait",
+        label: "Wait",
+        category: 'system',
+        Icon: IconClock,
+        Operation: SysWait,
     },
 ];

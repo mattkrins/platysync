@@ -3,8 +3,8 @@ import { useDisclosure, useClickOutside } from "@mantine/hooks";
 import { IconProps, Icon, IconChevronRight, IconChevronDown } from "@tabler/icons-react";
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from "react";
 import { useSettings } from "../hooks/redux";
-import { availableCategory, availableAction, availableActions, availableCategories } from "../modules/actions";
 import classes from './ActionButton.module.css';
+import { availableCategories, availableOperations, operation, operationCategory } from "../routes/Schema/Rules/Editor/operations";
 
 interface SectionProps {
     onClick(): void;
@@ -30,11 +30,11 @@ function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
     )
 }
 
-function Category({ category, add }: { category: availableCategory, add(c: availableAction): void }) {
+function Category({ category, add }: { category: operationCategory, add(c: operation): void }) {
     const theme = useMantineTheme();
     const [opened, { toggle }] = useDisclosure(false);
     const settings = useSettings();
-    const filteredActions = useMemo(()=>availableActions.
+    const filteredActions = useMemo(()=>availableOperations.
     filter(a=> a.name==="SysRunCommand"?settings.enableRun:true ).
     filter(a=>a.category===category.id)
     , [ settings.enableRun ]);
@@ -58,7 +58,7 @@ function Category({ category, add }: { category: availableCategory, add(c: avail
 
 interface ActionButtonProps extends ButtonProps {
     label: string;
-    add(c: availableAction): void;
+    add(c: operation): void;
     allowedProviders?: string[];
     rightSection?: JSX.Element;
 }
@@ -66,7 +66,7 @@ interface ActionButtonProps extends ButtonProps {
 export default function ActionButton({ label, add, allowedProviders, rightSection, ...buttonProps }: ActionButtonProps) {
     const [opened, { open, close }] = useDisclosure(false);
     const ref = useClickOutside(() => close());
-    const addClose = (c: availableAction) => { add(c); close(); }
+    const addClose = (c: operation) => { add(c); close(); }
     const filteredCategories = useMemo(()=>{
         if (!allowedProviders) return availableCategories;
         return availableCategories.filter(c=>c.provider?allowedProviders.includes(c.provider):true);

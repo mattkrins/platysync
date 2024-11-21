@@ -1,11 +1,11 @@
 import { ActionIcon, Checkbox, Divider, Group, Indicator, Menu, Pagination, Table, TextInput, Tooltip, useMantineTheme, Text, Notification } from "@mantine/core";
-import { availableActions } from "../../modules/actions";
 import ActionExplorer from "./ActionExplorer";
 import { useMemo, useState } from "react";
 import { IconCheck, IconDots, IconDownload, IconEye, IconEyeCheck, IconEyeX, IconFilter, IconLetterCase, IconQuestionMark, IconSearch, IconX } from "@tabler/icons-react";
 import { useDisclosure, usePagination } from "@mantine/hooks";
 import Exporter from "../Exporter";
 import Status from "./Status";
+import { availableOperations } from "../../routes/Schema/Rules/Editor/operations";
 
 const defaultPage = 50
 const pages = [ 10, 25, 50, 100, 1000 ];
@@ -28,7 +28,7 @@ interface EvalProps {
 function IconMap({ actions, size = 16, click }: { actions: actionResult[], size?: number, click?: (open: string)=> () => void }){
     const theme = useMantineTheme();
     return actions.map((action,key)=>{
-        const act = availableActions.find(a=>a.name===action.name);
+        const act = availableOperations.find(a=>a.name===action.name);
         if (!act) return <></>;
         const problem = action.result.error || action.result.warn;
         const col = !problem ? act.color?theme.colors[act.color][6]:undefined : theme.colors.gray[8];
@@ -73,7 +73,9 @@ function TableData({ p, c, dE, dW, v, pR, sE, max, id }: {
     const someActions = useMemo(()=>pR.every(r => r.actions.length>0),[ pR ]);
     const indeterminate = someChecked && !allChecked;
     const toggleAll = () => {
-        if (indeterminate || noneChecked) return sE(response=>({...response, primaryResults: pR.map(r=>({...r, checked: true })) }));
+        if (indeterminate || noneChecked) return sE(response=>({ ...response,
+            primaryResults: pR.map(r=>({ ...r, checked: (r.error ? !dE : ( (r.warn ? !dW : true) )) }))
+        }));
         return sE(response=>({...response, primaryResults: pR.map(r=>({...r, checked: false })) }));
     }
     return (
@@ -129,6 +131,8 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp, id
                         {cols.map(c=><Menu.Item leftSection={s===c&&<IconCheck size={16} />} onClick={()=>S(c)} >By {c}</Menu.Item>)}
                         <Menu.Divider/>
                         <Menu.Item leftSection={s==="Actions"&&<IconCheck size={16} />} onClick={()=>S("Actions")} >By Action Count</Menu.Item>
+                        <Menu.Item leftSection={s==="Errors"&&<IconCheck size={16} />} onClick={()=>S("Errors")} >Errors First</Menu.Item>
+                        <Menu.Item leftSection={s==="Warns"&&<IconCheck size={16} />} onClick={()=>S("Errors")} >Warnings First</Menu.Item>
                     </Menu.Dropdown>
                 </Menu>
             </Group>
@@ -173,6 +177,8 @@ function Results( { evaluated, setEvaluated, maximized, execute }: EvalProps ) {
     const searchFilter  = useMemo(()=>q?warnFilter.filter(r=>find(q, r, !c, r.columns.map(c=>c.value))):warnFilter, [ warnFilter, q, c, columns ]);
     const sortFilter = useMemo(()=>{ switch (s) {
         case undefined: return searchFilter;
+        case "Errors": return [...searchFilter].sort((a, b)=>Number(b.error) - Number(a.error));
+        case "Warns": return [...searchFilter].sort((a, b)=>Number(b.warn) - Number(a.warn));
         case "Actions": return [...searchFilter].sort((a, b)=>a.actions.length - b.actions.length);
         default: return [...searchFilter].sort((a, b)=>(a.columns.find(c=>c.name===s)?.value||"").localeCompare(b.columns.find(c=>c.name===s)?.value||"") )
     }},[ searchFilter, s ]);

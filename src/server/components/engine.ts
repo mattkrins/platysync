@@ -2,7 +2,7 @@ import { paths, history } from "../..";
 import { server } from '../server';
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
-import { availableActions, handles } from "./actions";
+import { availableOperations, handles } from "./actions";
 import { addContext, connect, connections, contexts } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
@@ -90,7 +90,7 @@ export class Engine { //TODO - add way to cancel
         this.initTemplate = initTemplate;
         if (initError) throw initError;
         //FIXME - fix progress for contexts
-        for (const context of (this.rule.contexts||[])) await addContext(this.schema, context, this.contexts );
+        //for (const context of (this.rule.contexts||[])) await addContext(this.schema, context, this.contexts );
         if (this.primary) this.progress = this.hasInit ? 35 : 20;
         if (!this.primary) this.progress = 50;
         await wait(500);
@@ -250,7 +250,7 @@ export class Engine { //TODO - add way to cancel
             iteration: { current: 1 },
         });
         for (const source of this.sources) {  i++;
-            await connect(this.schema, source.foreignName, this.connections, this, source.foreignKey, source.overrides||{});
+            await connect(this.schema, source.foreignName as string, this.connections, this, source.foreignKey, source.overrides||{});
             history.debug({schema: this.schema.name, rule: this.rule.name, message: `Secondary: ${source.foreignName} connected.` });
             //TODO - add condition filter to add source GUI, run evaluateAll against connector data to filter on a source basis and speed up later joins
             this.Emit({
@@ -357,21 +357,21 @@ export class Engine { //TODO - add way to cancel
         }
         for (const action of (actions||[])) { i++;
             if (!action.enabled){ emit(); continue; }
-            if (!(action.name in availableActions)) throw new xError(`Unknown action '${action.name}'.`);
-            const result = await availableActions[action.name]({
+            if (!(action.id in availableOperations)) throw new xError(`Unknown action '${action.id}'.`);
+            const result = await availableOperations[action.id]({
                 action, template, connections: this.connections,
                 handles: this.handles, execute: this.executing,
                 engine: this, data: {}, id, settings: this.settings,
                 contexts: this.contexts, configs: this.configs, schema: this.schema
             })
-            if (!result)  throw new xError(`Failed to run action '${action.name}'.`);
-            const name = (action.display && action.display!==action.name) ? { display: action.display||action.name } : {}
-            todo.push({name: action.name, result, ...name, noblock: action.noblock });
+            if (!result) throw new xError(`Failed to run action '${action.name}'.`);
+            const name = (action.name && action.name!==action.id) ? { display: action.name||action.id } : {}
+            todo.push({name: action.id, result, ...name, noblock: action.noblock });
             if (result.warn) warn = result.warn;
             if (result.error){
                 if ((result.error as xError).message) result.error = (result.error as xError).message;
                 if (!action.noblock){
-                    error = new xError(result.error, action.name);
+                    error = new xError(result.error, action.id);
                     break;
                 }
                 result.warn = result.error.toString();
@@ -389,13 +389,15 @@ export class Engine { //TODO - add way to cancel
     private Join(record: Record<string, string>): template|false {
         const joined: template = { [this.primary as string]: record };
         for (const source of this.sources) {
-            if (!joined[source.primaryName] || !this.connections[source.foreignName]) continue;
-            const primary = joined[source.primaryName];
-            const foreignHeaders = this.connections[source.foreignName].headers;
-            const primaryHeaders = this.connections[source.primaryName].headers;
+            const primaryName = source.primaryName as string;
+            const foreignName = source.foreignName as string;
+            if (!joined[primaryName] || !this.connections[foreignName]) continue;
+            const primary = joined[primaryName];
+            const foreignHeaders = this.connections[foreignName].headers;
+            const primaryHeaders = this.connections[primaryName].headers;
             const foreignKey = source.foreignKey || foreignHeaders[0];
             const primaryKey = source.primaryKey || primaryHeaders[0];
-            const foreignData = this.connections[source.foreignName].data;
+            const foreignData = this.connections[foreignName].data;
             if (!foreignKey || !primaryKey || !primary[primaryKey]) continue;
             const foreignRecord = foreignData.find( foreign => {
                 if (!foreign[foreignKey]) return false;
@@ -403,7 +405,7 @@ export class Engine { //TODO - add way to cancel
                 return foreign[foreignKey] === primary[primaryKey];
             } )
             if (source.require&&!foreignRecord) return false;
-            joined[source.foreignName] = foreignRecord || {};
+            joined[foreignName] = foreignRecord || {};
         } return joined;
     }
     public Emit(update?: DeepPartial<jobStatus>, id?: string) {

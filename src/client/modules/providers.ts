@@ -9,35 +9,32 @@ import FOLDER from "../routes/Connectors/providers/FOLDER";
 import STMC, { STMCContext } from "../routes/Connectors/providers/STMC";
 import API from "../routes/Connectors/providers/API";
 
-export interface ContextProps {
-    form: UseFormReturnType<any>;
-    rule: UseFormReturnType<Rule>;
-    editing?: boolean;
-    sources: string[];
-    path?: string;
-}
-
-
-export interface providerConfigOptions {
+export interface providerPropOptions {
     type?: any;
     placeholder?: string;
 }
 
-export interface providerConfigProps {
+export interface providerProp {
     onChange: any;
     value?: any;
     defaultValue?: any;
     checked?: any;
     error?: any;
+    scope?: string;
     onFocus?: any;
     onBlur?: any;
     placeholder?: string;
+    styles?: object;
+    leftSection?: JSX.Element;
     unlock?(): void;
     secure?: boolean;
 }
 
 export interface providerConfig {
-    props: (name: string, options?: providerConfigOptions) => providerConfigProps;
+    props: (name: string, options?: providerPropOptions) => providerProp;
+    blueprint?: Action;
+    rule?: Rule;
+    scope?: string;
 }
 
 export interface contextConfig extends providerConfig {

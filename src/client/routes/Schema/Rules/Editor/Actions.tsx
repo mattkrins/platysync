@@ -5,9 +5,10 @@ import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import Action from "./Action";
 import ActionButton from "../../../../components/ActionButton";
 import useRule from "../../../../hooks/useRule";
+import { operation } from "./operations";
 
 export default function Actions({ form, setTab }: editorTab) {
-    const add = (type: string) => (c: availableAction) => form.insertListItem(type, { id: c.name, enabled: true, ...c.initialValues });
+    const add = (type: string) => (c: operation) => form.insertListItem(type, { id: c.name, enabled: true, ...c.initialValues });
     const { sourceProConnectors } = useRule(form.values);
     const ruleTypes = sourceProConnectors.map(c=>c.id);
     return (

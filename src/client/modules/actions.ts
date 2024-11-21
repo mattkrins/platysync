@@ -2,7 +2,6 @@ import { IconProps, Icon, IconUserPlus, IconFileTypePdf, IconPrinter, IconBinary
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { templateProps } from "../hooks/useTemplater";
 import { UseFormReturnType } from "@mantine/form";
-import { ContextProps } from "./providers";
 import { LDAPContext } from "../routes/Connectors/providers/LDAP";
 import DocWritePDF from "../routes/Rules/Editor/actions/DocWritePDF";
 import DocPrintPDF from "../routes/Rules/Editor/actions/DocPrintPDF";
@@ -113,7 +112,7 @@ export interface availableAction {
     validator?: boolean;
     overwriter?: boolean;
     provider?: string;
-    iterative?: true|((props: ContextProps) => JSX.Element);
+    //iterative?: true|((props: ContextProps) => JSX.Element);
     validate?: {[value: string]: (...v: unknown[]) => unknown};
     noPreConfig?: boolean;
 }

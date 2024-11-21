@@ -1,13 +1,13 @@
 import { SimpleGrid, Switch, TextInput, Textarea } from '@mantine/core';
 import { IconBraces, IconCheck, IconX } from '@tabler/icons-react';
 import { actionProps } from '../../../../modules/actions'
-import Conditions from '../Conditions'
+import Conditions from '../../../../components/Conditions';
 
 export default function SysComparator( { form, path, templateProps, iterative, config }: actionProps ) {
     const output = form.getInputProps(`${path}.output`).value;
     return (
     <>
-        <Conditions iterative={iterative} form={form} path={`${path}.conditions`} label="This action can halt futher execution, or build conditional templates." compact />
+        <Conditions form={form} path={`${path}.conditions`} label="This action can halt futher execution, or build conditional templates." compact />
         <Switch label="Output result to template"
         description={output?undefined:"Execution will currently be halted if conditions do not pass."}
         mt="xs" mb="xs" {...form.getInputProps(`${path}.output`, { type: 'checkbox' })}

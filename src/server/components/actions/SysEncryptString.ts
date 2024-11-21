@@ -8,9 +8,10 @@ interface SysEncryptString {
     password: string;
     strength?: number;
     key?: string;
+    encrypted?: string;
 }
 
-function ensureMinimumValue(value: number | string): number {
+export function ensureMinimumValue(value: number | string): number {
     const numericValue: number = typeof value === 'string' ? parseInt(value, 10) : value;
     return Math.max(numericValue, 100);
 }
@@ -25,7 +26,8 @@ export default async function SysEncryptString({ action, template, data }: props
         data.strength = String(action.strength||"1000");
         const strength = ensureMinimumValue(data.strength);
         const encrypted = await Encrypt(data.secret, data.password, strength);
-        template[data.key] = JSON.stringify(encrypted) as unknown as {[header: string]: string};
+        data.encrypted = JSON.stringify(encrypted);
+        template[data.key] = data.encrypted as unknown as {[header: string]: string};
         return { success: true, data };
     } catch (e){
         return { error: new xError(e), data };

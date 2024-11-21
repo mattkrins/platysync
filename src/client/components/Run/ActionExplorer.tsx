@@ -2,7 +2,7 @@ import { Accordion, Box, Code, Drawer, Indicator, useMantineTheme, Notification,
 import { IconAlertTriangle, IconHandStop, IconX } from '@tabler/icons-react';
 import classes from '../../theme.module.css';
 import Concealer from '../Concealer';
-import { availableActions } from '../../modules/actions';
+import { availableOperations } from '../../routes/Schema/Rules/Editor/operations';
 
 interface data {
     [k: string]: {[k: string]: unknown }|string|Array<string>;
@@ -66,7 +66,7 @@ export default function ActionExplorer( { viewing, view }: { viewing?: {name: st
     <Drawer size="xl" opened={!!viewing} onClose={()=>view(undefined)} title={`Action Explorer: ${viewing?.name}`}>
         <Accordion multiple defaultValue={[ viewing?.open||'0' ]}>
             {viewing?.actions.map((action, i)=>{
-                const act = availableActions.find(a=>a.name===action.name);
+                const act = availableOperations.find(a=>a.name===action.name);
                 if (!act) return <></>;
                 const problem = action.result.error || action.result.warn;
                 const col = !problem ? act.color?theme.colors[act.color][6]:undefined : theme.colors.gray[8];

@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react';
 export interface openExplorerProps {
   input?: HTMLInputElement|null
   rule?: Rule;
-  scope?: string[],
+  scope?: string;
 }
 
 interface TemplateContext {
@@ -14,8 +14,9 @@ interface TemplateContext {
     setRule(rule: Rule): void,
     input?: HTMLInputElement,
     rule?: Rule,
-    validate: (value?: string, rule?: Rule) => string | undefined,
-    buildTemplate: (rule?: Rule) => {
+    scope?: string,
+    validate: (value?: string, rule?: Rule, scope?: string) => string | undefined,
+    buildTemplate: (rule?: Rule, scope?: string) => {
       [k: string]: string | {[k: string]: string};
     }
   }

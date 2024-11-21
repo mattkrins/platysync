@@ -12,11 +12,12 @@ import { useMemo } from "react";
 function BlueprintSelector({ id, active, onClick }: { id: string, active?: string, onClick(b?: string): void }) {
     const blueprints = useSelector(getBlueprints);
     const filtered = blueprints.filter(b=>b.id===id);
+    const unavailable = filtered.length<=0;
     return (
     <Menu shadow="md" position="left" width={200} >
         <Menu.Target>
-            <Tooltip label={active?`Using Blueprint '${active}'`:"Select Blueprint"} color="blue" >
-                <ActionIcon disabled={filtered.length<=0} color="blue" variant={active?"light":"subtle"} >
+            <Tooltip disabled={unavailable} label={active?`Using Blueprint '${active}'`:"Select Blueprint"} color="blue" >
+                <ActionIcon disabled={unavailable} color="blue" variant={active?"light":"subtle"} >
                     <IconTemplate size={16} stroke={1.5} />
                 </ActionIcon>
             </Tooltip>
@@ -53,7 +54,8 @@ export default function Action({ index, action, type, form }: { index: number, a
     const display = form.values[type as "initActions"][index].name;
     const blueprint = useMemo(()=>blueprints.find(b=>b.name===action.blueprint),[ action.blueprint, blueprints ]);
     const props = (name: string, options?: { type?: any }) => {
-        const props: operationProp = {...form.getInputProps(name, options)};
+        const props: operationProp = {...form.getInputProps(`${type}.${index}.${name}`, options)};
+        props.scope = type;
         if (options?.type === "password") {
             props.secure = !!props.value && typeof props.value !== 'string';
             props.unlock = () => form.setFieldValue(name, "");
@@ -67,7 +69,9 @@ export default function Action({ index, action, type, form }: { index: number, a
         }
         return props;
     }
-    const setBlueprint = (b?: string) => form.setFieldValue(`${type}.${index}.blueprint`, b)
+    const setBlueprint = (b?: string) => form.setFieldValue(`${type}.${index}.blueprint`, b);
+    //TODO - add validate button
+    //TODO - indicate when validation not satisfied
     return (
         <Draggable key={`${type}${index}`} index={index} draggableId={`${type}${index}`}>
             {(provided) => (
@@ -90,6 +94,16 @@ export default function Action({ index, action, type, form }: { index: number, a
                             value={display?display:(label||name)}
                             />
                         </Grid.Col>
+                        {
+                        //{provider&&<Grid.Col span={5}>
+                        //    <Divider orientation="vertical" />
+                        //    <SelectActionConnector {...form.getInputProps(`${`${type}.${index}`}.connector`)}
+                        //    form={form} path={`${`${type}.${index}`}.connector`} width={'auto'} position="bottom-start"
+                        //    ids={provider?[provider]:undefined} names={sources} variant="unstyled"
+                        //    />
+                        //    <Divider orientation="vertical" />
+                        //</Grid.Col>}
+                        }
                         <Grid.Col span="auto" miw={120}>
                             <Group gap="xs" justify="flex-end">
                                 {Operation&&<BlueprintSelector active={action.blueprint} id={operation.name} onClick={setBlueprint} />}
@@ -108,11 +122,11 @@ export default function Action({ index, action, type, form }: { index: number, a
                             </Group>
                         </Grid.Col>
                     </Grid>{Operation&&
-                    <Collapse in={opened} >
+                    <Collapse in={opened}>
                         {render&&<>
                         <Divider mb="xs" mt={4} />
                         <Box p="xs" pt={0} >
-                            <Operation props={props} blueprint={blueprint} rule={form.values} />
+                            <Operation props={props} blueprint={blueprint} rule={form.values} scope={type} form={form} path={`${type}.${index}`} />
                         </Box>
                         </>}
                     </Collapse>}

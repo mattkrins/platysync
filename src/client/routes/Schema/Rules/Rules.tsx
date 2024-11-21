@@ -11,6 +11,7 @@ import { modals } from "@mantine/modals";
 import MenuTip from "../../../components/MenuTip";
 import useAPI from "../../../hooks/useAPI";
 import { availableActions } from "../../../modules/actions";
+import { availableOperations } from "./Editor/operations";
 
 
 function useDependencyWalker(name: string) {
@@ -31,7 +32,7 @@ function IconMap({ actions }: { actions: Action[] }){
     const theme = useMantineTheme();
     return <Group gap={5}>
     {actions.map((action,key)=>{
-        const act = availableActions.find(a=>a.name===action.name);
+        const act = availableOperations.find(a=>a.name===action.id);
         if (!act) return <><IconExclamationCircle color="red" size={16}/></>;
         return <Tooltip key={`${key}${action.id}`} fz="xs" withArrow label={action.name||action.id}>
             <act.Icon color={act.color?theme.colors[act.color][6]:undefined} size={16} stroke={2} />
@@ -158,7 +159,7 @@ export default function Rules() {
                 <Grid columns={17} justify="space-between">
                     <Grid.Col span={1}/>
                     <Grid.Col span={3}>Name</Grid.Col>
-                    <Grid.Col ta="end" span={2}>Connectors</Grid.Col>
+                    <Grid.Col ta="end" span={2}>Connections</Grid.Col>
                     <Grid.Col span={7}>Actions</Grid.Col>
                     <Grid.Col span={4}/>
                 </Grid>

@@ -8,8 +8,9 @@ export default function FOLDER( { props }: providerConfig ) {
     <>
         <ExtTextInput
             label="Folder Path"
+            placeholder="C:/folder/"
             leftSection={<IconFolder size={16} style={{ display: 'block', opacity: 0.5 }}/>}
-            withAsterisk {...props("path", { placeholder: "C:/folder/" })}
+            withAsterisk {...props("path")}
         />
         <Select mt="xs" label="Iterate Over" withAsterisk
             {...props("type")}

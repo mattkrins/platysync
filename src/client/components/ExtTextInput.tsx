@@ -1,28 +1,34 @@
-import { ActionIcon, ButtonGroup, TextInput, TextInputProps } from '@mantine/core';
+import { ActionIcon, ButtonGroup, MantineComponent, TextInput, TextInputProps } from '@mantine/core';
 import { useTemplater } from '../context/TemplateContext';
 import { IconCode } from '@tabler/icons-react';
 import { ChangeEvent, useCallback, useRef, useState } from 'react';
 
-interface ExtTextInput extends TextInputProps {
+export type ExtTextInput<x=TextInputProps> = x & {
+  Component?(x: any): MantineComponent<any>;
   rightSection?: JSX.Element[];
   rule?: Rule;
+  scope?: string;
+  disabled?: boolean;
+  onChange(e: ChangeEvent<HTMLInputElement>): void;
+  value?: any;
 }
 
-export default function ExtTextInput({ rightSection: buttons, disabled, rule, ...props }: ExtTextInput) {
+export default function ExtTextInput<x=TextInputProps>({ Component, rightSection: buttons, disabled, rule, scope, ...props }: ExtTextInput<x>) {
   const extProps: { error?: string } = {};
   const ref = useRef<HTMLInputElement>(null);
   const [ value, setValue ] = useState<string>(props.value as string||"");
   const { open, validate } = useTemplater();
-  const error = useCallback(() => validate(value, rule),[ value, rule ]);
+  const error = useCallback(() => validate(value, rule, scope),[ value, rule ]);
   if (error()) extProps.error = error();
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (props.onChange) props.onChange(event);
     setValue(ref.current?.value||"");
   }
+  const Element = Component||TextInput;
   const rightSection = (
   <ButtonGroup mr={buttons?buttons.length*28:undefined} >
     {buttons&&(buttons.map(x=>x))}
-    <ActionIcon disabled={disabled} variant="subtle" onClick={()=>open({input: ref.current, rule})} ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }}/></ActionIcon>
+    <ActionIcon disabled={disabled} variant="subtle" onClick={()=>open({input: ref.current, rule, scope})} ><IconCode size={16} style={{ display: 'block', opacity: 0.8 }}/></ActionIcon>
   </ButtonGroup>);
-  return <TextInput ref={ref} {...props} onChange={onChange} disabled={disabled} rightSection={rightSection} {...extProps} />
+  return <Element ref={ref} {...props} onChange={onChange} disabled={disabled} rightSection={rightSection} {...extProps} />
 }
