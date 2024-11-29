@@ -61,7 +61,7 @@ export default function Blueprints() {
   const entries = useSelector(getBlueprints);
   const refresh = () => dispatch(loadsBlueprints());
   const [ open, editing, { add, close, edit } ] =  useEditor<Action>({ id: "" });
-  const addx = (c: operation) => add({ id: c.name });
+  const addx = (c: operation) => add({ id: c.name, ...c.initialValues });
   
   return (
   <Container>

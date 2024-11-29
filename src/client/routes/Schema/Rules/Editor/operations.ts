@@ -1,5 +1,5 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { Icon, IconArrowBarToRight, IconBinaryTree2, IconClock, IconCloudUpload, IconCopy, IconCsv, IconEqualNot, IconFile, IconFileTypePdf, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconLockOpen2, IconLockPassword, IconMail, IconPencil, IconPlus, IconPrinter, IconProps, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
+import { Icon, IconArrowBarToRight, IconBinaryTree2, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconCsv, IconEqualNot, IconFile, IconFileTypePdf, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconLockOpen2, IconLockPassword, IconMail, IconPencil, IconPlus, IconPrinter, IconProps, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
 import { UseFormReturnType } from "@mantine/form";
 import DocWritePDF from "./operations/DocWritePDF";
 import SysEncryptString from "./operations/SysEncryptString";
@@ -24,6 +24,8 @@ import StmcUpStuPassBulk from "./operations/StmcUpStuPassBulk";
 import SysRunCommand from "./operations/SysRunCommand";
 import SysTemplate from "./operations/SysTemplate";
 import SysWait from "./operations/SysWait";
+import TransAPIRequest from "./operations/TransAPIRequest";
+import SysWriteCSV from "./operations/SysWriteCSV";
 
 //TODO - thermal print, regular print, read file into template, write temp folder for rule, log to console, zip/unzip file/s
 // https://github.com/thiagoelg/node-printer
@@ -52,7 +54,7 @@ export interface operationProp {
 export interface operationProps {
   props: (name: string, options?: operationPropOptions) => operationProp;
   form: UseFormReturnType<Rule>;
-  path: string;
+  path?: string;
   blueprint?: Action;
   rule?: Rule;
   scope?: string;
@@ -67,6 +69,7 @@ export interface operation {
     validator?: boolean;
     overwriter?: boolean;
     provider?: string;
+    scope?: string;
     Operation?(props: operationProps): JSX.Element;
     initialValues?: object;
 }
@@ -364,5 +367,25 @@ export const availableOperations: operation[] = [
         category: 'system',
         Icon: IconClock,
         Operation: SysWait,
+    },
+    {
+        name: "SysWriteCSV",
+        label: "Write Results To CSV",
+        category: 'system',
+        Icon: IconCsv,
+        Operation: SysWriteCSV,
+        scope: "finalActions",
+    },
+    {
+        name: "TransAPIRequest",
+        label: "API Request",
+        category: 'transmission',
+        Icon: IconCloudUp,
+        color: 'red',
+        Operation: TransAPIRequest,
+        initialValues: {
+            form: [],
+            headers: [],
+        }
     },
 ];

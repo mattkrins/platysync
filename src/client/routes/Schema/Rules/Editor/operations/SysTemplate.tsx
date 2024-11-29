@@ -24,14 +24,14 @@ function Template({ index, copy, remove, rule, props }: Template ) {
                     <ExtTextInput rule={rule}
                     leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="Key"
-                    {...props(`groups.${index}.key`)}
+                    {...props(`templates.${index}.key`)}
                     />
                 </Grid.Col>
                 <Grid.Col span="auto" >
                     <ExtTextInput rule={rule}
                     leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                     placeholder="Value"
-                    {...props(`groups.${index}.value`)}
+                    {...props(`templates.${index}.value`)}
                     />
                 </Grid.Col>
                 <Grid.Col span="content">
@@ -48,7 +48,7 @@ function Template({ index, copy, remove, rule, props }: Template ) {
 function SysTemplates( { form, path, props, rule }: operationProps ) {
     const templatePath = `${path}.templates`;
     const entries = form.getInputProps(templatePath).value as { key: string, value: string, }[];
-    const add = () => form.insertListItem(templatePath, { key: undefined, value: undefined, });
+    const add = () => form.insertListItem(templatePath, { key: "", value: "", });
     const copy = (e: { key: string, value: string, }) => form.insertListItem(templatePath, structuredClone(e));
     const remove = (i: number) => form.removeListItem(templatePath, i);
     return (
@@ -59,7 +59,7 @@ function SysTemplates( { form, path, props, rule }: operationProps ) {
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
-                {entries.map((e, i) => <Template key={i} props={props} index={i} copy={()=>copy(e)} remove={()=>remove(i)} form={form} rule={rule} path={templatePath} />)}
+                {entries.map((e, i) => <Template key={`t${i}`} props={props} index={i} copy={()=>copy(e)} remove={()=>remove(i)} form={form} rule={rule} path={path} />)}
                 {provided.placeholder}
             </div>
             )}
@@ -69,6 +69,6 @@ function SysTemplates( { form, path, props, rule }: operationProps ) {
   )
 }
 
-export default function SysTemplate( { props, rule, form, path, blueprint }: operationProps ) {
+export default function SysTemplate( { form, path, props, rule }: operationProps ) {
     return <SysTemplates form={form} path={path} rule={rule} props={props} />
 }

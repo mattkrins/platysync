@@ -1,11 +1,10 @@
 import { Anchor, Box, Divider, Text } from "@mantine/core";
-import { availableAction } from "../../../../modules/actions";
 import { editorTab } from "./Editor";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import Action from "./Action";
 import ActionButton from "../../../../components/ActionButton";
 import useRule from "../../../../hooks/useRule";
-import { operation } from "./operations";
+import { availableOperations, operation } from "./operations";
 
 export default function Actions({ form, setTab }: editorTab) {
     const add = (type: string) => (c: operation) => form.insertListItem(type, { id: c.name, enabled: true, ...c.initialValues });
@@ -13,7 +12,6 @@ export default function Actions({ form, setTab }: editorTab) {
     const ruleTypes = sourceProConnectors.map(c=>c.id);
     return (
     <Box>
-        <Divider my="xs" label={<ActionButton add={add("initActions")} label="Initial Action" allowedProviders={ruleTypes} />} labelPosition="right" />
         <DragDropContext onDragEnd={(result) => {
             const { destination, source } = result;
             if (!destination) return;
@@ -22,9 +20,15 @@ export default function Actions({ form, setTab }: editorTab) {
                 return form.reorderListItem(destination.droppableId, { from: source.index, to: destination? destination.index : 0 })
             }
             const clone = structuredClone(form.values[source.droppableId as "initActions"][source.index]);
+            const operation = availableOperations.find(a=>a.name===clone.id);
+            if (!operation) return;
+            if (operation.scope && operation.scope !== destination.droppableId) return;
             form.removeListItem(source.droppableId, source.index);
             form.insertListItem(destination.droppableId, clone, destination.index);
         } } >
+            <Divider my="xs" label={
+                <ActionButton add={add("initActions")} label="Initial Action" allowedProviders={ruleTypes} scope="initActions" />
+            } labelPosition="right" />
             {form.values.initActions.length<=0&&<Text size="xs" c="dimmed" >Initial actions are executed at the begining of rules unconditionally.</Text>}
             <Droppable droppableId="initActions" direction="vertical" type="action" >
                 {(provided) => (
@@ -35,7 +39,9 @@ export default function Actions({ form, setTab }: editorTab) {
                 </div>
                 )}
             </Droppable>
-            <Divider my="xs" label={<ActionButton add={add("iterativeActions")} label="Iterative Action" disabled={!form.values.primary} allowedProviders={ruleTypes} />} labelPosition="right" />
+            <Divider my="xs" label={
+                <ActionButton add={add("iterativeActions")} label="Iterative Action" disabled={!form.values.primary} allowedProviders={ruleTypes} scope="iterativeActions" />
+            } labelPosition="right" />
             {!form.values.primary ? <Text size="xs" c="dimmed" >Select a <Anchor onClick={()=>setTab("settings")} >primary data source</Anchor> to execute iterative actions for each row, entry, user, etc.</Text>:
             form.values.iterativeActions.length<=0&&
             <Text size="xs" c="dimmed" >Iterative actions are executed for each row, entry, user, etc.
@@ -49,7 +55,9 @@ export default function Actions({ form, setTab }: editorTab) {
                 </div>
                 )}
             </Droppable>
-            <Divider my="xs" label={<ActionButton add={add("finalActions")} label="Final Action" allowedProviders={ruleTypes} />} labelPosition="right" />
+            <Divider my="xs" label={
+                <ActionButton add={add("finalActions")} label="Final Action" allowedProviders={ruleTypes} scope="finalActions" />
+            } labelPosition="right" />
             {form.values.finalActions.length<=0&&<Text size="xs" c="dimmed" >Final actions are executed at the end of rules if all iterative actions succeeded.</Text>}
             <Droppable droppableId="finalActions" direction="vertical" type="action" >
                 {(provided) => (

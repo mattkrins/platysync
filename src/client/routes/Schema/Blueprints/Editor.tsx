@@ -35,9 +35,9 @@ function Content({ action, adding, refresh }: { action: Action, refresh(): void,
     {...form.getInputProps('name')}
     leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
     />
-    {Operation&&<Operation props={props} />}
+    {Operation&&<Operation props={props} form={form as any}  />}
     <Group justify="flex-end" mt="md">
-          <Button loading={loading} onClick={()=>adding?post():put()}>{adding ? "Upload" : "Save"}</Button>
+          <Button loading={loading} onClick={()=>adding?post():put()}>{adding ? "Add" : "Save"}</Button>
     </Group>
   </Box>
   )

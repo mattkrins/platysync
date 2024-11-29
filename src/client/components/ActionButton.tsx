@@ -30,12 +30,13 @@ function Section({ onClick, open, label, color, Icon, Ricon }: SectionProps ) {
     )
 }
 
-function Category({ category, add }: { category: operationCategory, add(c: operation): void }) {
+function Category({ category, add, scope }: { category: operationCategory, add(c: operation): void, scope?: string }) {
     const theme = useMantineTheme();
     const [opened, { toggle }] = useDisclosure(false);
     const settings = useSettings();
     const filteredActions = useMemo(()=>availableOperations.
-    filter(a=> a.name==="SysRunCommand"?settings.enableRun:true ).
+    filter(a=> (a.scope && scope) ? a.scope === scope : true ).
+    filter(a=> a.name === "SysRunCommand" ? settings.enableRun : true ).
     filter(a=>a.category===category.id)
     , [ settings.enableRun ]);
     return (
@@ -61,9 +62,10 @@ interface ActionButtonProps extends ButtonProps {
     add(c: operation): void;
     allowedProviders?: string[];
     rightSection?: JSX.Element;
+    scope?: string;
 }
 
-export default function ActionButton({ label, add, allowedProviders, rightSection, ...buttonProps }: ActionButtonProps) {
+export default function ActionButton({ label, add, allowedProviders, rightSection, scope,  ...buttonProps }: ActionButtonProps) {
     const [opened, { open, close }] = useDisclosure(false);
     const ref = useClickOutside(() => close());
     const addClose = (c: operation) => { add(c); close(); }
@@ -77,7 +79,7 @@ export default function ActionButton({ label, add, allowedProviders, rightSectio
             <Button size="sm" onClick={open} rightSection={rightSection||<IconChevronDown size="1.05rem" stroke={1.5} />} pr={12} {...buttonProps}>{label}</Button>
         </Popover.Target>
         <Popover.Dropdown ref={ref} >
-            {filteredCategories.map(category=><Category key={category.name} category={category} add={addClose} />)}
+            {filteredCategories.map(category=><Category key={category.name} category={category} add={addClose} scope={scope} />)}
         </Popover.Dropdown>
     </Popover>
     );
