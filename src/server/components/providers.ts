@@ -1,13 +1,12 @@
-import { Engine } from "./engine";
-import API from "./providers/API";
-import CSV from "./providers/CSV";
-import FOLDER from "./providers/FOLDER";
-import LDAP from "./providers/LDAP";
-import STMC from "./providers/STMC";
-import { base_provider } from "./providers/base";
+import { Engine } from "./engine.js";
+import API from "./providers/API.js";
+import CSV from "./providers/CSV.js";
+import FOLDER from "./providers/FOLDER.js";
+import LDAP from "./providers/LDAP.js";
+import STMC from "./providers/STMC.js";
+import { base_provider } from "./providers/base.js";
 
 export interface connections { [name: string]: base_provider }
-export interface contexts {[name: string]: base_provider}
 
 export async function connect(schema: Schema, name: string, connectors: connections, engine: Engine, key?: string, overrides?: { [k: string]: unknown }) {
     if (connectors[name]) return connectors[name];
@@ -19,15 +18,6 @@ export async function connect(schema: Schema, name: string, connectors: connecti
     await provider.configure();
     await provider.connect(connectors, engine);
     connectors[name] = provider;
-    return provider;
-}
-
-export async function addContext(schema: Schema, { name, ...context}: Context, contexts: contexts) {
-    const { id, ...options} = schema.connectors.find(c=>c.name===name) as Connector;
-    const provider = new providers[id]({ id, ...options, ...context, schema });
-    await provider.initialize();
-    await provider.configure();
-    contexts[name] = provider;
     return provider;
 }
 

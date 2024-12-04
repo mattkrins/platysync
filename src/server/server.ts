@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import InitPlatySync, { dev, log, version } from "..";
-import { Settings } from "./components/database";
-import { initSchedules } from "./components/schedules";
+import InitPlatySync, { dev, log, version } from "../index.js";
+import { Settings } from "./components/database.js";
+import { initSchedules } from "./components/schedules.js";
 
 export let server: FastifyInstance;
 

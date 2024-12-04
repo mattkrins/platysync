@@ -1,7 +1,7 @@
 import { Select } from "@mantine/core";
 import { IconFolder } from "@tabler/icons-react";
-import { providerConfig } from "../../../modules/providers";
-import ExtTextInput from "../../../components/ExtTextInput";
+import ExtTextInput from "../../../../components/ExtTextInput";
+import { providerConfig } from "../providers";
 
 export default function FOLDER( { props }: providerConfig ) {
     return (

@@ -13,8 +13,8 @@ interface Props extends ActionIconProps {
 }
 export default function MenuTip( { label, error, color, reset, Icon, tooltip, icon, ...props  }: Props ) {
     return (
-    <Tooltip style={{zIndex:100}} label={error||label} opened={!!error ? true : !!label?undefined:false} color={error ? "red" : color } zIndex={100} {...tooltip} >
-        <ActionIcon onMouseEnter={!!error?reset:undefined} color={color} {...props} >
+    <Tooltip style={{zIndex:100}} label={error||label} opened={error ? true : label?undefined:false} color={error ? "red" : color } zIndex={100} {...tooltip} >
+        <ActionIcon onMouseEnter={error?reset:undefined} color={color} {...props} >
             <Icon size={16} stroke={1.5} {...icon} />
         </ActionIcon>
     </Tooltip>

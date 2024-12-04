@@ -1,9 +1,8 @@
-import { xError } from "../../modules/common";
-import { decrypt } from "../../modules/cryptography";
-import { compile } from "../../modules/handlebars";
+import { decrypt } from "../../modules/cryptography.js";
+import { compile } from "../../modules/handlebars.js";
 
 export interface configs {[name: string]: base_config  }
-
+//TODO - rebuild this system
 export class base_config {
     private id: string;
     private options: Partial<base_config>;
@@ -18,10 +17,10 @@ export class base_config {
         this.options = options;
         if (configName) {
             this.name = configName;
-            const preConfig = this.schema.actions.find(c=>c.name===configName);
-            if (!preConfig) throw new xError(`Config '${configName}' does not exist.`);
-            const { config } = preConfig;
-            for (const key of Object.keys(config)) if (config[key]) this[key] = config[key];
+            //const preConfig = this.schema.actions.find(c=>c.name===configName);
+            //if (!preConfig) throw new xError(`Config '${configName}' does not exist.`);
+            //const { config } = preConfig;
+            //for (const key of Object.keys(config)) if (config[key]) this[key] = config[key];
         }
         for (const key of Object.keys(extraConfig)) if (extraConfig[key]) this[key] = extraConfig[key];
     }
@@ -32,6 +31,7 @@ export class base_config {
         await this.decrypt();
         if (this.name) configs[this.name] = this;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public writeData(data: rString<any>, template: template): void {
         for (const key of this.dataKeys) data[key] = compile(template, this[key] as string);
     }

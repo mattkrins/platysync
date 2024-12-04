@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ActionIcon, ButtonGroup, MantineComponent, TextInput, TextInputProps } from '@mantine/core';
 import { useTemplater } from '../context/TemplateContext';
 import { IconCode } from '@tabler/icons-react';

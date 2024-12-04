@@ -1,4 +1,4 @@
-import { Loader, Select, TextInput } from "@mantine/core";
+import { Loader, Select } from "@mantine/core";
 import { IconFile, IconPrinter } from "@tabler/icons-react";
 import { operationProps } from "../operations";
 import useAPI from "../../../../../hooks/useAPI";

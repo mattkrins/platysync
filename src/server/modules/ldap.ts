@@ -1,3 +1,4 @@
+/* eslint-disable no-async-promise-executor */
 import { default as ldapjs } from "ldapjs";
 
 const collator = new Intl.Collator(undefined, { sensitivity: "accent" });

@@ -5,7 +5,7 @@ import { Icon, IconChevronRight, IconProps } from '@tabler/icons-react';
 
 interface Props {
     children: ReactNode;
-    label?: string;
+    label?: string|ReactNode;
     rightSection?: ReactNode;
     open?: boolean;
     isOpen?: boolean;

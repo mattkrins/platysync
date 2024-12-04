@@ -3,7 +3,7 @@ import { server } from '../server';
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
 import { compile } from "../modules/handlebars";
 import { availableOperations, handles } from "./actions";
-import { addContext, connect, connections, contexts } from "./providers";
+import { connect, connections } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import fs from 'fs-extra';
@@ -17,7 +17,6 @@ export class Engine { //TODO - add way to cancel
     private settings: Settings = defaultData.settings;
     private connections: connections = {};
     private handles: handles = {};
-    private contexts:  contexts = {};
     private configs:  configs = {};
     private status: jobStatus;
     private queue = new ThrottledQueue(10);
@@ -72,25 +71,29 @@ export class Engine { //TODO - add way to cancel
         this.settings = await Settings();
         this.columns = [this.display, ...this.rule.columns.filter(c=>c.name).map(c=>c.name)];
         this.Emit();
-        const docsTemplate: template = {
+        const preTemplate: template = {
             $file: {},
-            $rule_name: this.rule.name as any,
-            $rule_id: this.id as any,
-            $rule_schema: this.schema.name as any,
-            $rule_scheduled: String(this.scheduled) as any,
+            $path: {
+                dir: paths.base,
+                cache: paths.cache,
+            },
+            $rule: {
+                name: this.rule.name,
+                id: this.id,
+                schema: this.schema.name,
+                scheduled: String(this.scheduled),
+            },
         };
         for (const file of this.schema.files) {
             const folder = `${paths.storage}/${this.schema.name}`;
             const path = `${folder}/${file.path}`;
-            (docsTemplate.$file as { [k: string]: string })[file.key||file.name] = path;
+            (preTemplate.$file as { [k: string]: string })[file.key||file.name] = path;
         }
         await this.connect();
-        const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, docsTemplate, "init");
+        const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, preTemplate, "init");
         if (this.hasInit) this.progress = 15;
         this.initTemplate = initTemplate;
         if (initError) throw initError;
-        //FIXME - fix progress for contexts
-        //for (const context of (this.rule.contexts||[])) await addContext(this.schema, context, this.contexts );
         if (this.primary) this.progress = this.hasInit ? 35 : 20;
         if (!this.primary) this.progress = 50;
         await wait(500);
@@ -165,14 +168,11 @@ export class Engine { //TODO - add way to cancel
             if (handle.close) await handle.close();
         }
     }
-    public async ldap_getUser(key: string, template: template, id?: string, userFilter?: string, compiledFilter?: string) {
+    public async ldap_getUser(key: string, template: template, id?: string) {
         if (!id) return false;
         const ldap = this.connections[key] as LDAP|undefined;
         if (ldap && ldap.users[id]) return ldap.users[id];
-        const context = this.contexts[key] as LDAP|undefined;
-        if (!context) return false;
-        const user = await context.getUser(template, id, userFilter, compiledFilter);
-        return user || false;
+        return false;
     }
     private async ldap_compare(key: string, value: string, operator: string, template: template, id?: string ) {
         if (!key || !id) return false;
@@ -362,7 +362,7 @@ export class Engine { //TODO - add way to cancel
                 action, template, connections: this.connections,
                 handles: this.handles, execute: this.executing,
                 engine: this, data: {}, id, settings: this.settings,
-                contexts: this.contexts, configs: this.configs, schema: this.schema
+                configs: this.configs, schema: this.schema
             })
             if (!result) throw new xError(`Failed to run action '${action.name}'.`);
             const name = (action.name && action.name!==action.id) ? { display: action.name||action.id } : {}
@@ -408,7 +408,7 @@ export class Engine { //TODO - add way to cancel
             joined[foreignName] = foreignRecord || {};
         } return joined;
     }
-    public Emit(update?: DeepPartial<jobStatus>, id?: string) {
+    public Emit(update?: DeepPartial<jobStatus>) {
         this.status = { ...this.status,
             eta: update?.eta||this.status.eta, text: update?.text||this.status.text,
             progress: {...this.status.progress,  ...update?.progress},

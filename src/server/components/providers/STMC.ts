@@ -1,11 +1,10 @@
-import { isNotEmpty, validate, xError } from "../../modules/common";
-import eduSTAR from "../../modules/eduSTAR";
-import { compile } from "../../modules/handlebars";
-import { Settings } from "../database";
-import { Engine } from "../engine";
-import { connect, connections } from "../providers";
-import { base_provider, base_provider_options } from "./base";
-import CSV from "./CSV";
+import { isNotEmpty, validate, xError } from "../../modules/common.js";
+import eduSTAR from "../../modules/eduSTAR.js";
+import { Settings } from "../database.js";
+import { Engine } from "../engine.js";
+import { connect, connections } from "../providers.js";
+import { base_provider, base_provider_options } from "./base.js";
+import CSV from "./CSV.js";
 
 export interface stmc_options extends base_provider_options {
     username: string;

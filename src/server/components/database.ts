@@ -1,7 +1,7 @@
 import { Low } from 'lowdb';
 import { JSONFilePreset } from 'lowdb/node';
-import { log, paths, version } from '../..';
-import { xError } from '../modules/common';
+import { log, paths, version } from '../../index.js';
+import { xError } from '../modules/common.js';
 
 interface Database {
     version: string;

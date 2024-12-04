@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { isNotEmpty, validate, xError } from "../modules/common";
-import database, { getUsers } from "../components/database";
-import { encrypt } from "../modules/cryptography";
-import { logout } from "./auth";
-import { FastifyRequestX, log } from "../..";
+import { isNotEmpty, validate, xError } from "../modules/common.js";
+import database, { getUsers } from "../components/database.js";
+import { encrypt } from "../modules/cryptography.js";
+import { logout } from "./auth.js";
+import { FastifyRequestX, log } from "../../index.js";
 
 export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {

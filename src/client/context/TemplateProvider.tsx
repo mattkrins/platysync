@@ -1,6 +1,6 @@
 import { useDisclosure } from "@mantine/hooks";
 import { openExplorerProps, TemplateContext } from "./TemplateContext";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useConnectors, useSelector } from "../hooks/redux";
 import { compile, pathHelpers, ruleHelpers } from "../modules/handlebars";
 import { getDictionary, getSecrets } from "../providers/appSlice";
@@ -32,7 +32,7 @@ function useTemplate({ rule }: { rule?: Rule }){ //TODO - add inrule templates
                         case "TransAPIRequest":{ if (action.key) array.push(action.key as string); break; }
                         case "SysComparator":{ if (action.output) array.push((action.key||"result") as string); break; }
                         case "SysTemplate":{
-                            array = [...array, ...((action.templates||[]) as SysTemplate[]).filter(s=>s.key).map(s=>s.key) ]; break;
+                            array = [...array, ...((action.templates||[]) as { key: string, value: string }[]).filter(s=>s.key).map(s=>s.key) ]; break;
                         }
                         default: break;
                     }

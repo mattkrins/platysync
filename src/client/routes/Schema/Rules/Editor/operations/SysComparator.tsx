@@ -1,4 +1,4 @@
-import { SimpleGrid, Switch, TextInput, Textarea, TextareaProps } from '@mantine/core';
+import { SimpleGrid, Switch, Textarea, TextareaProps } from '@mantine/core';
 import { IconBraces, IconCheck, IconX } from '@tabler/icons-react';
 import { operationProps } from '../operations';
 import Conditions from '../../../../../components/Conditions';

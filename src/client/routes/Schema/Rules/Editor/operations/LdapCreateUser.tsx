@@ -1,4 +1,4 @@
-import { Autocomplete, AutocompleteProps, Button, Center, Grid, Group, Switch, TextInput } from "@mantine/core";
+import { Autocomplete, AutocompleteProps, Button, Grid, Group, Switch } from "@mantine/core";
 import { IconHierarchy, IconAt, IconUser, IconFolder, IconCopy, IconGripVertical, IconPencil, IconTag, IconTrash, IconPlus } from "@tabler/icons-react";
 import ExtTextInput from "../../../../../components/ExtTextInput";
 import { operationProps } from "../operations";
@@ -6,6 +6,7 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import MenuTip from "../../../../../components/MenuTip";
 import { ldapAttributes } from "../../../../../modules/ldap";
 import Concealer from "../../../../../components/Concealer";
+import BpEntries from "../BpEntries";
 
 interface Attribute extends operationProps {
     index: number;
@@ -46,16 +47,17 @@ function Attribute({ index, copy, remove, rule, props }: Attribute ) {
     </Draggable>)
 }
 
-function Attributes( { form, path, rule, props }: operationProps ) {
+function Attributes( { form, path, rule, props, blueprint }: operationProps ) {
     const templatePath = `${path}.attributes`;
     const entries = form.getInputProps(templatePath).value as { name: string,value: string }[];
+    const bpEntries = (blueprint?.attributes || []) as object[];
     const add = () => form.insertListItem(templatePath, { name: undefined, value: undefined, });
     const copy = (e: { name: string, value: string }) => form.insertListItem(templatePath, structuredClone(e));
     const remove = (i: number) => form.removeListItem(templatePath, i);
     return (
     <Concealer label='Attributes' open rightSection={
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Attribute</Button></Group> } >
-        {entries.length===0&&<Center c="dimmed" fz="xs" >No attributes configured.</Center>}
+        <BpEntries label='attributes' entries={entries} bpEntries={bpEntries} />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -103,16 +105,17 @@ function SecurityGroup({ index, copy, remove, rule, props }: SecurityGroup ) {
     </Draggable>)
 }
 
-function SecurityGroups( { form, path, props, rule }: operationProps ) {
+function SecurityGroups( { form, path, props, rule, blueprint }: operationProps ) {
     const templatePath = `${path}.groups`;
     const entries = form.getInputProps(templatePath).value as string[];
+    const bpEntries = (blueprint?.groups || []) as object[];
     const add = () => form.insertListItem(templatePath, "");
     const copy = (e: string) => form.insertListItem(templatePath, structuredClone(e));
     const remove = (i: number) => form.removeListItem(templatePath, i);
     return (
     <Concealer label='Security Groups' open rightSection={
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Security Group</Button></Group> } >
-        {entries.length===0&&<Center c="dimmed" fz="xs" >No security groups configured.</Center>}
+        <BpEntries label='security groups' entries={entries} bpEntries={bpEntries} />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -159,8 +162,8 @@ export default function LdapCreateUser( { props, rule, form, path, blueprint }: 
             label="User Enabled" mt="xs"
             {...props("newline", { type: 'checkbox' })}
         />
-        <Attributes form={form} path={path} rule={rule} props={props} />
-        <SecurityGroups form={form} path={path} rule={rule} props={props} />
+        <Attributes form={form} path={path} rule={rule} props={props} blueprint={blueprint} />
+        <SecurityGroups form={form} path={path} rule={rule} props={props} blueprint={blueprint} />
     </>
     )
 }

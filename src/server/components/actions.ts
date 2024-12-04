@@ -1,35 +1,35 @@
-import { Engine } from "./engine";
-import { connections, contexts } from "./providers";
-import { configs } from "./configs/base";
-import DocPrintPDF from "./actions/DocPrint";
-import DocWritePDF from "./actions/DocWritePDF";
-import FileCopy from "./actions/FileCopy";
-import FileDelete from "./actions/FileDelete";
-import FileMove from "./actions/FileMove";
-import FileWriteTxt from "./actions/FileWriteTxt";
-import FolderCopy from "./actions/FolderCopy";
-import FolderCreate from "./actions/FolderCreate";
-import FolderDelete from "./actions/FolderDelete";
-import FolderMove from "./actions/FolderMove";
-import StmcUpStuPass from "./actions/StmcUpStuPass";
-import StmcUpStuPassBulk from "./actions/StmcUpStuPassBulk";
-import SysComparator from "./actions/SysComparator";
-import SysEncryptString from "./actions/SysEncryptString";
-import SysRunCommand from "./actions/SysRunCommand";
-import SysTemplate from "./actions/SysTemplate";
-import SysWait from "./actions/SysWait";
-import TransEmailSend from "./actions/TransEmailSend";
-import LdapCreateUser from "./actions/LdapCreateUser";
-import LdapDeleteUser from "./actions/LdapDeleteUser";
-import LdapDisableUser from "./actions/LdapDisableUser";
-import LdapEnableUser from "./actions/LdapEnableUser";
-import LdapMoveOU from "./actions/LdapMoveOU";
-import LdapUpdateAccount from "./actions/LdapUpdateAccount";
-import LdapUpdateAttributes from "./actions/LdapUpdateAttributes";
-import LdapUpdateGroups from "./actions/LdapUpdateGroups";
-import SysWriteCSV from "./actions/SysWriteCSV";
-import TransAPIRequest from "./actions/TransAPIRequest";
-import SysDecryptString from "./actions/SysDecryptString";
+import { Engine } from "./engine.js";
+import { connections } from "./providers.js";
+import { configs } from "./configs/base.js";
+import DocPrintPDF from "./actions/DocPrint.js";
+import DocWritePDF from "./actions/DocWritePDF.js";
+import FileCopy from "./actions/FileCopy.js";
+import FileDelete from "./actions/FileDelete.js";
+import FileMove from "./actions/FileMove.js";
+import FileWriteTxt from "./actions/FileWriteTxt.js";
+import FolderCopy from "./actions/FolderCopy.js";
+import FolderCreate from "./actions/FolderCreate.js";
+import FolderDelete from "./actions/FolderDelete.js";
+import FolderMove from "./actions/FolderMove.js";
+import StmcUpStuPass from "./actions/StmcUpStuPass.js";
+import StmcUpStuPassBulk from "./actions/StmcUpStuPassBulk.js";
+import SysComparator from "./actions/SysComparator.js";
+import SysEncryptString from "./actions/SysEncryptString.js";
+import SysRunCommand from "./actions/SysRunCommand.js";
+import SysTemplate from "./actions/SysTemplate.js";
+import SysWait from "./actions/SysWait.js";
+import TransEmailSend from "./actions/TransEmailSend.js";
+import LdapCreateUser from "./actions/LdapCreateUser.js";
+import LdapDeleteUser from "./actions/LdapDeleteUser.js";
+import LdapDisableUser from "./actions/LdapDisableUser.js";
+import LdapEnableUser from "./actions/LdapEnableUser.js";
+import LdapMoveOU from "./actions/LdapMoveOU.js";
+import LdapUpdateAccount from "./actions/LdapUpdateAccount.js";
+import LdapUpdateAttributes from "./actions/LdapUpdateAttributes.js";
+import LdapUpdateGroups from "./actions/LdapUpdateGroups.js";
+import FileWriteCSV from "./actions/FileWriteCSV.js";
+import TransAPIRequest from "./actions/TransAPIRequest.js";
+import SysDecryptString from "./actions/SysDecryptString.js";
 
 interface handle<type=unknown> {
   handle: type;
@@ -41,7 +41,6 @@ export interface props<type> {
   action: Action & type;
   template: template;
   connections: connections;
-  contexts: contexts;
   configs: configs;
   execute: boolean;
   engine: Engine;
@@ -52,6 +51,7 @@ export interface props<type> {
   id?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type operation = (props: props<any>) => Promise<result>;
 export const availableOperations: { [k: string]: operation } = {
   'DocWritePDF': DocWritePDF,
@@ -59,6 +59,7 @@ export const availableOperations: { [k: string]: operation } = {
   'FileCopy': FileCopy,
   'FileDelete': FileDelete,
   'FileMove': FileMove,
+  'FileWriteCSV': FileWriteCSV,
   'FileWriteTxt': FileWriteTxt,
   'FolderCopy': FolderCopy,
   'FolderCreate': FolderCreate,
@@ -80,7 +81,6 @@ export const availableOperations: { [k: string]: operation } = {
   'SysRunCommand': SysRunCommand,
   'SysTemplate': SysTemplate,
   'SysWait': SysWait,
-  'SysWriteCSV': SysWriteCSV,
   'TransEmailSend': TransEmailSend,
   'TransAPIRequest': TransAPIRequest,
 }

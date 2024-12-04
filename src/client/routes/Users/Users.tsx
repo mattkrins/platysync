@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Container, Group, Title, Button, Paper, Grid, ActionIcon, Text, Tooltip } from "@mantine/core";
+import { Container, Group, Title, Button, Paper, Grid, Text } from "@mantine/core";
 import Editor from "./Editor";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import useAPI from "../../hooks/useAPI";

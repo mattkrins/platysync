@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../modules/common";
-import { getConnectors, getSchema, sync } from "../components/database";
-import { providers } from "../components/providers";
-import { encrypt } from "../modules/cryptography";
-import { log } from "../..";
+import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../modules/common.js";
+import { getConnectors, getSchema, sync } from "../components/database.js";
+import { providers } from "../components/providers.js";
+import { encrypt } from "../modules/cryptography.js";
+import { log } from "../../index.js";
 
 function validateHeaders(headers: string[]) {
     const findDuplicateIndexes = (arr: string[]) => {

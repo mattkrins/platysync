@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { isNotEmpty, validate, xError } from "../modules/common";
-import { getBlueprints, getSchema, sync } from "../components/database";
-import { encrypt } from "../modules/cryptography";
-import { log } from "../..";
+import { isNotEmpty, validate, xError } from "../modules/common.js";
+import { getBlueprints, getSchema, sync } from "../components/database.js";
+import { encrypt } from "../modules/cryptography.js";
+import { log } from "../../index.js";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -26,7 +26,7 @@ export default async function (route: FastifyInstance) {
     });
     route.post('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
-        let { name, id, ...options } = request.body as Action;
+        const { name, id, ...options } = request.body as Action;
         try {
             validate( { id, name }, {
                 id: isNotEmpty('ID can not be empty.'),

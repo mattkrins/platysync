@@ -5,27 +5,27 @@ import { fileURLToPath } from 'url';
 import * as fs from 'fs';
 import type { FastifyCookieOptions } from '@fastify/cookie'
 import cookie from '@fastify/cookie'
-import { getKey } from './server/modules/cryptography';
 import { readFileSync } from 'node:fs';
-import database, { getDictionary, getSecrets, Settings } from './server/components/database';
 import winston from 'winston';
-import auth from './server/routes/auth';
-import schema from './server/routes/schema';
-import settings from './server/routes/settings';
-import user from './server/routes/user';
-import { xError } from './server/modules/common';
-import logs from './server/routes/logs';
-import file from './server/routes/schema/file';
-import connectors from './server/routes/connectors';
-import rule from './server/routes/rule';
-import blueprint from './server/routes/blueprint';
 import socketioServer from "fastify-socket.io";
 import { Server } from "socket.io";
-import schedule from './server/routes/schedule';
-import sdictionary from './server/routes/schema/dictionary';
-import ssecrets from './server/routes/schema/secrets';
-import dictionary from './server/routes/general/dictionary';
-import secrets from './server/routes/general/secrets';
+import { getKey } from './server/modules/cryptography.js';
+import database, { getDictionary, getSecrets, Settings } from './server/components/database.js';
+import auth from './server/routes/auth.js';
+import schema from './server/routes/schema.js';
+import settings from './server/routes/settings.js';
+import user from './server/routes/user.js';
+import { xError } from './server/modules/common.js';
+import logs from './server/routes/logs.js';
+import file from './server/routes/schema/file.js';
+import connectors from './server/routes/connectors.js';
+import rule from './server/routes/rule.js';
+import blueprint from './server/routes/blueprint.js';
+import schedule from './server/routes/schedule.js';
+import sdictionary from './server/routes/schema/dictionary.js';
+import ssecrets from './server/routes/schema/secrets.js';
+import dictionary from './server/routes/general/dictionary.js';
+import secrets from './server/routes/general/secrets.js';
 const { combine, timestamp, json, simple, errors } = winston.format;
 
 export let version = process.env.npm_package_version as string;
@@ -66,7 +66,7 @@ declare module "fastify" {
 
 function addRoute(api: FastifyInstance, prefix: string|undefined, routesToAdd: (route: FastifyInstance)=>Promise<void>|void, auth: boolean = true) {
   api.register( async (route: FastifyInstance)=>{
-    if (auth) { route.addHook('preHandler', async (request: FastifyRequestX, reply) => {
+    if (auth) { route.addHook('preHandler', async (request: FastifyRequestX) => {
       if (!request.cookies || !request.cookies['auth']) throw new xError("Missing session ID.", null, 401);
       const sessionId = request.cookies['auth'];
       const db = await database();
@@ -94,7 +94,7 @@ async function routes(route: FastifyInstance) {
   addRoute(route, '/secret', secrets);
   addRoute(route, '/user', user);
   addRoute(route, '/log', logs);
-  route.get('/', async (request, reply) => {
+  route.get('/', async (request) => {
     const extra: { auth?: Partial<Session>, dictionary?: kvPair[], secrets?: encryptedkvPair[] } = {};
     const { data: { users, sessions } } = await database();
     const setup = users.length > 0;

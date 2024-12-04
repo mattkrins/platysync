@@ -1,13 +1,12 @@
 import { useSelector } from "react-redux";
-import { getConnectors, getActions, getRules } from "../providers/schemaSlice";
+import { getConnectors, getRules } from "../providers/schemaSlice";
 
 export default function useDependencyWalker(
     searchName: string,
     testStr: (str: string | undefined, substring: string) => boolean,
-    extendedTests?: (name: string, connectors: Connector[], actions: ActionConfig[], rules: Rule[]) => string|undefined
+    extendedTests?: (name: string, connectors: Connector[], rules: Rule[]) => string|undefined
     ) {
     const connectors = useSelector(getConnectors);
-    const actions = useSelector(getActions);
     const rules = useSelector(getRules);
     return () => {
         for (const { id, name, path } of connectors||[]) {    
@@ -44,10 +43,6 @@ export default function useDependencyWalker(
                 }
             }
         }
-        for (const { name, config } of actions||[]) {
-            const test = testAction(name, config, "action config");
-            if (test) return test;
-        }
         for (const rule of rules||[]) {
             if (testStr(rule.display, searchName)) return `rule '${rule.name}' display`;
             for (const condition of rule.conditions||[]) {
@@ -58,20 +53,23 @@ export default function useDependencyWalker(
                 if (testStr(column.value, searchName)) return `rule '${rule.name}' column value`;
             }
             for (const action of rule.initActions||[]) {
+                if (!action.name) continue;
                 const test = testAction(action.name, action, `rule '${rule.name}' init action`);
                 if (test) return test;
             }
             for (const action of rule.iterativeActions||[]) {
+                if (!action.name) continue;
                 const test = testAction(action.name, action, `rule '${rule.name}' iterative action`);
                 if (test) return test;
             }
             for (const action of rule.finalActions||[]) {
+                if (!action.name) continue;
                 const test = testAction(action.name, action, `rule '${rule.name}' final action`);
                 if (test) return test;
             }
         }
         if (extendedTests){
-            const test = extendedTests(searchName, connectors, actions, rules);
+            const test = extendedTests(searchName, connectors, rules);
             if (test) return test;
         }
     }

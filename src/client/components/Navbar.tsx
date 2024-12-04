@@ -102,7 +102,7 @@ export default function Navbar({ params, section, setSection }: { params: Record
         </Box>
         <SegmentedControl
           value={section}
-          onChange={(value: any) => setSection(value)}
+          onChange={(value: string) => setSection(value)}
           fullWidth
           data={[{label:"Schema",value:"schema"},{label:"General",value:"general"}]}
         />

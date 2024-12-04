@@ -1,9 +1,9 @@
-import { paths } from "../../..";
-import { hasLength, isAlphanumeric, validate, xError } from "../../modules/common";
-import { compile } from "../../modules/handlebars";
-import { base_provider, base_provider_options } from "./base";
-import fs from 'fs-extra';
 import Papa, { ParseResult } from "papaparse";
+import fs from 'fs-extra';
+import { paths } from "../../../index.js";
+import { hasLength, isAlphanumeric, validate, xError } from "../../modules/common.js";
+import { compile } from "../../modules/handlebars.js";
+import { base_provider, base_provider_options } from "./base.js";
 
 export interface csv_options extends base_provider_options {
     path: string;

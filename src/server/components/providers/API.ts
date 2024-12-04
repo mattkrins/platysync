@@ -1,15 +1,15 @@
-import { isNotEmpty, validate, xError } from "../../modules/common";
-import { Settings } from "../database";
-import { base_provider, base_provider_options } from "./base";
 import { createCookieAgent } from "http-cookie-agent/http";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import axios, { AxiosInstance } from "axios";
-import { history, paths } from "../../..";
 import fs from 'fs-extra';
-import { decrypt, encrypt } from "../../modules/cryptography";
-import { connections } from "../providers";
-import { Engine } from "../engine";
+import { isNotEmpty, validate, xError } from "../../modules/common.js";
+import { Settings } from "../database.js";
+import { base_provider, base_provider_options } from "./base.js";
+import { history, paths } from "../../../index.js";
+import { decrypt, encrypt } from "../../modules/cryptography.js";
+import { connections } from "../providers.js";
+import { Engine } from "../engine.js";
 
 interface cache {
     date: Date;
@@ -20,12 +20,13 @@ interface objectString {
     [k: string]: objectString;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getNestedValue(o: objectString, s: string): any {
     s = s.replace(/\[(\w+)\]/g, '.$1');
     s = s.replace(/^\./, '');
-    var a = s.split('.');
-    for (var i = 0, n = a.length; i < n; ++i) {
-        var k = a[i];
+    const a = s.split('.');
+    for (let i = 0, n = a.length; i < n; ++i) {
+        const k = a[i];
         if (k in o) {
             o = o[k];
         } else {
@@ -58,7 +59,7 @@ export interface api_options extends base_provider_options {
     method: string;
     sendData: string;
     linkHeader: boolean;
-    cache: number;
+    cache: string;
 }
 
 export default class API extends base_provider {
@@ -82,7 +83,7 @@ export default class API extends base_provider {
         this.method = options.method;
         this.sendData = options.sendData;
         this.linkHeader = options.linkHeader||false;
-        this.cache = options.cache||cache;
+        this.cache = Number(options.cache||cache);
     }
     public async validate() {
         validate( this, {
@@ -104,12 +105,12 @@ export default class API extends base_provider {
         let httpAgent;
         let httpsAgent;
         if (url) {
-            const HttpProxyCookieAgent: any = createCookieAgent(HttpProxyAgent);
-            const HttpsProxyCookieAgent: any = createCookieAgent(HttpsProxyAgent);
+            const HttpProxyCookieAgent = createCookieAgent(HttpProxyAgent);
+            const HttpsProxyCookieAgent = createCookieAgent(HttpsProxyAgent);
             let proxyAuth: undefined|string;
             if (url.username&&url.password) proxyAuth = `${url.username}:${url.password}`;
-            httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port, proxyAuth });
-            httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port });
+            httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port, proxyAuth } as unknown as URL);
+            httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port } as unknown as URL);
         }
         this.client = axios.create({
             httpAgent, httpsAgent,
@@ -136,7 +137,8 @@ export default class API extends base_provider {
         this.data = data;
         return data;
     }
-    private async download(page = true, cache = true, engine?: Engine): Promise<any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private async download(page = true, cache = true, engine?: Engine): Promise<any[]> {
         if (engine) engine.Emit({ text: `Downloading '${this.name}' API data...` });
         if (!this.client) throw new xError("Client not connected.");
         try {
@@ -144,6 +146,7 @@ export default class API extends base_provider {
             if (this.linkHeader && page) {
                 let url: string|null = `${this.endpoint}${this.target}`;
                 while (url) {
+                    console.log("next...", entries.length)
                     try {
                         const response = await this.client.request({
                             url,

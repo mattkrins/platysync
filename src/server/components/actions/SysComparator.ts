@@ -1,6 +1,5 @@
 import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
-import fs from 'fs-extra';
 import { props } from "../actions.js";
 
 interface SysComparator {

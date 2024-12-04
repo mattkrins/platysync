@@ -1,10 +1,11 @@
-import { ActionIcon, Alert, Button, Group, JsonInput, Modal, Text, Textarea, Tooltip, rem } from '@mantine/core';
-import { IconUpload, IconPhoto, IconX, IconDownload, IconPackageImport, IconAlertCircle } from '@tabler/icons-react';
-import { Dropzone, DropzoneProps, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
+import { Alert, Button, JsonInput, Modal, Textarea, rem } from '@mantine/core';
+import { IconPackageImport, IconAlertCircle } from '@tabler/icons-react';
+import { Dropzone, DropzoneProps } from '@mantine/dropzone';
 import { useState } from 'react';
 
 interface Props extends Partial<DropzoneProps> {
     close(): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onImport: (data: any) => void;
     onError?: () => void;
     opened?: boolean;

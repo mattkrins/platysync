@@ -68,17 +68,6 @@ interface FormDataValue {
     value: string,
 }
 
-interface SysTemplate {
-    key: string,
-    value: string,
-}
-
-interface ActionConfig {
-    id: string,
-    name: string,
-    config: Action;
-}
-
 interface Action {
     id: string,
     name?: string,
@@ -106,7 +95,6 @@ interface Rule {
     display?: string;
     displayKey?: string;
     sources: Source[];
-    //contexts: Context[];
     conditions: Condition[];
     initActions: Action[];
     iterativeActions: Action[];
@@ -176,7 +164,7 @@ interface template {
 
 interface xError {
     message: string;
-    name: string = "Error";
+    name: string;
     stack?: string|NodeJS.CallSite[];
     field?: string;
     status?: number;

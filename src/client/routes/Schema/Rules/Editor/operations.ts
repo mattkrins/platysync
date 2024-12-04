@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { Icon, IconArrowBarToRight, IconBinaryTree2, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconCsv, IconEqualNot, IconFile, IconFileTypePdf, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconLockOpen2, IconLockPassword, IconMail, IconPencil, IconPlus, IconPrinter, IconProps, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
+import { Icon, IconArrowBarToRight, IconBinaryTree2, IconClock, IconCloudUp, IconCloudUpload, IconCopy, IconCsv, IconEqualNot, IconFile, IconFileTypePdf, IconFolder, IconFolderShare, IconLock, IconLockOpen, IconLockOpen2, IconLockPassword, IconMail, IconMailForward, IconPencil, IconPlus, IconPrinter, IconProps, IconSchool, IconShieldCog, IconTemplate, IconTerminal, IconTrash, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
 import { UseFormReturnType } from "@mantine/form";
 import DocWritePDF from "./operations/DocWritePDF";
 import SysEncryptString from "./operations/SysEncryptString";
@@ -25,7 +26,8 @@ import SysRunCommand from "./operations/SysRunCommand";
 import SysTemplate from "./operations/SysTemplate";
 import SysWait from "./operations/SysWait";
 import TransAPIRequest from "./operations/TransAPIRequest";
-import SysWriteCSV from "./operations/SysWriteCSV";
+import FileWriteCSV from "./operations/FileWriteCSV";
+import TransEmailSend from "./operations/TransEmailSend";
 
 //TODO - thermal print, regular print, read file into template, write temp folder for rule, log to console, zip/unzip file/s
 // https://github.com/thiagoelg/node-printer
@@ -47,6 +49,8 @@ export interface operationProp {
   placeholder?: string;
   styles?: object;
   leftSection?: JSX.Element;
+  offLabel?: JSX.Element;
+  onLabel?: JSX.Element;
   unlock?(): void;
   secure?: boolean;
 }
@@ -85,20 +89,6 @@ export interface operationCategory {
 
 export const availableCategories: operationCategory[] = [
     {
-        name: "Directory Operations",
-        id: 'directory',
-        provider: 'ldap',
-        Icon: IconBinaryTree2,
-        color: "blue",
-    },
-    {
-        name: "eduSTAR Operations",
-        id: 'edustar',
-        Icon: IconSchool,
-        provider: 'stmc',
-        color: "yellow",
-    },
-    {
         name: "Document Operations",
         id: 'document',
         Icon: IconFileTypePdf,
@@ -126,6 +116,20 @@ export const availableCategories: operationCategory[] = [
         id: 'transmission',
         color: 'grape',
         Icon: IconMail,
+    },
+    {
+        name: "Directory Operations",
+        id: 'directory',
+        provider: 'ldap',
+        Icon: IconBinaryTree2,
+        color: "blue",
+    },
+    {
+        name: "eduSTAR Operations",
+        id: 'edustar',
+        Icon: IconSchool,
+        //provider: 'stmc',
+        color: "yellow",
     },
 ];
 
@@ -177,6 +181,15 @@ export const availableOperations: operation[] = [
         validator: true,
         overwriter: true,
         Operation: FileMove,
+    },
+    {
+        name: "FileWriteCSV",
+        label: "Write Results To CSV",
+        category: 'file',
+        Icon: IconCsv,
+        color: 'green',
+        Operation: FileWriteCSV,
+        scope: "finalActions",
     },
     {
         name: "FileWriteTxt",
@@ -307,11 +320,11 @@ export const availableOperations: operation[] = [
     },
     {
         name: "StmcUpStuPass",
-        label: "Upload Student Password",
+        label: "Set Student Password",
         category: 'edustar',
         Icon: IconCloudUpload,
         color: 'yellow',
-        provider: 'stmc',
+        //provider: 'stmc',
         Operation: StmcUpStuPass,
     },
     {
@@ -320,7 +333,7 @@ export const availableOperations: operation[] = [
         category: 'edustar',
         Icon: IconCsv,
         color: 'orange',
-        provider: 'stmc',
+        //provider: 'stmc',
         Operation: StmcUpStuPassBulk,
         validator: true,
     },
@@ -369,14 +382,6 @@ export const availableOperations: operation[] = [
         Operation: SysWait,
     },
     {
-        name: "SysWriteCSV",
-        label: "Write Results To CSV",
-        category: 'system',
-        Icon: IconCsv,
-        Operation: SysWriteCSV,
-        scope: "finalActions",
-    },
-    {
         name: "TransAPIRequest",
         label: "API Request",
         category: 'transmission',
@@ -387,5 +392,13 @@ export const availableOperations: operation[] = [
             form: [],
             headers: [],
         }
+    },
+    {
+        name: "TransEmailSend",
+        label: "Send Email",
+        category: 'transmission',
+        Icon: IconMailForward,
+        color: 'grape',
+        Operation: TransEmailSend
     },
 ];

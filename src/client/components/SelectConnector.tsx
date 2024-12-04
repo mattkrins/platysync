@@ -1,8 +1,8 @@
-import { useCombobox, Combobox, InputBase, Input, Group, Text, InputBaseProps, useMantineTheme, CloseButton, FloatingPosition, Button, ActionIcon } from '@mantine/core';
+import { useCombobox, Combobox, InputBase, Input, Group, Text, InputBaseProps, useMantineTheme, FloatingPosition, Button, ActionIcon } from '@mantine/core';
 import { useSelector } from '../hooks/redux';
 import { getConnectors } from '../providers/schemaSlice';
 import { ForwardRefExoticComponent, RefAttributes, useMemo } from 'react';
-import { provider, providers } from '../modules/providers';
+import { provider, providers } from '../routes/Schema/Connectors/providers';
 import { Icon, IconPlug, IconProps, IconX } from '@tabler/icons-react';
 
 

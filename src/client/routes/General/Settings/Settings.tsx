@@ -114,7 +114,7 @@ export default function Settings() {
             label="Enable Run/Command Action" defaultChecked={false}
             description={<>Enables action which can execute arbitrary system processes/commands.<br/>
             Must be set manually via the <Anchor href='https://github.com/mattkrins/platysync/wiki/Settings#enable-runcommand-action' size="xs" target='_blank' >settings </Anchor> 
-            file by adding <Code>"enableRun": true,</Code></>}
+            file by adding <Code>&quot;enableRun&quot;: true,</Code></>}
             />
             <Input.Wrapper mt="xs" label="Proxy" description="If running behind a corporate proxy, set for internet access."
             error={proxy_error||form.getInputProps('proxy_url').error}

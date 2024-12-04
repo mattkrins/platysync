@@ -153,7 +153,6 @@ export default function useFetch<returnType = unknown, sendType = unknown>(opt1:
         }
         return deferred.promise as Promise<returnType>;
     }, [opt1, reset]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { if (opt1.fetch) execute(); }, [ opt1.fetch ]);
     const mutate = (mutation: {[k: string]: unknown}) => setData(data=>({...data, ...mutation}));
     return {

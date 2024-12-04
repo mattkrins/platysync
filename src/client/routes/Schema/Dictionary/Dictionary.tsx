@@ -12,7 +12,7 @@ import Editor from "./Editor";
 function Entry({ index, entry: { key, value }, edit, refresh }: { index: number, entry: kvPair, edit(): void, refresh(): void }) {
     const loaders = useLoader();
     const loading = loaders[`loadingdictionary_${index}`];
-    const { del, loading: deleting, error: dError, reset: dReset, schema_name } = useAPI({
+    const { del, loading: deleting, error: dError, reset: dReset } = useAPI({
         url: `/dictionary`, data: { key }, schema: true,
         then: () => refresh()
     });
@@ -23,7 +23,7 @@ function Entry({ index, entry: { key, value }, edit, refresh }: { index: number,
     const clickDel = () => del(); //TODO - dependancy finder
     return (
     <Draggable index={index} draggableId={key}>
-    {(provided, snapshot) => (
+    {(provided, _snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >

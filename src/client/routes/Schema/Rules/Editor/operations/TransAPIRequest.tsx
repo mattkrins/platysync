@@ -1,11 +1,12 @@
-import { Anchor, Button, Center, Grid, Group, Select, SimpleGrid, Switch, Textarea, TextareaProps, TextInput, useMantineTheme } from '@mantine/core'
+import { Anchor, Button, Grid, Group, Select, SimpleGrid, Switch, Textarea, TextareaProps } from '@mantine/core'
 import ExtTextInput from '../../../../../components/ExtTextInput'
 import { operationProps } from '../operations'
-import { IconBraces, IconCopy, IconGripVertical, IconKey, IconPencil, IconPlus, IconRoute2, IconTemplate, IconTrash, IconWorld } from '@tabler/icons-react';
+import { IconBraces, IconCopy, IconGripVertical, IconKey, IconPencil, IconPlus, IconRoute2, IconTrash, IconWorld } from '@tabler/icons-react';
 import Concealer from '../../../../../components/Concealer';
 import SecurePasswordInput from '../../../../../components/SecurePasswordInput';
 import { Draggable, DragDropContext, Droppable } from '@hello-pangea/dnd';
 import MenuTip from '../../../../../components/MenuTip';
+import BpEntries from '../BpEntries';
 
 const xmlPlaceholder = `<user>
   <name>John</name>
@@ -56,25 +57,6 @@ function Header({ index, copy, remove, rule, props }: Header ) {
     </Draggable>)
 }
 
-function BpHeader({ entry }: { entry: object } ) {
-    const theme = useMantineTheme();
-    const color = theme.colors['blue'][9];
-    const keys = Object.keys(entry);
-    return (
-        <Grid align="center" mt="xs" gutter="xs" >
-            {keys.map((k, i) =>
-            <Grid.Col span="auto" key={`bp${i}`} >
-                <TextInput readOnly size="xs" disabled
-                leftSection={<IconTemplate size={16} style={{ display: 'block', opacity: 0.8 }} color={color} />}
-                placeholder={k}
-                value={entry[k as keyof object]}
-                styles={{ input: { borderColor: color } }}
-                />
-            </Grid.Col>)}
-        </Grid>
-    )
-}
-
 function Headers( { form, path, props, rule, blueprint }: operationProps ) {
     const templatePath = `${path?`${path}.`:''}headers`;
     const bpEntries = (blueprint?.headers || []) as { key: string, value: string, }[];
@@ -85,7 +67,7 @@ function Headers( { form, path, props, rule, blueprint }: operationProps ) {
     return (
     <Concealer label='Headers' rightSection={
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Header</Button></Group> } >
-        {(entries.length===0&&bpEntries.length===0)&&<Center c="dimmed" fz="xs" >No headers configured.</Center>}
+        <BpEntries label='headers' entries={entries} bpEntries={bpEntries} />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -96,22 +78,21 @@ function Headers( { form, path, props, rule, blueprint }: operationProps ) {
             )}
         </Droppable>
         </DragDropContext>
-        {bpEntries.map((e, i) => <BpHeader key={i} entry={e} />)}
     </Concealer>
   )
 }
 
 function BasicOptions( { props, rule, blueprint }: operationProps ) {
     const auth = props("auth").value;
-   return (
-    <Concealer label="Endpoint" open={!blueprint} >
-      <ExtTextInput rule={rule} withAsterisk={!blueprint?.endpoint}
+    return (
+    <Concealer label="Endpoint" open={!blueprint?.endpoint} >
+        <ExtTextInput rule={rule} withAsterisk={!blueprint?.endpoint}
             label="Base API endpoint URL"
             description="Prepended to all API target URLs."
             leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.5 }}/>}
             placeholder="https://service.com/api/v1"
             {...props("endpoint")}
-      />
+        />
     <Select mt="xs" label="Authentication Method"
         description={<>
         Method used to <Anchor size="xs" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication" >authenticate</Anchor> the request.
@@ -135,6 +116,13 @@ export default function TransAPIRequest( { props, rule, blueprint, ...rest }: op
     return (
     <>
         <BasicOptions props={props} rule={rule} blueprint={blueprint} {...rest} />
+        <ExtTextInput rule={rule}
+            label="Target Endpoint URL" mt="xs"
+            description="Appended to the base API URL."
+            leftSection={<IconWorld size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+            placeholder="/user/add"
+            {...props("target")}
+        />
         <Select mt="xs" label="Method"
             description={<>
             Method used to <Anchor size="xs" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods" >send</Anchor> the request.
@@ -183,15 +171,15 @@ export default function TransAPIRequest( { props, rule, blueprint, ...rest }: op
         <Headers props={props} rule={rule} blueprint={blueprint} {...rest} />
         <SimpleGrid mt="xs" cols={{ base: 1, sm: 2 }} >
             <ExtTextInput rule={rule}
-                label="Template Key" mt="xs"
+                label="Template Key"
                 description="Set to store returned / response data in this template key."
                 placeholder="response"
                 leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                 {...props("key")}
             />
             <ExtTextInput rule={rule}
-                label="Response Path" mt="xs"
-                description="Set to store response data with a specific accessor path."
+                label="Response Path"
+                description="Set to store response data from a specific accessor path."
                 placeholder="users[0].name"
                 leftSection={<IconRoute2 size={16} style={{ display: 'block', opacity: 0.8 }}/>}
                 {...props("responsePath")}

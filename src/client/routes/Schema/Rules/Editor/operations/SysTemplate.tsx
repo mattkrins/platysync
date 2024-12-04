@@ -1,10 +1,11 @@
-import { Button, Center, Grid, Group } from '@mantine/core'
+import { Button, Grid, Group } from '@mantine/core'
 import { IconBraces, IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd'
 import { operationProps } from '../operations'
 import Concealer from '../../../../../components/Concealer'
 import ExtTextInput from '../../../../../components/ExtTextInput'
 import MenuTip from '../../../../../components/MenuTip'
+import BpEntries from '../BpEntries'
 
 interface Template extends operationProps {
     index: number;
@@ -45,16 +46,17 @@ function Template({ index, copy, remove, rule, props }: Template ) {
     </Draggable>)
 }
 
-function SysTemplates( { form, path, props, rule }: operationProps ) {
-    const templatePath = `${path}.templates`;
+function SysTemplates( { form, path, props, rule, blueprint }: operationProps ) {
+    const templatePath = `${path?`${path}.`:''}templates`;
     const entries = form.getInputProps(templatePath).value as { key: string, value: string, }[];
-    const add = () => form.insertListItem(templatePath, { key: "", value: "", });
-    const copy = (e: { key: string, value: string, }) => form.insertListItem(templatePath, structuredClone(e));
+    const bpEntries = (blueprint?.templates || []) as object[];
+    const add = () => form.insertListItem(templatePath, { key: undefined, value: undefined, });
+    const copy = (e: object) => form.insertListItem(templatePath, structuredClone(e));
     const remove = (i: number) => form.removeListItem(templatePath, i);
     return (
     <Concealer label='Templates' open rightSection={
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Template</Button></Group> } >
-        {entries.length===0&&<Center c="dimmed" fz="xs" >No templates configured.</Center>}
+        <BpEntries label='templates' entries={entries} bpEntries={bpEntries} />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -69,6 +71,6 @@ function SysTemplates( { form, path, props, rule }: operationProps ) {
   )
 }
 
-export default function SysTemplate( { form, path, props, rule }: operationProps ) {
-    return <SysTemplates form={form} path={path} rule={rule} props={props} />
+export default function SysTemplate( { form, path, props, rule, ...rest }: operationProps ) {
+    return <SysTemplates form={form} path={path} rule={rule} props={props} {...rest} />
 }

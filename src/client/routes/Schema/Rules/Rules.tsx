@@ -10,7 +10,6 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { modals } from "@mantine/modals";
 import MenuTip from "../../../components/MenuTip";
 import useAPI from "../../../hooks/useAPI";
-import { availableActions } from "../../../modules/actions";
 import { availableOperations } from "./Editor/operations";
 
 
@@ -79,7 +78,7 @@ function Rule({ index, rule: { name, enabled, ...rule }, refresh, run }: { index
             title: dependencies ? 'Delete In-Use Rule' : 'Delete Rule',
             children:
             <Box>
-                {dependencies&&<Text fw="bold" c="red" size="xs" mb="xs" >Warning, schedule '{dependencies}' is using this rule.</Text>}
+                {dependencies&&<Text fw="bold" c="red" size="xs" mb="xs" >Warning, schedule &apos;{dependencies}&apos; is using this rule.</Text>}
                 <Text size="sm">Are you sure you want to delete <b>{name}</b>?<br/>This action is destructive and cannot be reversed.</Text>
             </Box>,
             labels: { confirm: 'Delete rule', cancel: "Cancel" },
@@ -94,7 +93,7 @@ function Rule({ index, rule: { name, enabled, ...rule }, refresh, run }: { index
     
     return (
         <Draggable index={index} draggableId={name}>
-        {(provided, snapshot) => (
+        {(provided, _snapshot) => (
         <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
             <Grid columns={17} justify="space-between"  align="center" >
                 <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
@@ -122,8 +121,8 @@ function Rule({ index, rule: { name, enabled, ...rule }, refresh, run }: { index
                 <Grid.Col span={4} miw={160}>
                     <Group gap="xs" justify="flex-end">
                         {(loading||switching)&&<Loader size="xs" />}
-                        <Tooltip style={{zIndex:100}} label={sError||(enabled?'Disable Scheduling':'Enable Scheduling')} refProp="rootRef" opened={!!sError ? true : undefined} color={sError ? "red" : undefined } zIndex={100} >
-                            <Switch onChange={()=>toggle()} checked={(switching||success)?!enabled:enabled} onMouseEnter={!!sError?sReset:undefined} />
+                        <Tooltip style={{zIndex:100}} label={sError||(enabled?'Disable Scheduling':'Enable Scheduling')} refProp="rootRef" opened={sError ? true : undefined} color={sError ? "red" : undefined } zIndex={100} >
+                            <Switch onChange={()=>toggle()} checked={(switching||success)?!enabled:enabled} onMouseEnter={sError?sReset:undefined} />
                         </Tooltip>
                         <MenuTip label="Run" Icon={IconPlayerPlay} error={cError} reset={cReset} onClick={()=>run({...rule, name, enabled})} loading={copying} color="lime" variant="subtle" />
                         <MenuTip label="Copy" Icon={IconCopy} error={cError} reset={cReset} onClick={()=>copy()} loading={copying} color="indigo" variant="subtle" />

@@ -1,8 +1,8 @@
-import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common";
-import { base_provider, base_provider_options } from "./base";
-import ldap, { User } from "../../modules/ldap";
-import { compile } from "../../modules/handlebars";
-import { props } from "../actions";
+import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common.js";
+import { base_provider, base_provider_options } from "./base.js";
+import ldap, { User } from "../../modules/ldap.js";
+import { compile } from "../../modules/handlebars.js";
+import { props } from "../actions.js";
 
 export interface LdapProps {
     connector: string;
@@ -90,13 +90,12 @@ export default class LDAP extends base_provider {
             return user;
         } catch { return false; }
     }
-    static async getUser({ action, template, data, connections, contexts, id }: props<LdapProps>, canBeFalse = false): Promise<User> {
+    static async getUser({ action, template, data, connections, id }: props<LdapProps>, canBeFalse = false): Promise<User> {
         data.connector = String(action.connector);
         if (!action.userFilter && !id) throw new xError("Search filter required.");
         data.userFilter = compile(template, action.userFilter, `(&(objectclass=person)(sAMAccountName=${id}))`);
         if (!data.connector) throw new xError("Connector not provided.");
-        let ldap = connections[data.connector] as LDAP|undefined;
-        if (!ldap) ldap = contexts[data.connector] as LDAP|undefined;
+        const ldap = connections[data.connector] as LDAP|undefined;
         if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
         const user = await ldap.getUser(template, id, undefined, data.userFilter );
         if (!canBeFalse && !user) throw new xError("User not found.");

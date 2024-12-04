@@ -275,7 +275,7 @@ function Content({ open: schedule, refresh, adding, close }: { open: Schedule, r
     tasks: v => v.length > 0 ? false : "No tasks configured.",
     triggers: v => v.length > 0 ? false : "No triggers configured.",
   }, initialValues: structuredClone(schedule) });
-  const { data: success, put, post, loading, error } = useAPI<unknown, ActionConfig>({
+  const { data: success, put, post, loading, error } = useAPI<unknown, Action>({
       url: `/schedule${adding?'':`/${schedule.name}`}`, schema: true, form: form,
       then: () => { refresh(); close(); },
   });

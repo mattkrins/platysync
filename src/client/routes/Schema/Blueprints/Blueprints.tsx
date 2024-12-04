@@ -1,4 +1,4 @@
-import { Container, Group, Title, Button, Paper, Text, Grid, Anchor, Loader, useMantineTheme } from "@mantine/core";
+import { Container, Group, Title, Paper, Text, Grid, Loader, useMantineTheme } from "@mantine/core";
 import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import Wrapper from "../../../components/Wrapper";
 import { useDispatch, useLoader, useSelector } from "../../../hooks/redux";
@@ -15,7 +15,7 @@ function Entry({ index, entry: { name, id, ...configs }, edit, refresh }: { inde
     const theme = useMantineTheme();
     const loaders = useLoader();
     const loading = loaders[`loadingblueprints_${index}`];
-    const { del, loading: deleting, error: dError, reset: dReset, schema_name } = useAPI({
+    const { del, loading: deleting, error: dError, reset: dReset } = useAPI({
         url: `/blueprint`, data: { name }, schema: true,
         then: () => refresh(),
     });
@@ -29,7 +29,7 @@ function Entry({ index, entry: { name, id, ...configs }, edit, refresh }: { inde
     if (!operation) return <MenuTip label="Delete" Icon={IconTrash} error={dError} reset={dReset} onClick={clickDel} loading={deleting} color="red" variant="subtle" />
     return (
     <Draggable index={index} draggableId={name||id}>
-    {(provided, snapshot) => (
+    {(provided, _snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >

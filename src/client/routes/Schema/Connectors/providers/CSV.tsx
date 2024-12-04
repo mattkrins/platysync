@@ -1,8 +1,8 @@
 import { Select, Checkbox, } from "@mantine/core";
 import { IconFile, IconTypography } from "@tabler/icons-react";
-import Concealer from "../../../components/Concealer";
-import ExtTextInput from "../../../components/ExtTextInput";
-import { providerConfig } from "../../../modules/providers";
+import Concealer from "../../../../components/Concealer";
+import ExtTextInput from "../../../../components/ExtTextInput";
+import { providerConfig } from "../providers";
 
 export default function CSV( { props }: providerConfig ) {
     return (

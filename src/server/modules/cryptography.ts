@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import database from '../components/database';
+import database from '../components/database.js';
 
 function salt(key: string, iterationCount = 100000): Buffer {
     return crypto.pbkdf2Sync(key, 'salt', iterationCount, 32, 'sha512');

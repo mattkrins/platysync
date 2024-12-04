@@ -3,7 +3,7 @@ import { IconCsv } from '@tabler/icons-react'
 import ExtTextInput from '../../../../../components/ExtTextInput'
 import { operationProps } from '../operations'
 
-export default function SysWriteCSV( { props, rule, blueprint }: operationProps ) {
+export default function FileWriteCSV( { props, rule, blueprint }: operationProps ) {
   return (
   <>
     <ExtTextInput rule={rule} withAsterisk={!blueprint?.target}

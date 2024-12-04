@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
-import { getSchedules, getSchema, sync } from "../components/database";
-import { executeSchedule, initSchedule, stopSchedule } from "../components/schedules";
-import { log } from "../..";
+import { hasLength, isNotEmpty, validate, xError } from "../modules/common.js";
+import { getSchedules, getSchema, sync } from "../components/database.js";
+import { executeSchedule, initSchedule, stopSchedule } from "../components/schedules.js";
+import { log } from "../../index.js";
 
 export async function toggleSchedule(schema_name: string, name: string, enable = false) {
     const schedules = await getSchedules(schema_name);
@@ -37,7 +37,7 @@ export default async function (route: FastifyInstance) {
     });
     route.post('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
-        let { name, ...options } = request.body as Schedule;
+        const { name, ...options } = request.body as Schedule;
         try {
             validate( { name, tasks: options.tasks, triggers: options.triggers }, {
                 name: isNotEmpty('Name can not be empty.'),

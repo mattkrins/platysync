@@ -1,8 +1,9 @@
+/* eslint-disable react/prop-types */
 import { ActionIcon, Alert, Anchor, Button, Center, Grid, Group, Loader, Modal, ScrollArea, SimpleGrid, Stepper, Text, TextInput, Tooltip, UnstyledButton, useMantineTheme } from "@mantine/core";
 import Wrapper from "../../../components/Wrapper";
 import classes from './Editor.module.css';
 import { IconAlertCircle, IconCheck, IconDeviceFloppy, IconGripVertical, IconKey, IconPlayerSkipForward, IconPlus, IconRecycle, IconTag, IconTestPipe, IconTrash } from "@tabler/icons-react";
-import { provider, providerConfigOptions, providerConfigProps, providers } from "../../../modules/providers";
+import { provider, providerProp, providerPropOptions, providers } from "./providers";
 import { useState } from "react";
 import { UseFormReturnType, useForm } from "@mantine/form";
 import SplitButton from "../../../components/SplitButton";
@@ -145,8 +146,8 @@ function Configure({ provider: { validate, initialValues, id, Options }, config,
   const save = () => post().then(()=>setConfig({ ...form.values, id, headers: [] }));
   const force = () => setConfig({ ...form.values, id, headers: [] });
   const { data: valid, post, error, loading } = useAPI({ url: `/connector/validate?creating=true`, form, data: { id }, schema: true, });
-  const props = (name: string, options?: providerConfigOptions) => {
-    const props: providerConfigProps = form.getInputProps(name, options);
+  const props = (name: string, options?: providerPropOptions) => {
+    const props: providerProp = form.getInputProps(name, options);
     if (options?.type === "password") {
       props.secure = !!props.value && typeof props.value !== 'string';
       props.unlock = () => form.setFieldValue(name, "");
@@ -204,6 +205,7 @@ function EditConnector({ provider: { validate, Options }, initialValues, close }
     url: `/connector/${initialValues.name}`, schema: true,
     data: form.values,
     then: () => { dispatch(loadConnectors()); close(); },
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     catch: (_, errors) => form.setErrors(errors as {}),
   });
   const { data: valid, post: val, error: e2, loading: l2 } = useAPI({
@@ -213,8 +215,8 @@ function EditConnector({ provider: { validate, Options }, initialValues, close }
   const loading = l1||l2;
   const save = () => { form.validate(); if (form.isValid()) put(); }
   const force = () => put({append:"?force=true"});
-  const props = (name: string, options?: providerConfigOptions) => {
-    const props: providerConfigProps = {...form.getInputProps(name, options)};
+  const props = (name: string, options?: providerPropOptions) => {
+    const props: providerProp = {...form.getInputProps(name, options)};
     if (options?.type === "password") {
       props.secure = !!props.value && typeof props.value !== 'string';
       props.unlock = () => form.setFieldValue(name, "");

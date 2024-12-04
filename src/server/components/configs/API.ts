@@ -1,8 +1,8 @@
-import { Settings } from "../database";
-import { base_config, configs } from "./base";
 import axios, { AxiosInstance } from "axios";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import { Settings } from "../database.js";
+import { base_config, configs } from "./base.js";
 
 export default class API extends base_config {
     public dataKeys: string[] = ['endpoint', 'auth', 'append', 'method', 'mime', 'target', 'data', 'response', 'responsePath', 'key'];
@@ -28,8 +28,8 @@ export default class API extends base_config {
         let httpAgent;
         let httpsAgent;
         if (url) {
-            let proxyAuth: undefined|string;
-            if (url.username&&url.password) proxyAuth = `${url.username}:${url.password}`;
+            //let proxyAuth: undefined|string;
+            //if (url.username&&url.password) proxyAuth = `${url.username}:${url.password}`;
             httpAgent = new HttpProxyAgent(url.toString());
             httpsAgent = new HttpsProxyAgent(url.toString());
         }

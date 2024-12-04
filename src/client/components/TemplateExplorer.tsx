@@ -116,7 +116,7 @@ export default function TemplateExplorer() {
         {tags.map(item => (<Button onClick={()=>add(item)} variant="default" radius="xl" size="compact-xs" key={item}>{item}</Button>))}
         </Flex>:
         <>
-            {ruleConnectors.map(c=><Section label={c.name} description={c.pName} Icon={c.Icon} color={theme.colors[c.color||"grey"][6]} Ricon={IconPlug} onClick={()=>search(`${c.name}.`)} />)}
+            {ruleConnectors.map(c=><Section key={c.name} label={c.name} description={c.pName} Icon={c.Icon} color={theme.colors[c.color||"grey"][6]} Ricon={IconPlug} onClick={()=>search(`${c.name}.`)} />)}
             {files.length>0&&<FSection label="Files" path="file" Icon={IconFiles} list={files.map(f=>({ key: f.key||f.name, description: f.path }))} search={search} />}
             <FSection label="Paths" path="path" Icon={IconFolderCode} list={pathHelpers.map(f=>({ ...f, value: f.example }))} search={search} />
             {sdict.length>0&&<FSection label="Schema Dictionary" path="sdict" Icon={IconBook2} list={sdict} search={search} />}

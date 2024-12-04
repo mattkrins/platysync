@@ -43,6 +43,7 @@ function SetupRedirect() {
     return <Redirect to="/" />
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ShellWrap({ params, section, setSection, Component }: { params: Record<string, string>, section: string, setSection(s: string): void, Component(params: any): JSX.Element }) {
     const { close, opened } = useTemplater();
     return (
@@ -56,10 +57,6 @@ function ShellWrap({ params, section, setSection, Component }: { params: Record<
         </Shell.Main>
     </Shell>
     )
-}
-
-function Page() {
-    return <>page</>
 }
 
 export default function AppShell() {

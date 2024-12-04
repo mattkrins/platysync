@@ -1,4 +1,4 @@
-import { Autocomplete, AutocompleteProps, Button, Center, Grid, Group, Select } from '@mantine/core'
+import { Autocomplete, AutocompleteProps, Button, Grid, Group, Select } from '@mantine/core'
 import { IconCopy, IconGripVertical, IconPencil, IconPlus, IconTag, IconTrash } from '@tabler/icons-react'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { operationProps } from '../operations';
@@ -6,6 +6,7 @@ import ExtTextInput from '../../../../../components/ExtTextInput';
 import Concealer from '../../../../../components/Concealer';
 import MenuTip from '../../../../../components/MenuTip';
 import { ldapAttributes } from '../../../../../modules/ldap';
+import BpEntries from '../BpEntries';
 
 interface Attribute extends operationProps {
     index: number;
@@ -52,16 +53,17 @@ function Attribute({ index, copy, remove, rule, props }: Attribute ) {
     </Draggable>)
 }
 
-function Attributes( { form, path, rule, props }: operationProps ) {
+function Attributes( { form, path, rule, props, blueprint }: operationProps ) {
     const templatePath = `${path}.attributes`;
     const entries = form.getInputProps(templatePath).value as { name: string,value: string }[];
+    const bpEntries = (blueprint?.attributes || []) as object[];
     const add = () => form.insertListItem(templatePath, { name: undefined, value: undefined, });
-    const copy = (e: { name: string, value: string }) => form.insertListItem(templatePath, structuredClone(e));
+    const copy = (e: object) => form.insertListItem(templatePath, structuredClone(e));
     const remove = (i: number) => form.removeListItem(templatePath, i);
     return (
     <Concealer label='Attributes' open rightSection={
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Attribute</Button></Group> } >
-        {entries.length===0&&<Center c="dimmed" fz="xs" >No attributes configured.</Center>}
+        <BpEntries label='attributes' entries={entries} bpEntries={bpEntries} />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -76,6 +78,6 @@ function Attributes( { form, path, rule, props }: operationProps ) {
   )
 }
 
-export default function LdapUpdateAttributes( { props, rule, form, path }: operationProps ) {
-    return <Attributes form={form} path={path} rule={rule} props={props} />
+export default function LdapUpdateAttributes( { props, rule, form, path, ...rest }: operationProps ) {
+    return <Attributes form={form} path={path} rule={rule} props={props} {...rest} />
 }

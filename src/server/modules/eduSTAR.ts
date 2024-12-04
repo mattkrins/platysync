@@ -6,8 +6,8 @@ import { CookieJar } from 'tough-cookie';
 import { wrapper } from 'axios-cookiejar-support';
 import { JSDOM } from 'jsdom';
 import * as fs from 'node:fs';
-import { paths } from "../..";
-import { decrypt, encrypt } from "./cryptography";
+import { paths } from "../../index.js";
+import { decrypt, encrypt } from "./cryptography.js";
 
 export interface starAttributes {
   [k: string]: string;
@@ -65,12 +65,12 @@ export default class eduSTAR {
         let httpsAgent;
         if (options.proxy) {
             const url = new URL(options.proxy);
-            const HttpProxyCookieAgent: any = createCookieAgent(HttpProxyAgent);
-            const HttpsProxyCookieAgent: any = createCookieAgent(HttpsProxyAgent);
+            const HttpProxyCookieAgent = createCookieAgent(HttpProxyAgent);
+            const HttpsProxyCookieAgent = createCookieAgent(HttpsProxyAgent);
             let proxyAuth: undefined|string;
             if (url.username&&url.password) proxyAuth = `${url.username}:${url.password}`;
-            httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port, proxyAuth });
-            httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port });
+            httpAgent = new HttpProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port, proxyAuth } as unknown as URL);
+            httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port } as unknown as URL);
             this.client = axios.create({
                 baseURL: 'https://apps.edustar.vic.edu.au',
                 headers: { 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42' },

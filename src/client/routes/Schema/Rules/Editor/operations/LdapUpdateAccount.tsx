@@ -1,7 +1,7 @@
 import { Checkbox } from '@mantine/core';
 import { operationProps } from '../operations';
 
-export default function LdapUpdateAccount( { props, rule, blueprint }: operationProps ) {
+export default function LdapUpdateAccount( { props }: operationProps ) {
     return (
     <>
         <Checkbox mt="md" label="Disabled" description="The user account is disabled."

@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common";
-import { getFiles, getSchema, sync } from "../../components/database";
 import multer from 'fastify-multer';
-import { log, paths } from "../../..";
 import fs from 'fs-extra';
 import { v4 as uuidv4 } from 'uuid';
 import mime from 'mime/lite';
+import { isAlphanumeric, isNotEmpty, validate, xError } from "../../modules/common.js";
+import { getFiles, getSchema, sync } from "../../components/database.js";
+import { log, paths } from "../../../index.js";
 
 export default async function (route: FastifyInstance) {
     route.register(multer.contentParser);
@@ -48,7 +48,7 @@ export default async function (route: FastifyInstance) {
     route.post('/', { preValidation: upload.single('file') }, async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
         const { file: data } = (request as unknown as { file?: { buffer: Buffer, originalname: string }, name: string, key: string });
-        let { name, key } = request.body as { name: string, key: string };
+        const { name, key } = request.body as { name: string, key: string };
         try {
             validate( { name }, {
                 name: isNotEmpty('Name can not be empty.'),
@@ -85,7 +85,7 @@ export default async function (route: FastifyInstance) {
     route.put('/:editing', { preValidation: upload.single('file') }, async (request, reply) => {
         const { schema_name, editing } = request.params as { schema_name: string, editing: string };
         const { file: data } = (request as unknown as { file?: { buffer: Buffer, originalname: string }, name: string, key: string });
-        let { name, key } = request.body as { name: string, key: string };
+        const { name, key } = request.body as { name: string, key: string };
         try {
             validate( { name }, {
                 name: isNotEmpty('Name can not be empty.'),
@@ -113,7 +113,7 @@ export default async function (route: FastifyInstance) {
                 const old_path = `${folder}/${file.path}`;
                 const path = `${file_name[0]}.${id}.${format}`;
                 if (fs.existsSync(`${folder}/${path}`)) throw new xError("File exists.", 'path', 409);
-                try { if (fs.existsSync(old_path)) fs.rmSync(old_path); } catch (e) { throw new xError("Failed to remove old file.", null, 500 ); }
+                try { if (fs.existsSync(old_path)) fs.rmSync(old_path); } catch (_e) { throw new xError("Failed to remove old file.", null, 500 ); }
                 fs.writeFileSync(`${folder}/${path}`, data.buffer);
                 file.format = format;
                 file.path = path;
@@ -133,7 +133,7 @@ export default async function (route: FastifyInstance) {
             if (!file) throw new xError("File not found.", "name", 404 );
             const folder = `${paths.storage}/${schema_name}`;
             const path = `${folder}/${file.path}`;
-            try { if (fs.existsSync(path)) fs.rmSync(path); } catch (e) {
+            try { if (fs.existsSync(path)) fs.rmSync(path); } catch (_e) {
                 throw new xError("Failed to delete on filesystem.", null, 500 );
             }
             schema.files = schema.files.filter(f=>f.name!==name);

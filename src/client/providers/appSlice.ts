@@ -2,7 +2,6 @@ import { createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit';
 import { navigate } from "wouter/use-browser-location";
 import axios, { AxiosError } from 'axios';
 import { startLoading, stopLoading } from './loadSlice';
-import { RootState } from './store';
 
 interface app {
   application: string;

@@ -23,7 +23,7 @@ function Entry({ index, entry: { key }, edit, refresh }: { index: number, entry:
     const clickDel = () => del(); //TODO - dependancy finder
     return (
     <Draggable index={index} draggableId={key}>
-    {(provided, snapshot) => (
+    {(provided, _snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >

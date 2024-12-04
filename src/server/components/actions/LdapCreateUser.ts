@@ -18,16 +18,15 @@ interface LdapCreateUser {
     userFilter?: string;
 }
 
-export default async function LdapCreateUser({ action, template, execute, data, connections, contexts, engine, id }: props<LdapCreateUser>) {
+export default async function LdapCreateUser({ action, template, execute, data, connections, engine, id }: props<LdapCreateUser>) {
     try {
         data.connector = String(action.connector);
         if (!data.connector) throw new xError("Connector not provided.");
-        let ldap = connections[data.connector] as LDAPProvider|undefined;
-        if (!ldap) ldap = contexts[data.connector] as LDAPProvider|undefined;
+        const ldap = connections[data.connector] as LDAPProvider|undefined;
         if (!ldap || !ldap.client) throw new xError(`Provider '${data.connector}' not connected.`);
         if (action.userFilter) {
             data.userFilter = compile(template, action.userFilter);
-            const user = await engine.ldap_getUser( data.connector, template, id, undefined, data.userFilter );
+            const user = await engine.ldap_getUser( data.connector, template, id );
             if (user) return { warning: `User already exists.`, data };
         }
         const attributes = action.attributes.filter(a=>a.name).map(a=>({...a, value: compile(template, a.value) })).filter(a=>a.value);

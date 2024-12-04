@@ -82,7 +82,7 @@ function Template({ index, column, form }: { index: number, column: resultColumn
     </Draggable>)
 }
 
-export default function ({ form }: editorTab) {
+export default function Columns({ form }: editorTab) {
     const columns = form.values.columns;
     const add = () => form.insertListItem(`columns`, { name: undefined, value: undefined, });
     return (

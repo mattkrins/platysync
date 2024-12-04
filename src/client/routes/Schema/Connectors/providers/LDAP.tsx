@@ -1,9 +1,9 @@
 import { TextInput, SimpleGrid, Anchor, Text } from "@mantine/core";
 import { IconFolder, IconSearch, IconServer, IconTableColumn, IconUser, IconWorld } from "@tabler/icons-react";
-import SecurePasswordInput from "../../../components/SecurePasswordInput";
-import Concealer from "../../../components/Concealer";
-import { contextConfig, providerConfig } from "../../../modules/providers";
-import useRule from "../../../hooks/useRule";
+import Concealer from "../../../../components/Concealer";
+import SecurePasswordInput from "../../../../components/SecurePasswordInput";
+import useRule from "../../../../hooks/useRule";
+import { providerConfig } from "../providers";
 
 export default function LDAP( { props }: providerConfig ) {
     return (

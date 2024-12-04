@@ -1,10 +1,11 @@
-import { Grid, Group, Button, Center, Switch, Select } from '@mantine/core';
+import { Grid, Group, Button, Switch, Select } from '@mantine/core';
 import { IconCopy, IconGripVertical, IconPlus, IconTag, IconTrash } from '@tabler/icons-react'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { operationProps } from '../operations';
 import ExtTextInput from '../../../../../components/ExtTextInput';
 import Concealer from '../../../../../components/Concealer';
 import MenuTip from '../../../../../components/MenuTip';
+import BpEntries from '../BpEntries';
 
 interface SecurityGroup extends operationProps {
     index: number;
@@ -44,16 +45,17 @@ function SecurityGroup({ index, copy, remove, rule, props }: SecurityGroup ) {
     </Draggable>)
 }
 
-function SecurityGroups( { form, path, props, rule }: operationProps ) {
+function SecurityGroups( { form, path, props, rule, blueprint }: operationProps ) {
     const templatePath = `${path}.groups`;
     const entries = form.getInputProps(templatePath).value as { method: string, value: string, }[];
+    const bpEntries = (blueprint?.groups || []) as object[];
     const add = () => form.insertListItem(templatePath, { method: "add", value: undefined, });
-    const copy = (e: { method: string, value: string, }) => form.insertListItem(templatePath, structuredClone(e));
+    const copy = (e: object) => form.insertListItem(templatePath, structuredClone(e));
     const remove = (i: number) => form.removeListItem(templatePath, i);
     return (
     <Concealer label='Security Groups' open rightSection={
         <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Security Group</Button></Group> } >
-        {entries.length===0&&<Center c="dimmed" fz="xs" >No security groups configured.</Center>}
+        <BpEntries label='security groups' entries={entries} bpEntries={bpEntries} />
         <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
             <Droppable droppableId="dnd-list" direction="vertical">
             {(provided) => (
@@ -68,10 +70,10 @@ function SecurityGroups( { form, path, props, rule }: operationProps ) {
   )
 }
 
-export default function LdapUpdateGroups( { props, rule, form, path, blueprint }: operationProps ) {
+export default function LdapUpdateGroups( { props, rule, form, path, ...rest }: operationProps ) {
     return (
     <>
-        <SecurityGroups form={form} path={path} rule={rule} props={props} />
+        <SecurityGroups form={form} path={path} rule={rule} props={props} {...rest} />
         <Switch
             label="Sanitize" mt="xs"
             description="Remove any existing groups not listed above"

@@ -7,6 +7,7 @@ import { useSelector } from "./redux";
 import { getName } from "../providers/schemaSlice";
 
 interface APIOptions<returnType, sendType> extends Options<returnType, sendType> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form?: UseFormReturnType<any>;
     noAuth?: boolean;
     schema?: boolean;
@@ -24,6 +25,7 @@ export default function useAPI<returnType = unknown, sendType = unknown>({form, 
         if (form) {
             data = {...form.values, ...data} as sendType;
             options.validate = () => { form.validate(); return !form.isValid(); };
+            // eslint-disable-next-line @typescript-eslint/no-empty-object-type
             c = (_, errors) => form.setErrors(errors as {});
         }
         options.data = data as sendType;

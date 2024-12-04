@@ -39,7 +39,7 @@ function File({ index, file: { name, key, format }, edit, refresh }: { index: nu
     const icon = format ? (fileIcons[format]||fileIcons.txt) : fileIcons.txt;
     return (
     <Draggable index={index} draggableId={name}>
-    {(provided, snapshot) => (
+    {(provided, _snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >

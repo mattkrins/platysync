@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import { isNotEmpty, validate, xError } from "../../modules/common";
-import { getSchemaDictionary, getSchema, sync } from "../../components/database";
-import { log } from "../../..";
+import { isNotEmpty, validate, xError } from "../../modules/common.js";
+import { getSchemaDictionary, getSchema, sync } from "../../components/database.js";
+import { log } from "../../../index.js";
 
 export default async function (route: FastifyInstance) {
     route.get('/', async (request, reply) => {

@@ -46,7 +46,7 @@ function Action( { action, name }: { action: actionResult, name: string } ) {
             {action.noblock&&<Text size="xs" >Error was ignored and execution continued.</Text>}
             </Notification>
             {!action.noblock&&<Notification withBorder mb="xs" icon={<IconHandStop size={20} />} withCloseButton={false} color="orange" title="Execution Halted">
-                No futher actions were evaluated or run for '{name}'.
+                No futher actions were evaluated or run for &apos;{name}&apos;.
             </Notification>}
             </>}
             {action.result.warn&&<Notification withBorder mb="xs" icon={<IconAlertTriangle size={20} />} withCloseButton={false} color="orange" title="Warning!" >

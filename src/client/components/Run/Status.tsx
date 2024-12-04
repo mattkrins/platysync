@@ -1,4 +1,4 @@
-import { Paper, ThemeIcon, Text, RingProgress, Center, Group, Progress, Badge, Box, SimpleGrid } from '@mantine/core';
+import { Paper, ThemeIcon, Text, RingProgress, Center, Group, Progress, Badge, SimpleGrid } from '@mantine/core';
 import classes from './Status.module.css';
 import { IconListSearch, IconRun } from '@tabler/icons-react';
 import useSocket from '../../hooks/useSocket';

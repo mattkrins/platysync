@@ -1,6 +1,8 @@
+/* eslint-disable no-empty-pattern */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UnstyledButton, AppShell, Group, Burger, Avatar, Select, Text, Loader, Menu, Anchor } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconAdjustmentsHorizontal, IconCheckbox, IconClock, IconFiles, IconHistory, IconHome, IconLogout, IconPlug, IconSettings, IconSettings2, IconUsersGroup } from "@tabler/icons-react";
+import { IconHistory, IconLogout, IconSettings, IconUsersGroup } from "@tabler/icons-react";
 import { useRoute, useLocation, Redirect, Switch, Route } from "wouter";
 import { getCookie } from "./modules/common";
 import { useSelector, useDispatch, useLoader } from "./hooks/redux";
@@ -20,7 +22,7 @@ import classes from "./theme.module.css";
 //import Actions from "./routes/Actions/Actions";
 //import Schedules from "./routes/Schedules/Schedules";
 
-const links = [
+const links: any[] = [
     //{ label: "Home", link: "/home", icon: <IconHome size={15} />, page: Home },
     ////{ label: "Schema", link: "/schema", icon: <IconAdjustmentsHorizontal size={15} />, page: Schema },
     ////{ label: "Files", link: "/files", icon: <IconFiles size={15} />, page: Files },
@@ -120,9 +122,9 @@ export function AppLayout() {
         <AppShell.Main>
           <Switch>
                 {//<Route path={"/settings"} component={Settings} />
+                //<Route path={"/users"} component={Users} />
+                //<Route path={"/logs"} component={Logs} />
                 }
-                <Route path={"/users"} component={Users} />
-                <Route path={"/logs"} component={Logs} />
                 {links.filter(link=>link.page).map(link=><Route key={link.label} path={link.link} component={link.page} nest />)}
                 <Route path="*">{(params) => `404, Sorry the page ${params["*"]} does not exist!`}</Route>
           </Switch>

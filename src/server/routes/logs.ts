@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { getLogs, wait, xError } from "../modules/common";
 import winston from "winston";
-import { log, history, initLogging, paths } from "../..";
 import fs from 'fs-extra';
+import { getLogs, wait, xError } from "../modules/common.js";
+import { log, history, initLogging, paths } from "../../index.js";
 
 const loggers: { [k: string]: { logger: winston.Logger, fields: string[] } } = {};
 function init() {

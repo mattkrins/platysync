@@ -1,6 +1,6 @@
 import { FastifyReply } from "fastify";
 import winston from "winston";
-import { log } from "../..";
+import { log } from "../../index.js";
 
 type status = 400|401|403|404|405|406|408|409|500|number;
 export class xError {

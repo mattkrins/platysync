@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Divider, Grid, Group, Indicator, Paper, TextInput, Tooltip, useMantineTheme, Collapse, Box, Menu, ActionIcon } from "@mantine/core";
 import { IconCheck, IconCopy, IconEraser, IconExclamationCircle, IconFolderSearch, IconGripVertical, IconPencil, IconTemplate, IconTrash, IconX } from "@tabler/icons-react";
 import { UseFormReturnType } from "@mantine/form";
@@ -53,6 +54,7 @@ export default function Action({ index, action, type, form }: { index: number, a
     const { Icon, color, name, label, validator, overwriter, Operation } = operation;
     const display = form.values[type as "initActions"][index].name;
     const blueprint = useMemo(()=>blueprints.find(b=>b.name===action.blueprint),[ action.blueprint, blueprints ]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const props = (name: string, options?: { type?: any }) => {
         const props: operationProp = {...form.getInputProps(`${type}.${index}.${name}`, options)};
         props.scope = type;
@@ -61,11 +63,21 @@ export default function Action({ index, action, type, form }: { index: number, a
             props.unlock = () => form.setFieldValue(name, "");
         }
         if (blueprint&& blueprint[name] ){ //TODO - find a way to show preconfig on non-input fields.
-            props.placeholder = String(blueprint[name]);
             const modified = props.value && props.value !== blueprint[name];
             const color = theme.colors[ modified ? 'cyan' : 'blue'][9];
-            props.styles = { input: { borderColor: color } };
-            props.leftSection = <IconTemplate size={16} style={{ display: 'block', opacity: 0.8 }} color={color} />
+            switch (options?.type) {
+                case "checkbox": {
+                    props.offLabel = <IconTemplate size={16} style={{ display: 'block', opacity: 1 }} color={color} />;
+                    props.onLabel = <IconTemplate size={16} style={{ display: 'block', opacity: 1 }} color="white" />;
+                    break;
+                }
+                default: {
+                    props.styles = { input: { borderColor: color } };
+                    props.leftSection = <IconTemplate size={16} style={{ display: 'block', opacity: 0.8 }} color={color} />;
+                    props.placeholder = String(blueprint[name]);
+                    break;
+                }
+            }
         }
         return props;
     }

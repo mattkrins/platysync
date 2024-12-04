@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { isNotEmpty, validate, xError } from "../modules/common";
-import { decrypt, encrypt } from "../modules/cryptography";
-import database, { getSetup } from "../components/database";
 import { v4 as uuidv4 } from 'uuid';
+import { isNotEmpty, validate, xError } from "../modules/common.js";
+import { decrypt, encrypt } from "../modules/cryptography.js";
+import database, { getSetup } from "../components/database.js";
 
 export async function logout(request: FastifyRequest, reply: FastifyReply) {
     reply.clearCookie("auth", { path: "/", sameSite: "strict", httpOnly: true });
@@ -49,7 +49,7 @@ export default async function auth(route: FastifyInstance) {
             } catch (e) { new xError(e).send(reply); }
         });
     }
-    route.get('/', async (request, reply) => {
+    route.get('/', async (request) => {
         if (!request.cookies || !request.cookies['auth']) throw new xError("Missing session ID.", null, 401);
         const db = await database();
         const { data: { users, sessions } } = db;

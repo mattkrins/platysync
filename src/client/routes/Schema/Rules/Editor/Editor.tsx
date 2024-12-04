@@ -3,7 +3,7 @@ import { IconAlertCircle, IconFilter, IconInfoCircle, IconPackageExport, IconPac
 import { useMemo, useState } from "react";
 import Wrapper from "../../../../components/Wrapper";
 import { isNotEmpty, useForm, UseFormReturnType } from "@mantine/form";
-import { useConnectors, useDispatch, useSelector } from "../../../../hooks/redux";
+import { useDispatch, useSelector } from "../../../../hooks/redux";
 import { getRules, loadRules } from "../../../../providers/schemaSlice";
 import { modals } from "@mantine/modals";
 import { useLocation } from "wouter";
@@ -43,7 +43,7 @@ function ActionButton( { loading, save, test, cancel, clickExport, openImporter 
   )
 }
 
-function ConditionsTab({ form, setTab }: editorTab) {
+function ConditionsTab({ form }: editorTab) {
   const { proConnectors, sources } = useRule(form.values);
   const ldap = useMemo(()=> {
     return proConnectors.filter(c=>c.id==="ldap").map(c=>c.name)

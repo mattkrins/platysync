@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { UseFormReturnType, hasLength, isNotEmpty } from "@mantine/form";
+import { hasLength, isNotEmpty } from "@mantine/form";
 import { Icon, IconBinaryTree2, IconCloudDown, IconFolder, IconProps, IconSchool } from "@tabler/icons-react";
-import { fileIcons, isAlphanumeric } from "./common";
+import { fileIcons, isAlphanumeric } from "../../../modules/common";
 
-import CSV from "../routes/Connectors/providers/CSV";
-import LDAP, { LDAPContext } from "../routes/Connectors/providers/LDAP";
-import FOLDER from "../routes/Connectors/providers/FOLDER";
-import STMC, { STMCContext } from "../routes/Connectors/providers/STMC";
-import API from "../routes/Connectors/providers/API";
+import CSV from "./providers/CSV";
+import LDAP, { LDAPContext } from "./providers/LDAP";
+import FOLDER from "./providers/FOLDER";
+import STMC, { STMCContext } from "./providers/STMC";
+import API from "./providers/API";
 
 export interface providerPropOptions {
     type?: any;

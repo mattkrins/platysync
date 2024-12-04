@@ -3,7 +3,7 @@ import { Box, Progress, PasswordInput, Group, Text, Center, PasswordInputProps }
 import { UseFormReturnType } from '@mantine/form';
 import { IconCheck, IconX } from '@tabler/icons-react';
 
-function PasswordRequirement({ meets, label }: { meets: Boolean, label: string }) {
+function PasswordRequirement({ meets, label }: { meets: boolean, label: string }) {
   return (
     <Text component="div" c={meets ? 'teal' : 'red'} mt={5} size="sm">
       <Center inline>
@@ -35,6 +35,7 @@ function getStrength(password: string) {
 
 
 interface Props extends Omit<PasswordInputProps, 'form'> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturnType<any>;
   formKey: string;
 }

@@ -1,5 +1,4 @@
 import { IconProps, Icon, IconFile, IconFileTypeCsv, IconFileTypePdf, IconPhoto, IconFileTypeDocx, IconFileTypeXls, IconFileText, IconFileZip, IconAlertCircle, IconPlayerPlay, IconRun } from "@tabler/icons-react";
-import axios from "axios";
 import cronstrue from "cronstrue";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 

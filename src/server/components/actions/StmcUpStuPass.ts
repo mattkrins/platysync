@@ -9,7 +9,7 @@ interface StmcUpStuPass {
     password: string;
 }
 
-export default async function StmcUpStuPass({ action, template, execute, data, connections, contexts }: props<StmcUpStuPass>) {
+export default async function StmcUpStuPass({ action, template, execute, data, connections }: props<StmcUpStuPass>) {
     try {
         data.connector = String(action.connector);
         data.dn = compile(template, action.dn);

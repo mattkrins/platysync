@@ -27,7 +27,7 @@ function closeStream(stream: fs.WriteStream): Promise<void> {
     });
 }
 
-function writeStream(stream: fs.WriteStream, data: any): Promise<void> {
+function writeStream(stream: fs.WriteStream, data: string): Promise<void> {
     return new Promise((resolve, reject) => {
         if (!stream) return resolve();
         stream.write(data,e=>e?reject(e):resolve());

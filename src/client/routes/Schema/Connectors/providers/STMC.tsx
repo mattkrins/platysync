@@ -1,8 +1,8 @@
 import { TextInput, SimpleGrid, NumberInput } from "@mantine/core";
 import { IconClock, IconSchool, IconUser } from "@tabler/icons-react";
-import SecurePasswordInput from "../../../components/SecurePasswordInput";
-import Concealer from "../../../components/Concealer";
-import { providerConfig } from "../../../modules/providers";
+import Concealer from "../../../../components/Concealer";
+import SecurePasswordInput from "../../../../components/SecurePasswordInput";
+import { providerConfig } from "../providers";
 
 export default function STMC( { props }: providerConfig ) {
     return (

@@ -16,7 +16,7 @@ interface Props {
       rightSection?: React.ReactNode;
       onClick?: (label: string)=>void;
       disabled?: boolean;
-      [any: string]: any;
+      [any: string]: unknown;
     }  [];
 }
 export default function SplitButton( { children, options = [], onClick, loading, menu, variant, disabled }: Props ) {

@@ -10,7 +10,7 @@ import { modals } from "@mantine/modals";
 import MenuTip from "../../../components/MenuTip";
 import useAPI from "../../../hooks/useAPI";
 import useDependencyWalker from "../../../hooks/useDependencyWalker";
-import { providers } from "../../../modules/providers";
+import { providers } from "./providers";
 
 function Entry({ index, entry: { id, name, ...options }, edit, refresh }: { index: number, entry: Connector, edit(): void, refresh(): void }) {
     const theme = useMantineTheme();
@@ -28,7 +28,7 @@ function Entry({ index, entry: { id, name, ...options }, edit, refresh }: { inde
         then: () => refresh(),
     });
     const findConnector = (str = "",substring: string) => (new RegExp(`\\{\\{[^}]*${substring}\\.\\S+[^}]*\\}\\}`, 'g')).test(str);
-    const walk = useDependencyWalker(name, findConnector, (name, connectors, actions, rules)=>{
+    const walk = useDependencyWalker(name, findConnector, (name, connectors, rules)=>{
         for (const rule of rules||[]) {
             if (!rule.primary) continue;
             if (rule.primary === name) return `rule '${rule.name}' primary connector`;
@@ -59,7 +59,7 @@ function Entry({ index, entry: { id, name, ...options }, edit, refresh }: { inde
     if (!provider) return <></>;
     return (
     <Draggable index={index} draggableId={name}>
-    {(provided, snapshot) => (
+    {(provided, _snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Tooltip label="Test successfull" position="right" opened={valid||false} withArrow color="green" zIndex={100} >
         <Grid columns={17} justify="space-between"  align="center" >

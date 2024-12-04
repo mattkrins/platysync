@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-pattern */
 import { Center, Paper, Grid, Box, Title, BackgroundImage, Group, CloseButton, Text, Loader, Container, Anchor, LoadingOverlay, ScrollArea, Badge, SimpleGrid, Table } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { AreaChart } from '@mantine/charts';

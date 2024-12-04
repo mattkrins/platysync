@@ -117,7 +117,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp, id
                     </Menu.Target>
                     <Menu.Dropdown>
                         <Menu.Label>Rows per page</Menu.Label>
-                        {pages.map(n=><Menu.Item leftSection={p.perPage===n&&<IconCheck size={16} />} onClick={()=>PP(n)} >{n} per page</Menu.Item>)}
+                        {pages.map(n=><Menu.Item key={n} leftSection={p.perPage===n&&<IconCheck size={16} />} onClick={()=>PP(n)} >{n} per page</Menu.Item>)}
                         <Menu.Item leftSection={p.perPage===0&&<IconCheck size={16} />} onClick={()=>PP(0)} >No Pagination</Menu.Item>
                     </Menu.Dropdown>
                 </Menu>
@@ -128,7 +128,7 @@ function Header({ q, e, w, c, s, Q, E, W, C, S, eC, wC, fC, p, PP, cols, exp, id
                     <Menu.Dropdown>
                         <Menu.Label>Sort by column</Menu.Label>
                         <Menu.Item leftSection={s===undefined&&<IconCheck size={16} />} onClick={()=>S(undefined)} >By {id||'ID'}</Menu.Item>
-                        {cols.map(c=><Menu.Item leftSection={s===c&&<IconCheck size={16} />} onClick={()=>S(c)} >By {c}</Menu.Item>)}
+                        {cols.map(c=><Menu.Item key={c} leftSection={s===c&&<IconCheck size={16} />} onClick={()=>S(c)} >By {c}</Menu.Item>)}
                         <Menu.Divider/>
                         <Menu.Item leftSection={s==="Actions"&&<IconCheck size={16} />} onClick={()=>S("Actions")} >By Action Count</Menu.Item>
                         <Menu.Item leftSection={s==="Errors"&&<IconCheck size={16} />} onClick={()=>S("Errors")} >Errors First</Menu.Item>

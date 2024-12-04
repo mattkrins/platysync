@@ -30,15 +30,14 @@ async function open(path: string, encoding = 'utf8'): Promise<ParseResult<unknow
     });
 }
 
-export default async function StmcUpStuPassBulk({ action, template, execute, data, connections, contexts, engine }: props<StmcUpStuPassBulk>) {
+export default async function StmcUpStuPassBulk({ action, template, execute, data, connections, engine }: props<StmcUpStuPassBulk>) {
     try {
         data.connector = String(action.connector);
         data.source = compile(template, action.source);
         if (!data.connector) throw new xError("Connector not provided.");
         if (!data.source) throw new xError("No source provided.");
         if (action.validate) if (!fs.existsSync(data.source)) throw new xError("Source path does not exist.");
-        let stmc = connections[data.connector] as STMC|undefined;
-        if (!stmc) stmc = contexts[data.connector] as STMC|undefined;
+        const stmc = connections[data.connector] as STMC|undefined;
         if (!stmc || !stmc.client) throw new xError(`Provider '${data.connector}' not connected.`);
         const source = await open(data.source);
         if (!source.data || source.data.length<=0) throw new xError('No rows found.');

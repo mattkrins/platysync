@@ -1,7 +1,7 @@
 import { ActionIcon, Group, Modal, Stepper, Text } from "@mantine/core";
 import { useDisclosure, useFullscreen } from "@mantine/hooks";
 import { IconViewportNarrow, IconViewportWide, IconMinimize, IconMaximize, IconX, IconListSearch, IconEqual, IconRun } from "@tabler/icons-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import useAPI from "../../hooks/useAPI";
 import { useForm } from "@mantine/form";
 import Evaluate from "./Evaluate";

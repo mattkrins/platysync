@@ -1,7 +1,7 @@
 import { xError } from "../../modules/common.js";
 import { compile } from "../../modules/handlebars.js";
 import { props } from "../actions.js";
-import { Decrypt, Encrypt } from "../../modules/cryptography.js";
+import { Decrypt } from "../../modules/cryptography.js";
 import { ensureMinimumValue } from "./SysEncryptString.js";
 
 interface SysDecryptString {
@@ -24,7 +24,7 @@ export default async function SysDecryptString({ action, template, data }: props
         let hash: Hash;
         try {
             hash = JSON.parse(data.secret);
-        } catch (e) { throw new xError("Secret was not JSON.");}
+        } catch (_e) { throw new xError("Secret was not JSON.");}
         const decrypted = await Decrypt(hash, data.password, strength, { hex: "encrypted" });
         data.decrypted = decrypted;
         template[data.key] = decrypted as unknown as {[header: string]: string};

@@ -9,7 +9,7 @@ interface SysWriteCSV {
     filter_warnings: boolean;
 }
 
-export default async function SysWriteCSV({ action, template, execute, data, engine }: props<SysWriteCSV>) {
+export default async function FileWriteCSV({ action, template, execute, data, engine }: props<SysWriteCSV>) {
     try {
         data.target = compile(template, action.target);
         data.filter_errors = String(action.filter_errors||false);

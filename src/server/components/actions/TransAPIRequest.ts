@@ -36,10 +36,10 @@ const ContentTypes: { [k: string]: string } = {
 }
 
 export default async function TransAPIRequest({ action, template, execute, data, configs, schema }: props<TransAPIRequest>) {
-    try {
-        let api = action.config ? configs[action.config] as API : undefined;
+    try { //TODO -  fix
+        let api = action.config ? configs[action.config as string] as API : undefined;
         if (!api){
-            api = new API(schema, action, action.config);
+            api = new API(schema, action, action.config as string);
             await api.initialize(configs);
         }
         api.writeData(data, template);

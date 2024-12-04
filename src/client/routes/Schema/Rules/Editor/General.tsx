@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { ActionIcon, Box, Grid, Group, Select, SimpleGrid, TextInput, Tooltip, Text, Paper, Divider, useMantineTheme, Anchor, Switch, Textarea, Button, Modal } from '@mantine/core'
 import { IconKey, IconPencil, IconPlus, IconSettings, IconTable, IconTag, IconTrash } from '@tabler/icons-react'
 import { editorTab } from './Editor'
@@ -5,15 +6,15 @@ import SelectConnector from '../../../../components/SelectConnector';
 import { useConnectors } from '../../../../hooks/redux';
 import MenuTip from '../../../../components/MenuTip';
 import { isNotEmpty, useForm, UseFormReturnType } from '@mantine/form';
-import { cProvider, providerConfigOptions, providerConfigProps } from '../../../../modules/providers';
+import { cProvider, providerPropOptions, providerProp } from '../../Connectors/providers';
 import ExtTextInput from '../../../../components/ExtTextInput';
 import useEditor from '../../../../hooks/useEditor';
 import useRule from '../../../../hooks/useRule';
 import { useDisclosure } from '@mantine/hooks';
 
 function ConnectorOverrides({ provider: { Options, ...config }, form }: { provider: cProvider, form: UseFormReturnType<Source> }) {
-    const props = (name: string, options?: providerConfigOptions) => {
-        const props: providerConfigProps = {...form.getInputProps(`overrides.${name}`, options)};
+    const props = (name: string, options?: providerPropOptions) => {
+        const props: providerProp = {...form.getInputProps(`overrides.${name}`, options)};
         if (options?.type === "password") {
             props.secure = !!props.value && typeof props.value !== 'string';
             props.unlock = () => form.setFieldValue(`overrides.${name}`, "");
@@ -258,8 +259,8 @@ function SourceEntry({ index, source, form, edit }: { index: number, source: Sou
 
 function PrimaryOverrides({ open, close, form, provider: { Options, ...config } }: { open: boolean, close(): void, form: UseFormReturnType<Rule>, provider: cProvider }) {
     const clearOverrides = ()=> { form.setFieldValue("primaryOverrides", {}); close(); }
-    const props = (name: string, options?: providerConfigOptions) => {
-        const props: providerConfigProps = {...form.getInputProps(`primaryOverrides.${name}`, options)};
+    const props = (name: string, options?: providerPropOptions) => {
+        const props: providerProp = {...form.getInputProps(`primaryOverrides.${name}`, options)};
         if (options?.type === "password") {
             props.secure = !!props.value && typeof props.value !== 'string';
             props.unlock = () => form.setFieldValue(`primaryOverrides.${name}`, "");
@@ -298,8 +299,8 @@ export default function General({ form, setTab }: editorTab) {
     const [ primaryEditorOpen, { open: openPrimaryEditor, close: closePrimaryEditor }] = useDisclosure();
 
 
-    const props = (name: string, options?: providerConfigOptions) => {
-        const props: providerConfigProps = {...form.getInputProps(name, options)};
+    const props = (name: string, options?: providerPropOptions) => {
+        const props: providerProp = {...form.getInputProps(name, options)};
         if (options?.type === "password") {
         props.secure = !!props.value && typeof props.value !== 'string';
         props.unlock = () => form.setFieldValue(name, "");

@@ -23,7 +23,7 @@ export default function SysEncryptString( { props, rule, blueprint }: operationP
     />
     <NumberInput mt="xs"
         label="Encryption Strength"
-        description={<>How many <a href="https://en.wikipedia.org/wiki/PBKDF2" target="_blank" >C</a> iterations to use. Direct trade-off between speed and stength of security. </>}
+        description={<>How many <a href="https://en.wikipedia.org/wiki/PBKDF2" target="_blank" rel="noreferrer" >C</a> iterations to use. Direct trade-off between speed and stength of security. </>}
         placeholder="1000"
         leftSection={<IconLock size={16} style={{ display: 'block', opacity: 0.8 }}/>}
         min={100}

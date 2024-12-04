@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import { hasLength, isNotEmpty, validate, xError } from "../modules/common";
-import database, { defaultSchema, getSchemas } from "../components/database";
-import { log, version } from "../..";
+import { hasLength, isNotEmpty, validate, xError } from "../modules/common.js";
+import database, { defaultSchema, getSchemas } from "../components/database.js";
+import { log, version } from "../../index.js";
 
 interface newSchema extends Schema {
     importing?: boolean;

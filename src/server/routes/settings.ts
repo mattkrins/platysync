@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { contains, isNotEmpty, validate, xError } from "../modules/common";
-import database, { Settings, defaultData } from "../components/database";
-import { decrypt, encrypt } from "../modules/cryptography";
 import axios from "axios";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import { log } from "../..";
+import { contains, isNotEmpty, validate, xError } from "../modules/common.js";
+import database, { Settings, defaultData } from "../components/database.js";
+import { decrypt, encrypt } from "../modules/cryptography.js";
+import { log } from "../../index.js";
 
 const levels = ['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'];
 

@@ -9,7 +9,6 @@ export default function useRule(rule: Rule) {
     const sources = useMemo(()=> rule.primary ? [
         rule.primary,
         ...(rule.sources || []).map(s=>s.foreignName as string),
-        //...(rule.contexts || []).map(s=>s.name as string),
     ] : [], [ rule ] );
     const sourceProConnectors = useMemo(()=>proConnectors.filter(c=>sources.includes(c.name)), [ sources ]);
     return { proConnectors, primary, primaryHeaders, displayExample, sources, sourceProConnectors };

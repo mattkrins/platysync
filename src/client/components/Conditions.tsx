@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { Box, Grid, Menu, Button, Text, useMantineTheme, Group, Tooltip, ActionIcon, Select, Popover, Autocomplete, Switch } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";

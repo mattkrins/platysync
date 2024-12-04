@@ -1,9 +1,9 @@
-import SMTPTransport from "nodemailer/lib/smtp-transport";
-import { Settings } from "../database";
-import { base_config, configs } from "./base";
 import nodemailer from "nodemailer";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 import SMTPConnection from "nodemailer/lib/smtp-connection";
-import { xError } from "../../modules/common";
+import { Settings } from "../database.js";
+import { base_config, configs } from "./base.js";
+import { xError } from "../../modules/common.js";
 
 export default class EMAIL extends base_config {
     public dataKeys: string[] = ['host', 'port', 'username', 'from', 'to', 'subject', 'text', 'html'];

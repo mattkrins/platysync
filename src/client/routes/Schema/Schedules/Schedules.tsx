@@ -38,7 +38,7 @@ function Schedule({ index, schedule: { name, enabled, triggers, tasks, descripti
     const canExecute = enabledTasks.length > 0;
     return (
     <Draggable index={index} draggableId={name}>
-    {(provided, snapshot) => (
+    {(provided, _snapshot) => (
     <Paper mb="xs" p="xs" withBorder  {...provided.draggableProps} ref={provided.innerRef} >
         <Grid justify="space-between"  align="center" >
             <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
@@ -56,8 +56,8 @@ function Schedule({ index, schedule: { name, enabled, triggers, tasks, descripti
             <Grid.Col span={2} miw={120}>
                     <Group gap="xs" justify="flex-end">
                     {(loading||switching)&&<Loader size="xs" />}
-                        <Tooltip style={{zIndex:100}} label={sError||(enabled?'Disable':'Enable')} refProp="rootRef" opened={!!sError ? true : undefined} color={sError ? "red" : undefined } zIndex={100} >
-                            <Switch disabled={!canEnable&&!enabled} onChange={()=>toggle()} checked={(switching||success)?!enabled:enabled} onMouseEnter={!!sError?sReset:undefined} />
+                        <Tooltip style={{zIndex:100}} label={sError||(enabled?'Disable':'Enable')} refProp="rootRef" opened={sError ? true : undefined} color={sError ? "red" : undefined } zIndex={100} >
+                            <Switch disabled={!canEnable&&!enabled} onChange={()=>toggle()} checked={(switching||success)?!enabled:enabled} onMouseEnter={sError?sReset:undefined} />
                         </Tooltip>
                         <MenuTip label="Run" Icon={IconPlayerPlay} error={eError} reset={eReset} onClick={()=>run()} loading={executing} disabled={!canExecute} color="lime" variant="subtle" />
                         <MenuTip label="Copy" Icon={IconCopy} error={cError} reset={cReset} onClick={()=>copy()} loading={copying} color="indigo" variant="subtle" />

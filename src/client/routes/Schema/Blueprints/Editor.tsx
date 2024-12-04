@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/prop-types */
 import { Modal, Box, Group, Button, Alert, TextInput } from '@mantine/core';
 import { availableOperations, operationProp } from '../Rules/Editor/operations';
 import { isNotEmpty, useForm } from '@mantine/form';

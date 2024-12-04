@@ -27,6 +27,7 @@ function Content({ file, refresh, adding, close }: { file: psFile, refresh(): vo
       return send;
     },
     then: () => { refresh(); close(); },
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     catch: (_, errors) => form.setErrors(errors as {}),
   });
   const onDrop = (files: FileWithPath[]) => {

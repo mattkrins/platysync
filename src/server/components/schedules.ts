@@ -1,10 +1,10 @@
-import { wait, xError } from "../modules/common";
 import fs from 'fs-extra';
 import Cron from "croner";
-import evaluate from "./engine";
-import { getSchedules, getSchema, getSchemas } from "./database";
-import { log, history } from "../..";
-import { toggleSchedule } from "../routes/schedule";
+import { wait, xError } from "../modules/common.js";
+import evaluate from "./engine.js";
+import { getSchedules, getSchema, getSchemas } from "./database.js";
+import { log, history } from "../../index.js";
+import { toggleSchedule } from "../routes/schedule.js";
 
 const schedules: { [k: string]: scheduled } = {};
 
@@ -59,7 +59,7 @@ export class scheduled {
         for (let i=0; i<options.tasks.length; ++i) {
             const task = options.tasks[i];
             if (!task.enabled) continue;
-            let func = async (trigger: string) => {};
+            let func = async (_trigger: string) => {};
             switch (task.name) {
                 case "run": {
                     func = async (trigger: string) => {

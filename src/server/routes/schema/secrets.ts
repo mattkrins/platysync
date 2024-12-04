@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { isNotEmpty, validate, xError } from "../../modules/common";
-import { getSchemaSecrets, getSchema, sync } from "../../components/database";
-import { log } from "../../..";
-import { encrypt } from "../../modules/cryptography";
+import { isNotEmpty, validate, xError } from "../../modules/common.js";
+import { getSchemaSecrets, getSchema, sync } from "../../components/database.js";
+import { encrypt } from "../../modules/cryptography.js";
+import { log } from "../../../index.js";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -26,7 +26,7 @@ export default async function (route: FastifyInstance) {
     });
     route.post('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
-        let { key, value } = request.body as kvPair;
+        const { key, value } = request.body as kvPair;
         try {
             validate( { key, value }, {
                 key: isNotEmpty('Key can not be empty.'),
@@ -59,7 +59,7 @@ export default async function (route: FastifyInstance) {
                 const encrypted = await encrypt(value);
                 value = encrypted;
             } else {
-                value === entry.value;
+                value = entry.value;
             }
             schema.secrets = schema.secrets.map(c=>c.key!==editing?c:{...c, key, value: value as Hash });
             await sync();

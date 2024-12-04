@@ -1,6 +1,6 @@
 import { Container, Group, Title, Button, Paper, Tabs, ActionIcon, Badge, Box, Code, Indicator, List, Modal, Select, Table, TextInput, Text } from '@mantine/core';
-import { IconRefresh, IconTrash, IconSearch, IconDots, IconAlertCircle, IconPlayerPlay, IconRun, IconProps, Icon } from '@tabler/icons-react';
-import react, { ReactElement, useEffect, useState } from 'react';
+import { IconRefresh, IconTrash, IconSearch, IconDots } from '@tabler/icons-react';
+import { ReactElement, useEffect, useState } from 'react';
 import useAPI from '../../hooks/useAPI';
 import { modals } from '@mantine/modals';
 import { DatePickerInput } from '@mantine/dates';

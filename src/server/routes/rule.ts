@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { isNotEmpty, validate, xError } from "../modules/common";
-import { getRules, getSchema, sync } from "../components/database";
-import evaluate from "../components/engine";
 import pdfPrinter from "pdf-to-printer";
 import unixPrint from "unix-print";
-import { log, windows } from "../..";
-import { encrypt } from "../modules/cryptography";
+import { isNotEmpty, validate, xError } from "../modules/common.js";
+import { getRules, getSchema, sync } from "../components/database.js";
+import evaluate from "../components/engine.js";
+import { log, windows } from "../../index.js";
+import { encrypt } from "../modules/cryptography.js";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -56,7 +56,7 @@ export default async function (route: FastifyInstance) {
     });
     route.post('/', async (request, reply) => {
         const { schema_name } = request.params as { schema_name: string };
-        let { name, ...options } = request.body as Rule;
+        const { name, ...options } = request.body as Rule;
         try {
             validate( { name }, {
                 name: isNotEmpty('Name can not be empty.'),
@@ -77,7 +77,7 @@ export default async function (route: FastifyInstance) {
     });
     route.put('/:editing', async (request, reply) => {
         const { schema_name, editing } = request.params as { schema_name: string, editing: string };
-        let { name, ...options } = request.body as Rule;
+        const { name, ...options } = request.body as Rule;
         try {
             validate( { name }, {
                 name: isNotEmpty('Name can not be empty.'),
