@@ -1,7 +1,12 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { visualizer } from "rollup-plugin-visualizer";
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({filename:"./build/build-visualizer.html"}),
+  ],
   root: './src/client',
   build: {
     outDir: './build/dist/client',
@@ -20,4 +25,5 @@ export default defineConfig({
       },
     },
   },
+  
 })

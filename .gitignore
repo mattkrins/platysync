@@ -1,4 +1,4 @@
 node_modules
+build/dist/**
 build/dist
-build/test
-build/*.zip
+build/*.html

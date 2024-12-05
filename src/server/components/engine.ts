@@ -1,16 +1,16 @@
-import { paths, history } from "../..";
-import { server } from '../server';
-import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common";
-import { compile } from "../modules/handlebars";
-import { availableOperations, handles } from "./actions";
-import { connect, connections } from "./providers";
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import fs from 'fs-extra';
-import LDAP from "./providers/LDAP";
-import { defaultData, Settings } from "./database";
-import { configs } from "./configs/base";
-import { ldapAttributeUpdate } from "./actions/LdapUpdateAttributes";
+import { paths, history } from "../../index.js";
+import { server } from '../server.js';
+import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common.js";
+import { compile } from "../modules/handlebars.js";
+import { availableOperations, handles } from "./actions.js";
+import { connect, connections } from "./providers.js";
+import LDAP from "./providers/LDAP.js";
+import { defaultData, Settings } from "./database.js";
+import { configs } from "./configs/base.js";
+import { ldapAttributeUpdate } from "./actions/LdapUpdateAttributes.js";
 
 export class Engine { //TODO - add way to cancel
     public id: string;

@@ -13,7 +13,7 @@
     "start": "run-p client server",
     "server": "tsx watch --clear-screen=false --ignore ./build src/server/server.ts",
     "client": "vite --host",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && cd build && node build.js",
     "lint": "eslint --max-warnings 0"
   },
   "dependencies": {
@@ -73,6 +73,7 @@
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",
     "@vitejs/plugin-react": "^4.3.2",
+    "adm-zip": "^0.5.16",
     "cronstrue": "^2.50.0",
     "eslint": "^9.12.0",
     "eslint-plugin-react": "^7.37.1",
@@ -87,6 +88,7 @@
     "react-dom": "^18.3.1",
     "react-redux": "^9.1.2",
     "recharts": "^2.13.0",
+    "rollup-plugin-visualizer": "^5.12.0",
     "socket.io-client": "^4.8.0",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3",

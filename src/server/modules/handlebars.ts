@@ -1,6 +1,6 @@
 import Handlebars from "handlebars";
 import dayjs from "dayjs";
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import localizedFormat from 'dayjs/plugin/localizedFormat.js';
 import { v4 as uuidv4 } from 'uuid';
 import dictionary from './dictionary.js'
 import ldap from "./ldap.js";
