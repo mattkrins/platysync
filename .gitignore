@@ -1,4 +1,4 @@
 node_modules
-build/dist/**
-build/dist
-build/*.html
+build/*
+!build/build.js
+!build/WinSW-x64.exe

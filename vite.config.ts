@@ -9,7 +9,17 @@ export default defineConfig({
   ],
   root: './src/client',
   build: {
-    outDir: './build/dist/client',
+    outDir: '../../build/dist/client',
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+              return id.toString().split('node_modules/')[1].split('/')[0].toString();
+          }
+        }
+      }
+    }
   },
   server: {
     port: 7529,

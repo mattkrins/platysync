@@ -7,6 +7,7 @@ export let server: FastifyInstance;
 
 (async () => {
     try {
+        console.log(`> Starting PlatySync as env:${process.env.NODE_ENV||"prod"}`);
         server = await InitPlatySync();
         await initSchedules();
         const settings = await Settings();

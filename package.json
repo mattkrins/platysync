@@ -11,9 +11,9 @@
   "main": "server/server.ts",
   "scripts": {
     "start": "run-p client server",
-    "server": "tsx watch --clear-screen=false --ignore ./build src/server/server.ts",
+    "server": "set NODE_ENV=dev && tsx watch --clear-screen=false --ignore ./build src/server/server.ts",
     "client": "vite --host",
-    "build": "tsc && vite build && cd build && node build.js",
+    "build": "tsc -p src/server && vite build && cd build && node build.js",
     "lint": "eslint --max-warnings 0"
   },
   "dependencies": {

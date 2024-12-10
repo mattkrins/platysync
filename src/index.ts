@@ -30,7 +30,7 @@ const { combine, timestamp, json, simple, errors } = winston.format;
 
 export let version = process.env.npm_package_version as string;
 export const testing: boolean = process.env.NODE_ENV === 'test';
-export const dev: boolean = process.env.NODE_ENV !== 'production';
+export const dev: boolean = process.env.NODE_ENV === 'dev';
 export const windows = process.platform === "win32";
 
 if (!version){
