@@ -11,7 +11,6 @@ const json = fs.readFileSync(`${__dirname}/../package.json`, 'utf-8');
 const pack = JSON.parse(json);
 delete pack.devDependencies;
 pack.scripts = {
-    "start": "node server/server.js",
     "service-install": "WinSW-x64 install service.xml",
     "service-uninstall": "WinSW-x64 uninstall service.xml",
     "service-start": "WinSW-x64 start service.xml",

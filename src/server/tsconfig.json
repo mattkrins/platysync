@@ -18,5 +18,5 @@
     //"noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": [ "../typings/*.d.ts", "../index.ts", "*" ],
+  "include": [ "../typings/*.d.ts", "../server.ts", "../index.ts", "*" ],
 }

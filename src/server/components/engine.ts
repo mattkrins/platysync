@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import fs from 'fs-extra';
 import { paths, history } from "../../index.js";
-import { server } from '../server.js';
+import { server } from '../../server.js';
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common.js";
 import { compile } from "../modules/handlebars.js";
 import { availableOperations, handles } from "./actions.js";

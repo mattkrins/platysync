@@ -1,14 +1,14 @@
 import { FastifyInstance } from "fastify";
-import InitPlatySync, { dev, log, version } from "../index.js";
-import { Settings } from "./components/database.js";
-import { initSchedules } from "./components/schedules.js";
+import InitPlatySync, { dev, log, version } from "./index.js";
+import { Settings } from "./server/components/database.js";
+import { initSchedules } from "./server/components/schedules.js";
 
 export let server: FastifyInstance;
 
 (async () => {
     try {
         console.log(`> Starting PlatySync as env:${process.env.NODE_ENV||"prod"}`);
-        server = await InitPlatySync();
+        const server = await InitPlatySync();
         await initSchedules();
         const settings = await Settings();
         const port = process.env.PSYC_PORT ? parseInt(process.env.PSYC_PORT) : (settings.server?.port || 7528);
