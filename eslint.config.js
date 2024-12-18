@@ -37,6 +37,7 @@ export default [
           "destructuredArrayIgnorePattern": "^_",
           "varsIgnorePattern": "^_",
         }],
+        "react/jsx-uses-react": "off",
         "react/react-in-jsx-scope": "off",
         "prefer-const": ["error", {
           "destructuring": "all",

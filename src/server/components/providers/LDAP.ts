@@ -2,7 +2,7 @@ import { hasLength, isAlphanumeric, isNotEmpty, validate, xError } from "../../m
 import { base_provider, base_provider_options } from "./base.js";
 import ldap, { User } from "../../modules/ldap.js";
 import { compile } from "../../modules/handlebars.js";
-import { props } from "../actions.js";
+import { props } from "../operations.js";
 
 export interface LdapProps {
     connector: string;

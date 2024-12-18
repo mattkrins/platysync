@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { isNotEmpty, validate, xError } from "../modules/common.js";
 import { getBlueprints, getSchema, sync } from "../components/database.js";
-import { encrypt } from "../modules/cryptography.js";
 import { log } from "../../index.js";
+import { availableOperations } from "../components/operations.js";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -32,9 +32,11 @@ export default async function (route: FastifyInstance) {
                 id: isNotEmpty('ID can not be empty.'),
                 name: isNotEmpty('Name can not be empty.'),
             });
-            if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
             const blueprints = await getBlueprints(schema_name);
             if (blueprints.find(c=>c.name===name)) throw new xError("Blueprint name taken.", "name", 409);
+            if (!(id in availableOperations)) throw new xError(`Unknown action '${id}'.`, "name", 404 );
+            const operation = new availableOperations[id]({ name, id, ...options});
+            await operation.post({ name, id, ...options});
             blueprints.push({ id, name, ...options });
             await sync();
             log.silly({message: "Blueprint created", blueprint: name, schema: schema_name });
@@ -56,7 +58,9 @@ export default async function (route: FastifyInstance) {
             if (editing!==name){
                 if (schema.blueprints.find(c=>c.name===name)) throw new xError("Blueprint name taken.", "name", 409);
             }
-            if (options.password && typeof options.password === 'string' ) options.password = await encrypt(options.password as string);
+            if (!(id in availableOperations)) throw new xError(`Unknown action '${id}'.`, "name", 404 );
+            const operation = new availableOperations[id]({ name, id, ...options});
+            await operation.put({ name, id, ...options});
             schema.blueprints = schema.blueprints.map(c=>c.name!==editing?c:{...c, name, ...options })
             await sync();
             log.silly({message: "Blueprint modified", blueprint: name, schema: schema_name });

@@ -6,6 +6,7 @@ import { getRules, getSchema, sync } from "../components/database.js";
 import evaluate from "../components/engine.js";
 import { log, windows } from "../../index.js";
 import { encrypt } from "../modules/cryptography.js";
+import { availableOperations } from "../components/operations.js";
 
 export default async function (route: FastifyInstance) {
     route.get('s', async (request, reply) => {
@@ -63,6 +64,13 @@ export default async function (route: FastifyInstance) {
             });
             const rules = await getRules(schema_name);
             if (rules.find(c=>c.name===name)) throw new xError("Rule name taken.", "name", 409);
+            for (const act of ['initActions','iterativeActions','finalActions']) {
+                for (const action of options[act as 'initActions']||[]) {
+                    if (!(action.id in availableOperations)) throw new xError(`Unknown action '${action.id}'.`, undefined, 404 );
+                    const operation = new availableOperations[action.id](action);
+                    await operation.post(action);
+                }
+            }
             for (const source of options.sources||[]) {
                 if (source.overrides.password && typeof source.overrides.password === 'string' ){
                     source.overrides.password = await encrypt(source.overrides.password as string);
@@ -87,6 +95,13 @@ export default async function (route: FastifyInstance) {
             if (!rule) throw new xError("Rule not found.", "name", 404 );
             if (editing!==name){
                 if (schema.rules.find(c=>c.name===name)) throw new xError("Rule name taken.", "name", 409);
+            }
+            for (const act of ['initActions','iterativeActions','finalActions']) {
+                for (const action of options[act as 'initActions']||[]) {
+                    if (!(action.id in availableOperations)) throw new xError(`Unknown action '${action.id}'.`, undefined, 404 );
+                    const operation = new availableOperations[action.id](action);
+                    await operation.put(action);
+                }
             }
             for (const source of options.sources||[]) {
                 if (source.overrides.password && typeof source.overrides.password === 'string' ){

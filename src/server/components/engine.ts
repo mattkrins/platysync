@@ -5,19 +5,17 @@ import { paths, history } from "../../index.js";
 import { server } from '../../server.js';
 import { notCaseSen, ThrottledQueue, wait, xError } from "../modules/common.js";
 import { compile } from "../modules/handlebars.js";
-import { availableOperations, handles } from "./actions.js";
+import { availableOperations, handles, operationReturn } from "./operations.js";
 import { connect, connections } from "./providers.js";
 import LDAP from "./providers/LDAP.js";
 import { defaultData, Settings } from "./database.js";
-import { configs } from "./configs/base.js";
-import { ldapAttributeUpdate } from "./actions/LdapUpdateAttributes.js";
+import { ldapAttributeUpdate } from "./operations/LdapUpdateAttributes.js";
 
 export class Engine { //TODO - add way to cancel
     public id: string;
     private settings: Settings = defaultData.settings;
     private connections: connections = {};
     private handles: handles = {};
-    private configs:  configs = {};
     private status: jobStatus;
     private queue = new ThrottledQueue(10);
     private rule: Rule;
@@ -358,12 +356,13 @@ export class Engine { //TODO - add way to cancel
         for (const action of (actions||[])) { i++;
             if (!action.enabled){ emit(); continue; }
             if (!(action.id in availableOperations)) throw new xError(`Unknown action '${action.id}'.`);
-            const result = await availableOperations[action.id]({
+            const operation = new availableOperations[action.id](action);
+            const result = await operation.execute({
                 action, template, connections: this.connections,
                 handles: this.handles, execute: this.executing,
                 engine: this, data: {}, id, settings: this.settings,
-                configs: this.configs, schema: this.schema
-            })
+                schema: this.schema
+            }) as operationReturn;
             if (!result) throw new xError(`Failed to run action '${action.name}'.`);
             const name = (action.name && action.name!==action.id) ? { display: action.name||action.id } : {}
             todo.push({name: action.id, result, ...name, noblock: action.noblock });
