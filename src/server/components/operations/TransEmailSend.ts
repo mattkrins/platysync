@@ -19,7 +19,7 @@ export default class TransEmailSend extends Operation {
     text?: string;
     html?: string;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             data.host = compile(template, action.host);
             data.port = compile(template, action.port||"25");

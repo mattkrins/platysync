@@ -28,7 +28,7 @@ function DataReadout({ action }:{ action: actionResult }) {
     return (
     <Box>
         <List size="sm" icon={<>-</>} >
-        <ObjectMap data={data||{}} />
+        {data&&<ObjectMap data={data||{}} />}
         </List>
         {error && typeof error =="string" &&
         <Notification mt="xs" icon={<IconX size={20} />} withCloseButton={false} color="red" title="Error Data">

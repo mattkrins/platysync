@@ -12,7 +12,7 @@ export default class FileWriteTxt extends Operation {
     overwrite?: boolean;
     close?: boolean;
     public async execute({ action, template, execute, data, handles, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, handles, ...rest });
+        await super.execute({ action, template, execute, data, handles, ...rest });
         try {
             data.target = compile(template, action.target);
             data.data = compile(template, action.data||"");

@@ -14,7 +14,7 @@ export default class DocWritePDF extends Operation {
     overwrite?: boolean;
     separator?: string;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             data.source = compile(template, action.source);
             data.target = compile(template, action.target);

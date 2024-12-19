@@ -7,7 +7,7 @@ export default class LdapUpdateGroups extends LDAPOperation {
     ou!: string;
     currentOu!: string;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             const user = await this.getUser({ action, template, execute, data, ...rest });
             data.currentOu = LDAP.ouFromDn(user.attributes.distinguishedName).toLowerCase();

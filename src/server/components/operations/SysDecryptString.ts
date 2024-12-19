@@ -12,7 +12,7 @@ export default class SysDecryptString extends Operation {
     key?: string;
     decrypted?: string;
     public async execute({ action, template, data, ...rest }: props<this>) {
-        super.execute({ action, template, data, ...rest });
+        await super.execute({ action, template, data, ...rest });
         try {
             data.secret = compile(template, action.secret);
             data.password = compile(template, action.password);

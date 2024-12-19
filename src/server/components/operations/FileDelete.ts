@@ -8,7 +8,7 @@ export default class FileDelete extends Operation {
     target!: string;
     validate?: boolean;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             data.target = compile(template, action.target);
             data.validate = String(action.validate||false);

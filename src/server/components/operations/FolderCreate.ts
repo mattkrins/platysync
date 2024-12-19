@@ -9,7 +9,7 @@ export default class FolderCreate extends Operation {
     overwrite?: boolean;
     recursive?: boolean;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             data.target = compile(template, action.target);
             data.overwrite = String(action.overwrite||false);

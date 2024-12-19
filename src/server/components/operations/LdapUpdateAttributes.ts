@@ -21,7 +21,7 @@ export default class LdapUpdateGroups extends LDAPOperation {
     attributes: ldapAttribute[] = [];
     changes!: string;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             const user = await this.getUser({ action, template, execute, data, ...rest });
             data.attributes = user.attributes as unknown as string;

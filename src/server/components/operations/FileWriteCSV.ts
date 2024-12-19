@@ -9,7 +9,7 @@ export default class FileWriteCSV extends Operation {
     filter_errors: boolean = false;
     filter_warnings: boolean = false;
     public async execute({ action, template, execute, data, engine, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, engine, ...rest });
+        await super.execute({ action, template, execute, data, engine, ...rest });
         try {
             data.target = compile(template, action.target);
             data.filter_errors = String(action.filter_errors||false);

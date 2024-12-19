@@ -13,7 +13,7 @@ export default class DocPrintPDF extends Operation {
     target?: string;
     validate?: boolean;
     public async execute({ action, template, execute, data, engine, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, engine, ...rest });
+        await super.execute({ action, template, execute, data, engine, ...rest });
         try {
             data.source = compile(template, action.source);
             data.target = compile(template, action.target);

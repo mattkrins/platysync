@@ -13,7 +13,7 @@ export default class SysComparator extends Operation {
     trueOutput?: string;
     falseOutput?: string;
     public async execute({ action, template, data, engine, id, ...rest }: props<this>) {
-        super.execute({ action, template, data, engine, id, ...rest });
+        await super.execute({ action, template, data, engine, id, ...rest });
         try {
             const matched = await engine.evaluateAll(action.conditions||[], template, id)
             const key = action.key && action.key.trim()!=='' ? compile(template, action.key||"") : 'result';

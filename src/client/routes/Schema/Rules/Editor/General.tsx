@@ -167,96 +167,6 @@ function SourceEntry({ index, source, form, edit }: { index: number, source: Sou
     )
 }
 
-//function ContextModal({ join, index, editing, rule, close }: { join: Context, index?: number, editing: boolean, rule: UseFormReturnType<Rule>, close(): void }) {
-//    const { sources } = useRule(rule.values);
-//    const form = useForm<Context>({ validate: {
-//        name: isNotEmpty('Connector must not be empty.'),
-//    }, initialValues: structuredClone(join) });
-//    const { proConnectors } = useConnectors();
-//    const provider = proConnectors.find(c=>c.name===form.values.name);
-//    const contextCapable = useMemo(()=>{
-//        const contextCapable = proConnectors.filter(c=>c.Context).map(c=>c.name);
-//        return contextCapable.filter(c=>!sources.includes(c));
-//    }, [ proConnectors, sources ]);
-//    const add = () => {
-//        form.validate(); if (!form.isValid()) return;
-//        rule.insertListItem('contexts', form.values);
-//        close();
-//    }
-//    const remove = () => {
-//        rule.removeListItem(`contexts`, index||0);
-//        close();
-//    }
-//    const edit = () => {
-//        form.validate(); if (!form.isValid()) return;
-//        for (const key of Object.keys(form.values)) rule.setFieldValue(`contexts.${index}.${key}`, form.values[key]||null);
-//        close();
-//    }
-//
-//    const props = (name: string, options?: providerConfigOptions) => {
-//        const props: providerConfigProps = {...form.getInputProps(name, options)};
-//        if (options?.type === "password") {
-//            props.secure = !!props.value && typeof props.value !== 'string';
-//            props.unlock = () => form.setFieldValue(name, "");
-//        }
-//        return {...props, placeholder: options?.placeholder };
-//    }
-//
-//    return (
-//    <>
-//        <Text size="xs" c="dimmed" >Add a connector <b>without</b> a relational key to the rule scope.</Text>
-//        <Text size="xs" c="dimmed" >These can be used in conditions and actions, but do <b>not</b> provide any template data.</Text>
-//        <SelectConnector label="Connector" pt="xs" withAsterisk
-//        names={contextCapable} withinPortal clearable disabled={editing}
-//        {...form.getInputProps(`name`)}
-//        onChange={(v)=>{
-//            form.reset();
-//            form.getInputProps(`name`).onChange(v);
-//        }}
-//        />
-//        {(provider&&provider.Context)&&<provider.Context props={props} rule={rule.values} />}
-//        <Group justify={editing?"space-between":"flex-end"} mt="md">
-//          {editing&&<Button color="red" onClick={remove} >Remove</Button>}
-//          <Button onClick={editing?edit:add} >{editing ? "Save" : "Add"}</Button>
-//        </Group>
-//    </>)
-//}
-
-//function ContextEditor({ open, editing, close, form }: { open?: [Context,number], editing: boolean, close(): void, form: UseFormReturnType<Rule> }) {
-//    return (
-//    <Modal opened={!!open} size="xl" onClose={close} title={editing ? "Edit Connector" : "Add Connector"}>
-//        {open&&<ContextModal join={open[0]} index={open[1]} editing={editing} rule={form} close={close} />}
-//    </Modal>
-//    );
-//}
-
-//function ContextEntry({ index, context, form, edit }: { index: number, context: Context, form: UseFormReturnType<Rule>, edit(context: Context, index: number): void }) {
-//    const theme = useMantineTheme();
-//    const { proConnectors } = useConnectors();
-//    const provider = proConnectors.find(c=>c.name===context.name);
-//    const remove = () => form.removeListItem(`contexts`, index);
-//    return <Draggable key={index} index={index} draggableId={index.toString()}>
-//    {(provided) => (
-//    <Paper mb="xs" p={4} withBorder  {...provided.draggableProps} ref={provided.innerRef} >
-//        <Grid justify="space-between"  align="center" >
-//            <Grid.Col span={1} style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
-//                <Group justify="space-between">
-//                    <IconGripVertical size="1.2rem" />
-//                    <Group visibleFrom="xl" >{provider&&<provider.Icon size={20} color={provider.color?theme.colors[provider.color][6]:undefined} />}</Group>
-//                </Group>
-//            </Grid.Col>
-//            <Grid.Col span={9} style={{ cursor: 'grab' }} {...provided.dragHandleProps} >{provider?.name}</Grid.Col>
-//            <Grid.Col span={2} miw={120}>
-//                    <Group gap="xs" justify="flex-end">
-//                        <MenuTip label="Edit" Icon={IconPencil} onClick={()=>edit(context, index)} color="orange" variant="subtle" />
-//                        <MenuTip label="Delete" Icon={IconTrash} onClick={remove} color="red" variant="subtle" />
-//                    </Group>
-//            </Grid.Col>
-//        </Grid>
-//    </Paper>)}
-//    </Draggable>
-//}
-
 function PrimaryOverrides({ open, close, form, provider: { Options, ...config } }: { open: boolean, close(): void, form: UseFormReturnType<Rule>, provider: cProvider }) {
     const clearOverrides = ()=> { form.setFieldValue("primaryOverrides", {}); close(); }
     const props = (name: string, options?: providerPropOptions) => {
@@ -283,19 +193,11 @@ export default function General({ form, setTab }: editorTab) {
     const changePrimary = () => {
         form.setFieldValue("primaryKey", null as unknown as string);
         form.setFieldValue("sources", []);
-        //form.setFieldValue("contexts", []);
         form.setFieldValue("primaryOverrides", {});
     }
     const { proConnectors, primary, primaryHeaders, displayExample, sources } = useRule(form.values);
-    //const sourcesWithContext = useMemo(()=>{ //TODO - remove all context code
-    //    const contextCapable = proConnectors.filter(c=>c.Context).map(c=>c.name);
-    //    return contextCapable.filter(c=>!sources.includes(c));
-    //}, [ proConnectors, sources ]);
     const [ sourceEditorOpen, sourceEditorEditing, { add: addSource, close: closeSourceEditor, edit: editSource } ] =  useEditor<[Source,number]>
     ([{ foreignName: null, primaryName: null, overrides: {} }, 0]);
-    //const [ extSourceEditorOpen, extSourceEditorEditing, { add: addExtSource, close: closeExtSourceEditor, edit: editExtSource } ] =  useEditor<[Context,number]>
-    //([{ name: null }, 0]);
-    //const [ primaryEditorOpen, primaryEditorEditing, { add: addSource, close: closeSourceEditor, edit: editSource } ]  =  useEditor<[Source,number]>
     const [ primaryEditorOpen, { open: openPrimaryEditor, close: closePrimaryEditor }] = useDisclosure();
 
 
@@ -312,9 +214,6 @@ export default function General({ form, setTab }: editorTab) {
     <Box>
         {primary&&<PrimaryOverrides form={form} open={primaryEditorOpen} close={closePrimaryEditor} provider={primary} />}
         <SourceEditor open={sourceEditorOpen} editing={sourceEditorEditing} close={()=>closeSourceEditor()} form={form} />
-        {
-            //<ContextEditor open={extSourceEditorOpen} editing={extSourceEditorEditing} close={()=>closeExtSourceEditor()} form={form} />
-        }
         <TextInput
             label="Rule Name"
             leftSection={<IconTag size={16} style={{ display: 'block', opacity: 0.5 }}/>}
@@ -358,30 +257,6 @@ export default function General({ form, setTab }: editorTab) {
             </Group>
         </Group>
         {(form.values.sources||[]).map((source, index)=> <SourceEntry key={index} index={index} source={source} form={form} edit={()=>editSource([source, index])} />)}
-        {
-        //<Group grow justify="apart" mb="xs" mt="xs" gap="xs">
-        //    <SimpleGrid cols={1} verticalSpacing={0} >
-        //        <Text size="sm">Additional Connectors</Text>
-        //        <Text size="xs" c="dimmed" >Use connectors <b>without</b> relational keys.</Text>
-        //    </SimpleGrid>
-        //    <Group justify="right" gap="xs" >
-        //        <Tooltip label="Add Connector" >
-        //            <ActionIcon size="lg" variant="default" disabled={!form.values.primary||sourcesWithContext.length<=0} onClick={()=>addExtSource()} >
-        //                <IconPlus size={15} stroke={1.5} />
-        //            </ActionIcon>
-        //        </Tooltip>
-        //    </Group>
-        //</Group>
-        //<DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem('contexts', { from: source.index, to: destination? destination.index : 0 }) } >
-        //    <Droppable droppableId="dnd-list" direction="vertical">
-        //    {(provided) => (
-        //    <div {...provided.droppableProps} style={{top: "auto",left: "auto"}} ref={provided.innerRef}>
-        //        {(form.values.contexts||[]).map((context, index)=> <ContextEntry key={index} index={index} context={context} form={form} edit={()=>editExtSource([context, index])} />)}
-        //    </div>
-        //    )}
-        //    </Droppable>
-        //</DragDropContext>
-        }
         <ExtTextInput
             label="Entry Display Name" mt="xs" disabled={!form.values.primary} rule={form.values}
             description={<>First {!form.values.primary?'column ':<Anchor size="xs" onClick={()=>setTab("columns")} >column </Anchor>}

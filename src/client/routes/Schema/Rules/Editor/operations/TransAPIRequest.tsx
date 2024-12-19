@@ -18,13 +18,77 @@ const authMethods = [
     { label: 'Bearer Token', value: 'bearer' },
 ];
 
-interface Header extends operationProps {
+interface Entry extends operationProps {
     index: number;
     copy(): void;
     remove(): void;
 }
 
-function Header({ index, copy, remove, rule, props }: Header ) {
+function FormEntry({ index, copy, remove, rule, props }: Entry ) {
+    return (
+    <Draggable index={index} draggableId={String(index)}>
+        {provided => (
+            <Grid align="center" mt="xs" gutter="xs" {...provided.draggableProps} ref={provided.innerRef} >
+                <Grid.Col span="content" style={{ cursor: 'grab' }} {...provided.dragHandleProps}  >
+                    <Group><IconGripVertical size="1.2rem" /></Group>
+                </Grid.Col>
+                <Grid.Col span="auto" >
+                    <Select defaultValue="string" allowDeselect={false}
+                    data={['string', 'file']}
+                    {...props(`form.${index}.type`)}
+                    />
+                </Grid.Col>
+                <Grid.Col span="auto" >
+                    <ExtTextInput rule={rule}
+                    leftSection={<IconBraces size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                    placeholder="Key"
+                    {...props(`form.${index}.key`)}
+                    />
+                </Grid.Col>
+                <Grid.Col span="auto" >
+                    <ExtTextInput rule={rule}
+                    leftSection={<IconPencil size={16} style={{ display: 'block', opacity: 0.8 }}/>}
+                    placeholder="value/path"
+                    {...props(`form.${index}.value`)}
+                    />
+                </Grid.Col>
+                <Grid.Col span="content">
+                    <Group justify="right" gap="xs">
+                        <MenuTip label="Copy" Icon={IconCopy} onClick={copy} variant="default" />
+                        <MenuTip label="Delete" Icon={IconTrash} onClick={remove} variant="default" />
+                    </Group>
+                </Grid.Col>
+            </Grid>
+        )}
+    </Draggable>)
+}
+
+function Form( { form, path, props, rule, blueprint }: operationProps ) {
+    const templatePath = `${path?`${path}.`:''}form`;
+    const bpEntries = (blueprint?.form || []) as { type: string, key: string, value: string, }[];
+    const entries = form.getInputProps(templatePath).value as { type: string, key: string, value: string, }[];
+    const add = () => form.insertListItem(templatePath, { type: undefined, key: undefined, value: undefined, });
+    const copy = (e: { key: string, value: string, }) => form.insertListItem(templatePath, structuredClone(e));
+    const remove = (i: number) => form.removeListItem(templatePath, i);
+    return (
+    <Concealer label='Form' open rightSection={
+        <Group justify="end" ><Button onClick={add} size="compact-xs" rightSection={<IconPlus size="1.05rem" stroke={1.5} />} >Add Value</Button></Group> } >
+        <BpEntries label='form' entries={entries} bpEntries={bpEntries} />
+        <DragDropContext onDragEnd={({ destination, source }) => form.reorderListItem(templatePath, { from: source.index, to: destination? destination.index : 0 }) } >
+            <Droppable droppableId="dnd-list" direction="vertical">
+            {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+                {entries.map((e, i) => <FormEntry key={i} props={props} index={i} copy={()=>copy(e)} remove={()=>remove(i)} form={form} rule={rule} path={templatePath} />)}
+                {provided.placeholder}
+            </div>
+            )}
+        </Droppable>
+        </DragDropContext>
+    </Concealer>
+  )
+}
+
+function Header({ index, copy, remove, rule, props }: Entry ) {
     return (
     <Draggable index={index} draggableId={String(index)}>
         {provided => (
@@ -158,14 +222,14 @@ export default function TransAPIRequest( { props, rule, blueprint, ...rest }: op
                 label="Body Data" mt="xs" autosize description="XML data to send in the request."
                 placeholder={xmlPlaceholder}
                 {...props("data")}
-            />, form:
-            <></>,
+            />,
             file:
             <ExtTextInput rule={rule} withAsterisk={!blueprint?.data}
             label="Body Data" mt="xs" description="Path of the file to stream."
             placeholder="D:/data.zip"
             {...props("data")}
-            />
+            />,
+            form: <Form props={props} rule={rule} blueprint={blueprint} {...rest} />
             }[mime]}
         </>}
         <Headers props={props} rule={rule} blueprint={blueprint} {...rest} />

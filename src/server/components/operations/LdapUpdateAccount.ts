@@ -14,7 +14,7 @@ export default class LdapUpdateGroups extends LDAPOperation {
     userAccountControl!: string;
     flags!: string;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         const flags: {[control: string]: boolean} = {
             ACCOUNTDISABLE: Boolean(action.ACCOUNTDISABLE),
             DONT_EXPIRE_PASSWD: Boolean(action.DONT_EXPIRE_PASSWD),

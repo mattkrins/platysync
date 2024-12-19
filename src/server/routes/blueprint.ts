@@ -36,7 +36,7 @@ export default async function (route: FastifyInstance) {
             if (blueprints.find(c=>c.name===name)) throw new xError("Blueprint name taken.", "name", 409);
             if (!(id in availableOperations)) throw new xError(`Unknown action '${id}'.`, "name", 404 );
             const operation = new availableOperations[id]({ name, id, ...options});
-            await operation.post({ name, id, ...options});
+            await operation.post(options);
             blueprints.push({ id, name, ...options });
             await sync();
             log.silly({message: "Blueprint created", blueprint: name, schema: schema_name });
@@ -60,7 +60,7 @@ export default async function (route: FastifyInstance) {
             }
             if (!(id in availableOperations)) throw new xError(`Unknown action '${id}'.`, "name", 404 );
             const operation = new availableOperations[id]({ name, id, ...options});
-            await operation.put({ name, id, ...options});
+            await operation.put(options);
             schema.blueprints = schema.blueprints.map(c=>c.name!==editing?c:{...c, name, ...options })
             await sync();
             log.silly({message: "Blueprint modified", blueprint: name, schema: schema_name });

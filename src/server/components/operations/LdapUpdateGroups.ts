@@ -18,7 +18,7 @@ export default class LdapUpdateGroups extends LDAPOperation {
     sanitize: boolean = false;
     changes!: string;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             data.sanitize = String(action.sanitize);
             const user = await this.getUser({ action, template, execute, data, ...rest });

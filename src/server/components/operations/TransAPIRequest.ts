@@ -9,7 +9,6 @@ import { props } from "../operations.js";
 import { getNestedValue } from "../providers/API.js";
 import { Settings } from "../database.js";
 import Operation from "../operation.js";
-import { decrypt } from "../../modules/cryptography.js";
 
 const ContentTypes: { [k: string]: string } = {
     text: "text/plain",
@@ -36,18 +35,20 @@ export default class TransAPIRequest extends Operation {
     response!: string;
     evaluation: boolean = false;
     public async execute({ action, template, execute, data, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             data.auth = action.auth;
             data.method = action.method;
             data.mime = action.mime;
+            data.password = action.password;
             data.evaluation = String(action.evaluation);
             data.endpoint = compile(template, action.endpoint);
             data.target = compile(template, action.target);
             data.data = compile(template, action.data);
+            console.log('data.data', data.data)
             data.key = compile(template, action.key);
             data.responsePath = compile(template, action.responsePath);
-            if (action.password && typeof action.password !== 'string') data.password = await decrypt(action.password as Hash);
+            //if (action.password && typeof action.password !== 'string') data.password = await decrypt(action.password as Hash);
             if (action.auth==="basic") data.password = Buffer.from(data.password as string).toString('base64');
             const client =  await this.buildClient(data);
             if (!client) throw new xError("Client not connected.");
@@ -94,6 +95,7 @@ export default class TransAPIRequest extends Operation {
                 let responseData = response.data;
                 if (data.responsePath) responseData = getNestedValue(response.data, data.responsePath);
                 template[data.key] = JSON.stringify(responseData) as unknown as {[header: string]: string};
+                data[data.key as "key"] = JSON.stringify(responseData);
             }
             return { success: true, data };
         } catch (e){

@@ -33,7 +33,7 @@ export function getNestedValue(o: objectString, s: string): any {
             return;
         }
     }
-    return o;
+    return String(o);
 }
 
 function parseLinkHeader(header: string): { [key: string]: string } {
@@ -146,7 +146,6 @@ export default class API extends base_provider {
             if (this.linkHeader && page) {
                 let url: string|null = `${this.endpoint}${this.target}`;
                 while (url) {
-                    console.log("next...", entries.length)
                     try {
                         const response = await this.client.request({
                             url,
@@ -183,7 +182,10 @@ export default class API extends base_provider {
                 })
                 if (!response || !response.data || typeof(response.data) !== "object") throw Error("No response.");
                 entries = response.data;
-                if (this.responsePath) entries = getNestedValue(response.data, this.responsePath);
+                if (this.responsePath){
+                    console.log(this.responsePath, getNestedValue(response.data, this.responsePath))
+                    entries = getNestedValue(response.data, this.responsePath);
+                }
                 if (!Array.isArray(entries)) throw new xError("Response data is not iterative.");
             }
             if (entries.length <= 0) throw new xError("Iterative data empty.");

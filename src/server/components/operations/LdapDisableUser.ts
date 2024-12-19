@@ -4,7 +4,7 @@ import { props } from "../operations.js";
 
 export default class LdapDisableUser extends LDAPOperation {
     public async execute({ action, template, execute, data, ...rest }: props<this>, enable = false) {
-        super.execute({ action, template, execute, data, ...rest });
+        await super.execute({ action, template, execute, data, ...rest });
         try {
             const user = await this.getUser({ action, template, execute, data, ...rest });
             if (enable && user.enabled()) return { warn: `User is already enabled.`, data };

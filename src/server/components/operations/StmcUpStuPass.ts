@@ -9,7 +9,7 @@ export default class StmcUpStuPass extends Operation {
     dn!: string;
     password!: string;
     public async execute({ action, template, execute, data, connections, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, connections, ...rest });
+        await super.execute({ action, template, execute, data, connections, ...rest });
         try {
             data.connector = String(action.connector);
             data.dn = compile(template, action.dn);

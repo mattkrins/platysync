@@ -8,7 +8,7 @@ export let server: FastifyInstance;
 (async () => {
     try {
         console.log(`> Starting PlatySync as env:${process.env.NODE_ENV||"prod"}`);
-        const server = await InitPlatySync();
+        server = await InitPlatySync();
         await initSchedules();
         const settings = await Settings();
         const port = process.env.PSYC_PORT ? parseInt(process.env.PSYC_PORT) : (settings.server?.port || 7528);

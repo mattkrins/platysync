@@ -16,7 +16,7 @@ export default class LdapUpdateGroups extends LDAPOperation {
     enable: boolean = false;
     dn?: string;
     public async execute({ action, template, execute, data, connections, engine, id, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, connections, engine, id, ...rest });
+        await super.execute({ action, template, execute, data, connections, engine, id, ...rest });
         try {
             data.connector = String(action.connector);
             if (!data.connector) throw new xError("Connector not provided.");

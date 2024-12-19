@@ -13,7 +13,7 @@ export default class SysRunCommand extends Operation {
     elapsed?: string;
     stdout?: string;
     public async execute({ action, template, execute, data, settings, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, settings, ...rest });
+        await super.execute({ action, template, execute, data, settings, ...rest });
         try {
             if (!settings.enableRun) throw new xError("SysRunCommand action is not enabled.");
             data.command = compile(template, action.command);

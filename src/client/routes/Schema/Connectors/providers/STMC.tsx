@@ -3,6 +3,7 @@ import { IconClock, IconSchool, IconUser } from "@tabler/icons-react";
 import Concealer from "../../../../components/Concealer";
 import SecurePasswordInput from "../../../../components/SecurePasswordInput";
 import { providerConfig } from "../providers";
+import SelectConnector from "../../../../components/SelectConnector";
 
 export default function STMC( { props }: providerConfig ) {
     return (
@@ -27,10 +28,12 @@ export default function STMC( { props }: providerConfig ) {
             withAsterisk {...props("school")}
         />
         {
-        //<SelectConnector mt="sm"
-        //    {...props("eduhub", { placeholder: "" })} ids={["csv"]} clearable
-        //    label="Match Eduhub" description="Match against eduhub making the _stkey header available."
-        ///>
+        <SelectConnector mt="sm"
+            ids={["csv"]} clearable
+            label="Match Eduhub"
+            description="Match against eduhub making the _stkey header available."
+            {...props("eduhub")}
+        />
         }
         <Concealer>
             <NumberInput mt="sm"

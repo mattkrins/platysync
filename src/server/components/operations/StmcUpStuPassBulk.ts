@@ -11,7 +11,7 @@ export default class StmcUpStuPassBulk extends Operation {
     source!: string;
     validate?: boolean;
     public async execute({ action, template, execute, data, connections, engine, ...rest }: props<this>) {
-        super.execute({ action, template, execute, data, connections, engine, ...rest });
+        await super.execute({ action, template, execute, data, connections, engine, ...rest });
         try {
             data.connector = String(action.connector);
             data.source = compile(template, action.source);
