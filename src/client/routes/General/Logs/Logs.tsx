@@ -1,14 +1,14 @@
 import { Container, Group, Title, Button, Paper, Tabs, ActionIcon, Badge, Box, Code, Indicator, List, Modal, Select, Table, TextInput, Text } from '@mantine/core';
 import { IconRefresh, IconTrash, IconSearch, IconDots } from '@tabler/icons-react';
 import { ReactElement, useEffect, useState } from 'react';
-import useAPI from '../../hooks/useAPI';
+import useAPI from '../../../hooks/useAPI';
 import { modals } from '@mantine/modals';
 import { DatePickerInput } from '@mantine/dates';
 import { useViewportSize } from '@mantine/hooks';
-import Wrapper from '../../components/Wrapper';
-import Evaluate from '../../components/Run/Evaluate';
-import Concealer from '../../components/Concealer';
-import { colors } from '../../modules/common';
+import Wrapper from '../../../components/Wrapper';
+import Evaluate from '../../../components/Run/Evaluate';
+import Concealer from '../../../components/Concealer';
+import { colors } from '../../../modules/common';
 
 const limits = [ 1000, 500, 100, 50, 20, 10 ];
 const limitData = limits.map(l=>({ value: String(l), label: `limit: ${l}` }));

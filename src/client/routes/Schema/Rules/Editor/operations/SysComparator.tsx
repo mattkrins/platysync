@@ -4,11 +4,11 @@ import { operationProps } from '../operations';
 import Conditions from '../../../../../components/Conditions';
 import ExtTextInput from '../../../../../components/ExtTextInput';
 
-export default function SysComparator( { props, rule, form, blueprint }: operationProps ) {
+export default function SysComparator( { props, rule, form, path, blueprint }: operationProps ) {
     const output = props(`output`).value;
     return (
     <>
-        <Conditions form={form} rule={rule} label="This action can halt futher execution, or build conditional templates." compact />
+        <Conditions form={form} path={`${path}.conditions`} rule={rule} label="This action can halt futher execution, or build conditional templates." compact />
         <Switch mt="xs" mb="xs"
         label="Output result to template"
         description={output?undefined:"Execution will currently be halted if conditions do not pass."}

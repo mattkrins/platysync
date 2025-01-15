@@ -296,7 +296,7 @@ interface conditionProps {
 export default function Conditions({ label, ldap, compact, form, path = "conditions", rule }: conditionProps) {
     const theme = useMantineTheme();
     const add = (c: availableCondition) => () => form.insertListItem(path, { name: c.name, operator: c.defaultOperator, key: undefined, value: undefined, });
-    const conditions = form.values[path] as Condition[];
+    const conditions = form.getInputProps(path).value as Condition[];;
     return (
         <Box>
         <Grid justify="space-between" gutter={0} align="center" >

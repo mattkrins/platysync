@@ -1,16 +1,16 @@
-import { Alert, Code, Container, Drawer, Group, LoadingOverlay, AppShell as Shell, Text } from "@mantine/core";
+import { Alert, Code, Container, Drawer, Group, LoadingOverlay, AppShell, Text } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import { Redirect, Route, Switch } from "wouter";
 import { useDispatch, useSelector } from "./hooks/redux";
 import { isLoaded, getError, loadApp, isSetup, loadSettings, loadSchemas, checkVersion } from "./providers/appSlice";
 import { useEffect, useState } from "react";
 import { IconAccessPointOff } from "@tabler/icons-react";
+import classes from './Router.module.css';
 import Setup from "./routes/General/Setup/Setup";
 import Login from "./routes/General//Auth/Login";
 import Logout from "./routes/General//Auth/Logout";
 import Schemas from "./routes/Schemas/Schemas";
 import Settings from "./routes/General/Settings/Settings";
-import classes from './AppShell.module.css';
 import SDictionary from "./routes/Schema/Dictionary/Dictionary";
 import SSecrets from "./routes/Schema/Secrets/Secrets";
 import Files from "./routes/Schema/Files/Files";
@@ -23,6 +23,8 @@ import Editor from "./routes/Schema/Rules/Editor/Editor";
 import Schedules from "./routes/Schema/Schedules/Schedules";
 import { useTemplater } from "./context/TemplateContext";
 import Blueprints from "./routes/Schema/Blueprints/Blueprints";
+import Users from "./routes/General/Users/Users";
+import Logs from "./routes/General/Logs/Logs";
 
 function AppLoader() {
     return <LoadingOverlay visible={true} loaderProps={{size:"xl"}} />
@@ -47,19 +49,19 @@ function SetupRedirect() {
 function ShellWrap({ params, section, setSection, Component }: { params: Record<string, string>, section: string, setSection(s: string): void, Component(params: any): JSX.Element }) {
     const { close, opened } = useTemplater();
     return (
-    <Shell navbar={{ width: 280, breakpoint: 0 }}>
-        <Shell.Navbar><Navbar params={params} section={section} setSection={setSection} /></Shell.Navbar>
-        <Shell.Main className={classes.main} >
+    <AppShell navbar={{ width: 280, breakpoint: 0 }}>
+        <AppShell.Navbar><Navbar params={params} section={section} setSection={setSection} /></AppShell.Navbar>
+        <AppShell.Main className={classes.main} >
             <Drawer zIndex={300} position="right" size="lg" opened={opened} onClose={close} overlayProps={{ opacity: 0.2}} title={<Group><Text>Template Explorer</Text></Group>} >
                 {opened&&<TemplateExplorer/>}
             </Drawer>
             <Component params={params} />
-        </Shell.Main>
-    </Shell>
+        </AppShell.Main>
+    </AppShell>
     )
 }
 
-export default function AppShell() {
+export default function Router() {
     const dispatch = useDispatch();
     const error = useSelector(getError);
     const loaded = useSelector(isLoaded);
@@ -87,6 +89,12 @@ export default function AppShell() {
         <Route>
             <Route path="/settings">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Settings} />}
+            </Route>
+            <Route path="/users">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Users} />}
+            </Route>
+            <Route path="/logs">
+                {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Logs} />}
             </Route>
             <Route path="/dictionary">
                 {(params)=><ShellWrap params={params as Record<string, string>} section={section} setSection={setSection} Component={Dictionary} />}

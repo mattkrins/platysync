@@ -94,8 +94,8 @@ export default class TransAPIRequest extends Operation {
             if (data.key){
                 let responseData = response.data;
                 if (data.responsePath) responseData = getNestedValue(response.data, data.responsePath);
-                template[data.key] = JSON.stringify(responseData) as unknown as {[header: string]: string};
-                data[data.key as "key"] = JSON.stringify(responseData);
+                template[data.key] = ((typeof responseData === "string") ?  responseData : JSON.stringify(responseData)) as unknown as {[header: string]: string};
+                data[data.key as "key"] = (typeof responseData === "string") ?  responseData : JSON.stringify(responseData);
             }
             return { success: true, data };
         } catch (e){

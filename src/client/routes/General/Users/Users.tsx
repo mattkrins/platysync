@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Container, Group, Title, Button, Paper, Grid, Text } from "@mantine/core";
 import Editor from "./Editor";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
-import useAPI from "../../hooks/useAPI";
-import Wrapper from "../../components/Wrapper";
-import MenuTip from "../../components/MenuTip";
+import useAPI from "../../../hooks/useAPI";
+import Wrapper from "../../../components/Wrapper";
+import MenuTip from "../../../components/MenuTip";
 import { modals } from "@mantine/modals";
-import { useSelector } from "../../hooks/redux";
+import { useSelector } from "../../../hooks/redux";
 
 function User({ user: { username }, edit, refresh }: { user: User, edit(): void, refresh(): void }) {
     const { auth: { username: self } } = useSelector(state => state.app);

@@ -2,7 +2,7 @@ import { Alert, Button, Group, Modal, PasswordInput, TextInput } from "@mantine/
 import { isNotEmpty, useForm } from "@mantine/form";
 import { IconUser, IconKey, IconCheck } from "@tabler/icons-react";
 import { useEffect } from "react";
-import useAPI from "../../hooks/useAPI";
+import useAPI from "../../../hooks/useAPI";
 
 const validate = {
   username: isNotEmpty('Username can not be empty.'),
