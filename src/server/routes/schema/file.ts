@@ -68,7 +68,7 @@ export default async function (route: FastifyInstance) {
             const file_key = files.find(f=>f.key===key);
             if (key && file_key) throw new xError("Key already in use.", 'key', 409);
             const folder = `${paths.storage}/${schema_name}`;
-            if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+            if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
             const file_name = data.originalname.split(".");
             const format = file_name.pop();
             const id = uuidv4();

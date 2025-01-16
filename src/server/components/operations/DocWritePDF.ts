@@ -53,7 +53,7 @@ export default class DocWritePDF extends Operation {
             }
             const pdfBytes = await pdfDoc.save();
             const folder = path.dirname(data.target);
-            if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+            if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
             fs.writeFileSync(data.target, pdfBytes);
             return { success: true, data };
         } catch (e){

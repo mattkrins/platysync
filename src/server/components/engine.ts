@@ -11,7 +11,13 @@ import LDAP from "./providers/LDAP.js";
 import { defaultData, Settings } from "./database.js";
 import { ldapAttributeUpdate } from "./operations/LdapUpdateAttributes.js";
 
-export class Engine { //TODO - add way to cancel
+//TODO - add way to cancel
+//TODO - add a cache dir to all runs, auto cleanup
+//TODO - operation to update csv row based on ID
+//TODO - add require toggle on template actions to force fail if a template was not built
+//TODO - add rule input system, specify inputs which can be used in templates and are expected (and checked) on run.
+
+export class Engine {
     public id: string;
     private settings: Settings = defaultData.settings;
     private connections: connections = {};

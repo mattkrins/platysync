@@ -145,7 +145,7 @@ export default class API extends base_provider {
             let entries = [];
             if (this.linkHeader && page) {
                 let url: string|null = `${this.endpoint}${this.target}`;
-                while (url) {
+                while (url) { //FIXME - while seems to break UI updates.
                     try {
                         const response = await this.client.request({
                             url,
