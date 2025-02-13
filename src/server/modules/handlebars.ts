@@ -39,6 +39,7 @@ Handlebars.registerHelper("$split", function(str: string, part?: string, separat
 });
 
 Handlebars.registerHelper("$uuidv4", function() { return uuidv4(); });
+Handlebars.registerHelper("$pad", function(str: string) { return str.padStart(2, '0'); });
 
 const compiler = Handlebars.compile;
 Handlebars.compile = function(input: string, options?: CompileOptions | undefined) {

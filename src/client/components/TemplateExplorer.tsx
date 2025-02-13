@@ -1,13 +1,13 @@
 import { ActionIcon, Box, Button, CloseButton, Code, Collapse, Flex, Group, Text, TextInput, Title, Tooltip, UnstyledButton, useMantineTheme } from '@mantine/core'
 import { useTemplater } from '../context/TemplateContext';
 import { ForwardRefExoticComponent, RefAttributes, useMemo, useState } from 'react';
-import { Icon, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconListDetails, IconPlug, IconProps, IconSearch } from '@tabler/icons-react';
+import { Icon, IconBook2, IconBraces, IconChevronRight, IconFiles, IconFolderCode, IconKey, IconLicense, IconList, IconListDetails, IconPlug, IconProps, IconSearch } from '@tabler/icons-react';
 import classes from './TemplateExplorer.module.css';
 import { useConnectors, useSelector } from '../hooks/redux';
 import { getFiles, getsDictionary, getsSecrets } from '../providers/schemaSlice';
 import { getDictionary, getSecrets } from '../providers/appSlice';
 import { useDisclosure } from '@mantine/hooks';
-import { genericHelpers, pathHelpers, ruleHelpers } from '../modules/handlebars';
+import { genericHelpers, iterativeHelpers, pathHelpers, ruleHelpers } from '../modules/handlebars';
 
 
 type Template = {
@@ -124,6 +124,7 @@ export default function TemplateExplorer() {
             {gdict.length>0&&<FSection label="Global Dictionary" path="gdict" Icon={IconBook2} list={gdict} search={search} />}
             {gsec.length>0&&<FSection label="Global Secrets" path="gsec" Icon={IconKey} list={gsec.map(f=>({ key: f.key }))} search={search} />}
             {rule&&<FSection label="Rule Helpers" path="rule" Icon={IconLicense} list={ruleHelpers.map(f=>({ ...f, value: f.example }))} search={search} />}
+            {rule?.primary&&<FSection label="Iteration Helpers" path="iteration" Icon={IconList} list={iterativeHelpers.map(f=>({ ...f, value: f.example }))} search={search} />}
             <Section open={viewHelpers} label="Global Helpers" Icon={IconBraces} onClick={toggleHelpers} />
             <Collapse mt="xs" in={viewHelpers}>
                 {genericHelpers.map(helper=>

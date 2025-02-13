@@ -2,7 +2,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { openExplorerProps, TemplateContext } from "./TemplateContext";
 import { useCallback, useState } from "react";
 import { useConnectors, useSelector } from "../hooks/redux";
-import { compile, pathHelpers, ruleHelpers } from "../modules/handlebars";
+import { compile, iterativeHelpers, pathHelpers, ruleHelpers } from "../modules/handlebars";
 import { getDictionary, getSecrets } from "../providers/appSlice";
 import { getFiles, getsDictionary, getsSecrets } from "../providers/schemaSlice";
 
@@ -41,10 +41,20 @@ function useTemplate({ rule }: { rule?: Rule }){ //TODO - add inrule templates
         }
         const sources = rule?.primary ? [ rule.primary, ...(rule?.sources || []).map(s=>s.foreignName as string) ] : [];
         const ruleConnectors = connectors.filter(item => sources.includes(item.name) );
-        const head: {[k: string]: key|string } = {  $file: {}, $rule: {}, $path: {}, $sdict: {}, $ssec: {}, $gdict: {}, $gsec: {} };
+        const head: {[k: string]: key|string } = {
+            $file: {},
+            $rule: {},
+            $path: {},
+            $sdict: {},
+            $ssec: {},
+            $gdict: {},
+            $gsec: {},
+            $iteration: {},
+        };
         for (const key of inlineTemplates()) head[key] = "1";
         for (const { key } of pathHelpers) (head.$path as key)[key] = "1";
         for (const { key } of ruleHelpers) (head.$rule as key)[key] = "1";
+        for (const { key } of iterativeHelpers) (head.$iteration as key)[key] = "1";
         for (const { name, key } of files) (head.$file as key)[(key||name)] = "1"
         for (const { key } of sdict) (head.$sdict as key)[key] = "1";
         for (const { key } of ssec) (head.$ssec as key)[key] = "1";

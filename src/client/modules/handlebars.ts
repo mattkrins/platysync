@@ -18,6 +18,7 @@ Handlebars.registerHelper("$date", function() { return ""; });
 Handlebars.registerHelper("$formatDate", function(_str: string, _format = "LLL") { return ""; });
 Handlebars.registerHelper("$split", function(_str: string, _part = "0", _separator = ",") { return ""; });
 Handlebars.registerHelper("$uuidv4", function() { return ""; });
+Handlebars.registerHelper("$pad", function() { return ""; });
 
 export const compile = function(input: string, options?: CompileOptions | undefined) {
     return Handlebars.compile(input, {...options, noEscape: true, strict: true });
@@ -39,8 +40,9 @@ export const genericHelpers = [
     { key: "$grad", description: "Converts a numeric value to a graduation year.", example: "{{$grad '7'}} > 2029 (if run in 2024)" },
     { key: "$date", description: "Retrieves the current datetime.", example: "{{$date}} > Fri, 25 Jan 2024 02:00:00 GMT'" },
     { key: "$formatDate", description: "Format a date using day.js.", example: "{{$formatDate '2019-01-25', 'YY'}} > 25" },
-    { key: "$split", description: "Return a substring given an index and/or separator.", example: "{{$split 'Hello world', '1', ' '}} > world" },
+    { key: "$split", description: "Return a substring given an index and/or separator.", example: "{{$split 'Hello world' '1' ' '}} > world" },
     { key: "$uuidv4", description: "Generates a version 4 UUID identifier.", example: "{{$uuidv4}} > c9916f3b-067b-4f1..." },
+    { key: "$pad", description: "Zero-Pad a number.", example: "{{$pad 5}} > 05" },
 ];
 
 export const pathHelpers = [
@@ -53,4 +55,15 @@ export const ruleHelpers = [
     { key: "id", description: "Prints the rule's unique run ID.", example: "{{$rule.id}} > c9916f3b-067b-4f1..." },
     { key: "schema", description: "Prints the current schema name.", example: "{{$rule.schema}} > My Schema" },
     { key: "scheduled", description: "Print if the rule was ran from a schedule.", example: "{{$rule.scheduled}} > false" },
+    { key: "count", description: "Prints the total iteration/row count.", example: "{{$iteration.count}} > 100" },
+    { key: "executions", description: "Prints a count of iteration/rows which executed without errors/warns.", example: "{{$iteration.cleanExecutions}} > 10" },
+    { key: "errors", description: "Prints a count of iteration/rows which had errors.", example: "{{$iteration.errors}} > 4" },
+    { key: "warns", description: "Prints a count of iteration/rows which had warns.", example: "{{$iteration.warns}} > 2" },
+    { key: "csv", description: "Prints a results csv.", example: "{{$iteration.csv}} > id,name/n0,john" },
+    { key: "html", description: "Prints a results in html format.", example: "{{$iteration.html}} > <b>id,name</b><br/>0,john" },
+];
+
+export const iterativeHelpers = [
+    { key: "id", description: "Prints the current iteration/row ID.", example: "{{$iteration.id}} > ABC001" },
+    { key: "index", description: "Prints the current iteration/row number/index.", example: "{{$iteration.index}} > 55" },
 ];

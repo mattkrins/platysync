@@ -9,6 +9,7 @@ import { availableOperations, operationProp } from "./operations";
 import { getBlueprints } from "../../../../providers/schemaSlice";
 import { useSelector } from "../../../../hooks/redux";
 import { useMemo } from "react";
+import SelectConnector from "../../../../components/SelectConnector";
 
 function BlueprintSelector({ id, active, onClick }: { id: string, active?: string, onClick(b?: string): void }) {
     const blueprints = useSelector(getBlueprints);
@@ -136,6 +137,12 @@ export default function Action({ index, action, type, form }: { index: number, a
                     </Grid>{Operation&&
                     <Collapse in={opened}>
                         {render&&<>
+                        <SelectConnector mt="sm" //FIXME - 
+                            clearable
+                            label="Connector"
+                            description="Choose Connector."
+                            {...props("connector")}
+                        />
                         <Divider mb="xs" mt={4} />
                         <Box p="xs" pt={0} >
                             <Operation props={props} blueprint={blueprint} rule={form.values} scope={type} form={form} path={`${type}.${index}`} />

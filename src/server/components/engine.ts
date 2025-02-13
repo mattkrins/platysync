@@ -35,6 +35,8 @@ export class Engine {
     private primaryResults: primaryResult[] = [];
     private columns: string[] = [];
     private progress = 0;
+    private iteration = 0;
+    private iterations = 0;
     private hasInit = false;
     private hasFinal = false;
     private testing = false;
@@ -94,6 +96,7 @@ export class Engine {
             (preTemplate.$file as { [k: string]: string })[file.key||file.name] = path;
         }
         await this.connect();
+        if (this.primary && this.connections[this.primary].data) preTemplate.$rule.count = String(this.connections[this.primary].data.length);
         const { todo: initActions, template: initTemplate, error: initError } = await this.processActions(this.rule.initActions, preTemplate, "init");
         if (this.hasInit) this.progress = 15;
         this.initTemplate = initTemplate;
@@ -103,6 +106,18 @@ export class Engine {
         await wait(500);
         await this.iteratePrimary();
         if (this.primary) this.progress = 85;
+        const successful = this.primaryResults.filter(r=>!r.error&&!r.warn);
+        initTemplate.$rule.executions = String(successful.length);
+        initTemplate.$rule.errors = String(this.primaryResults.filter(r=>r.error).length);
+        initTemplate.$rule.warns = String(this.primaryResults.filter(r=>r.warn).length);
+        let csv = `${this.rule.idName||"ID"},` + this.columns.join(',');
+        let html = `<b>${this.rule.idName||"ID"},` + this.columns.join(',') + "</b>";
+        for (const result of successful) {
+            csv += '\n' +  `${result.id},${result.columns.map(c=>c.value).join(",")}`;
+            html += '<br/>' +  `${result.id},${result.columns.map(c=>c.value).join(",")}`;
+        }
+        initTemplate.$rule.csv = csv;
+        initTemplate.$rule.html = html;
         const { todo: finalActions } = await this.processActions(this.rule.finalActions, initTemplate, "final");
         this.Emit({ text: "Finalising..." });
         await wait(500);
@@ -271,7 +286,6 @@ export class Engine {
         const start = new Date().getTime();
         const primary = this.connections[this.primary];
         let p = 0;
-        let i = 0;
         let speed = 0;
         let eta = "Estimating...";
         let lastCalc = 0;
@@ -279,8 +293,8 @@ export class Engine {
         if (this.hasInit) iterativeLength -= 15;
         if (this.hasFinal) iterativeLength -= 15;
         const entries = this.connections[this.primary].data;
-        const entryCount = entries.length;
-        this.Emit({ iteration: { total: entryCount } });
+        this.iterations = entries.length;
+        this.Emit({ iteration: { total: this.iterations } });
         const etas: number[] = [];
         function calculateTimeRemaining(currentWork: number, totalWork: number, speed: number, eta?: number): [string, number] {
             const timeRemainingInSeconds: number = eta || ((totalWork - currentWork) * speed) / 1000;
@@ -293,7 +307,7 @@ export class Engine {
         const emit = (start: number, id: string) => {
             if (lastCalc - (new Date().getTime()) <= 0){
                 lastCalc = start+1000;
-                const [ _, t ] = calculateTimeRemaining(i, entryCount, speed===0?10:speed );
+                const [ _, t ] = calculateTimeRemaining(this.iteration, this.iterations, speed===0?10:speed );
                 if (etas.length >= 5) etas.shift();
                 etas.push(t);
                 const totalMilliseconds = etas.reduce((acc, t) => acc + t, 0);
@@ -301,22 +315,30 @@ export class Engine {
                 const [ remaining ] = calculateTimeRemaining(0, 0, 0, averageMilliseconds );
                 eta = remaining;
             }
-            const x = (i/entryCount) * iterativeLength;
+            const x = (this.iteration/this.iterations) * iterativeLength;
             const r = Math.round((x + Number.EPSILON) * 10) / 10;
             if (r!=p) { p = r; this.queue.run(()=>this.Emit({
                 progress: { iterative: x, total: this.progress + x },
-                iteration: { current: i }, eta, text: id
+                iteration: { current: this.iteration }, eta, text: id
             })); }
             speed = new Date().getTime() - start;
         }
-        for (const record of entries) { i++;
+        for (const record of entries) { this.iteration++;
             const start = new Date().getTime();
             const id = record[this.rule.primaryKey||primary.headers[0]];
             if (!id) continue;
             if (this.filter && !this.filter.includes(id)) continue;
             const joined = this.Join(record);
             if (!joined) continue;
-            const template: template = { ...this.initTemplate, ...joined };
+            const template: template = {
+                ...this.initTemplate,
+                ...joined,
+                $iteration: {
+                    id,
+                    index: String(this.iteration),
+                    count: String(this.iterations),
+                }
+            };
             if (this.rule.conditions.length > 0 && (!this.filter || this.filter.length <= 0)) {
                 if (!(await this.evaluateAll(this.rule.conditions, template, id))) continue;
             }
