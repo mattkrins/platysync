@@ -73,14 +73,24 @@ export default class eduSTAR {
             httpsAgent = new HttpsProxyCookieAgent({ cookies: { jar: this.jar }, host: url.hostname, port: url.port } as unknown as URL);
             this.client = axios.create({
                 baseURL: 'https://apps.edustar.vic.edu.au',
-                headers: { 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42' },
+                headers: { 
+                    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Referer': 'https://apps.edustar.vic.edu.au/edustarmc/',
+                },
                 httpAgent, httpsAgent,
                 proxy: false,
             });
         } else {
             this.client = wrapper(axios.create({
                 baseURL: 'https://apps.edustar.vic.edu.au',
-                headers: { 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42' },
+                headers: { 
+                    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Referer': 'https://apps.edustar.vic.edu.au/edustarmc/',
+                },
                 jar: this.jar
             }));
         }
@@ -100,34 +110,94 @@ export default class eduSTAR {
         }
     }
     public async login(username: string, password: string): Promise<void> {
-        const data = {
-            username,
-            password,
-            SubmitCreds: 'Log in',
-            trusted: '0',
-            formdir: '3',
-            forcedownlevel: '0',
-            flags: '0',
-            curl: 'Z2FedustarmcZ2Fstudent_passwords',
-        };
-        const searchParams = new URLSearchParams(data);
-        const encoded = searchParams.toString();
-        try {
-            const response = await this.client.post("/CookieAuth.dll?Logon", encoded);
-            if (!response || !response.data) throw Error("No response.");
-            const cookies = await this.jar.getCookies(response.config.baseURL as string);
-            if (!cookies || cookies.length <= 0){
-                console.error(response.request.URL)
-                const dom = new JSDOM(response.data);
-                const error = dom.window.document.querySelector('.wrng');
-                if (!error||!error.textContent) throw Error("Unknown Error.");
-                if (error.textContent.includes("You could not be logged on to Forefront TMG")) throw Error("Username or Password incorrect.");
-                throw Error(error.textContent as string);
+        const maxAttempts = 3;
+        let attempt = 0;
+        let lastError: Error | null = null;
+
+        while (attempt < maxAttempts) {
+            attempt++;
+            try {
+                // Step 1: Get the login page first to handle any session conflicts
+                const loginPageResponse = await this.client.get('/edustarmc/');
+                
+                // Step 2: Check for session conflict
+                if (loginPageResponse.data && loginPageResponse.data.includes('Access policy evaluation is already in progress')) {
+                    console.log('Detected session conflict, extracting newsession URI...');
+                    
+                    const newSessionPattern = /"newsession",\s*"uri":\s*"([^"]*)"/;
+                    const newsessionMatch = loginPageResponse.data.match(newSessionPattern);
+                    
+                    if (newsessionMatch && newsessionMatch[1]) {
+                        const newsessionUri = newsessionMatch[1];
+                        console.log('Found newsession URI, creating new session...');
+                        
+                        const newSessionUrl = `/logon.php3?${newsessionUri}`;
+                        await this.client.get(newSessionUrl);
+                        
+                        // Wait a bit for the session to be established
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                    }
+                }
+
+                // Step 3: Prepare authentication data
+                const data = {
+                    curl: 'Z2Fedustarmc',
+                    username,
+                    password,
+                    SubmitCreds: 'Log+in',
+                };
+                const searchParams = new URLSearchParams(data);
+                const encoded = searchParams.toString();
+
+                // Step 4: Submit credentials to the new endpoint with enhanced headers
+                const authHeaders = {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Referer': 'https://apps.edustar.vic.edu.au/edustarmc/',
+                };
+
+                const response = await this.client.post("/my.policy", encoded, { headers: authHeaders });
+                
+                if (!response || !response.data) throw Error("No response.");
+
+                // Step 5: Verify cookies were set
+                const cookies = await this.jar.getCookies(response.config.baseURL as string);
+                if (!cookies || cookies.length <= 0) {
+                    console.error('Authentication failed - no cookies received');
+                    const dom = new JSDOM(response.data);
+                    const error = dom.window.document.querySelector('.wrng');
+                    if (!error || !error.textContent) throw Error("Unknown Error - no cookies received.");
+                    if (error.textContent.includes("You could not be logged on to Forefront TMG")) throw Error("Username or Password incorrect.");
+                    throw Error(error.textContent as string);
+                }
+
+                // Step 6: Test the connection by making an API call
+                try {
+                    await this.client.get('/edustarmc/api/MC/GetUser');
+                    console.log('Login successful - connection verified');
+                    return; // Success!
+                } catch (testError) {
+                    throw Error("Authentication appeared successful but API test failed.");
+                }
+
+            } catch (e) {
+                const { message } = e as { response: { status: number }, message: string };
+                lastError = new Error(message);
+                console.error(`Login attempt ${attempt} of ${maxAttempts} failed: ${message}`);
+                
+                if (attempt < maxAttempts) {
+                    console.log('Waiting before retry...');
+                    await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds before retry
+                }
             }
-        } catch (e) {
-            const { message } = e as { response: {status: number}, message: string }
-            throw Error(message);
         }
+
+        // If we get here, all attempts failed
+        throw lastError || Error("All login attempts failed.");
     }
     public async getStudents(): Promise<starAttributes[]> {
         if (this.students && this.students.length > 0) return this.students;
