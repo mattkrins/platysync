@@ -42,7 +42,6 @@ export default class STMC extends base_provider {
             password: isNotEmpty('Password can not be empty.'),
             school: isNotEmpty('School can not be empty.'),
         });
-        await this.client.validate();
         try {
             await this.client.login(this.username, this.password as string);
         } catch (e) {

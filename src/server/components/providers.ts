@@ -1,3 +1,4 @@
+import { xError } from "../modules/common.js";
 import { Engine } from "./engine.js";
 import API from "./providers/API.js";
 import CSV from "./providers/CSV.js";
@@ -16,7 +17,8 @@ export async function connect(schema: Schema, name: string, connectors: connecti
     const provider = new providers[id]({ id, ...options, ...overrides, schema, key });
     await provider.initialize();
     await provider.configure();
-    await provider.connect(connectors, engine);
+    try { await provider.connect(connectors, engine); }
+    catch (e) { throw new xError(e); }
     connectors[name] = provider;
     return provider;
 }

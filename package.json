@@ -30,6 +30,7 @@
     "handlebars": "^4.7.8",
     "http-cookie-agent": "^6.0.6",
     "http-proxy-agent": "^7.0.2",
+    "httpntlm": "github:mattkrins/node-http-ntlm",
     "https-proxy-agent": "^7.0.5",
     "jsdom": "^25.0.1",
     "ldapjs": "^3.0.7",
