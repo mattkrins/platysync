@@ -2,7 +2,7 @@ import { CookieJar } from 'tough-cookie';
 import * as fs from 'node:fs';
 import { paths } from "../../index.js";
 import { decrypt, encrypt } from "./cryptography.js";
-import eduSTAR, { student } from "./eduSTARAuth.js"
+import eduSTAR, { student } from 'edustar-sdk';
 
 export type passwordPayload = { _login: string, _pass: string }[];
 
