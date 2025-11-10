@@ -1,4 +1,3 @@
-import { CookieJar } from 'tough-cookie';
 import * as fs from 'node:fs';
 import { paths } from "../../index.js";
 import { decrypt, encrypt } from "./cryptography.js";
@@ -23,7 +22,6 @@ export default class eduSTARStmc {
     public school: string;
     private cachePolicy: number = 1440;
     private includeInactive: boolean;
-    private jar = new CookieJar();
     private students: student[] = [];
     public alert?: (status: string) => unknown;
     constructor(options: Options) {

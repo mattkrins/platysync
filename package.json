@@ -23,7 +23,7 @@
     "axios-cookiejar-support": "^5.0.3",
     "croner": "^8.1.2",
     "dayjs": "^1.11.13",
-    "edustar-sdk": "^1.0.0",
+    "edustar-sdk": "^1.1.1",
     "fastify": "^4.28.1",
     "fastify-multer": "^2.0.3",
     "fastify-socket.io": "^5.1.0",
