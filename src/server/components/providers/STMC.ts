@@ -75,10 +75,10 @@ export default class STMC extends base_provider {
     }
     public async connect(connectors: connections, engine: Engine): Promise<{ [k: string]: string }[]> {
         this.client.alert = (text: string) => engine.Emit({ text });
-        const students = await this.client.getStudents();
+        const students = await this.client.getStudents() as unknown  as { [k: string]: string; }[];
         if (this.eduhub) {
             const eduhub = await connect(this.schema, this.eduhub, connectors, engine ) as CSV;
-            const matched = await this.client.getStudentsMatchSTKEY(eduhub.data||[]);
+            const matched = await this.client.getStudentsMatchSTKEY(eduhub.data||[]) as unknown  as { [k: string]: string; }[];
             this.data = matched;
             return matched;
         }

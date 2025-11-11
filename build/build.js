@@ -19,12 +19,12 @@ pack.scripts = {
 if (!fs.existsSync(`${__dirname}/dist`)) fs.mkdirSync(`${__dirname}/dist`);
 if (fs.existsSync(`${__dirname}/../README.md`)) fs.copyFileSync(`${__dirname}/../README.md`, `${__dirname}/dist/README.md`);
 fs.writeFileSync(`${__dirname}/dist/package.json`, JSON.stringify(pack, undefined, 2), 'utf8');
-if (fs.existsSync('WinSW-x64.exe')){
+if (fs.existsSync(`${__dirname}/WinSW-x64.exe`) && !fs.existsSync(`${__dirname}/dist/WinSW-x64.exe`)){
     const xml = `<service>
     <id>${pack.name}</id>
     <description>${pack.description}</description>
     <executable>node</executable>
-    <arguments>index.js</arguments>
+    <arguments>server.js</arguments>
     <delayedAutoStart>true</delayedAutoStart>
     <log mode="roll-by-size">
         <sizeThreshold>10240</sizeThreshold>
@@ -33,7 +33,7 @@ if (fs.existsSync('WinSW-x64.exe')){
     <onfailure action="none" delay="10 sec"/>
 </service>`;
     fs.writeFileSync(`${__dirname}/dist/service.xml`, xml, 'utf8');
-    fs.copyFileSync(`${__dirname}/WinSW-x64.exe`, `${__dirname}/dist/WinSW-x64.exe`);
+     fs.copyFileSync(`${__dirname}/WinSW-x64.exe`, `${__dirname}/dist/WinSW-x64.exe`);
 }
 
 const zip = new AdmZip();
