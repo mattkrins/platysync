@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import { paths } from "../../index.js";
 import { decrypt, encrypt } from "./cryptography.js";
-import eduSTAR, { student } from 'edustar-sdk';
+import eduSTAR, { student } from '@st01350/edustar-sdk';
 
 export type passwordPayload = { _login: string, _pass: string }[];
 
