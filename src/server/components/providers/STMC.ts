@@ -67,11 +67,11 @@ export default class STMC extends base_provider {
         await this.client.login(this.username, this.password as string);
     }
     public async getHeaders(): Promise<string[]> {
-        const headers = ['_class', '_cn', '_desc', '_disabled', '_displayName', '_dn', '_firstName',
-        '_google', '_intune', '_lastLogon', '_lastName', '_lastPwdResetViaMC', '_lockedOut',
-        '_o365', '_pwdExpired', '_pwdExpires', '_pwdLastSet',
-        '_pwdNeverExpires', '_pwdResetAction', '_pwdResetTech', '_yammer' ];
-        return this.eduhub ? [ '_login', '_stkey', ...headers, '_score' ] : [ '_login', ...headers ];
+        const headers = ['_class', 'cn', 'desc', 'disabled', 'disp', 'dn', 'firstName',
+        'google', 'intune', 'lastLogon', 'lastName', 'lastPwdResetViaMC', 'lockedOut',
+        'o365', 'pwdExpired', 'pwdExpires', 'pwdLastSet',
+        'pwdNeverExpires', 'pwdResetAction', 'pwdResetTech', 'yammer' ];
+        return this.eduhub ? [ 'login', 'stkey', ...headers, 'score' ] : [ 'login', ...headers ];
     }
     public async connect(connectors: connections, engine: Engine): Promise<{ [k: string]: string }[]> {
         this.client.alert = (text: string) => engine.Emit({ text });

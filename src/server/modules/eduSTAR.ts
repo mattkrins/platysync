@@ -3,7 +3,7 @@ import { paths } from "../../index.js";
 import { decrypt, encrypt } from "./cryptography.js";
 import eduSTAR, { student } from '@st01350/edustar-sdk';
 
-export type passwordPayload = { _login: string, _pass: string }[];
+export type passwordPayload = { login: string, pass: string }[];
 
 interface cache {
     date: Date;
@@ -28,7 +28,7 @@ export default class eduSTARStmc {
         this.school = options.school;
         this.cachePolicy = options.cache || 1440;
         this.includeInactive = options.includeInactive || false;
-        this.client = new eduSTAR();
+        this.client = new eduSTAR({strictSSL:false});
     }
     public async login(username: string, password: string): Promise<void> {
         await this.client.login(username, password);
@@ -74,7 +74,7 @@ export default class eduSTARStmc {
         try {
             const results = await this.client.setStudentPasswords(this.school, payload);
             if (results.length <= 0) throw Error("Invalid response.");
-            const errors = results.filter(r=>r._outcome!=="OK");
+            const errors = results.filter(r=>r.outcome!=="OK");
             if (errors.length > 0) throw new Error(`Error setting passwords: ${JSON.stringify(errors)}`);
         } catch (e) {
             const { message : defMess, response } = e as { response: { status: number, data?: { Message?: string  } }, message: string };
@@ -91,24 +91,24 @@ export default class eduSTARStmc {
             let score = 0;
             const PREF_DISPLAY_NAME = `${hub.PREF_NAME} ${hub.SURNAME}`;
             const DISPLAY_NAME = `${hub.FIRST_NAME} ${hub.SURNAME}`;
-            if ((hub.E_MAIL.toLowerCase()).includes(star._login.toLowerCase())) score += 5;
-            if (collator.compare(star._displayName, PREF_DISPLAY_NAME) === 0) score += 5;
-            if (collator.compare(star._displayName, DISPLAY_NAME) === 0) score += 4;
-            if (collator.compare(star._firstName, hub.FIRST_NAME) === 0) score += 3;
-            if (collator.compare(star._lastName, hub.SURNAME) === 0) score += 3;
+            if ((hub.E_MAIL.toLowerCase()).includes(star.login.toLowerCase())) score += 5;
+            if (collator.compare(star.disp, PREF_DISPLAY_NAME) === 0) score += 5;
+            if (collator.compare(star.disp, DISPLAY_NAME) === 0) score += 4;
+            if (collator.compare(star.firstName, hub.FIRST_NAME) === 0) score += 3;
+            if (collator.compare(star.lastName, hub.SURNAME) === 0) score += 3;
             if (score < 3) return -1;
             const stkey_slice = hub.STKEY.slice(0, 3);
-            if (collator.compare(star._lastName.slice(0, 3), stkey_slice) === 0) score += 3;
+            if (collator.compare(star.lastName.slice(0, 3), stkey_slice) === 0) score += 3;
             if (score < 3) return -1;
-            if (collator.compare(star._login[0], hub.FIRST_NAME[0]) === 0) score += 2;
-            if (collator.compare(star._login[2], hub.SURNAME[0]) === 0) score += 1;
-            if (collator.compare(star._login[1], hub.SURNAME[0]) === 0) score += 1;
+            if (collator.compare(star.login[0], hub.FIRST_NAME[0]) === 0) score += 2;
+            if (collator.compare(star.login[2], hub.SURNAME[0]) === 0) score += 1;
+            if (collator.compare(star.login[1], hub.SURNAME[0]) === 0) score += 1;
             if (collator.compare(star._class, hub.HOME_GROUP) === 0) score += 1;
-            if (collator.compare(star._desc, hub.SCHOOL_YEAR) === 0) score += 1;
-            if (star._login.includes(stkey_slice)) score += 1;
-            if (star._lastLogon) score += 1;
+            if (collator.compare(star.desc, hub.SCHOOL_YEAR) === 0) score += 1;
+            if (star.login.includes(stkey_slice)) score += 1;
+            if (star.lastLogon) score += 1;
             if (this.includeInactive && hub.STATUS==="ACTV") score += 1;
-            if (!star._disabled) score += 1;
+            if (!star.disabled) score += 1;
             return score;
         }
         const students = await this.getStudents();

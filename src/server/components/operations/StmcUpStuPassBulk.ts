@@ -28,7 +28,7 @@ export default class StmcUpStuPassBulk extends Operation {
             if (source.meta.fields[1] !== "password") throw new xError('Header 2 invalid.');
             if (!execute) return { data };
             const csv = source.data as {login: string, password: string}[];
-            const payload = csv.map(row=>({ _login:row.login, _pass: row.password }));
+            const payload = csv.map(row=>({ login:row.login, pass: row.password }));
             if (payload.length<=0) throw new xError('Payload empty.');
             engine.Emit({ text: `Uploading ${payload.length} rows to STMC` });
             await stmc.client.setStudentPasswords(payload);
