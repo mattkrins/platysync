@@ -101,8 +101,7 @@ export class scheduled {
             }
             this.tasks[i] = func;
         }
-        for (let i=0; i<options.triggers.length; ++i) {
-            const trigger = options.triggers[i];
+        for (const trigger of options.triggers) {
             if (!trigger.enabled) continue;
             switch (trigger.name) {
                 case "watch": {
@@ -116,7 +115,7 @@ export class scheduled {
                                 await this.execute("watch");
                             } catch (e) { this.error(e as xError); }
                         });
-                        this.watching[i] = watcher;
+                        this.watching.push(watcher);
                     } catch (e) { this.error(e as xError); }
                     break;
                 }
@@ -131,7 +130,7 @@ export class scheduled {
                                 await this.execute("cron");
                             } catch (e) { this.error(e as xError); }
                         });
-                        this.waiting_jobs[i] = job;
+                        this.waiting_jobs.push(job);
                     } catch (e) { this.error(e as xError); }
                     break;
                 }
@@ -146,8 +145,8 @@ export class scheduled {
         } catch (e) { this.error(e as xError); }
     }
     stop() {
-        for (const watcher of this.watching) watcher.close();
-        for (const job of this.waiting_jobs) job.stop();
+        for (const watcher of this.watching) watcher?.close();
+        for (const job of this.waiting_jobs) job?.stop();
     }
     error(e: xError, rule?: string) {
         this.failures ++;
