@@ -19,7 +19,7 @@
     "fastify-multer": "^2.0.3",
     "fastify-socket.io": "^5.0.0",
     "fs-extra": "^11.2.0",
-    "handlebars": "^4.7.8",
+    "handlebars": "^4.7.9",
     "http-cookie-agent": "^6.0.5",
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.4",
