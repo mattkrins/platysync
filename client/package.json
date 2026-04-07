@@ -30,7 +30,7 @@
     "@types/react-dom": "^18.2.25",
     "@typescript-eslint/eslint-plugin": "^7.6.0",
     "@typescript-eslint/parser": "^7.6.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",
@@ -39,6 +39,6 @@
     "postcss-preset-mantine": "^1.14.4",
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^5.4.5",
-    "vite": "^5.4.21"
+    "vite": "^8.0.5"
   }
 }
