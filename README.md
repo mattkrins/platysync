@@ -1,3 +1,19 @@
+<p align="center">
+  <picture>
+    <source
+      width="300px"
+      media="(prefers-color-scheme: dark)"
+      srcset="https://github.com/mattkrins/platysync/assets/2367602/b5a94c39-87a2-4e6c-8938-2fa0cacf4a90"
+    >
+    <img 
+      width="300px"
+      src="https://github.com/mattkrins/platysync/assets/2367602/d6feedf7-b736-437d-be0c-9bb1b0ffee2c"
+    >
+  </picture>
+   <br>
+   Action Automation
+</p>
+
 # ❓ PlatySync
 
 PlatySync is a web-based automation application that takes structured input data, such as a CSV file, and executes actions based on conditional logic.
