@@ -27,6 +27,7 @@ export default class TransEmailSend extends Operation {
             data.to = compile(template, action.to);
             data.from = compile(template, action.from);
             data.subject = compile(template, action.subject);
+            data.password = action.password;
             if (action.text) data.text = compile(template, action.text);
             if (action.html) data.html = compile(template, action.html);
             if (action.password && typeof action.password !== 'string') data.password = await decrypt(action.password as Hash);
