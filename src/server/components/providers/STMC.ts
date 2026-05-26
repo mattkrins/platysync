@@ -71,7 +71,7 @@ export default class STMC extends base_provider {
         'google', 'intune', 'lastLogon', 'lastName', 'lastPwdResetViaMC', 'lockedOut',
         'o365', 'pwdExpired', 'pwdExpires', 'pwdLastSet',
         'pwdNeverExpires', 'pwdResetAction', 'pwdResetTech', 'yammer' ];
-        return this.eduhub ? [ 'login', 'stkey', ...headers, 'score' ] : [ 'login', ...headers ];
+        return this.eduhub ? [ 'login', '_stkey', ...headers, 'score' ] : [ 'login', ...headers ];
     }
     public async connect(connectors: connections, engine: Engine): Promise<{ [k: string]: string }[]> {
         this.client.alert = (text: string) => engine.Emit({ text });
