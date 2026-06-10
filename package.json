@@ -20,7 +20,7 @@
     "@fastify/static": "^7.0.4",
     "@st01350/edustar-sdk": "^2.0.0",
     "@types/tough-cookie": "^4.0.5",
-    "axios": "^1.7.7",
+    "axios": "^1.17.0",
     "axios-cookiejar-support": "^5.0.3",
     "croner": "^8.1.2",
     "dayjs": "^1.11.13",
